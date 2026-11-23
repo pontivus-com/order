@@ -1770,6 +1770,985 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   expect(runtimeErrors).toEqual([]);
 });
 
+
+test("rendered acceptance IA26 captures downstream Workbench", async ({
+  page,
+  request,
+}) => {
+  test.skip(
+    renderedAcceptanceDir === undefined,
+    "IA26 rendered acceptance runs only in its GitHub Actions evidence step",
+  );
+  test.setTimeout(180_000);
+
+  const runtimeErrors: string[] = [];
+  page.on("pageerror", (error) => runtimeErrors.push("pageerror: " + error.message));
+  page.on("console", (message) => {
+    if (message.type() === "error") runtimeErrors.push("console: " + message.text());
+  });
+
+  let loginStatus: "PENDING" | "FAILED" | "EXPIRED" | "CANCELLED" = "PENDING";
+  const loginAttemptId = "00000000-0000-4000-8000-00000000a026";
+  const accountState = OpenCodeAccountStateSchema.parse({
+    accounts: [
+      { id: "cred_ia26_alpha", label: "alpha@example.com", active: true, status: { status: "READY" } },
+      { id: "cred_ia26_beta", label: "beta@example.com", active: false, status: { status: "READY" } },
+    ],
+    activeAccountId: "cred_ia26_alpha",
+    mutationBlockers: [],
+  });
+  await page.route("**/api/opencode/accounts**", async (route) => {
+    const req = route.request();
+    const url = new URL(req.url());
+    if (url.pathname === "/api/opencode/accounts" && req.method() === "GET") {
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(accountState) });
+      return;
+    }
+    if (url.pathname === "/api/opencode/accounts/login" && req.method() === "POST") {
+      await route.fulfill({
+        status: 201,
+        contentType: "application/json",
+        body: JSON.stringify({
+          id: loginAttemptId,
+          authorizationUrl: "https://opencode.ai/console/device",
+          instructions: "Open the verification page and continue.",
+          expiresAt: "2026-11-24T04:00:00.000Z",
+          status: "PENDING",
+          message: null,
+        }),
+      });
+      return;
+    }
+    if (url.pathname === "/api/opencode/accounts/login/" + loginAttemptId && req.method() === "GET") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          id: loginAttemptId,
+          authorizationUrl: "https://opencode.ai/console/device",
+          instructions: "Open the verification page and continue.",
+          expiresAt: "2026-11-24T04:00:00.000Z",
+          status: loginStatus,
+          message: loginStatus === "FAILED" ? "Provider rejected sign-in." : null,
+        }),
+      });
+      return;
+    }
+    if (url.pathname === "/api/opencode/accounts/login/" + loginAttemptId && req.method() === "DELETE") {
+      await route.fulfill({ status: 204 });
+      return;
+    }
+    await route.fallback();
+  });
+
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await authenticate(page, request);
+  await page.getByRole("radio", { name: "Light" }).click();
+
+  const entries: RenderedAcceptanceEntry[] = [];
+  const routeValue = (): string => {
+    const url = new URL(page.url());
+    return url.pathname + url.search;
+  };
+  const capture = async (
+    entry: Omit<RenderedAcceptanceEntry, "screenshot">,
+    target?: Locator,
+  ): Promise<void> => {
+    entries.push(await captureRenderedAcceptance(page, entry, target));
+  };
+  const light = { width: 1440, height: 900 } as const;
+  const narrow = { width: 700, height: 800 } as const;
+
+  // IA34 — Settings and OpenCode, including the two destructive confirmations.
+  await page.getByRole("link", { name: "Settings", exact: true }).click();
+  const settings = page.getByTestId("settings-workspace");
+  const repositories = page.getByTestId("settings-repositories");
+  await expect(settings).toBeVisible();
+  await expect(repositories).toBeVisible();
+  await capture({
+    id: "ia26-settings-frame-wide-light",
+    workItemKind: "QUEUE",
+    workflowStep: null,
+    surface: "SURF-SET-001",
+    state: "repositories-current-diagnostics-closed",
+    fixture: "deterministic installation Settings",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/settings-repositories.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-INSTALLATION-READINESS"],
+  }, settings);
+  await capture({
+    id: "ia26-settings-repositories-wide-light",
+    workItemKind: "QUEUE",
+    workflowStep: null,
+    surface: "SURF-SET-REPO-001",
+    state: "connected-repository-inventory",
+    fixture: "order-e2e connected repository",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/settings-repositories.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-PROJECT-GOVERNANCE-INTEGRATION"],
+  }, repositories);
+
+  await repositories.getByRole("button", { name: "Add repository" }).click();
+  const addRepository = repositories.getByTestId("add-repository-form");
+  await expect(addRepository).toBeVisible();
+  await capture({
+    id: "ia26-settings-repository-add-wide-light",
+    workItemKind: "QUEUE",
+    workflowStep: null,
+    surface: "SURF-SET-REPO-ADD-001",
+    state: "bounded-add-repository-task",
+    fixture: "repository add task",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/settings-repository-add.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX"],
+  }, addRepository);
+  await addRepository.getByRole("button", { name: "Cancel add repository" }).click();
+
+  const repositoryTable = repositories.getByRole("table", { name: "Connected repositories" });
+  const repositoryRow = repositoryTable.getByRole("row").nth(1);
+  await repositoryRow.getByRole("button", { name: /^Move WorkItem documents for / }).click();
+  const moveDocuments = repositories.getByTestId("move-workitem-documents");
+  await capture({
+    id: "ia26-settings-repository-move-wide-light",
+    workItemKind: "QUEUE",
+    workflowStep: null,
+    surface: "SURF-SET-REPO-MOVE-001",
+    state: "bounded-document-root-migration",
+    fixture: "repository document-root move task",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/settings-repository-move.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM"],
+  }, moveDocuments);
+  await moveDocuments.getByRole("button", { name: "Cancel move" }).click();
+
+  await repositoryRow.getByRole("button", { name: /^Disconnect / }).click();
+  const disconnect = page.getByRole("alertdialog", { name: "Disconnect repository?" });
+  await capture({
+    id: "ia26-confirm-repository-disconnect-wide-light",
+    workItemKind: "QUEUE",
+    workflowStep: null,
+    surface: "SURF-CONF-REPO-DISCONNECT-001",
+    state: "destructive-confirmation",
+    fixture: "connected repository disconnect confirmation",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    captureScope: "production confirmation only",
+    references: ["docs/references/workbench-ui/safety-confirmations.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX"],
+  }, disconnect);
+  await disconnect.getByRole("button", { name: "Cancel" }).click();
+
+  await settings.getByRole("link", { name: "OpenCode", exact: true }).click();
+  const openCode = page.getByTestId("settings-opencode");
+  await expect(openCode).toBeVisible();
+  await capture({
+    id: "ia26-settings-opencode-wide-light",
+    workItemKind: "QUEUE",
+    workflowStep: null,
+    surface: "SURF-SET-OC-001",
+    state: "saved-account-inventory",
+    fixture: "two deterministic saved OpenCode accounts",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/settings-opencode.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-OPENCODE-INTEGRATION-V1"],
+  }, openCode);
+
+  await openCode.getByRole("button", { name: "Rename beta@example.com" }).click();
+  const renameAccount = page.getByTestId("rename-opencode-account");
+  await capture({
+    id: "ia26-settings-opencode-rename-wide-light",
+    workItemKind: "QUEUE",
+    workflowStep: null,
+    surface: "SURF-SET-OC-RENAME-001",
+    state: "bounded-rename-task",
+    fixture: "saved OpenCode account rename",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/settings-opencode-rename.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-OPENCODE-INTEGRATION-V1"],
+  }, renameAccount);
+  await renameAccount.getByRole("button", { name: "Cancel rename" }).click();
+
+  await openCode.getByRole("button", { name: "Remove beta@example.com" }).click();
+  const removeAccount = page.getByRole("alertdialog", { name: "Remove saved OpenCode account?" });
+  await capture({
+    id: "ia26-confirm-opencode-remove-wide-light",
+    workItemKind: "QUEUE",
+    workflowStep: null,
+    surface: "SURF-CONF-OC-REMOVE-001",
+    state: "destructive-confirmation",
+    fixture: "saved OpenCode account removal",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    captureScope: "production confirmation only",
+    references: ["docs/references/workbench-ui/safety-confirmations.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-OPENCODE-INTEGRATION-V1"],
+  }, removeAccount);
+  await removeAccount.getByRole("button", { name: "Cancel" }).click();
+
+  await openCode.getByRole("button", { name: "Add account" }).click();
+  const addAccount = page.getByTestId("add-opencode-account");
+  await capture({
+    id: "ia26-settings-opencode-add-wide-light",
+    workItemKind: "QUEUE",
+    workflowStep: null,
+    surface: "SURF-SET-OC-ADD-001",
+    state: "bounded-add-account-task",
+    fixture: "saved OpenCode account add",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/settings-opencode-add.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-OPENCODE-INTEGRATION-V1"],
+  }, addAccount);
+  await addAccount.getByLabel("Account label").fill("ia26@example.com");
+  loginStatus = "PENDING";
+  await addAccount.getByRole("button", { name: "Continue to OpenCode sign-in" }).click();
+  const loginAttempt = page.getByTestId("opencode-login-attempt");
+  await expect(loginAttempt).toContainText("Waiting for sign-in");
+  await capture({
+    id: "ia26-settings-opencode-login-pending-wide-light",
+    workItemKind: "QUEUE",
+    workflowStep: null,
+    surface: "SURF-SET-OC-LOGIN-001",
+    state: "pending-authorization",
+    fixture: "deterministic pending OpenCode login",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    references: [
+      "docs/references/workbench-ui/settings-opencode-login.svg",
+      "docs/references/workbench-ui/settings-opencode-login-states.svg",
+    ],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-OPENCODE-INTEGRATION-V1"],
+  }, loginAttempt);
+  await loginAttempt.getByRole("button", { name: "Cancel OpenCode sign-in" }).click();
+  await expect(openCode.getByRole("button", { name: "Add account" })).toBeVisible();
+
+  for (const [status, label] of [
+    ["FAILED", "sign-in-failed"],
+    ["EXPIRED", "sign-in-expired"],
+    ["CANCELLED", "sign-in-cancelled"],
+  ] as const) {
+    loginStatus = status;
+    await openCode.getByRole("button", { name: "Add account" }).click();
+    await openCode.getByLabel("Account label").fill("ia26-" + status.toLowerCase() + "@example.com");
+    await openCode.getByRole("button", { name: "Continue to OpenCode sign-in" }).click();
+    const terminalLogin = page.getByTestId("opencode-login-attempt");
+    await expect(terminalLogin.getByRole("button", { name: "Done" })).toBeVisible({ timeout: 5_000 });
+    await capture({
+      id: "ia26-settings-opencode-login-" + status.toLowerCase() + "-wide-light",
+      workItemKind: "QUEUE",
+      workflowStep: null,
+      surface: "SURF-SET-OC-LOGIN-001",
+      state: label,
+      fixture: "deterministic " + status.toLowerCase() + " OpenCode login",
+      viewport: light,
+      theme: "Light",
+      route: routeValue(),
+      references: ["docs/references/workbench-ui/settings-opencode-login-states.svg"],
+      authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-OPENCODE-INTEGRATION-V1"],
+    }, terminalLogin);
+    await terminalLogin.getByRole("button", { name: "Done" }).click();
+  }
+
+  await settings.getByRole("link", { name: "Model & runtime", exact: true }).click();
+  const modelSettings = page.getByTestId("settings-model");
+  await capture({
+    id: "ia26-settings-model-wide-light",
+    workItemKind: "QUEUE",
+    workflowStep: null,
+    surface: "SURF-SET-MODEL-001",
+    state: "configured-model-task",
+    fixture: "deterministic model/runtime settings",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/settings-model.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-OPENCODE-INTEGRATION-V1"],
+  }, modelSettings);
+
+  const diagnosticsToggle = settings.getByRole("button", { name: "Settings diagnostics", exact: true });
+  await diagnosticsToggle.click();
+  await capture({
+    id: "ia26-settings-diagnostics-model-wide-light",
+    workItemKind: "QUEUE",
+    workflowStep: null,
+    surface: "SURF-SET-001",
+    state: "explicit-settings-diagnostics",
+    fixture: "model settings explicit diagnostics",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/settings-model.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX"],
+  }, page.getByTestId("settings-diagnostics"));
+  await diagnosticsToggle.click();
+
+  await page.setViewportSize(narrow);
+  await capture({
+    id: "ia26-settings-model-narrow-light",
+    workItemKind: "QUEUE",
+    workflowStep: null,
+    surface: "SURF-SET-MODEL-001",
+    state: "configured-model-task-narrow",
+    fixture: "deterministic model/runtime settings",
+    viewport: narrow,
+    theme: "Light",
+    route: routeValue(),
+    references: [
+      "docs/references/workbench-ui/settings-model.svg",
+      "docs/references/workbench-ui/responsive-composition.svg",
+    ],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2"],
+  }, settings);
+  await page.setViewportSize(light);
+
+  // IA29 — Work request, document materials, and safety confirmations.
+  await page.goto("/");
+  await openWorkItem(page, "Source editing workbench");
+  await selectWorkflowStep(page, "Work request");
+  const sourceMaterial = page.getByTestId("source-document-material");
+  await capture({
+    id: "ia26-work-request-step-wide-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Work request",
+    surface: "SURF-STEP-WR-001",
+    state: "source-selected",
+    fixture: "Source editing workbench",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/work-request.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-MARKDOWN-WORKBENCH-V1"],
+  });
+  await capture({
+    id: "ia26-source-document-wide-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Work request",
+    surface: "SURF-MAT-SOURCE-001",
+    state: "read-view",
+    fixture: "Source editing workbench canonical source",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    captureScope: "production source document material",
+    references: ["docs/references/workbench-ui/document-authoring.svg"],
+    authorityRefs: ["GW-DOC-MARKDOWN-WORKBENCH-V1", "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM"],
+  }, sourceMaterial);
+
+  const sourceEditor = await openMarkdownEditor(page, "WorkItem source Markdown source");
+  await capture({
+    id: "ia26-source-document-editor-wide-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Work request",
+    surface: "SURF-MAT-SOURCE-001",
+    state: "active-editor",
+    fixture: "Source editing workbench active source editor",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/document-authoring.svg", "docs/references/workbench-ui/document-states.svg"],
+    authorityRefs: ["GW-DOC-MARKDOWN-WORKBENCH-V1"],
+  }, page.locator("form.order-markdown-editor"));
+
+  const sourceText = await markdownSourceValue(sourceEditor);
+  await replaceMarkdownSource(page, sourceEditor, sourceText + "\nIA26 unsaved material\n");
+  await page.getByTestId("workflow-rail").getByRole("button", { name: "Research", exact: true }).click();
+  const dirtyMaterial = page.getByRole("alertdialog", { name: "Discard unsaved Markdown?" });
+  await capture({
+    id: "ia26-confirm-dirty-material-wide-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Work request",
+    surface: "SURF-CONF-DIRTY-MATERIAL-001",
+    state: "dirty-material-navigation",
+    fixture: "unsaved Work request source",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    captureScope: "production confirmation only",
+    references: ["docs/references/workbench-ui/safety-confirmations.svg"],
+    authorityRefs: ["GW-DOC-MARKDOWN-WORKBENCH-V1"],
+  }, dirtyMaterial);
+  await dirtyMaterial.getByRole("button", { name: "Cancel", exact: true }).click();
+
+  await page.getByRole("link", { name: "Back to queue" }).click();
+  const dirtyDestination = page.getByRole("alertdialog", { name: "Discard unsaved Markdown?" });
+  await capture({
+    id: "ia26-confirm-dirty-destination-wide-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Work request",
+    surface: "SURF-CONF-DIRTY-DEST-001",
+    state: "dirty-destination-navigation",
+    fixture: "unsaved Work request source",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    captureScope: "production confirmation only",
+    references: ["docs/references/workbench-ui/safety-confirmations.svg"],
+    authorityRefs: ["GW-DOC-MARKDOWN-WORKBENCH-V1"],
+  }, dirtyDestination);
+  await dirtyDestination.getByRole("button", { name: "Cancel", exact: true }).click();
+  await page.getByRole("button", { name: "Cancel", exact: true }).click();
+
+  await backToQueue(page);
+  await openWorkItem(page, "Lifecycle editing workbench");
+  await selectWorkflowStep(page, "Implementation plan");
+  const planEditor = await openMarkdownEditor(page, "Implementation plan document Markdown source");
+  await capture({
+    id: "ia26-lifecycle-document-editor-wide-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Implementation plan",
+    surface: "SURF-MAT-DOC-001",
+    state: "active-editor",
+    fixture: "Lifecycle editing workbench Plan editor",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/document-authoring.svg", "docs/references/workbench-ui/document-states.svg"],
+    authorityRefs: ["GW-DOC-MARKDOWN-WORKBENCH-V1"],
+  }, page.locator("form.order-markdown-editor"));
+  await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  await selectWorkflowStep(page, "Readiness review");
+  const readOnlyMaterial = page.getByTestId("markdown-readonly").first();
+  await expect(readOnlyMaterial).toBeVisible();
+  await capture({
+    id: "ia26-lifecycle-document-readonly-wide-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Readiness review",
+    surface: "SURF-MAT-DOC-RO-001",
+    state: "read-only-governed-document",
+    fixture: "Lifecycle editing workbench R3 material",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/document-readonly.svg", "docs/references/workbench-ui/document-states.svg"],
+    authorityRefs: ["GW-DOC-MARKDOWN-WORKBENCH-V1"],
+  }, readOnlyMaterial);
+
+  await backToQueue(page);
+  await page.getByRole("button", { name: "New work item" }).click();
+  const create = page.getByRole("dialog", { name: "Create work item" });
+  await create.getByRole("combobox", { name: "Project Required" }).click();
+  await page.getByRole("option", { name: "order-e2e", exact: true }).click();
+  await create.getByRole("radio", { name: "Change" }).click();
+  await create.getByLabel("Title").fill("IA26 confirmation fixture");
+  await create.getByRole("button", { name: "Concerns", exact: true }).click();
+  await page.getByRole("option", { name: "browser" }).click();
+  await page.keyboard.press("Escape");
+  await create.getByRole("button", { name: "Create work item" }).click();
+  await expect(page.getByTestId("work-item-heading")).toHaveText("IA26 confirmation fixture");
+  await page.getByRole("button", { name: "Save documentation to Git" }).click();
+  const gitConfirm = page.getByRole("dialog", { name: "Save WorkItem documentation to Git?" });
+  await capture({
+    id: "ia26-confirm-documentation-git-wide-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Work request",
+    surface: "SURF-CONF-DOC-GIT-001",
+    state: "exact-path-commit-confirmation",
+    fixture: "new untracked WorkItem documentation",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    captureScope: "production confirmation only",
+    references: ["docs/references/workbench-ui/safety-confirmations.svg"],
+    authorityRefs: ["GW-DOC-MARKDOWN-WORKBENCH-V1"],
+  }, gitConfirm);
+  await gitConfirm.getByRole("button", { name: "Cancel", exact: true }).click();
+  await page.getByRole("button", { name: "Archive", exact: true }).click();
+  const archiveConfirm = page.getByRole("dialog", { name: "Archive work item?" });
+  await capture({
+    id: "ia26-confirm-archive-wide-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Work request",
+    surface: "SURF-CONF-ARCHIVE-001",
+    state: "archive-confirmation",
+    fixture: "IA26 confirmation fixture",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    captureScope: "production confirmation only",
+    references: ["docs/references/workbench-ui/safety-confirmations.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX"],
+  }, archiveConfirm);
+  await archiveConfirm.getByRole("button", { name: "Cancel", exact: true }).click();
+
+  // Work-kind information variants.
+  await backToQueue(page);
+  for (const [title, kind] of [
+    ["Change work type", "CHANGE"],
+    ["Defect work type", "DEFECT"],
+    ["Investigation work type", "INVESTIGATION"],
+    ["Audit work type", "AUDIT"],
+  ] as const) {
+    await openWorkItem(page, title);
+    const source = page.getByTestId("source-document-material");
+    await capture({
+      id: "ia26-work-type-" + kind.toLowerCase() + "-source-wide-light",
+      workItemKind: kind,
+      workflowStep: "Work request",
+      surface: "SURF-MAT-SOURCE-001",
+      state: "work-type-" + kind.toLowerCase(),
+      fixture: title,
+      viewport: light,
+      theme: "Light",
+      route: routeValue(),
+      references: ["docs/references/workbench-ui/work-type-variants.svg"],
+      authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM"],
+    }, source);
+    await backToQueue(page);
+  }
+
+  // IA30 — productive stages, Dialogue and direct Proposal Review.
+  const stageCases = [
+    ["Research open continuation", "Research", "SURF-STEP-R1-001", "research.svg"],
+    ["Requirements document visual", "Requirements", "SURF-STEP-R2-001", "requirements.svg"],
+    ["Solution design document visual", "Solution design", "SURF-STEP-DESIGN-001", "solution-design.svg"],
+    ["Implementation plan document visual", "Implementation plan", "SURF-STEP-PLAN-001", "implementation-plan.svg"],
+  ] as const;
+  for (const [title, step, surface, reference] of stageCases) {
+    await openWorkItem(page, title);
+    await selectWorkflowStep(page, step);
+    await page.setViewportSize(light);
+    await capture({
+      id: "ia26-" + step.toLowerCase().replaceAll(" ", "-") + "-wide-light",
+      workItemKind: "CHANGE",
+      workflowStep: step,
+      surface,
+      state: "primary-wide",
+      fixture: title,
+      viewport: light,
+      theme: "Light",
+      route: routeValue(),
+      references: ["docs/references/workbench-ui/" + reference],
+      authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2"],
+    });
+    await page.setViewportSize(narrow);
+    await capture({
+      id: "ia26-" + step.toLowerCase().replaceAll(" ", "-") + "-narrow-light",
+      workItemKind: "CHANGE",
+      workflowStep: step,
+      surface,
+      state: "primary-narrow",
+      fixture: title,
+      viewport: narrow,
+      theme: "Light",
+      route: routeValue(),
+      references: ["docs/references/workbench-ui/" + reference, "docs/references/workbench-ui/responsive-composition.svg"],
+      authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2"],
+    });
+    await page.setViewportSize(light);
+    if (step === "Research") {
+      const activity = page.getByTestId("activity-detail");
+      await capture({
+        id: "ia26-stage-dialogue-open-wide-light",
+        workItemKind: "CHANGE",
+        workflowStep: "Research",
+        surface: "SURF-MAT-ACTIVITY-001",
+        state: "open-continuation",
+        fixture: title,
+        viewport: light,
+        theme: "Light",
+        route: routeValue(),
+        references: ["docs/references/workbench-ui/dialogue-states.svg", "docs/references/workbench-ui/research.svg"],
+        authorityRefs: ["GW-DOC-WORKBENCH-UX"],
+      }, activity);
+    }
+    await backToQueue(page);
+  }
+
+  await openWorkItem(page, "Workflow input required");
+  const requiredInputActivity = page.getByTestId("activity-detail");
+  await capture({
+    id: "ia26-stage-dialogue-required-input-wide-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Implementation plan",
+    surface: "SURF-MAT-ACTIVITY-001",
+    state: "required-input",
+    fixture: "Workflow input required",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/dialogue-states.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX"],
+  }, requiredInputActivity);
+  await backToQueue(page);
+
+  await openWorkItem(page, "Proposal review");
+  const proposal = page.getByTestId("proposal-review-workspace");
+  await capture({
+    id: "ia26-proposal-review-wide-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Implementation plan",
+    surface: "SURF-MAT-PROPOSAL-001",
+    state: "pending-decision-direct-review",
+    fixture: "Proposal review",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/proposal-review.svg", "docs/references/workbench-ui/proposal-states.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX"],
+  }, proposal);
+  await page.getByRole("radio", { name: "Dark" }).click();
+  await capture({
+    id: "ia26-proposal-review-wide-dark",
+    workItemKind: "CHANGE",
+    workflowStep: "Implementation plan",
+    surface: "SURF-MAT-PROPOSAL-001",
+    state: "pending-decision-direct-review-dark",
+    fixture: "Proposal review",
+    viewport: light,
+    theme: "Dark",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/proposal-review.svg", "docs/references/workbench-ui/theme-parity.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
+  }, proposal);
+  await page.getByRole("radio", { name: "Light" }).click();
+  await backToQueue(page);
+
+  await openWorkItem(page, "Proposal adoption in progress");
+  await capture({
+    id: "ia26-proposal-review-adopting-wide-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Implementation plan",
+    surface: "SURF-MAT-PROPOSAL-001",
+    state: "adoption-in-progress",
+    fixture: "Proposal adoption in progress",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/proposal-states.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX"],
+  }, page.getByTestId("proposal-review-workspace"));
+  await backToQueue(page);
+
+  // IA31 — direct Readiness and Approval Review plus task detail.
+  await openWorkItem(page, "Awaiting sign-off");
+  await selectWorkflowStep(page, "Readiness review");
+  const readinessReview = page.getByTestId("review-workspace");
+  await capture({
+    id: "ia26-readiness-review-wide-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Readiness review",
+    surface: "SURF-STEP-R3-001",
+    state: "ready-for-signoff-direct-review",
+    fixture: "Awaiting sign-off R3",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/readiness-review.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX"],
+  }, readinessReview);
+  await page.setViewportSize(narrow);
+  await capture({
+    id: "ia26-readiness-review-narrow-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Readiness review",
+    surface: "SURF-STEP-R3-001",
+    state: "ready-for-signoff-direct-review-narrow",
+    fixture: "Awaiting sign-off R3",
+    viewport: narrow,
+    theme: "Light",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/readiness-review.svg", "docs/references/workbench-ui/responsive-composition.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX"],
+  }, readinessReview);
+  await page.setViewportSize(light);
+
+  await selectWorkflowStep(page, "Approval");
+  const approval = page.getByTestId("review-workspace");
+  await capture({
+    id: "ia26-approval-wide-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Approval",
+    surface: "SURF-STEP-APPROVAL-001",
+    state: "exact-current-package-direct-review",
+    fixture: "Awaiting sign-off",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/approval.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX"],
+  }, approval);
+  await page.setViewportSize(narrow);
+  await capture({
+    id: "ia26-approval-narrow-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Approval",
+    surface: "SURF-STEP-APPROVAL-001",
+    state: "exact-current-package-direct-review-narrow",
+    fixture: "Awaiting sign-off",
+    viewport: narrow,
+    theme: "Light",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/approval.svg", "docs/references/workbench-ui/responsive-composition.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX"],
+  }, approval);
+  await page.setViewportSize(light);
+  await openDisclosureResource(page, "Package material", "Inspect task: Prove the browser candidate surface");
+  const approvalTask = page.getByTestId("approval-task-detail");
+  await capture({
+    id: "ia26-approval-task-wide-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Approval",
+    surface: "SURF-MAT-APPROVAL-TASK-001",
+    state: "signed-task-detail",
+    fixture: "Awaiting sign-off task",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/approval-task-detail.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX"],
+  }, approvalTask);
+  await backToQueue(page);
+
+  await openWorkItem(page, "Readiness input required");
+  await capture({
+    id: "ia26-readiness-required-input-wide-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Readiness review",
+    surface: "SURF-STEP-R3-001",
+    state: "required-input-inside-review",
+    fixture: "Readiness input required",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/readiness-review.svg", "docs/references/workbench-ui/dialogue-states.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX"],
+  }, page.getByTestId("review-workspace"));
+  await backToQueue(page);
+
+  // IA32 — Implementation master/detail and task detail.
+  await openWorkItem(page, "Implementation action ready");
+  const execution = page.getByTestId("execution-workspace");
+  await capture({
+    id: "ia26-implementation-wide-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Implementation",
+    surface: "SURF-STEP-EXEC-001",
+    state: "current-task-ready",
+    fixture: "Implementation action ready",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/implementation.svg", "docs/references/workbench-ui/implementation-states.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX"],
+  }, execution);
+  await capture({
+    id: "ia26-implementation-task-wide-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Implementation",
+    surface: "SURF-MAT-EXEC-TASK-001",
+    state: "approved-task-contract",
+    fixture: "Implementation action ready",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/implementation.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX"],
+  }, page.getByTestId("execution-task-detail"));
+  await page.setViewportSize(narrow);
+  await capture({
+    id: "ia26-implementation-narrow-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Implementation",
+    surface: "SURF-STEP-EXEC-001",
+    state: "current-task-ready-narrow",
+    fixture: "Implementation action ready",
+    viewport: narrow,
+    theme: "Light",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/implementation.svg", "docs/references/workbench-ui/responsive-composition.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX"],
+  }, execution);
+  await page.setViewportSize(light);
+  await backToQueue(page);
+
+  await openWorkItem(page, "Failed implementation feedback");
+  await capture({
+    id: "ia26-implementation-blocked-wide-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Implementation",
+    surface: "SURF-STEP-EXEC-001",
+    state: "blocked-validation-failure",
+    fixture: "Failed implementation feedback",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/implementation-states.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX"],
+  }, page.getByTestId("execution-workspace"));
+  await backToQueue(page);
+
+  // IA33 — terminal result and Evidence, both attention-free.
+  await openWorkItem(page, "Verified candidate");
+  const complete = page.getByTestId("result-workspace");
+  await capture({
+    id: "ia26-complete-candidate-wide-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Complete",
+    surface: "SURF-STEP-COMPLETE-001",
+    state: "verified-candidate",
+    fixture: "Verified candidate",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/complete.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX"],
+  }, complete);
+  await page.setViewportSize(narrow);
+  await capture({
+    id: "ia26-complete-candidate-narrow-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Complete",
+    surface: "SURF-STEP-COMPLETE-001",
+    state: "verified-candidate-narrow",
+    fixture: "Verified candidate",
+    viewport: narrow,
+    theme: "Light",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/complete.svg", "docs/references/workbench-ui/responsive-composition.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX"],
+  }, complete);
+  await page.setViewportSize(light);
+  await backToQueue(page);
+
+  await openWorkItem(page, "Completed investigation");
+  await capture({
+    id: "ia26-complete-investigation-linked-wide-light",
+    workItemKind: "INVESTIGATION",
+    workflowStep: "Complete",
+    surface: "SURF-STEP-COMPLETE-001",
+    state: "investigation-result-linked-remediation",
+    fixture: "Completed investigation",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/complete-linked-remediation.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX"],
+  }, page.getByTestId("result-workspace"));
+  await backToQueue(page);
+
+  await openWorkItem(page, "Invalid lifecycle Markdown");
+  await selectWorkflowStep(page, "Research");
+  await page.getByRole("button", { name: "Inspect exact bytes" }).click();
+  const evidence = page.getByTestId("evidence-workspace");
+  await expect(evidence).toBeVisible();
+  await capture({
+    id: "ia26-evidence-wide-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Research",
+    surface: "SURF-MAT-EVIDENCE-001",
+    state: "exact-bytes-attention-free",
+    fixture: "Invalid lifecycle Markdown exact bytes",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/evidence-viewer.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX"],
+  }, evidence);
+  await page.getByRole("radio", { name: "Dark" }).click();
+  await capture({
+    id: "ia26-evidence-wide-dark",
+    workItemKind: "CHANGE",
+    workflowStep: "Research",
+    surface: "SURF-MAT-EVIDENCE-001",
+    state: "exact-bytes-attention-free-dark",
+    fixture: "Invalid lifecycle Markdown exact bytes",
+    viewport: light,
+    theme: "Dark",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/evidence-viewer.svg", "docs/references/workbench-ui/theme-parity.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
+  }, evidence);
+  await page.getByRole("radio", { name: "Light" }).click();
+
+  // System theme representatives complete the theme-state evidence.
+  await page.goto("/");
+  await page.getByRole("radio", { name: "System" }).click();
+  await page.emulateMedia({ colorScheme: "light" });
+  await capture({
+    id: "ia26-queue-system-light",
+    workItemKind: "QUEUE",
+    workflowStep: null,
+    surface: "SURF-APP-001",
+    state: "system-theme-effective-light",
+    fixture: "populated Queue",
+    viewport: light,
+    theme: "System/light",
+    route: "/",
+    references: ["docs/references/workbench-ui/theme-parity.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-THEME-V1"],
+  });
+  await page.emulateMedia({ colorScheme: "dark" });
+  await capture({
+    id: "ia26-queue-system-dark",
+    workItemKind: "QUEUE",
+    workflowStep: null,
+    surface: "SURF-APP-001",
+    state: "system-theme-effective-dark",
+    fixture: "populated Queue",
+    viewport: light,
+    theme: "System/dark",
+    route: "/",
+    references: ["docs/references/workbench-ui/theme-parity.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-THEME-V1"],
+  });
+
+  writeRenderedAcceptanceEvidence(entries);
+
+  const requiredDownstreamSurfaces = [
+    "SURF-CONF-ARCHIVE-001",
+    "SURF-CONF-DIRTY-DEST-001",
+    "SURF-CONF-DIRTY-MATERIAL-001",
+    "SURF-CONF-DOC-GIT-001",
+    "SURF-CONF-OC-REMOVE-001",
+    "SURF-CONF-REPO-DISCONNECT-001",
+    "SURF-MAT-ACTIVITY-001",
+    "SURF-MAT-APPROVAL-TASK-001",
+    "SURF-MAT-DOC-001",
+    "SURF-MAT-DOC-RO-001",
+    "SURF-MAT-EVIDENCE-001",
+    "SURF-MAT-EXEC-TASK-001",
+    "SURF-MAT-PROPOSAL-001",
+    "SURF-MAT-SOURCE-001",
+    "SURF-SET-001",
+    "SURF-SET-MODEL-001",
+    "SURF-SET-OC-001",
+    "SURF-SET-OC-ADD-001",
+    "SURF-SET-OC-LOGIN-001",
+    "SURF-SET-OC-RENAME-001",
+    "SURF-SET-REPO-001",
+    "SURF-SET-REPO-ADD-001",
+    "SURF-SET-REPO-MOVE-001",
+    "SURF-STEP-APPROVAL-001",
+    "SURF-STEP-COMPLETE-001",
+    "SURF-STEP-DESIGN-001",
+    "SURF-STEP-EXEC-001",
+    "SURF-STEP-PLAN-001",
+    "SURF-STEP-R1-001",
+    "SURF-STEP-R2-001",
+    "SURF-STEP-R3-001",
+    "SURF-STEP-WR-001",
+  ].sort();
+  expect([...new Set(entries.map((entry) => entry.surface))].sort())
+    .toEqual(requiredDownstreamSurfaces);
+  expect(runtimeErrors).toEqual([]);
+});
+
 test("queue filtering composes archive dataset, project and search exactly once", async ({
   page,
   request,
