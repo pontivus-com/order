@@ -4,11 +4,11 @@
 
 ## Readiness verdict
 
-`RETURN_TO_R2`.
+`RETURN_TO_DESIGN` — **historical return disposition; not a current G6 pass**.
 
-This is the current adversarial R3 disposition after the post-IA26 Workbench composition correction. The previous `READY_FOR_SIGNOFF` review bound a superseded P3/R2/P4/DESIGN/PLAN package and is no longer a current readiness verdict.
+The previous `READY_FOR_SIGNOFF` review is superseded. It bound a package that was later invalidated by IA26 human rendered review. During the corrected bounded foundation work, a further stale P4 §8.17 permission was found: Readiness still appeared to admit an optional primitive Selector even though the governing direct-Review contract forbids a generic Readiness material selector. That finding returned ownership to DESIGN.
 
-R3 does not repair the reopened package. Under `GW-DOC-LIFECYCLE-CONTEXT-V2` and `GW-FR-098-READINESS-AUTHORITY-TOPOLOGY-REVIEW`, it returns to the earliest owning lifecycle layer whose current conformance has not yet been re-established. That layer is R2/G3.
+The P4 cell has since been corrected and G4, G5 and G5A have been freshly revalidated. This file does **not** convert that revalidation into a new R3 verdict. The next fresh R3 is intentionally deferred until the active bounded IA27 → IA28 realization/evidence tranche completes.
 
 ## Exact current package basis
 
@@ -17,65 +17,54 @@ The current corrected package is:
 - R1 `research.md`: `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`;
 - canonical P3 Workbench: `d47173839201c68937bdb4c840d0273dec5bcffc`;
 - R2 `requirements.md`: `e1e53c493f405610f6f73d3e8b83084b91e7db9e`;
-- canonical P4 Workbench: `4c418550eeacaeae08c6bfedf4dd8a0c4f6e0e1d`;
-- DESIGN `solution-design.md`: `3091a1dad33b11efb42eab587fc6aadd419d1b67`;
-- PLAN `implementation-plan.md`: `f8161c5b85eaec74d00cdf54613ae6669805c5de`;
+- canonical P4 Workbench: `389bf5edb96dcad81e9b18ffb4f2077395b0005e`;
+- DESIGN `solution-design.md`: `4da77bb7e047e237fb94b7ed7a44682483e83217`;
+- PLAN `implementation-plan.md`: `8c1dac2ba6beed289aae8f7437e60e01824c0d67`;
 - reference-pack README: `6aff4233f4f0c9c2a09c6aa2504b7e2cef1708fb`.
 
-The canonical current-state owners remain `0.6.0-design-campaign-plan.md §7/§18`; this R3 artifact does not project or maintain campaign gate state.
+The sole current campaign/gate authority remains `0.6.0-design-campaign-plan.md §7/§18`. Current campaign state is not projected from this R3 artifact.
 
-## Why the previous READY_FOR_SIGNOFF is stale
+## Superseded readiness evidence
 
-The superseded review bound:
+The old `READY_FOR_SIGNOFF` review bound superseded R2/DESIGN/PLAN/P3/P4 identities and the pre-correction RZ5 foundation evidence. Those records remain causal/provenance evidence only.
 
-- R2 `ff85e33876227ee76f37877252537ab958df4802`;
-- DESIGN `7a434216611b87689af139c36e8e1a37f4b777ea`;
-- PLAN `3cb3c6c2fe1e7762eee1a75640dd4851ffdf7b6c`;
-- P3 Workbench `f38bd9ebf17e0726b51453a7e05dc52175b080fa`;
-- P4 Workbench `bbc934cfd1cf987582f331e1b689b54002de174e`.
+The later IA26 exact-candidate run `45154251119` / artifact `14809860075` likewise remains failure evidence: capture generation succeeded, but human schema/information, UX/interaction and visual/UI review exposed blocking composition defects and invalid comparison scopes.
 
-Subsequent IA26 human review proved blocking composition/acceptance defects and caused material P3/R2/P4/DESIGN/PLAN changes. Under the specification standard, those material changes invalidate the former readiness and Approval basis even though the WorkItem identity is unchanged.
+## Corrected design consequence
 
-The prior RZ5 rendered evidence and its `READY_FOR_SIGNOFF` conclusion therefore remain historical causal/provenance evidence only. They do not prove the corrected package and do not authorize continued IA29+ execution.
+The current authority package now requires:
 
-## Earliest defective/current owner
+- `WorkflowStepFrame`, `WorkflowStepSummary`, `WorkflowStepIndex`, generic `PrimaryMaterialFrame` and `WorkflowMaterialSelector` responsibilities to be absent;
+- `WorkbenchSurface` to own one primary material plus optional genuine attention only;
+- `WorkbenchAttention` to express a real current human-action cause, optional explanation/feedback and at most one action, with no generic status tuple;
+- `WorkbenchReview` to own currentness + summary + body + decisions only, with no selector slot;
+- Readiness and Approval to compose directly as Review, with Readiness REQUIRED_INPUT replacing Review with Dialogue for that turn;
+- subordinate history/support access to use the owning interaction's ResourceRow/Action/Timeline semantics rather than a generic workflow selector;
+- closed primitive APIs and explicit consumer allowlists, with no alias, compatibility wrapper, prop translator, hidden legacy DOM, dual path, feature flag or CSS shim.
 
-The earliest current lifecycle boundary requiring fresh conformance is **R2/G3**.
+## Current bounded realization boundary
 
-The corrected P3 Workbench now closes the interaction grammar that previously permitted generic workflow summary/material-selection composition. The amended R2 must therefore receive fresh R2-A01 through R2-A11 review against those exact current bytes before G3 may return PASS.
+Campaign §17A currently owns authorization `IA28-RZ7`.
 
-G4, G5 and G5A are transitively stale until the corrected package is revalidated in order:
+That grant permits only:
 
-1. fresh R2 pair audits A01-A11 and integrated functional closure -> G3;
-2. fresh DESIGN pair audits A01-A11 against current P3/R2/P4 -> G4;
-3. fresh PLAN pair audits A01-A11 against current R2/DESIGN/PLAN -> G5;
-4. fresh ALIGN-A01-A11 plus ALIGN-H1 on the exact current package -> G5A.
+1. **IA27** — complete the authority-first foundation cutover, required-absence proof, exact consumer migration and permanent primitive consumer allowlists;
+2. **IA28** — exercise the corrected foundation through application shell, Queue and Create as the first real consumers and produce bounded rendered evidence.
 
-## Foundation realization boundary after G5A
-
-The campaign's bounded pre-sign-off realization exception remains separate from normal signed execution.
-
-After exact G3-G5A PASS, and only under a fresh explicit bounded authorization bound to that exact package, IA27 and IA28 may produce the implementation/rendered evidence required for a meaningful R3:
-
-- **IA27** destructively reconstructs the shared Workbench foundation and removes the now-invalid generic workflow composition responsibilities, including `WorkflowStepFrame`, `WorkflowStepSummary`, `WorkflowStepIndex`, generic `PrimaryMaterialFrame` composition and `WorkflowMaterialSelector`; closes design-bearing primitive APIs; introduces permanent consumer allowlists; and proves zero adapters, aliases, wrappers, hidden legacy DOM, dual paths, feature-flagged superseded topology or CSS shims.
-- **IA28** consumes that foundation in the application shell, Queue and Create as the first real consumer acceptance. Any shared-foundation defect found here returns to IA27/DESIGN rather than being patched locally.
-
-That bounded authorization stops before IA29. It is evidence-production authority only and is not G6, Approval or normal T1 continuation.
+The grant stops before IA29. Any IA28-discovered shared-foundation defect returns to IA27/DESIGN rather than being patched locally.
 
 ## Required next readiness path
 
-After fresh IA27/IA28 evidence is complete, R3 is run again against the exact package and exact bounded foundation evidence.
+After IA27/IA28 evidence is complete:
 
-Only a new current `READY_FOR_SIGNOFF` may advance G6. Normal human Approval must then bind that same exact package before IA29 or any later ordinary implementation wave begins.
+1. terminate RZ7;
+2. run a fresh adversarial R3 against the exact current authority package and exact bounded foundation evidence;
+3. only a new `READY_FOR_SIGNOFF` may advance G6;
+4. normal human Approval must bind that same exact package;
+5. only then may IA29+ ordinary implementation resume.
 
-## Historical evidence retained
+## Final disposition
 
-The previous RZ5 package, PR Verification `45103316407` and artifact `14787230104` remain useful evidence of the superseded foundation and of the failure mode that motivated the current correction. They are not a preservation target and do not satisfy current G3-G6.
+**Recorded return:** `RETURN_TO_DESIGN` for the now-corrected P4 consumer-permission defect.
 
-The later IA26 exact-candidate run `45154251119` / artifact `14809860075` remains failure evidence: capture generation succeeded, but human schema/information, UX/interaction and visual/UI acceptance exposed blocking defects and invalid comparison scopes.
-
-## Final R3 disposition
-
-**Verdict:** `RETURN_TO_R2`.
-
-**Next permitted action:** complete fresh R2/G3 revalidation on the exact corrected package. No current R3 sign-off authority exists, and no bounded IA27/IA28 production realization may begin until G3-G5A are freshly PASS and a new exact-package bounded authorization is recorded.
+**Current next permitted action:** continue the active bounded `IA28-RZ7` IA27 → IA28 realization/evidence sequence. No current `READY_FOR_SIGNOFF` or Approval authority exists, and IA29+ remains forbidden until fresh R3/G6 and human Approval.
