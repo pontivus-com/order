@@ -726,8 +726,6 @@ C13/C14 domain semantics remain stable. Complete and Evidence are rebuilt by SD2
 4. every package atom is satisfied by its one execution owner;
 5. action-specific tests plus `13-verification-closeout.md` pass;
 6. any evidence contradiction returns upstream rather than broadening scope.
-
-
 ### Compiled component: `implementation-plan/09-a09-provider-settings.md`
 #### A09 — Provider, installation and Settings
 
