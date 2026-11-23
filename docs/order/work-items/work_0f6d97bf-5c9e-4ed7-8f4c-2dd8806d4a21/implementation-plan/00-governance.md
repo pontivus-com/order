@@ -6,13 +6,13 @@ This decomposition is reconstructed under G-F12 after G4 closure. Historical PLA
 
 ## Exact upstream package
 
-- R1 `research.md`: `3652878e16f8d0e0f956c13f75a6ff30cf4b4a69`.
-- R2 `requirements.md`: `2f9b0e452f76cc5a7ca346bdde56bdb902e59e47`.
-- DESIGN `solution-design.md`: `315afe47dad86e26ad83449c6fc8adf52ed5c27c`.
+- R1 `research.md`: `db81af903badbbbb1f546f62cc4fddcea3b2f18b`.
+- R2 `requirements.md`: `bd62cb694feda6bceeeaa5655005d7c886d072ee`.
+- DESIGN `solution-design.md`: `1d8ffb1e74485885d445489c2b1d86e3977d2d00`.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `9c2ec83a9552b7583f90e91080c014df4d6870df`.
-- P3 `GW-DOC-WORKBENCH-UX-V2`: `d33801650ab237728a00b6023e1083ccb1d491ec` — §11.4A/§12/§13/§14.9 own semantic information classes, semantic-region ownership, exactly one primary interaction composition, Terminal-result primacy, singular material/technical-inspection ownership, disclosure-accumulation prohibitions, task anatomy and composition invariants.
+- P3 `GW-DOC-WORKBENCH-UX-V2`: `f38bd9ebf17e0726b51453a7e05dc52175b080fa` — §11.4A/§12/§13/§14.9 own semantic information classes, semantic-region ownership, exactly one primary interaction composition, Terminal-result primacy, singular material/technical-inspection ownership, disclosure-accumulation prohibitions, task anatomy and composition invariants.
 - P3 `GW-DOC-MARKDOWN-WORKBENCH-V1`: `1cc5a28eff8d180f88106d89990f7b89aa27a132` — §17.4 owns one compact Markdown editor-control region, overflow-before-wrap formatting and control→canvas adjacency.
-- P4 `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`: `0b3e8a3d5e2d42672de9e787c5fd6afd50713242` — §8.12-§8.16 own optional semantic Surface attention, one-primary-composition routing, singular Context/Settings technical inspection, same-task-only Disclosure, Review without automatic technical slot, TaskPanel anatomy and renderer composition responsibilities.
+- P4 `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`: `05bae4d1895d832ed2461d4bd18e9a709e0bd338` — §8.12-§8.16 own optional semantic Surface attention, one-primary-composition routing, singular Context/Settings technical inspection, same-task-only Disclosure, Review without automatic technical slot, TaskPanel anatomy and renderer composition responsibilities.
 - P4 `GW-DOC-WORKBENCH-THEME-V1`: `43b81a61291841d827a47f392e0149ace5c8351f` — owns the corrected semantic-disclosure, technical-inspection and task-panel visual roles.
 - P6 `GW-DOC-CANONICAL-CONTRACTS-V2`: `71f829cff8824db18194689eccdec83da6f5d19f`.
 - SD13 checkpoint and SD10 scope/forecast/V4-V6 realization are consumed only because current DESIGN positively proves those canonical capabilities; T1 does not reimplement them.
