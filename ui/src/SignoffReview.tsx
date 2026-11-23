@@ -328,7 +328,9 @@ export const SignoffReview = ({
                 })}
             />
           ))}
-    </div>
+        </div>
+      }
+    />
   );
 
   const selectedMaterial = (() => {
@@ -576,25 +578,23 @@ export const SignoffReview = ({
 
   return (
     <div data-testid="review-workspace">
-          <WorkbenchReview
-            currentness={headerStatus}
-            summary={<div><h2>{title}</h2><p>{description}</p></div>}
-            body={
-              <div className="order-review-approval-body">
-                <ApprovalContext
-                  currentApproval={currentApproval}
-                  packageValue={packageValue}
-                  packageStale={packageStale}
-                  approvalCompleted={approvalCompleted}
-                />
-                {selectedMaterial}
-                {packageMaterial}
-              </div>
-            }
-            decisions={approvalAction ?? <></>}
-          />
-        </div>
-      }
-    />
+      <WorkbenchReview
+        currentness={headerStatus}
+        summary={<div><h2>{title}</h2><p>{description}</p></div>}
+        body={
+          <div className="order-review-approval-body">
+            <ApprovalContext
+              currentApproval={currentApproval}
+              packageValue={packageValue}
+              packageStale={packageStale}
+              approvalCompleted={approvalCompleted}
+            />
+            {selectedMaterial}
+            {packageMaterial}
+          </div>
+        }
+        decisions={approvalAction ?? <></>}
+      />
+    </div>
   );
 };
