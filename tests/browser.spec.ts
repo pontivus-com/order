@@ -2206,6 +2206,19 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     references: ["docs/references/workbench-ui/work-request.svg", "docs/references/workbench-ui/theme-parity.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
   });
+  await capture({
+    id: "ia26-workitem-shell-wide-dark",
+    workItemKind: "CHANGE",
+    workflowStep: "Work request",
+    surface: "SURF-WI-001",
+    state: "selected-workitem-shell-dark",
+    fixture: "Source editing workbench",
+    viewport: light,
+    theme: "Dark",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/workitem-shell-controls.svg", "docs/references/workbench-ui/theme-parity.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
+  }, page.locator(".order-workbench-chrome"));
   await page.getByRole("button", { name: "Context", exact: true }).click();
   await capture({
     id: "ia26-context-wide-dark",
@@ -2351,6 +2364,22 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   await create.getByRole("button", { name: "Concerns", exact: true }).click();
   await page.getByRole("option", { name: "browser" }).click();
   await page.keyboard.press("Escape");
+  await page.getByRole("radio", { name: "Dark" }).click();
+  await capture({
+    id: "ia26-create-workitem-wide-dark",
+    workItemKind: "CHANGE",
+    workflowStep: "Work request",
+    surface: "SURF-CREATE-001",
+    state: "ordinary-change-populated-dark",
+    fixture: "IA26 confirmation fixture Create task",
+    viewport: light,
+    theme: "Dark",
+    route: routeValue(),
+    captureScope: "production Create dialog only",
+    references: ["docs/references/workbench-ui/create-work-item.svg", "docs/references/workbench-ui/theme-parity.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
+  }, create);
+  await page.getByRole("radio", { name: "Light" }).click();
   await create.getByRole("button", { name: "Create work item" }).click();
   await expect(page.getByTestId("work-item-heading")).toHaveText("IA26 confirmation fixture");
   await page.getByRole("button", { name: "Save documentation to Git" }).click();
@@ -2854,8 +2883,22 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   }, evidence);
   await page.getByRole("radio", { name: "Light" }).click();
 
-  // System theme representatives complete the theme-state evidence.
+  // Operational-scan dark representative plus System effective-scheme evidence.
   await page.goto("/");
+  await page.getByRole("radio", { name: "Dark" }).click();
+  await capture({
+    id: "ia26-queue-wide-dark",
+    workItemKind: "QUEUE",
+    workflowStep: null,
+    surface: "SURF-QUEUE-001",
+    state: "operational-scan-dark",
+    fixture: "populated Queue",
+    viewport: light,
+    theme: "Dark",
+    route: "/",
+    references: ["docs/references/workbench-ui/queue.svg", "docs/references/workbench-ui/theme-parity.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
+  }, page.getByTestId("work-item-queue"));
   await page.getByRole("radio", { name: "System" }).click();
   await page.emulateMedia({ colorScheme: "light" });
   await capture({
@@ -2961,6 +3004,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   const darkClassRepresentatives = [
     "SURF-QUEUE-001",
     "SURF-CREATE-001",
+    "SURF-WI-001",
     "SURF-WI-CONTEXT-001",
     "SURF-MAT-SOURCE-001",
     "SURF-MAT-ACTIVITY-001",
