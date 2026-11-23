@@ -2,7 +2,7 @@
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C19 + C20.
-**Upstream:** current R1 `7949ae45f26ea09f4757736cfd59213407c60732`; current R2 `5777cb3ec9ffe4b1459b6d8e20fcf5f92a9a131c`; current DESIGN `7c7111f497e1bc6e07832dde1b8ca0c4b2a8b388`.
+**Upstream:** current R1 `13fbd9ee183ddeaadee5f24f42577972f7c169e0`; current R2 `be8f9cb4f58338006116c56bc6ba819c734f2bd9`; current DESIGN `4d2da46d1671c12e3fc9e67f229e4dc4077be9f6`.
 
 ## Stable requirement execution dispositions
 
@@ -26,7 +26,7 @@ Stable rows in phase: **7**.
 | `PL-C19-02` | C19-F02/C19-F03/C19-F04/C19-F05/C19-F06/C19-F07/C19-F08 | `SD21`-`SD29` | `IA27`-`IA34` | — | From the corrected Approval baseline, reconstruct IA27 against SD21 including destructive replacement of the mandatory-attention `WorkbenchSurface`, retained-but-narrowed Disclosure, design-bearing Review/TaskPanel, the selection-aware Context owner and exactly-one-primary-composition routing; then revalidate/remediate IA28-IA31 and reconstruct IA32-IA34 against the exhaustive per-datum **and composition** contract in `solution-design.md`. Historical purge provenance does not become current-task work, current bytes are never preservation authority, and implementation performs no information classification. |
 | `PL-C20-01` | C20-F02 | `SD17` | `IA21` | — | Permanent browser certification proves complete four-kind Research/downstream scenario 41. |
 | `PL-C20-02` | C20-F03 | `SD18` | `IA22` | — | Permanent certification proves representative cross-application System/Light/Dark component/semantic-role parity. |
-| `PL-C20-03` | C20-F05/C20-F06/C20-F07/C20-F08/C20-F09 | `SD30` | `IA26` | — | Exact-candidate GitHub Actions evidence covers every governed screen/state and all three acceptance dimensions with no unresolved FAIL; proof includes required-visible information, productive-surface technical absence, semantic-slot integrity, exactly one primary interaction composition, no nested/wrapped primary composition, no synthetic Queue/Review/Evidence/Terminal attention, direct Review composition for Proposal/Readiness/Approval, singular inspection/material ownership, no disclosure accumulation, active editor capture, modal anatomy and authorized Context/Settings/Evidence/confirmation inspection. A parent-SURF PASS cannot hide a visibly nonconforming descendant. |
+| `PL-C20-03` | C20-F05/C20-F06/C20-F07/C20-F08/C20-F09/C20-F10 | `SD30` | `IA26` | — | Phase-local IA27-IA34 evidence closes only each phase's owned SURF rows plus shared invariants, without forcing later-owned consumer repair into an earlier phase. After all owning phases, IA20/IA26 exact-candidate evidence covers every governed screen/state and all three acceptance dimensions with no unresolved FAIL; final proof includes required-visible information, productive-surface technical absence, semantic-slot integrity, exactly one primary interaction composition, no nested/wrapped primary composition, no synthetic Queue/Review/Evidence/Terminal attention, direct Review composition for Proposal/Readiness/Approval, singular inspection/material ownership, no disclosure accumulation, active editor capture, modal anatomy and authorized Context/Settings/Evidence/confirmation inspection. A parent-SURF PASS cannot hide a visibly nonconforming descendant. |
 
 Package atoms in phase: **5**.
 
