@@ -2910,7 +2910,10 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }, execution);
   await page.setViewportSize(light);
-  await page.getByRole("button", { name: "Start current task", exact: true }).click();
+  const processingImplementation = await workItemForTitle(page, "Implementation action ready");
+  await fixtureMutation(request, "/tick", { workItemId: processingImplementation.id });
+  await page.reload();
+  await expect(page.getByTestId("execution-workspace")).toBeVisible();
   await expect(page.getByTestId("selected-run-header")).toContainText("Processing", { timeout: 5_000 });
   await capture({
     id: "ia26-implementation-processing-wide-light",
@@ -2925,13 +2928,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     references: ["docs/references/workbench-ui/implementation-states.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }, execution);
-  const cancelImplementation = page.getByRole("button", {
-    name: "Cancel current implementation attempt",
-    exact: true,
-  });
-  if (await cancelImplementation.isVisible().catch(() => false)) {
-    await cancelImplementation.click();
-  }
   await backToQueue(page);
 
   await openWorkItem(page, "Failed implementation feedback");
