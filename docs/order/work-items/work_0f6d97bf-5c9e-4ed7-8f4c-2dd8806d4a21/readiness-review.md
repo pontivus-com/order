@@ -12,9 +12,9 @@ This return is authority-driven. It does not use the current UI as a replacement
 
 ## Exact return-to-design review basis
 
-- R1 `research.md`: `db81af903badbbbb1f546f62cc4fddcea3b2f18b`;
-- R2 `requirements.md`: `bd62cb694feda6bceeeaa5655005d7c886d072ee`;
-- DESIGN `solution-design.md`: `1d8ffb1e74485885d445489c2b1d86e3977d2d00`;
+- R1 `research.md`: `d64131df66e9e95aaeaf168f1e6f1cd52cae349d`;
+- R2 `requirements.md`: `8309a079f0f2004ae3c06956143a1493922ea3da`;
+- DESIGN `solution-design.md`: `223d684b44069795e77161ff19ddfb3a9e1b954f`;
 - canonical P3 Workbench: `f38bd9ebf17e0726b51453a7e05dc52175b080fa`;
 - canonical P3 Markdown Workbench: `1cc5a28eff8d180f88106d89990f7b89aa27a132`;
 - canonical P4 Workbench: `05bae4d1895d832ed2461d4bd18e9a709e0bd338`;
