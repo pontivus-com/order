@@ -2842,6 +2842,28 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }, execution);
   await page.setViewportSize(light);
+  await page.getByRole("button", { name: "Start current task", exact: true }).click();
+  await expect(page.getByTestId("selected-run-header")).toContainText("Processing", { timeout: 5_000 });
+  await capture({
+    id: "ia26-implementation-processing-wide-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Implementation",
+    surface: "SURF-STEP-EXEC-001",
+    state: "processing",
+    fixture: "Implementation action ready active builder",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/implementation-states.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX"],
+  }, execution);
+  const cancelImplementation = page.getByRole("button", {
+    name: "Cancel current implementation attempt",
+    exact: true,
+  });
+  if (await cancelImplementation.isVisible().catch(() => false)) {
+    await cancelImplementation.click();
+  }
   await backToQueue(page);
 
   await openWorkItem(page, "Failed implementation feedback");
@@ -2906,6 +2928,21 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }, complete);
   await page.setViewportSize(light);
+  await selectWorkflowStep(page, "Implementation");
+  await expect(page.getByTestId("execution-workspace")).toBeVisible();
+  await capture({
+    id: "ia26-implementation-validation-recorded-wide-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Implementation",
+    surface: "SURF-STEP-EXEC-001",
+    state: "validation-recorded",
+    fixture: "Verified candidate reached Implementation",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/implementation-states.svg", "docs/references/workbench-ui/implementation.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX"],
+  }, page.getByTestId("execution-workspace"));
   await backToQueue(page);
 
   await openWorkItem(page, "Completed investigation");
