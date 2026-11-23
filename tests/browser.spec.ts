@@ -2327,9 +2327,9 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     references: ["docs/references/workbench-ui/document-states.svg"],
     authorityRefs: ["GW-DOC-MARKDOWN-WORKBENCH-V1"],
   }, page.locator("form.order-markdown-editor"));
-  writeFileSync(sourceFilePath, canonicalSourceBeforeConflict);
   await page.getByRole("button", { name: "Reload current", exact: true }).click();
-  await expect.poll(() => markdownSourceValue(sourceEditor)).toContain("# Source editing workbench");
+  await expect.poll(() => markdownSourceValue(sourceEditor))
+    .toContain("# Source editing IA26 external change");
   const reloadedSource = await markdownSourceValue(sourceEditor);
   await replaceMarkdownSource(page, sourceEditor, reloadedSource + "\nIA26 unsaved material\n");
 
