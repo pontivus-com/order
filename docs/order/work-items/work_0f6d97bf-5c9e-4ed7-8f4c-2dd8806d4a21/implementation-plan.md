@@ -6,9 +6,9 @@
 
 This file is the single deterministic P7 artifact and sole normative execution authority for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. The directory `implementation-plan/` is only its maintainable authoring decomposition. The complete source content is compiled below and Approval binds this root file's bytes.
 
-This PLAN is reconstructed under G-F12 from current R2 `8309a079f0f2004ae3c06956143a1493922ea3da` and DESIGN `223d684b44069795e77161ff19ddfb3a9e1b954f`. Historical PLAN structure, current implementation/UI/tests, prior releases and prior task forecasts are evidence only. They do not define 0.6.0 task scope, preservation targets, compatibility targets, fallback behavior or regression contracts.
+This PLAN is reconstructed under G-F12 from current R2 `b636ea92154a327300ae2edd76ce3950f9d9e827` and DESIGN `3aaeb0a9c5c513d534be9d74d02eed7068e89bcf`. Historical PLAN structure, current implementation/UI/tests, prior releases and prior task forecasts are evidence only. They do not define 0.6.0 task scope, preservation targets, compatibility targets, fallback behavior or regression contracts.
 
-This PLAN consumes current R1 `d64131df66e9e95aaeaf168f1e6f1cd52cae349d`, current R2 `8309a079f0f2004ae3c06956143a1493922ea3da` and current DESIGN `223d684b44069795e77161ff19ddfb3a9e1b954f`. Where DESIGN records `POSITIVE_NO_CHANGE` or baseline reuse, DESIGN—not current implementation—is the authority for that disposition.
+This PLAN consumes current R1 `8e30f4b998a8149f755f5611cfa4bb8443a89ae8`, current R2 `b636ea92154a327300ae2edd76ce3950f9d9e827` and current DESIGN `3aaeb0a9c5c513d534be9d74d02eed7068e89bcf`. Where DESIGN records `POSITIVE_NO_CHANGE` or baseline reuse, DESIGN—not current implementation—is the authority for that disposition.
 
 ## Current resumed Workbench implementation plan
 
@@ -27,19 +27,19 @@ No compatibility `WorkbenchLayout`, second AppShell, second structural responsiv
 
 | Source component | Git blob |
 |---|---|
-| `implementation-plan/00-governance.md` | `9b9a0d40afd9a004a8d16dfdf129184ada7c4b9e` |
-| `implementation-plan/01-a01-lifecycle-product.md` | `0692f352d1a89084a97e8289dfcfaef224827181` |
-| `implementation-plan/02-a02-governance-intake.md` | `5a4bcf4a91aab15afc019036073e19a308a7a2f2` |
-| `implementation-plan/03-a03-queue-source.md` | `34202a2158959b33bc9637c8c7bc530c33dd4cc8` |
-| `implementation-plan/04-a04-workbench-research.md` | `a6311b4bf244d3a60d5ef1011eceee95b89eb059` |
-| `implementation-plan/05-a05-requirements-design.md` | `2c360e7cf135e2ca63da92e1c9a88477354b07a5` |
-| `implementation-plan/06-a06-plan-readiness.md` | `3a1fc4b4125185fce6548615bd33d66d72c91b2b` |
-| `implementation-plan/07-a07-approval-execution.md` | `5218d8e1f33af4cafbf3dad7bd916101f27f0eca` |
-| `implementation-plan/08-a08-complete-materials.md` | `ed962df011c4a00ddbce1c95dc918431ac25298a` |
-| `implementation-plan/09-a09-provider-settings.md` | `4b6461f538839ec6144721b69cd9d09a86d97758` |
-| `implementation-plan/10-a10-recovery-accessibility.md` | `aa6140f70777cbbf39ca5ba601271ede06454e8c` |
-| `implementation-plan/11-a11-component-certification.md` | `7ce264eaa074025dc99e236b73d46cf392a55108` |
-| `implementation-plan/12-action-catalog.md` | `e1445131a40d29fc9cda1acafc228b0c82e3a45f` |
+| `implementation-plan/00-governance.md` | `2977ca31a6c0a5f5a21a5bb0be589519488eb7e1` |
+| `implementation-plan/01-a01-lifecycle-product.md` | `359f39c214e7112bc0e48245f176956a03f85c99` |
+| `implementation-plan/02-a02-governance-intake.md` | `a8d76aa81031d0b4ffb4542cf8780c476104a3e2` |
+| `implementation-plan/03-a03-queue-source.md` | `bdacaa590b3b2a67b1205ea4f7ccfdccec74296a` |
+| `implementation-plan/04-a04-workbench-research.md` | `8efd1904ad394774a60a4c78ae2930f74704bce2` |
+| `implementation-plan/05-a05-requirements-design.md` | `3cd00d606c22862483347781111b7175e162ff4c` |
+| `implementation-plan/06-a06-plan-readiness.md` | `3773d096138d8cb536255c8fd5a74967262d236f` |
+| `implementation-plan/07-a07-approval-execution.md` | `db3ae62958f791833dfb57b7ae84b963c8aa2d7d` |
+| `implementation-plan/08-a08-complete-materials.md` | `06275805210a0c6c6fcbacff4a6477f4ac1cca67` |
+| `implementation-plan/09-a09-provider-settings.md` | `dc6408cba9fdff46164f61ebddc3c4956ada36e6` |
+| `implementation-plan/10-a10-recovery-accessibility.md` | `fd4e2f3e6adae0cb22327046d7dab948f6f48355` |
+| `implementation-plan/11-a11-component-certification.md` | `41a76e732106e988b603628f695909c256e68ec5` |
+| `implementation-plan/12-action-catalog.md` | `86ffd60c5edb6f77746650606fb0c153baa7b961` |
 | `implementation-plan/13-verification-closeout.md` | `7ce8e0415264b8828ac429cd5c2e8b9a799686cd` |
 A source component hash mismatch makes PLAN non-current until this root is regenerated. Directory files contain no `order-tasks` block and no independent lifecycle state.
 
@@ -175,13 +175,13 @@ This decomposition is reconstructed under G-F12 after G4 closure. Historical PLA
 
 ##### Exact upstream package
 
-- R1 `research.md`: `d64131df66e9e95aaeaf168f1e6f1cd52cae349d`.
-- R2 `requirements.md`: `8309a079f0f2004ae3c06956143a1493922ea3da`.
-- DESIGN `solution-design.md`: `223d684b44069795e77161ff19ddfb3a9e1b954f`.
+- R1 `research.md`: `8e30f4b998a8149f755f5611cfa4bb8443a89ae8`.
+- R2 `requirements.md`: `b636ea92154a327300ae2edd76ce3950f9d9e827`.
+- DESIGN `solution-design.md`: `3aaeb0a9c5c513d534be9d74d02eed7068e89bcf`.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `9c2ec83a9552b7583f90e91080c014df4d6870df`.
 - P3 `GW-DOC-WORKBENCH-UX-V2`: `f38bd9ebf17e0726b51453a7e05dc52175b080fa` — §11.4A/§12/§13/§14.9 own semantic information classes, semantic-region ownership, exactly one primary interaction composition, Terminal-result primacy, singular material/technical-inspection ownership, disclosure-accumulation prohibitions, task anatomy and composition invariants.
 - P3 `GW-DOC-MARKDOWN-WORKBENCH-V1`: `1cc5a28eff8d180f88106d89990f7b89aa27a132` — §17.4 owns one compact Markdown editor-control region, overflow-before-wrap formatting and control→canvas adjacency.
-- P4 `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`: `05bae4d1895d832ed2461d4bd18e9a709e0bd338` — §8.12-§8.16 own optional semantic Surface attention, one-primary-composition routing, singular Context/Settings technical inspection, same-task-only Disclosure, Review without automatic technical slot, TaskPanel anatomy and renderer composition responsibilities.
+- P4 `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`: `bbc934cfd1cf987582f331e1b689b54002de174e` — §8.12-§8.16 own optional semantic Surface attention, one-primary-composition routing, singular Context/Settings technical inspection, same-task-only Disclosure, Review without automatic technical slot, TaskPanel anatomy and renderer composition responsibilities.
 - P4 `GW-DOC-WORKBENCH-THEME-V1`: `43b81a61291841d827a47f392e0149ace5c8351f` — owns the corrected semantic-disclosure, technical-inspection and task-panel visual roles.
 - P6 `GW-DOC-CANONICAL-CONTRACTS-V2`: `71f829cff8824db18194689eccdec83da6f5d19f`.
 - SD13 checkpoint and SD10 scope/forecast/V4-V6 realization are consumed only because current DESIGN positively proves those canonical capabilities; T1 does not reimplement them.
@@ -210,7 +210,7 @@ This campaign invokes the P0 bounded acceptance-evidence realization control sol
 **Authorization id:** `IA28-RZ1`  
 **State:** `SUSPENDED_PENDING_REVALIDATION`  
 **Purpose:** realize enough of the actual product to judge whether the IA27 foundation and first screen family satisfy current authority.  
-**Start condition:** **not currently satisfied**. C19-F06/C19-F07/C19-F08/C20-F08/C20-F09 materially changed R2/P3/DESIGN/P4 authority after the prior IA27/IA28 acceptance by disproving the mandatory Surface-attention contract, primary-composition routing and acceptance methodology. The historical IA28-RZ1 grant remains suspended. A fresh exact-package bounded-realization authorization may be issued **only after G5 and G5A PASS** against the corrected R1/R2/DESIGN/PLAN/P3/P4/theme package and must explicitly cite those exact identities plus the operator authorization. Fresh IA27/IA28 evidence then becomes an input to R3/G6; requiring G6 before that evidence would be circular.  
+**Start condition:** **not currently satisfied**. C19-F06/C19-F07/C19-F08/C20-F08/C20-F09 materially changed R2/P3/DESIGN/P4 authority after the prior IA27/IA28 acceptance by disproving the mandatory Surface-attention contract, primary-composition routing (including Review-class outer wrapping) and acceptance methodology. The historical IA28-RZ1 grant remains suspended. A fresh exact-package bounded-realization authorization may be issued **only after G5 and G5A PASS** against the corrected R1/R2/DESIGN/PLAN/P3/P4/theme package and must explicitly cite those exact identities plus the operator authorization. Fresh IA27/IA28 evidence then becomes an input to R3/G6; requiring G6 before that evidence would be circular.  
 **Authorized primary owners while suspended:** NONE. The previously listed IA28 owners are historical scope evidence only until reauthorization.  
 **IA27 shell-integration exception:** `ui/src/app.tsx` may be changed only to close a proven `SURF-APP-001` residual exposed by this tranche (global account utility, readiness/diagnostic presentation, Queue/Create entry composition); no selected-WorkItem/material-screen redesign is authorized.  
 **Shared-owner use:** `ui/src/styles.css` / `ui/src/theme.css` only for a proven IA28 screen-local residual or an IA28-observed recurring IA27 foundation defect; other IA27 primitive/shell owners may be reopened only when the rendered first-screen evidence proves a recurring foundation defect.  
@@ -315,7 +315,7 @@ Because this exact T1 deliberately sets signed `scope` equal to the same exact 6
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C01 + C21.
-**Upstream:** current R1 `d64131df66e9e95aaeaf168f1e6f1cd52cae349d`; current R2 `8309a079f0f2004ae3c06956143a1493922ea3da`; current DESIGN `223d684b44069795e77161ff19ddfb3a9e1b954f`.
+**Upstream:** current R1 `8e30f4b998a8149f755f5611cfa4bb8443a89ae8`; current R2 `b636ea92154a327300ae2edd76ce3950f9d9e827`; current DESIGN `3aaeb0a9c5c513d534be9d74d02eed7068e89bcf`.
 
 ##### Stable requirement execution dispositions
 
@@ -375,7 +375,7 @@ Package atoms in phase: **1**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C22 + C02.
-**Upstream:** current R1 `d64131df66e9e95aaeaf168f1e6f1cd52cae349d`; current R2 `8309a079f0f2004ae3c06956143a1493922ea3da`; current DESIGN `223d684b44069795e77161ff19ddfb3a9e1b954f`.
+**Upstream:** current R1 `8e30f4b998a8149f755f5611cfa4bb8443a89ae8`; current R2 `b636ea92154a327300ae2edd76ce3950f9d9e827`; current DESIGN `3aaeb0a9c5c513d534be9d74d02eed7068e89bcf`.
 
 ##### Stable requirement execution dispositions
 
@@ -431,7 +431,7 @@ Package atoms in phase: **4**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C03 + C04.
-**Upstream:** current R1 `d64131df66e9e95aaeaf168f1e6f1cd52cae349d`; current R2 `8309a079f0f2004ae3c06956143a1493922ea3da`; current DESIGN `223d684b44069795e77161ff19ddfb3a9e1b954f`.
+**Upstream:** current R1 `8e30f4b998a8149f755f5611cfa4bb8443a89ae8`; current R2 `b636ea92154a327300ae2edd76ce3950f9d9e827`; current DESIGN `3aaeb0a9c5c513d534be9d74d02eed7068e89bcf`.
 
 ##### Stable requirement execution dispositions
 
@@ -502,7 +502,7 @@ Package atoms in phase: **3**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C05 + C06.
-**Upstream:** current R1 `d64131df66e9e95aaeaf168f1e6f1cd52cae349d`; current R2 `8309a079f0f2004ae3c06956143a1493922ea3da`; current DESIGN `223d684b44069795e77161ff19ddfb3a9e1b954f`.
+**Upstream:** current R1 `8e30f4b998a8149f755f5611cfa4bb8443a89ae8`; current R2 `b636ea92154a327300ae2edd76ce3950f9d9e827`; current DESIGN `3aaeb0a9c5c513d534be9d74d02eed7068e89bcf`.
 
 ##### Stable requirement execution dispositions
 
@@ -573,7 +573,7 @@ Package atoms in phase: **2**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C07 + C08.
-**Upstream:** current R1 `d64131df66e9e95aaeaf168f1e6f1cd52cae349d`; current R2 `8309a079f0f2004ae3c06956143a1493922ea3da`; current DESIGN `223d684b44069795e77161ff19ddfb3a9e1b954f`.
+**Upstream:** current R1 `8e30f4b998a8149f755f5611cfa4bb8443a89ae8`; current R2 `b636ea92154a327300ae2edd76ce3950f9d9e827`; current DESIGN `3aaeb0a9c5c513d534be9d74d02eed7068e89bcf`.
 
 ##### Stable requirement execution dispositions
 
@@ -619,7 +619,7 @@ Requirements and Solution design retain their authority/proposal semantics. Thei
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C09 + C10.
-**Upstream:** current R1 `d64131df66e9e95aaeaf168f1e6f1cd52cae349d`; current R2 `8309a079f0f2004ae3c06956143a1493922ea3da`; current DESIGN `223d684b44069795e77161ff19ddfb3a9e1b954f`.
+**Upstream:** current R1 `8e30f4b998a8149f755f5611cfa4bb8443a89ae8`; current R2 `b636ea92154a327300ae2edd76ce3950f9d9e827`; current DESIGN `3aaeb0a9c5c513d534be9d74d02eed7068e89bcf`.
 
 ##### Stable requirement execution dispositions
 
@@ -627,7 +627,7 @@ Requirements and Solution design retain their authority/proposal semantics. Thei
 |---|---|---|---|---|---|---|
 | `GW-FR-098-READINESS-AUTHORITY-TOPOLOGY-REVIEW` | `C10-O01`, `C10-O09`, `C10-O10` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C10-O01`, `C10-O09`, `C10-O10` via tests/architecture.test.ts; tests/daemon.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-211-READINESS-RETURN-CONTINUITY` | `C10-O04`, `C01-O10` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C10-O04`, `C01-O10` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
-| `GW-FR-221-READINESS-REVIEW-HIERARCHY` | `C10-O06`, `C10-O07` | `TECHNICAL_DELTA` | `SD11`, `SD25` | `IA16`, `IA31` | — | Typed R3 verdict semantics and the rebuilt Review composition must jointly make readiness/findings/return owner dominant; verify semantic + rendered evidence. |
+| `GW-FR-221-READINESS-REVIEW-HIERARCHY` | `C10-O06`, `C10-O07` | `TECHNICAL_DELTA` | `SD11`, `SD25` | `IA16`, `IA31` | — | Typed R3 verdict semantics and one direct `WorkbenchReview` composition must jointly make readiness/findings/return owner dominant; no outer `WorkflowStepFrame`/Surface/Attention is permitted; verify semantic + rendered evidence. |
 
 Stable rows in phase: **3**.
 
@@ -636,7 +636,7 @@ Stable rows in phase: **3**.
 | Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
 |---|---|---|---|---|---|
 | `PL-C09-01` | C09-F01 | `SD10` | `IA05` | — | Current-v2 Change/Defect task packages must satisfy P6 §37.4 mechanical non-vacuity through the one schema-aware admission owner while published v1 validation semantics remain unchanged; material task sufficiency remains owned by PLAN semantic conformance and independent R3. |
-| `PL-C10-01` | C10-F01 | `SD11`, `SD25` | `IA16`, `IA31` | — | Readiness dominant verdict is typed R3 outcome and IA31 owns its canonical Review presentation. |
+| `PL-C10-01` | C10-F01 | `SD11`, `SD25` | `IA16`, `IA31` | — | Readiness dominant verdict is typed R3 outcome and IA31 owns its single direct Review presentation with no outer workflow Surface/Attention frame. |
 
 Package atoms in phase: **2**.
 
@@ -665,7 +665,7 @@ Package atoms in phase: **2**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C11 + C12.
-**Upstream:** current R1 `d64131df66e9e95aaeaf168f1e6f1cd52cae349d`; current R2 `8309a079f0f2004ae3c06956143a1493922ea3da`; current DESIGN `223d684b44069795e77161ff19ddfb3a9e1b954f`.
+**Upstream:** current R1 `8e30f4b998a8149f755f5611cfa4bb8443a89ae8`; current R2 `b636ea92154a327300ae2edd76ce3950f9d9e827`; current DESIGN `3aaeb0a9c5c513d534be9d74d02eed7068e89bcf`.
 
 ##### Stable requirement execution dispositions
 
@@ -678,7 +678,7 @@ Package atoms in phase: **2**.
 | `GW-FR-027-READONLY-EXECUTION-EDITOR-BOUNDARY` | `C04-O15`, `C12-O03`, `C12-O17` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C04-O15`, `C12-O03`, `C12-O17` via tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-212-APPROVAL-PURITY-AND-CURRENTNESS` | `C11-O02`, `C11-O03`, `C11-O10`, `C11-O11` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C11-O02`, `C11-O03`, `C11-O10`, `C11-O11` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-213-EXECUTION-BLOCKER-PRECEDENCE` | `C12-O17`, `C17-O10` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C12-O17`, `C17-O10` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
-| `GW-FR-222-APPROVAL-REVIEW-HIERARCHY` | `C11-O06`, `C11-O07` | `MIXED_TECHNICAL_DELTA` | `SD12`, `SD25` | `IA17`, `IA31` | — | Preserve Approval identity/currentness semantics while rebuilding the Review composition so readiness/task meaning precede technical identity; semantic + rendered proof required. |
+| `GW-FR-222-APPROVAL-REVIEW-HIERARCHY` | `C11-O06`, `C11-O07` | `MIXED_TECHNICAL_DELTA` | `SD12`, `SD25` | `IA17`, `IA31` | — | Preserve Approval identity/currentness semantics while rebuilding one direct `WorkbenchReview` composition so readiness/task meaning precede technical identity; no outer `WorkflowStepFrame`/Surface/Attention is permitted; semantic + rendered proof required. |
 | `GW-FR-223-IMPLEMENTATION-MASTER-DETAIL` | `C12-O17` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C12-O17` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-239-TASK-SCOPED-MANUAL-IMPLEMENTATION` | `C12-O16` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C12-O16` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 
@@ -688,7 +688,7 @@ Stable rows in phase: **10**.
 
 | Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
 |---|---|---|---|---|---|
-| `PL-C11-01` | C11-F01 | `SD12`, `SD25` | `IA17`, `IA31` | — | Approval presents readiness/currentness before technical identity and IA31 owns the rebuilt Review composition. |
+| `PL-C11-01` | C11-F01 | `SD12`, `SD25` | `IA17`, `IA31` | — | Approval presents readiness/currentness before technical identity and IA31 owns the single direct Review composition without outer workflow framing. |
 | `PL-C11-02` | C11-F02 | `SD12` | `IA06` | — | Canonical approval identity is trimmed/nonblank at ingress. |
 | `PL-C12-01` | C12-F01 | `SD13` | `IA07` — DESIGN-positive-reuse proof only | — | Signed in-task architecture checkpoint remains coordinator-executable without provider shell permission; T1 consumes the existing capability and does not implement it. |
 | `PL-C12-02` | C12-F02 | `SD10` | `IA08` — DESIGN-positive-reuse proof only | — | Signed scope/exclusions remain the hard execution boundary; `changeSurface` is exact forecast evidence; admissible in-scope unforecast decomposition is governed by existing V4/V5/V6 and is not reimplemented by T1. |
@@ -722,7 +722,7 @@ Package atoms in phase: **4**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C13 + C14.
-**Upstream:** current R1 `d64131df66e9e95aaeaf168f1e6f1cd52cae349d`; current R2 `8309a079f0f2004ae3c06956143a1493922ea3da`; current DESIGN `223d684b44069795e77161ff19ddfb3a9e1b954f`.
+**Upstream:** current R1 `8e30f4b998a8149f755f5611cfa4bb8443a89ae8`; current R2 `b636ea92154a327300ae2edd76ce3950f9d9e827`; current DESIGN `3aaeb0a9c5c513d534be9d74d02eed7068e89bcf`.
 
 ##### Stable requirement execution dispositions
 
@@ -773,7 +773,7 @@ C13/C14 domain semantics remain stable. Complete and Evidence are rebuilt by SD2
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C15 + C16.
-**Upstream:** current R1 `d64131df66e9e95aaeaf168f1e6f1cd52cae349d`; current R2 `8309a079f0f2004ae3c06956143a1493922ea3da`; current DESIGN `223d684b44069795e77161ff19ddfb3a9e1b954f`.
+**Upstream:** current R1 `8e30f4b998a8149f755f5611cfa4bb8443a89ae8`; current R2 `b636ea92154a327300ae2edd76ce3950f9d9e827`; current DESIGN `3aaeb0a9c5c513d534be9d74d02eed7068e89bcf`.
 
 ##### Stable requirement execution dispositions
 
@@ -838,7 +838,7 @@ Package atoms in phase: **3**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C17 + C18.
-**Upstream:** current R1 `d64131df66e9e95aaeaf168f1e6f1cd52cae349d`; current R2 `8309a079f0f2004ae3c06956143a1493922ea3da`; current DESIGN `223d684b44069795e77161ff19ddfb3a9e1b954f`.
+**Upstream:** current R1 `8e30f4b998a8149f755f5611cfa4bb8443a89ae8`; current R2 `b636ea92154a327300ae2edd76ce3950f9d9e827`; current DESIGN `3aaeb0a9c5c513d534be9d74d02eed7068e89bcf`.
 
 ##### Stable requirement execution dispositions
 
@@ -887,7 +887,7 @@ Package atoms in phase: **1**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C19 + C20.
-**Upstream:** current R1 `d64131df66e9e95aaeaf168f1e6f1cd52cae349d`; current R2 `8309a079f0f2004ae3c06956143a1493922ea3da`; current DESIGN `223d684b44069795e77161ff19ddfb3a9e1b954f`.
+**Upstream:** current R1 `8e30f4b998a8149f755f5611cfa4bb8443a89ae8`; current R2 `b636ea92154a327300ae2edd76ce3950f9d9e827`; current DESIGN `3aaeb0a9c5c513d534be9d74d02eed7068e89bcf`.
 
 ##### Stable requirement execution dispositions
 
@@ -1222,7 +1222,7 @@ Before Wave 1, BUILDER requests the signed `dependency-lock` gate once through t
 | `ui/src/primitives/WorkbenchSectionHeader.tsx` | `CONFORMING_NO_EDIT` | narrow heading/description/action alignment |
 | `ui/src/primitives/WorkbenchSelector.tsx` | `CONFORMING_NO_EDIT` | secondary + adaptive Astryx Selector; item count does not select topology |
 | `ui/src/primitives/WorkbenchSettingsLayout.tsx` | `CONFORMING_NO_EDIT` | Settings-only wide/constrained composition over central responsive owner |
-| `ui/src/primitives/WorkbenchSurface.tsx` | `DESTRUCTIVE_REPLACEMENT` | current mandatory `attention` API/wrapper contradicts corrected P4: attention is optional and semantic, Operational scan/Evidence/Terminal result must omit it, and absent attention must create no wrapper/geometry. Remove the current implementation plus exact Surface-attention structural assumptions before fresh authorship from the corrected P4/SD21 contract |
+| `ui/src/primitives/WorkbenchSurface.tsx` | `DESTRUCTIVE_REPLACEMENT` | current mandatory `attention` API/wrapper contradicts corrected P4: attention is optional and semantic, Operational scan/Review/Evidence/Terminal result must omit an outer attention region, and absent attention must create no wrapper/geometry. Remove the current implementation plus exact Surface-attention structural assumptions before fresh authorship from the corrected P4/SD21 contract |
 | `ui/src/primitives/WorkbenchTable.tsx` | `BOUNDED_RESIDUAL` | IA28 rendered evidence proved pinned Astryx `Table` wrap mode breaks ordinary human Queue words mid-token at narrow width. Keep Astryx Table/overflow ownership and stable row identity; correct only the foundation cell wrapping policy to natural word boundaries, with no new geometry, caller-selected layout mode or feature-owned scroll owner. |
 | `ui/src/primitives/WorkbenchTaskPanel.tsx` | `DESTRUCTIVE_REPLACEMENT` | current Dialog wrapper lacks the binding header/body/footer task anatomy and footer-owned actions; recreate from P3/P4 with stable title/purpose/body/feedback/footer regions and one primary command |
 | `ui/src/primitives/WorkbenchTimeline.tsx` | `CONFORMING_NO_EDIT` | compact List-backed chronological rhythm with feature-owned event content |
@@ -1236,11 +1236,11 @@ Before Wave 1, BUILDER requests the signed `dependency-lock` gate once through t
 | `ui/src/WorkItemWorkspace.tsx` IA27 shell integration | `BOUNDED_RESIDUAL` | WorkItemShell ownership is correct; replace raw `.order-state` Suspense fallbacks with WorkbenchState, mechanically classify archive/restore as safety confirmation and dirty-discard as destructive, and enforce the corrected one-primary-composition router so explicit Evidence bypasses `WorkflowStepFrame` rather than nesting an Evidence `WorkbenchSurface` inside another primary surface |
 | `ui/src/WorkItemIdentityRow.tsx` | `CONFORMING_NO_EDIT` | thin Identity adapter only |
 | `ui/src/WorkflowRail.tsx` | `CONFORMING_NO_EDIT` | thin lifecycle-to-Rail adapter only |
-| `ui/src/WorkflowStepFrame.tsx` | `BOUNDED_RESIDUAL` | Surface/Attention topology is correct only for interaction classes that canonically own current attention; remove superseded Attention-tone derivation/prop and keep this frame out of Evidence and Terminal-result routing. It must never become a generic wrapper for every selected material |
+| `ui/src/WorkflowStepFrame.tsx` | `BOUNDED_RESIDUAL` | Surface/Attention topology is correct only for interaction classes that canonically own current attention; remove superseded Attention-tone derivation/prop and keep this frame out of Review, Evidence and Terminal-result routing. It must never become a generic wrapper for every selected material |
 | `ui/src/theme.css` foundation selectors | `BOUNDED_RESIDUAL` | canonical token bridge/sections/breakpoints remain correct; fresh Surface optional-attention row geometry, Attention/Dialogue/Confirmation selectors and removal of obsolete Dialogue header/technical selectors are localized IA27 work. No empty attention row/padding may remain when attention is absent |
 | `ui/src/styles.css` | `CONFORMING_NO_EDIT` | import/reset/body bridge only; no feature structural selector |
-| `tests/certification.test.ts` | `BOUNDED_RESIDUAL` verification | remove `42rem` compatibility assertion; certify optional semantic Surface attention, exact Attention/Dialogue/Confirmation APIs/substrates and retained-atom count; reject Queue/Evidence/TerminalResult attention misuse and nested primary Surface composition |
-| `tests/browser.spec.ts` | `BOUNDED_RESIDUAL` verification | retain semantic tests; remove the Complete fixture assertion that positively requires `Current attention:`; add/adjust proof for Dialogue supporting activity, safety-vs-destructive confirmation mechanics, one-primary-composition Evidence routing, and IA28 Queue without synthetic attention |
+| `tests/certification.test.ts` | `BOUNDED_RESIDUAL` verification | remove `42rem` compatibility assertion; certify optional semantic Surface attention, exact Attention/Dialogue/Confirmation APIs/substrates and retained-atom count; reject Queue/Review/Evidence/TerminalResult attention misuse, Review outer-frame wrapping and nested primary composition |
+| `tests/browser.spec.ts` | `BOUNDED_RESIDUAL` verification | retain semantic tests; remove the Complete fixture assertion that positively requires `Current attention:`; add/adjust proof for Dialogue supporting activity, safety-vs-destructive confirmation mechanics, one-primary-composition Proposal Review/Evidence routing, direct Readiness/Approval Review composition, and IA28 Queue without synthetic attention |
 | `WorkbenchAction.tsx`, `WorkbenchDisclosure.tsx`, `WorkbenchField.tsx`, `WorkbenchIcon.tsx`, `WorkbenchNotice.tsx`, `WorkbenchStatus.tsx` | `CONFORMING_NO_EDIT` retained atoms | audited narrow public-Astryx/semantic adapters; Disclosure remains byte-reusable only for specifically named same-task expansion and is not a technical/supporting inspection owner |
 
 **Mechanical consumer-integration exception inside IA27.** Destructive foundation API replacement may update an already-signed screen path only to remove an obsolete primitive call shape and compose the replacement primitive exactly as current P3/DESIGN already requires; it may not redesign that screen family or pre-empt its later IA phase. Current authorized adaptations are: `ActivityWorkspace.tsx` for Dialogue (remove the obsolete primitive slot while preserving transcript/activity/composer content; technical identity routes to the IA27 Context owner); `DocumentWorkspace.tsx` for `Confirmation kind="safety"`; `SettingsWorkspace.tsx` and `OpenCodeAccountSettings.tsx` for `kind="destructive"`; plus `ProposalReview.tsx`, `ReadinessWorkspace.tsx` and `SignoffReview.tsx` only to remove the obsolete Review technical-slot call shape; `CreateWorkItem.tsx` only to consume the new TaskPanel region API; and the IA27-owned `app.tsx` / `WorkItemWorkspace.tsx` confirmation call sites. These adaptations may not pre-empt each consumer phase's later hierarchy/content remediation.
@@ -1255,7 +1255,7 @@ Before Wave 1, BUILDER requests the signed `dependency-lock` gate once through t
 7. current mandatory destructive replacements are exactly the six ledgered design-bearing owners: (a) `WorkbenchSurface.tsx`, replacing mandatory generic attention with optional semantic attention and no absent-slot wrapper/geometry; (b) `WorkbenchAttention.tsx`; (c) `WorkbenchDialogue.tsx`; (d) `WorkbenchConfirmation.tsx`; (e) `WorkbenchReview.tsx`, removing its automatic technical slot; and (f) `WorkbenchTaskPanel.tsx`, establishing header/body/footer with footer-owned actions. `WorkbenchDisclosure.tsx` remains byte-reusable as a retained atom under its narrowed same-task-expansion responsibility. No removed DOM/API/CSS is an implementation template;
 8. compare every remaining IA27-owned primitive/shell/theme/structural selector/assertion against the closed ledger and current authority. Record `CONFORMING_NO_EDIT`, bounded residual correction or destructive replacement evidence explicitly; do not manufacture churn for conforming owners;
 9. update `theme.css`/`styles.css` and tests only for proven IA27 defects. Remove obsolete compatibility/implementation-shaped assertions and selectors; do not weaken still-applicable semantic/accessibility/browser requirements and do not add feature-level visual-language ownership;
-10. prove exactly one production AppShell owner, one WorkItem shell owner, one WorkItem Context technical-inspection owner, one structural responsive owner, and exactly one primary interaction composition for the selected material; prove no `WorkbenchLayout`, no nested primary `WorkbenchSurface`, no Queue/Evidence/Terminal synthetic attention, no feature structural CSS/breakpoint owner, narrow retained atom responsibilities, Astryx containment, theme parity, component visual parity, keyboard/focus behavior, inspection/material-owner fitness and representative rendered alignment. Cross-service representatives must prove **same semantic role → same primitive + token/variant + hierarchy/inspection behavior**. `SURF-WI-001` and `SURF-WI-CONTEXT-001` receive all three phase-local rendered readiness verdicts before IA28. Those verdicts are necessary pre-acceptance evidence, but they do not by themselves accept/freeze the foundation.
+10. prove exactly one production AppShell owner, one WorkItem shell owner, one WorkItem Context technical-inspection owner, one structural responsive owner, and exactly one primary interaction composition for the selected material; prove no `WorkbenchLayout`, no nested primary `WorkbenchSurface`, no Queue/Review/Evidence/Terminal synthetic outer attention, no feature structural CSS/breakpoint owner, narrow retained atom responsibilities, Astryx containment, theme parity, component visual parity, keyboard/focus behavior, inspection/material-owner fitness and representative rendered alignment. Cross-service representatives must prove **same semantic role → same primitive + token/variant + hierarchy/inspection behavior**. `SURF-WI-001` and `SURF-WI-CONTEXT-001` receive all three phase-local rendered readiness verdicts before IA28. Those verdicts are necessary pre-acceptance evidence, but they do not by themselves accept/freeze the foundation.
 
 **Hard boundaries:** no refactor-through-superseded-structure for a `DESTRUCTIVE_REPLACEMENT`; mechanical consumer integration is limited to removing an obsolete primitive call shape and may not redesign the consuming screen; no domain/query/current-attention/lifecycle policy moves into primitives; no DTO/view-model/state family; no compatibility `WorkbenchLayout`; no temporary second shell; no old primitive DOM/CSS/API copied as implementation template; no old shell files retained merely to keep gates green; no screen-family redesign beyond the IA27 shell/Context integration owners explicitly named here; no new recurring color/token meaning, typography/spacing/density scale, button/action treatment, status/notice chrome, disclosure lane, overlay mechanic, hierarchy convention, foundation geometry or breakpoint/responsive grammar delegated to IA28-IA34.
 
