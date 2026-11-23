@@ -17,6 +17,11 @@ export const WorkItemContext=({workItem,selectedStep,selectedMaterial,selectedDo
   const selectedRunId=workflowMaterialRunId(material);
   const schemasQuery=useQuery({queryKey:workbenchQueryKeys.workItemSchemas,queryFn:api.listWorkItemSchemas});
   const runsQuery=useQuery({queryKey:workbenchQueryKeys.runs(workItem.id),queryFn:()=>api.listRuns(workItem.id),enabled:selectedRunId!==null});
+  const artifactsQuery=useQuery({
+    queryKey:workbenchQueryKeys.artifacts(workItem.id),
+    queryFn:()=>api.listArtifacts(workItem.id),
+    enabled:selectedDocumentPath!==null,
+  });
   const proposalRunId=material.kind==="PROPOSAL"?material.runId:null;
   const proposalEventsQuery=useQuery({
     queryKey:workbenchQueryKeys.runEvents(proposalRunId),
@@ -38,6 +43,9 @@ export const WorkItemContext=({workItem,selectedStep,selectedMaterial,selectedDo
   const diagnostics=(diagnosticsQuery.data??[]).filter((item)=>item.workItemId===workItem.id||item.path===workItem.sourcePath);
   const kind=schemasQuery.data?.find((schema)=>schema.schemaId===workItem.schemaId)?.kind??workItem.schemaId;
   const selectedRun=(runsQuery.data??[]).find((run)=>run.id===selectedRunId)??null;
+  const selectedDocumentArtifact=(artifactsQuery.data??[]).find(
+    (artifact)=>artifact.repositoryPath===selectedDocumentPath,
+  )??null;
   const selectedProposalEvent=material.kind==="PROPOSAL"
     ?(proposalEventsQuery.data??[]).find((event)=>event.id===material.eventId)??null
     :null;
@@ -54,6 +62,11 @@ export const WorkItemContext=({workItem,selectedStep,selectedMaterial,selectedDo
       {selectedDocumentIsRelevant&&selectedDocumentPath?<MetadataList columns="single">
         <MetadataListItem label="Selected document"><code>{selectedDocumentPath}</code></MetadataListItem>
         <MetadataListItem label="Exact SHA"><code>{selectedDocumentSha256??"Resolving…"}</code></MetadataListItem>
+        {selectedDocumentArtifact===null?null:<>
+          <MetadataListItem label="Artifact id"><code>{selectedDocumentArtifact.id}</code></MetadataListItem>
+          <MetadataListItem label="Authority layer"><code>{selectedDocumentArtifact.authorityLayer??"—"}</code></MetadataListItem>
+          <MetadataListItem label="Git commit"><code>{selectedDocumentArtifact.gitCommit??"—"}</code></MetadataListItem>
+        </>}
       </MetadataList>:null}
       {selectedRun?<MetadataList columns="single">
         <MetadataListItem label="Selected Run"><code>{selectedRun.id}</code></MetadataListItem>
