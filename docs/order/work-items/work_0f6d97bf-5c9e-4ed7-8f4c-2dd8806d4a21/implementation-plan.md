@@ -641,13 +641,13 @@ Package atoms in phase: **2**.
 
 
 ### Compiled component: `implementation-plan/07-a07-approval-execution.md`
-# A07 — Approval and execution
+#### A07 — Approval and execution
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C11 + C12.
 **Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `e1e53c493f405610f6f73d3e8b83084b91e7db9e`; current DESIGN `4da77bb7e047e237fb94b7ed7a44682483e83217`.
 
-## Stable requirement execution dispositions
+##### Stable requirement execution dispositions
 
 | Requirement | R1 evidence | DESIGN disposition | Solution(s) | Execution owner | Consumer dependency | Required proof |
 |---|---|---|---|---|---|---|
@@ -664,7 +664,7 @@ Package atoms in phase: **2**.
 
 Stable rows in phase: **10**.
 
-## Package-local atomic obligations
+##### Package-local atomic obligations
 
 | Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
 |---|---|---|---|---|---|
@@ -675,7 +675,7 @@ Stable rows in phase: **10**.
 
 Package atoms in phase: **4**.
 
-## Referenced actions
+##### Referenced actions
 
 - **IA17** — consume the single implementation definition in `12-action-catalog.md`.
 - **IA06** — consume the single implementation definition in `12-action-catalog.md`.
@@ -684,7 +684,7 @@ Package atoms in phase: **4**.
 - **IA31** — consume the Readiness/Approval resumed-baseline Review revalidation/remediation definition for C11 presentation.
 - **IA32** — consume the Implementation destructive operational master/detail replacement definition for C12 presentation; execution semantics remain owned by existing core/daemon contracts.
 
-## Completion proof
+##### Completion proof
 
 1. every stable row above retains its exact R1 evidence and DESIGN disposition;
 2. `POSITIVE_NO_CHANGE` rows receive no implementation edit for that requirement and their named proof is revalidated;
@@ -693,16 +693,15 @@ Package atoms in phase: **4**.
 5. action-specific tests plus `13-verification-closeout.md` pass;
 6. any evidence contradiction returns upstream rather than broadening scope.
 
----
 
 ### Compiled component: `implementation-plan/08-a08-complete-materials.md`
-# A08 — Complete and governed materials
+#### A08 — Complete and governed materials
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C13 + C14.
 **Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `e1e53c493f405610f6f73d3e8b83084b91e7db9e`; current DESIGN `4da77bb7e047e237fb94b7ed7a44682483e83217`.
 
-## Stable requirement execution dispositions
+##### Stable requirement execution dispositions
 
 | Requirement | R1 evidence | DESIGN disposition | Solution(s) | Execution owner | Consumer dependency | Required proof |
 |---|---|---|---|---|---|---|
@@ -716,7 +715,7 @@ Package atoms in phase: **4**.
 
 Stable rows in phase: **7**.
 
-## Package-local atomic obligations
+##### Package-local atomic obligations
 
 | Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
 |---|---|---|---|---|---|
@@ -724,16 +723,16 @@ Stable rows in phase: **7**.
 
 Package atoms in phase: **0**.
 
-## Cross-domain presentation reconstruction dependency
+##### Cross-domain presentation reconstruction dependency
 
 C13/C14 domain semantics remain stable. Complete and Evidence are rebuilt by SD27/IA33 under PL-C19-02. Complete is one attention-free Terminal-result composition: canonical product-facing outcome/status, substantive result/evidence/resources and permitted linked-remediation action without duplicate outcome/attention copy or architecture/container terminology. Evidence is one attention-free primary inspection composition and replaces rather than nests inside the owning workflow material. WorkItem technical Context is no longer deferred to IA33: SD21/IA27 establishes the singular selection-aware Context inspection owner and the one-primary-composition router before document/productive/review/execution consumers migrate. This phase consumes those owners and does not preserve the current feature-card/layout implementation as a baseline.
 
-## Referenced actions
+##### Referenced actions
 
 - **IA27** — consume the already-established singular WorkItem Context/technical-inspection owner as a dependency only.
 - **IA33** — consume the single Complete/Evidence destructive replacement definition; C13/C14 remain the semantic owners of outcome/material meaning.
 
-## Completion proof
+##### Completion proof
 
 1. every stable row above retains its exact R1 evidence and DESIGN disposition;
 2. `POSITIVE_NO_CHANGE` rows receive no implementation edit for that requirement and their named proof is revalidated;
@@ -742,16 +741,15 @@ C13/C14 domain semantics remain stable. Complete and Evidence are rebuilt by SD2
 5. action-specific tests plus `13-verification-closeout.md` pass;
 6. any evidence contradiction returns upstream rather than broadening scope.
 
----
 
 ### Compiled component: `implementation-plan/09-a09-provider-settings.md`
-# A09 — Provider, installation and Settings
+#### A09 — Provider, installation and Settings
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C15 + C16.
 **Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `e1e53c493f405610f6f73d3e8b83084b91e7db9e`; current DESIGN `4da77bb7e047e237fb94b7ed7a44682483e83217`.
 
-## Stable requirement execution dispositions
+##### Stable requirement execution dispositions
 
 | Requirement | R1 evidence | DESIGN disposition | Solution(s) | Execution owner | Consumer dependency | Required proof |
 |---|---|---|---|---|---|---|
@@ -779,7 +777,7 @@ C13/C14 domain semantics remain stable. Complete and Evidence are rebuilt by SD2
 
 Stable rows in phase: **21**.
 
-## Package-local atomic obligations
+##### Package-local atomic obligations
 
 | Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
 |---|---|---|---|---|---|
@@ -789,14 +787,14 @@ Stable rows in phase: **21**.
 
 Package atoms in phase: **3**.
 
-## Referenced actions
+##### Referenced actions
 
 - **IA25** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA18** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA28** — consume the application-shell resumed-baseline revalidation/remediation for the globally visible active OpenCode-account quick-access affordance; full account management remains IA34-owned.
 - **IA34** — consume the single Settings/OpenCode/account-management/configuration destructive replacement definition; provider/configuration semantics remain with existing owners.
 
-## Completion proof
+##### Completion proof
 
 1. every stable row above retains its exact R1 evidence and DESIGN disposition;
 2. `POSITIVE_NO_CHANGE` rows receive no implementation edit for that requirement and their named proof is revalidated;
@@ -805,16 +803,15 @@ Package atoms in phase: **3**.
 5. action-specific tests plus `13-verification-closeout.md` pass;
 6. any evidence contradiction returns upstream rather than broadening scope.
 
----
 
 ### Compiled component: `implementation-plan/10-a10-recovery-accessibility.md`
-# A10 — Recovery, current attention and accessibility
+#### A10 — Recovery, current attention and accessibility
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C17 + C18.
 **Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `e1e53c493f405610f6f73d3e8b83084b91e7db9e`; current DESIGN `4da77bb7e047e237fb94b7ed7a44682483e83217`.
 
-## Stable requirement execution dispositions
+##### Stable requirement execution dispositions
 
 | Requirement | R1 evidence | DESIGN disposition | Solution(s) | Execution owner | Consumer dependency | Required proof |
 |---|---|---|---|---|---|---|
@@ -828,7 +825,7 @@ Package atoms in phase: **3**.
 
 Stable rows in phase: **7**.
 
-## Package-local atomic obligations
+##### Package-local atomic obligations
 
 | Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
 |---|---|---|---|---|---|
@@ -836,14 +833,14 @@ Stable rows in phase: **7**.
 
 Package atoms in phase: **1**.
 
-## Referenced actions
+##### Referenced actions
 
 - **IA14** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA15** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA27**-**IA34** — consume the resumed IA27-IA31 revalidation/remediation owners followed by fresh IA32-IA34 reconstruction for responsive/accessibility realization; IA27 remains the single structural responsive owner and no later phase owns local layout policy.
 - **IA26** — consume the exact-candidate responsive rendered acceptance owner.
 
-## Completion proof
+##### Completion proof
 
 1. every stable row above retains its exact R1 evidence and DESIGN disposition;
 2. `POSITIVE_NO_CHANGE` rows receive no implementation edit for that requirement and their named proof is revalidated;
@@ -852,16 +849,15 @@ Package atoms in phase: **1**.
 5. action-specific tests plus `13-verification-closeout.md` pass;
 6. any evidence contradiction returns upstream rather than broadening scope.
 
----
 
 ### Compiled component: `implementation-plan/11-a11-component-certification.md`
-# A11 — Component/theme consistency and certification
+#### A11 — Component/theme consistency and certification
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C19 + C20.
 **Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `e1e53c493f405610f6f73d3e8b83084b91e7db9e`; current DESIGN `4da77bb7e047e237fb94b7ed7a44682483e83217`.
 
-## Stable requirement execution dispositions
+##### Stable requirement execution dispositions
 
 | Requirement | R1 evidence | DESIGN disposition | Solution(s) | Execution owner | Consumer dependency | Required proof |
 |---|---|---|---|---|---|---|
@@ -875,7 +871,7 @@ Package atoms in phase: **1**.
 
 Stable rows in phase: **7**.
 
-## Package-local atomic obligations
+##### Package-local atomic obligations
 
 | Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
 |---|---|---|---|---|---|
@@ -887,7 +883,7 @@ Stable rows in phase: **7**.
 
 Package atoms in phase: **5**.
 
-## Referenced actions
+##### Referenced actions
 
 - **IA15** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA20** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
@@ -899,7 +895,7 @@ Package atoms in phase: **5**.
 - **IA27**-**IA34** — consume the resumed-baseline IA27-IA31 revalidation/remediation and fresh IA32-IA34 reconstruction definitions for PL-C19-02 plus the exact phase-owned `SURF-*` rows from the exhaustive DESIGN information contract; IA27 owns the shared foundation **and WorkItem technical-inspection owner**; all later phases consume it and may not recreate local technical drawers. A11 owns cross-domain closure, not duplicate renderer implementation or field classification.
 - **IA26** — consume the exact-candidate rendered acceptance definition for PL-C20-03.
 
-## Completion proof
+##### Completion proof
 
 1. every stable row above retains its exact R1 evidence and DESIGN disposition;
 2. `POSITIVE_NO_CHANGE` rows receive no implementation edit for that requirement and their named proof is revalidated;
@@ -908,14 +904,13 @@ Package atoms in phase: **5**.
 5. action-specific tests plus `13-verification-closeout.md` pass;
 6. any evidence contradiction returns upstream rather than broadening scope.
 
----
 
 ### Compiled component: `implementation-plan/12-action-catalog.md`
-# 0.6.0 implementation action catalog
+#### 0.6.0 implementation action catalog
 
 Each IA action below has one execution owner. Semantic phase files may reference the action as consumers; they never duplicate implementation responsibility. The catalog is revalidated against current DESIGN SD01-SD30 under post-rendered-evidence reconstruction; historical action existence is not justification for retaining an action.
 
-## Signed-task audit ledger
+##### Signed-task audit ledger
 
 This is a trace/readability view of the one canonical `order-tasks` block in the root PLAN. It is **not** another executable task representation. A mismatch with the root block makes PLAN non-current.
 
@@ -925,7 +920,7 @@ This is a trace/readability view of the one canonical `order-tasks` block in the
 
 **Audit rule:** T1 is the only P6 ExecutionTask. Wave/IA ordering below is internal implementation sequencing and never relies on candidate-byte promotion between tasks. A later phase discovering a foundation defect returns to IA27/DESIGN rather than patching around it; T1 cannot close until every owned phase obligation and final candidate proof is satisfied.
 
-## Execution waves
+##### Execution waves
 
 **Pre-sign-off realization boundary:** `IA28-RZ1` is **SUSPENDED_PENDING_REVALIDATION** in `00-governance.md` and currently authorizes no production mutation. After exact G5 and G5A PASS, and only after explicit operator authorization bound to that exact package, a fresh bounded grant may authorize IA27/IA28 evidence realization **before R3/G6**. R3/G6 consumes that evidence. IA29 or any later wave remains forbidden until fresh IA28 evidence is accepted, G6 is READY_FOR_SIGNOFF, and normal human sign-off occurs.
 
@@ -946,7 +941,7 @@ This is a trace/readability view of the one canonical `order-tasks` block in the
 13. **Wave 13 — candidate closeout:** IA24.
 
 Before Wave 1, BUILDER requests the signed `dependency-lock` gate once through the existing SD13 coordinator checkpoint and it must `GATE_PASSED`. The fresh Approval baseline already contains the historically completed IA27-IA31 presentation work; those bytes are implementation evidence only. IA27 first derives/revalidates the complete SD21 visual-language → foundation realization ledger without using current JSX/CSS as desired-state evidence, proves every recurring role has exactly one canonical foundation owner/treatment and no unresolved role, then judges the current foundation/shell against that ledger and records exactly one `CONFORMING_NO_EDIT`, `BOUNDED_RESIDUAL` or `DESTRUCTIVE_REPLACEMENT` disposition for every design-bearing IA27 owner. It proves the deleted `WorkbenchLayout` remains absent and the singular AppShell/WorkItemShell/responsive owners remain; bounded residuals receive only local correction, while structural divergence is removed and freshly authored from authority rather than refactored through superseded structure. IA28 consumes its exact owned `SURF-*` datum/action rows from that closed DESIGN contract through the IA27 foundation candidate before inspecting baseline bytes, then corrects every proven delta without replaying historical purge checkpoints. After IA28 rendered foundation acceptance passes, IA29-IA31 consume their exact owned rows through the accepted/frozen IA27 foundation and apply the same authority-first residual-remediation rule. A conforming current path may remain only because current authority independently proves it correct, never because current implementation is a preservation target. IA32-IA34 retain purge-before-fresh-authorship for their unreconstructed screen families and exact owned selectors. No screen phase may patch around IA27 locally or introduce a recurring visual-language role. During IA28, any recurring foundation defect is routed back to IA27; after IA28 acceptance, later phases consume the accepted/frozen foundation and return to IA27/DESIGN rather than locally redesigning it. The exact 37 audited `SURF-*` rows remain partitioned across IA27-IA34 below. Every owner must pass schema/information, UX/interaction and visual/UI review before advance; `schema_information` includes canonical P3 §11.4A/§12 default visibility, singular material/inspection ownership and composition invariants. IA26 independently rechecks the complete exact-candidate union. Wave 10 proves the complete renderer/component/theme system semantically. Wave 12 produces exact-candidate rendered evidence only after ordinary gates are green. Wave 13 closes only after every rendered row is accepted.
-## IA01 — pure project-authority resolution
+##### IA01 — pure project-authority resolution
 
 **Solution:** SD02.  
 **Owner/anchors:** `src/core/governance.ts`, existing authority-layer/concern/material/freshness pure functions.  
@@ -954,7 +949,7 @@ Before Wave 1, BUILDER requests the signed `dependency-lock` gate once through t
 **Forbidden:** filesystem/provider I/O; semantic contradiction inference; DTO/service/repository/class family; parallel authority graph.  
 **Proof:** `tests/core.test.ts` ordering/default/override/extension/invalid-input cases.
 
-## IA02 — consume resolved authority before productive context
+##### IA02 — consume resolved authority before productive context
 
 **Solution:** SD02. Depends on IA01.  
 **Anchors:** `src/daemon/authority.ts::resolveStageContextState/resolveStageContext`; `src/daemon/stage.ts::stagePrompt` and stage admission.  
@@ -964,7 +959,7 @@ Before Wave 1, BUILDER requests the signed `dependency-lock` gate once through t
 - `tests/daemon.test.ts` — productive-context admission consumes the resolved projection, derives the schema/stage-applicable material subset, excludes an unrelated retained V1 source from a current-v2 context, includes the exact retained source when a pinned historical schema or explicit versioned ref requires it, and blocks unresolved applicable bindings before provider use;
 - `tests/certification.test.ts` — representative production project manifest with both current and retained semantic sources plus same-layer precedence/default/override/extension reaches the real STAGE context with only the applicable material set in resolved order. Current-v2 and historical exact-version cases are both proved, and an equivalent unresolved simultaneously-applicable relation fails before any provider turn. The certification must fail if production falls back to raw manifest array/filesystem order, include-every-selected-source projection, or provider interpretation.
 
-## IA03 — one GOVERNANCE proposal/adoption mechanism
+##### IA03 — one GOVERNANCE proposal/adoption mechanism
 
 **Solution:** SD09.  
 **Anchors:** `src/core/contracts.ts` proposal/ArtifactRef contracts; `src/core/governance.ts`; `src/daemon/stage.ts::proposalDisposition/proposalAdoptionRequest/adoptArtifactProposal/reconcilePendingArtifactProposals`; `src/daemon/authority.ts`.  
@@ -972,14 +967,14 @@ Before Wave 1, BUILDER requests the signed `dependency-lock` gate once through t
 **Forbidden:** stage-specific proposal DTOs/direct provider writes/second decision store.  
 **Proof:** core/daemon wrong-layer/path/hash/stale/adoption/freshness cases.
 
-## IA04 — durable-decision completion admission
+##### IA04 — durable-decision completion admission
 
 **Solution:** SD08. Consumer dependency on IA03 when the durable target is permanent governance.  
 **Anchors:** `src/core/lifecycle.ts::evaluateStageCompletion/validateStageProviderTurn`; `src/daemon/stage.ts::runStageTurn/submitRunInput`.  
 **Required mutation:** after latest answered STAGE_CHOICE/AUTHORITY_DECISION/AUTHORITY_CONFLICT that changes durable authority, reject stage completion until later adopted authority exists. INFORMATION/EVIDENCE remains unchanged.  
 **Proof:** core/daemon chronology cases for adopted/rejected/cancelled/stale and ordinary information input.
 
-## IA05 — schema-aware current-v2 task admission
+##### IA05 — schema-aware current-v2 task admission
 
 **Solution:** SD10.  
 **Owners/anchors:** existing `SignedTaskBlockSchema` remains unchanged in `src/core/contracts.ts`; `src/core/execution.ts::parseSignedTaskBlockFromPlan` remains the one structural parser and gains one pure schema-aware admission helper over the parsed block; `src/daemon/stage.ts` owns PLAN/R3 authoring/conformance invocation; `src/daemon/authority.ts::validateTaskDefinitions` owns R3/sign-off deterministic task validation.  
@@ -988,14 +983,14 @@ Before Wave 1, BUILDER requests the signed `dependency-lock` gate once through t
 **Forbidden:** tightening the shared SignedTaskBlock schema globally; a v2-only shadow task schema/parser; a second semantic-review path.  
 **Proof:** `tests/core.test.ts` preserves v1 cases and proves v2 positive/negative mechanical admission; `tests/daemon.test.ts` proves PLAN and READY_FOR_SIGNOFF/sign-off cannot bypass v2 admission; `tests/certification.test.ts` binds the single parser/admission/prompt path and rejects duplicate task schema/parser ownership.
 
-## IA06 — canonical Approval identity normalization
+##### IA06 — canonical Approval identity normalization
 
 **Solution:** SD12.  
 **Anchors:** `src/core/contracts.ts` Approval schema; `src/daemon/authority.ts::signOffWorkItem`.  
 **Required mutation:** trim and reject whitespace-only `approvedBy` before persistence.  
 **Proof:** core/daemon direct-ingress negative tests plus browser feedback.
 
-## IA07 — signed-checkpoint DESIGN-positive reuse proof
+##### IA07 — signed-checkpoint DESIGN-positive reuse proof
 
 **Solution:** SD13; package atom `PL-C12-01`.  
 **Existing realization evidence owners:** existing `src/core/contracts.ts`, `src/core/execution.ts`, `src/daemon/execution.ts`, `src/daemon/validation.ts` and `src/shell/opencode.ts`.  
@@ -1003,7 +998,7 @@ Before Wave 1, BUILDER requests the signed `dependency-lock` gate once through t
 **Failure:** if current evidence cannot prove the DESIGN-required capability, stop before mutation and return upstream; do not self-bootstrap the checkpoint protocol.  
 **Proof:** existing core/daemon/certification checkpoint success, failure, unsigned, out-of-scope and same-session cases plus exact current realization verification.
 
-## IA08 — signed-scope/forecast DESIGN-positive reuse proof
+##### IA08 — signed-scope/forecast DESIGN-positive reuse proof
 
 **Solution:** SD10; package atom `PL-C12-02`.  
 **Existing realization evidence owners:** existing `src/shell/opencode.ts`, `src/daemon/validation.ts` and `src/daemon/execution.ts`.  
@@ -1011,77 +1006,77 @@ Before Wave 1, BUILDER requests the signed `dependency-lock` gate once through t
 **Failure:** any contradiction blocks execution and returns to the owning pre-signoff layer; do not modify execution-foundation owners from this T1 to make the candidate admissible.  
 **Proof:** existing daemon/certification in-scope-unforecast, out-of-scope/exclusion/protected-path, V6 `CHANGE_BLOAT` and architecture-fitness cases.
 
-## IA09 — singular new-source planner
+##### IA09 — singular new-source planner
 
 **Solution:** SD04.  
 **Anchor:** `src/daemon/work-item-source.ts::reconcileWorkItemSources/createWorkItemFromSource`.  
 **Required mutation:** factor one daemon-local new-source planner returning the existing REGISTERED QueuePlan from a validated source snapshot.  
 **Proof:** created/discovered inputs produce equivalent admission plans except provenance.
 
-## IA10 — converge created/discovered persistence
+##### IA10 — converge created/discovered persistence
 
 **Solution:** SD04. Depends on IA09.  
 **Anchor:** `src/daemon/work-item-source.ts`.  
 **Required mutation:** route UI-created and discovered source snapshots through IA09 + existing applyPlan; delete direct create-path WorkItem construction/store.  
 **Proof:** daemon one-persistence-owner, read-back, diagnostics and freshness tests.
 
-## IA11 — canonical Create interaction
+##### IA11 — canonical Create interaction
 
 **Solution:** SD03.  
 **Anchor:** `ui/src/CreateWorkItem.tsx`.  
 **Required mutation:** ordinary vocabulary is Concerns; linked remediation shows fixed parent project context and no invalid cross-project selector. Preserve metadata/body ownership.  
 **Proof:** browser ordinary creation, metadata ownership and linked-remediation tests.
 
-## IA12 — one archive/project/search derivation
+##### IA12 — one archive/project/search derivation
 
 **Solution:** SD05.  
 **Anchors:** `ui/src/app.tsx::App`; `ui/src/WorkItemQueue.tsx::WorkItemQueue`.  
 **Required mutation:** App selects active/include-archived canonical dataset then applies project/search exactly once; queue does not own alternate filtering.  
 **Proof:** browser active/archived × project × search matrix while archive identity/history remains unchanged.
 
-## IA13 — exact documentation-Git review
+##### IA13 — exact documentation-Git review
 
 **Solution:** SD06.  
 **Anchor:** `ui/src/DocumentWorkspace.tsx::DocumentationGitConfirmation`.  
 **Required mutation:** list exact canonical governed changed paths/states before commit; reuse existing Git status owner.  
 **Proof:** browser exact-path/state review plus blocker cases. Do not alter save/status/eligibility semantics already proven conforming.
 
-## IA14 — current attention survives inspection
+##### IA14 — current attention survives inspection
 
 **Solution:** SD07.  
 **Anchors:** canonical `src/core/lifecycle.ts::deriveCurrentAttention` remains unchanged owner; UI `ActivityWorkspace.tsx`, `WorkItemWorkspace.tsx`, `workbench-presentation.ts`.  
 **Required mutation:** when inspected material differs from current owner, render exact higher-priority owner/reason/action and direct return while preserving legitimate inspection.  
 **Proof:** presentation/browser required-input/proposal/blocker/stale/recovery with historical selection.
 
-## IA15 — focus once per required-input request
+##### IA15 — focus once per required-input request
 
 **Solution:** SD15.  
 **Anchors:** `ui/src/ActivityComposer.tsx::ActivityComposer`; `ui/src/ActivityWorkspace.tsx::StageRunMaterial`.  
 **Required mutation:** new current required-input event id moves focus once to Workbench composer; rerender/polling does not refocus.  
 **Proof:** browser focus-once/rerender/responsive cases.
 
-## IA16 — canonical Readiness verdict
+##### IA16 — canonical Readiness verdict
 
 **Solution:** SD11.  
 **Anchor:** `ui/src/ReadinessWorkspace.tsx::ReadinessWorkspace` plus existing presentation helper.  
 **Required mutation:** dominant verdict is typed R3 completion outcome; maturity/currentness separate.  
 **Proof:** READY_FOR_SIGNOFF/RETURN_TO_*/BLOCKED + stale material cases.
 
-## IA17 — Approval readiness/currentness hierarchy
+##### IA17 — Approval readiness/currentness hierarchy
 
 **Solution:** SD12.  
 **Anchor:** `ui/src/SignoffReview.tsx::SignoffReview`.  
 **Required mutation:** readiness + package currentness precede task/technical identity; stale/history cannot fabricate readiness.  
 **Proof:** browser/presentation current/stale package cases.
 
-## IA18 — operator-first Settings hierarchy
+##### IA18 — operator-first Settings hierarchy
 
 **Solution:** SD14.  
 **Anchors:** `ui/src/SettingsWorkspace.tsx::SettingsWorkspace/RepositorySettings/ModelRuntimeSettings`.  
 **Required mutation:** readiness/meaning/actions primary; exact roots/endpoints/model source/credential-like identity in the one Settings diagnostics/technical-inspection region except when the exact value is the active configuration input.  
 **Proof:** browser normal Settings, blockers, Add/Move/configuration cases.
 
-## IA19 — product-language projection
+##### IA19 — product-language projection
 
 **Solution:** SD01.  
 **Anchors:** `README.md`; `ui/src/TerminalResult.tsx::TerminalResult`; `ui/src/workbench-presentation.ts`.  
@@ -1092,7 +1087,7 @@ Before Wave 1, BUILDER requests the signed `dependency-lock` gate once through t
 - `tests/browser.spec.ts` — Complete/TerminalResult candidate case renders **Verified candidate** and candidate resources; representative no-code terminal case renders its canonical non-candidate label and no candidate resources;
 - `tests/certification.test.ts` — README contains verified-result umbrella + conditional implementation/candidate wording + explicit documentation-Git exception, and rejects universal candidate/delivery wording or an absolute no-commit claim that erases that exception.
 
-## IA20 — exhaustive renderer classification certification
+##### IA20 — exhaustive renderer classification certification
 
 **Solution:** SD16.  
 **Owner:** `tests/certification.test.ts`.  
@@ -1100,35 +1095,35 @@ Before Wave 1, BUILDER requests the signed `dependency-lock` gate once through t
 **Forbidden:** edit `tests/architecture.test.ts` inside T1 or create second UI registry.  
 **Proof:** certification negative/positive fixture including deliberate forbidden Queue/Review/Terminal/Evidence attention usage, Proposal/Readiness/Approval outer-frame wrapping, and nested-primary-surface composition.
 
-## IA21 — scenario-41 work-kind certification
+##### IA21 — scenario-41 work-kind certification
 
 **Solution:** SD17.  
 **Owner:** `tests/browser.spec.ts`.  
 **Required mutation:** certify all four kinds' Work request + Research information contracts and distinct Change/Defect downstream obligations.  
 **Proof:** explicit four-kind semantic matrix.
 
-## IA22 — System/Light/Dark component-semantic parity
+##### IA22 — System/Light/Dark component-semantic parity
 
 **Solution:** SD18.  
 **Owners:** `tests/browser.spec.ts`, `tests/workbench-presentation.test.ts`.  
 **Required mutation:** representative Queue/Create/Settings/document/dialogue/review/Implementation/evidence/result/Context/overlay states preserve canonical semantic roles under all effective themes; theme changes may not change which interaction classes own current attention or create an attention band on Queue/Evidence/Terminal result.  
 **Proof:** semantic role/component assertions; no pixel-snapshot substitute.
 
-## IA23 — cross-solution regression closure
+##### IA23 — cross-solution regression closure
 
 **Upstream:** all SD01-SD30.  
 **Owners:** existing targeted core/daemon/presentation/browser/certification suites plus `tests/opencode.test.ts` and `.github/workflows/ci.yml` for SD20.  
 **Required mutation:** fill any integration-level positive/negative gaps needed to prove the composed solutions without duplicating action-specific tests. Explicitly prove no compatibility fallback, shadow owner or implementation-derived semantics. For SD20 specifically, add one permanent exact-pin OpenCode integration tier: PR verification installs exact `opencode-drive@2.4.1` + `effect@4.0.1` into runner-temporary verification space, `tests/opencode.test.ts` launches the actual supported OpenCode `2.2.6` process through Order's production OpenCode environment/admission/session path, and deterministic model responses are supplied through the Drive simulation provider/controller. Existing `fake-opencode` fixtures remain lower-level doubles and do not satisfy this exact-pin proposition. Do not add the simulation tooling to Order's product/runtime package graph, lockfiles, release bundle, configuration or state, and do not claim remote-provider availability, Console OAuth/account connectivity or model quality from simulated responses.  
 **Proof:** exact-pin SD20 integration case passes in permanent PR verification; all targeted suites green; V4/V5/V6 trace every added assertion/tooling change to an SD/requirement/atom.
 
-## IA24 — exact candidate closeout
+##### IA24 — exact candidate closeout
 
 **Upstream:** complete T1 with IA26 rendered UX/UI acceptance PASS.  
 **Owner:** `CHANGELOG.md` plus coordinator-owned validation evidence.  
 **Required mutation:** record user-visible/correctness consequences under Unreleased; run exact final six-gate union and V0-V7 with fresh V4/V5/V6, and bind closeout to the exact GitHub Actions rendered-acceptance run/evidence package accepted under IA26.  
 **Terminal:** only CANDIDATE_DONE or valid ALREADY_SATISFIED. PR merge/release/version bump remain outside T1.
 
-## IA25 — guided productive installer completion
+##### IA25 — guided productive installer completion
 
 **Solution:** SD19.  
 **Canonical authority:** P3 FR007 plus corrected P3 FR079 / Installation Readiness `9c2ec83a9552b7583f90e91080c014df4d6870df`, P4 GW-TR-007 and corrected P6.  
@@ -1138,7 +1133,7 @@ Before Wave 1, BUILDER requests the signed `dependency-lock` gate once through t
 **Proof:** create `tests/installer.test.ts` covering fresh productive setup success/failure/cancel and deferred-Settings rejection; existing `tests/order-migration.test.ts` must continue proving migration/rollback/continuity.
 
 
-## IA27 — classify, remediate or destructively replace the already-realized Workbench foundation and shell
+##### IA27 — classify, remediate or destructively replace the already-realized Workbench foundation and shell
 
 **Solution:** SD21, with SD29 responsive/accessibility containment.
 
@@ -1234,7 +1229,7 @@ Before Wave 1, BUILDER requests the signed `dependency-lock` gate once through t
 
 **Proof:** current authority-first reconstruction evidence + required-absent deletion evidence + destructive replacement provenance + zero compatibility/adapter paths + exact primitive API and consumer-allowlist architecture fitness + current absence/singularity proof + cross-service component/theme parity + representative shell/current-attention/Context evidence + fresh IA28 foundation-realization acceptance. The prior IA27/IA28 acceptance result is superseded by the IA26 review and cannot satisfy this proof.
 
-### Resumed IA28-IA31 revalidation/remediation protocol and fresh IA32-IA34 reconstruction protocol
+###### Resumed IA28-IA31 revalidation/remediation protocol and fresh IA32-IA34 reconstruction protocol
 
 **IA28-IA31 resumed baseline.** For each owned screen family:
 
@@ -1258,7 +1253,7 @@ For IA28 specifically, step 6 is also the **first rendered foundation acceptance
 
 If required non-visual behavior exists only inside a superseded screen file, the phase may not copy it automatically. It must consume the canonical underlying owner or return upstream for an architecture-preserving extraction decision. Likewise, if any IA28-IA34 screen appears to require a new recurring visual role, control treatment, disclosure mechanic, shared layout/hierarchy rule, theme token or responsive behavior, that is an IA27/DESIGN return condition; IA28 composes the foundation candidate and may expose a defect that returns to IA27; after IA28 acceptance, later screen phases may compose the accepted foundation but may not extend the visual language locally.
 
-### Exact IA27-IA34 rendered face ownership
+###### Exact IA27-IA34 rendered face ownership
 
 The 37 audited `SURF-*` rows in `docs/references/workbench-ui/README.md` remain partitioned exactly once across IA27-IA34: resumed-baseline revalidation/remediation for IA27-IA31 and fresh reconstruction for IA32-IA34. This table is the PLAN owner of phase-local rendered acceptance allocation; IA26 independently rechecks the union against the reference registry.
 
@@ -1275,7 +1270,7 @@ The 37 audited `SURF-*` rows in `docs/references/workbench-ui/README.md` remain 
 
 The IA27-IA34 union remains exactly **37 unique SURF rows** with no duplicate or unowned row. For each owned row, the phase-local rendered review uses the same three binary verdict dimensions as IA26 — `schema_information`, `ux_interaction`, `visual_ui`. IA27's row verdict is foundation-readiness evidence. IA28 is the first acceptance checkpoint and additionally records an explicit foundation-realization `PASS`/`FAIL` based on the realized first screen family. Any `FAIL` blocks phase advance and requires correction at the owning screen, IA27 foundation, or DESIGN layer before recapture.
 
-## IA28 — revalidate and remediate Queue and Create on the resumed baseline
+##### IA28 — revalidate and remediate Queue and Create on the resumed baseline
 
 **Solutions:** SD22 plus existing SD03/SD05 semantic deltas through IA11/IA12.
 **Owners:** `ui/src/OpenCodeAccountControl.tsx`, `ui/src/WorkItemQueue.tsx`, `ui/src/CreateWorkItem.tsx`.
@@ -1283,7 +1278,7 @@ The IA27-IA34 union remains exactly **37 unique SURF rows** with no duplicate or
 **Forbidden:** IA27 foundation/retained-atom mutation; feature-local structural CSS; copying old queue/modal/form/table composition; using SVGs as product authority.
 **Proof:** historical IA28 reconstruction provenance + DESIGN-contract conformance review + exact residual-delta/no-edit ledger + Queue/Create/account-visibility browser matrix proving Queue has no `WorkbenchAttention`/attention wrapper, raw Queue diagnostic code/path and Create root/parent-id are absent by default and only authorized technical inspection exposes applicable identity + actual production-browser captures for the IA28 reference set (`queue.svg`, `queue-states.svg`, `application-notices-states.svg`, `installation-readiness.svg`, `create-work-item.svg`, `create-linked-remediation.svg` and applicable theme-parity/application-shell references) + all three IA28 rows independently PASS for `schema_information`, `ux_interaction` and `visual_ui` + explicit foundation-realization PASS. An unexplained material visual divergence from a non-superseded reference is FAIL; a current-authority-required divergence is PASS only with the superseding authority recorded. IA29 is blocked until this acceptance closes.
 
-## IA29 — revalidate and remediate Work request and governed-document material on the resumed baseline
+##### IA29 — revalidate and remediate Work request and governed-document material on the resumed baseline
 
 **Solution:** SD23 plus IA13/IA14 where applicable.
 **Owner:** `ui/src/DocumentWorkspace.tsx`.
@@ -1292,7 +1287,7 @@ The IA27-IA34 union remains exactly **37 unique SURF rows** with no duplicate or
 **Forbidden:** IA27 foundation/retained-atom mutation for screen convenience; copying old document hierarchy/technical-state layout/classes; recreating identity/rail/current-attention shell ownership locally.
 **Proof:** required-absent generic-composition proof + DESIGN conformance + active/read-only document captures at wide/narrow widths proving no generic summary/selector, no duplicate heading, no inline Technical-details, no raw internal enum/technical identity, positive Context inspection, compact editor/control adjacency and exact Git confirmation + all IA29 face-ledger rows PASS.
 
-## IA30 — revalidate and remediate Research, Requirements, Solution design and Plan screens on the resumed baseline
+##### IA30 — revalidate and remediate Research, Requirements, Solution design and Plan screens on the resumed baseline
 
 **Solution:** SD24 plus IA15 and existing productive-stage semantic corrections.
 **Owners:** `ui/src/PreSignoffStageWorkspace.tsx`, `ui/src/ActivityWorkspace.tsx`, `ui/src/ActivityComposer.tsx`, `ui/src/ProposalReview.tsx`, `ui/src/RunEventTimeline.tsx`; `ui/src/WorkflowMaterialSelector.tsx` is deleted under corrected IA27 and is not an IA30 owner.
@@ -1301,7 +1296,7 @@ The IA27-IA34 union remains exactly **37 unique SURF rows** with no duplicate or
 **Forbidden:** old stage layout reuse; any `WorkflowStepFrame`/`WorkflowStepSummary`/`WorkflowMaterialSelector` equivalent; compatibility adapters; IA27 foundation mutation for screen convenience; feature-owned responsive topology; copying prior dialogue/proposal/timeline composition.
 **Proof:** fresh direct-interaction composition trace + four-stage browser/rendered matrix proving no generic frame/selector, continuous multi-turn Dialogue for OPEN/REQUIRED_INPUT/PROCESSING transitions, no internal interaction taxonomy/helper slab, direct Proposal Review with no outer Surface/Attention, default-hidden provider/session/path/event identity, positive Context/Evidence inspection and all IA30 face-ledger rows PASS.
 
-## IA31 — revalidate and remediate Readiness and Approval on the resumed baseline
+##### IA31 — revalidate and remediate Readiness and Approval on the resumed baseline
 
 **Solution:** SD25 plus IA16/IA17.
 **Owners:** `ui/src/ReadinessWorkspace.tsx`, `ui/src/SignoffReview.tsx`.
@@ -1309,7 +1304,7 @@ The IA27-IA34 union remains exactly **37 unique SURF rows** with no duplicate or
 **Forbidden:** old generic stage/card review markup; IA27 foundation/retained-atom mutation; technical-identity-first hierarchy.
 **Proof:** readiness ready/return/required-input plus Approval current/stale/sign-off tests and rendered captures proving exactly one direct primary composition, no generic frame/summary/selector, no duplicate heading/verdict, no raw typed enum, productive-surface technical absence, explicit Context inspection and all IA31 face-ledger rows PASS.
 
-## IA32 — destructively replace Implementation
+##### IA32 — destructively replace Implementation
 
 **Solution:** SD26.
 **Owner:** `ui/src/ExecutionWorkspace.tsx`.
@@ -1318,7 +1313,7 @@ The IA27-IA34 union remains exactly **37 unique SURF rows** with no duplicate or
 **Forbidden:** old stacked/card/task-count-driven layout; IA27 foundation/retained-atom mutation; copying prior execution markup/classes.
 **Proof:** purge evidence + DESIGN-contract conformance trace + execution task/attempt/blocker/validation tests proving default-hidden ids/session/baseline and positive Context/Evidence inspection + both IA32 face-ledger rows and `implementation-states.svg` PASS at wide/narrow.
 
-## IA33 — destructively replace Complete and Evidence
+##### IA33 — destructively replace Complete and Evidence
 
 **Solution:** SD27 plus IA19 product-language projection.
 **Owners:** `ui/src/TerminalResult.tsx`, `ui/src/EvidenceViewer.tsx`, `ui/src/WorkItemContext.tsx`.
@@ -1327,14 +1322,14 @@ The IA27-IA34 union remains exactly **37 unique SURF rows** with no duplicate or
 **Forbidden:** old result/evidence/context card systems; IA27 foundation/retained-atom mutation; copying prior screen hierarchy.
 **Proof:** purge evidence + DESIGN-contract conformance trace + candidate/non-candidate/linked-remediation/material tests proving TerminalResult has no `WorkbenchAttention`, no duplicate outcome label/explanation and no unauthorized container-taxonomy copy; Evidence has no synthetic attention and is not nested inside another primary `WorkbenchSurface`; exact Evidence identity appears after explicit open; IA27 Context singularity remains intact + both IA33 face-ledger rows and linked-remediation state reference PASS.
 
-## IA34 — destructively replace Settings and OpenCode/account configuration
+##### IA34 — destructively replace Settings and OpenCode/account configuration
 
 **Solution:** SD28 plus IA18.
 **Owners:** `ui/src/SettingsWorkspace.tsx`, `ui/src/OpenCodeAccountSettings.tsx`.
 **Required mutation:** delete both old Settings/account-management screen implementations at the purge checkpoint, then recreate operator-first Settings/configuration screens from the exact IA34 `SURF-*` rows in the exhaustive DESIGN information contract. Readiness/meaning/actions are primary; exact roots/endpoints/account identifiers/provider mechanics are grouped in one explicit Settings diagnostics/technical-inspection section unless the active Add/Move/model/account task requires the exact value as input/selection; per-section Technical-details accordions are forbidden. Raw enum/status codes are mapped to operator language rather than rendered literally. `OpenCodeAccountControl` is an IA28 application-shell dependency and must not be recreated or restyled here.
 **Forbidden:** old admin/card/account/repository/model screen grammar; IA27 foundation/retained-atom mutation; feature-local structural CSS.
 **Proof:** purge evidence + DESIGN-contract conformance trace + readiness/repository/account/model/login/confirmation tests proving ordinary-vs-active-input-vs-single-Settings-diagnostics placement + all eleven IA34 face-ledger rows PASS at wide/narrow/theme as applicable.
-## IA26 — rendered 0.6.0 UX/UI acceptance evidence
+##### IA26 — rendered 0.6.0 UX/UI acceptance evidence
 
 **Solution/authority:** existing SD16-SD18 verification and Workbench realization, current `GW-DOC-WORKBENCH-UX`, `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`, `GW-DOC-WORKBENCH-THEME-V1`, and the reviewed derived visual reference pack at `docs/references/workbench-ui/README.md`. Current R2/DESIGN/P3-P6 authority wins over any 0.5.0 SVG reference on conflict.  
 **Owners/anchors:** `tests/browser.spec.ts` for deterministic rendered-state capture and coverage assertions; `.github/workflows/ci.yml` for exact-candidate execution and evidence publication; `tests/certification.test.ts` for the exact CI supply-chain rule permitting only the pinned first-party artifact uploader required by this acceptance path.  
@@ -1359,14 +1354,14 @@ Any `FAIL` creates a blocking remediation item owned by the defective implementa
 **Forbidden:** treating the 0.5.0 SVG pack as semantic/product authority; pixel-diff threshold as the sole acceptance criterion; screenshot approval in place of existing semantic/browser assertions; generated screenshots blessed from the current implementation without comparison; a new visual-regression SaaS/platform dependency; committing runtime screenshots as a second design system; changing product behavior merely to match a superseded SVG.  
 **Proof:** required PR Verification rendered-evidence step succeeds on the exact candidate, publishes exhaustive scope-valid evidence, and the separately reviewable screen-by-screen acceptance ledger has no unresolved `FAIL`; capture generation/coverage alone cannot satisfy IA26.
 
----
+
 
 ### Compiled component: `implementation-plan/13-verification-closeout.md`
-# 0.6.0 verification and closeout contract
+#### 0.6.0 verification and closeout contract
 
 This component allocates proof across the one canonical signed task T1 and its ordered IA01-IA34 implementation/proof phases. It does not create another validation model or second executable-task representation.
 
-## In-task architecture and reconstruction checkpoints
+##### In-task architecture and reconstruction checkpoints
 
 Before ordinary signed-task execution exists, `IA28-RZ1` is currently `SUSPENDED_PENDING_REVALIDATION`; it permits no production mutation. A fresh bounded IA27/IA28 evidence grant may be issued only after exact G5/G5A PASS plus explicit operator authorization against that exact package. The resulting evidence is reviewed by R3/G6. IA28 → IA29 remains a **human sign-off boundary** after G6, never an automatic phase advance.
 
@@ -1395,7 +1390,7 @@ These are **in-task phase boundaries**, not ExecutionTask dependencies. P6 does 
 
 A failed in-task checkpoint permits only correction inside T1's signed semantic scope/accepted design or an explicit execution block. It does not grant provider shell/execute or authorize redesign. Checkpoints never substitute for V3/V5/V7 or T1's complete logical gate union.
 
-## Resumed-baseline revalidation and remaining reconstruction evidence law
+##### Resumed-baseline revalidation and remaining reconstruction evidence law
 
 For IA27-IA31, the fresh T1 baseline already contains historically completed replacement bytes. Verification does **not** replay the historical whole-foundation purge merely to reproduce history. IA27 does, however, require bounded current replacement checkpoints for any owner newly classified `DESTRUCTIVE_REPLACEMENT`; those checkpoints remove the divergent implementation/selectors/assertions before fresh authorship and are current evidence, not historical replay.
 
@@ -1421,7 +1416,7 @@ For IA32-IA34, verification retains the original purge/rebuild discipline:
 
 A final screen that looks correct is insufficient if obsolete ownership or technical-information leakage remains. Historical purge provenance cannot substitute for current semantic/browser/rendered proof.
 
-## Requirement-level proof law
+##### Requirement-level proof law
 
 For every stable requirement row in phases 01-11:
 
@@ -1434,19 +1429,19 @@ Every package atom must have exactly one execution owner. Shared IA references a
 
 A01 corrected-upstream no-code rows `A01-NC01`-`A01-NC05` are also binding proof instructions: verify their exact canonical authority identities and stated R1 semantic propositions under V4, authorize no T1 production mutation for those corrections, and return upstream if any authority/evidence contradiction is found.
 
-## Exact proof owners
+##### Exact proof owners
 
 Action-specific proof is defined in `12-action-catalog.md`. Cross-solution IA23 may add only missing integration assertions. IA26 has two distinct obligations: automated exact-candidate rendered evidence generation and explicit rendered acceptance review. A green Actions capture job proves evidence generation only and carries no automatic schema/UX/visual PASS. IA24 runs the final validation contract only after the separate row-level IA26 acceptance ledger is complete with zero FAIL.
 
 SD20 exact-pin OpenCode proof is a mandatory IA23 precondition to IA26 and IA24: permanent PR verification must execute the actual supported OpenCode 2.2.6 process through Order's production OpenCode boundary while deterministic model output is supplied by the exact isolated simulation tooling authorized by SD20. A fake OpenCode executable, a removed temporary workflow, or a simulated response path that does not launch the exact supported OpenCode process cannot satisfy this proposition. The evidence must state the simulation boundary and must not be reused as proof of remote provider availability, Console OAuth/account connectivity or model quality.
 
-### Pre-Approval structural-sensor correction
+###### Pre-Approval structural-sensor correction
 
 The permanent package sensor is pre-signoff campaign material, not signed implementation surface. Before G5/G5A/R3 may return to PASS it must validate the current **68-path** DESIGN forecast against the exact one-task PLAN `changeSurface`; exactly one signed task with empty `dependsOn`; the historical 20-path foundation replacement boundary, six positively retained atomic adapters and three foundation-owner paths; the resumed-baseline split where IA27 reaches foundation-readiness, IA28 performs first rendered foundation acceptance through the realized application-shell/Queue/Create screens, IA29-IA31 independently revalidate/remediate current bytes only after that acceptance without replaying historical purge, and IA32-IA34 retain purge-before-fresh-authorship; exactly one application-shell, WorkItem-shell and structural-responsive owner; exact IA27-IA34 screen/selector ownership including shared stylesheet access; and the exact 37-row rendered-face allocation without creating a second semantic UI registry. It derives the surface universe from `docs/references/workbench-ui/README.md`, proves the PLAN ledger union is exactly equal with no duplicate/unowned row, and proves each IA27-IA34 phase owns its declared replacement surface/face set inside T1. It also retains exact IA01-IA34 catalog/one-definition checks and recognizes IA23/IA26/IA24 as cross-solution/rendered-acceptance/final actions.
 
 This sensor correction is campaign/package fitness only: `tests/architecture.test.ts` remains outside signed implementation tasks. Re-run architecture and root/modular compilation checks on the corrected package before G5 may return to PASS.
 
-## 0.6.0 implementation delivery branch
+##### 0.6.0 implementation delivery branch
 
 The original 0.6.0 implementation branch was deleted after its unauthorized squash delivery to `master`. Remediation continues on the surviving 0.6.0 continuation branch/PR `fix/0.6.0-post-squash-campaign-fitness` / PR #83, which is based on that accidentally integrated candidate. This is a repository-delivery fact only; it does not treat `master` as authorization to release, does not alter Order's Approval/execution semantics, and does not authorize another merge.
 
@@ -1455,7 +1450,7 @@ The original 0.6.0 implementation branch was deleted after its unauthorized squa
 - do not use `release/v0.6.0` for product implementation; that branch name remains reserved for the later metadata-only release PR governed by `GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V2`;
 - no further direct or PR-mediated `master` delivery is permitted without explicit user authorization, and the exact current PR candidate must pass the repository's required verification before it can even become merge-ready.
 
-## Final logical gate union and order
+##### Final logical gate union and order
 
 The signed task's `gateIds` order is executable order for each fresh REVIEWER workspace and for final V3/V7. `dependency-lock` must be first so later Node-based gates see the exact lockfile-installed dependency graph. The execution harness must have provisioned the pinned Playwright Chromium runtime before execution starts.
 
@@ -1468,7 +1463,7 @@ The signed task's `gateIds` order is executable order for each fresh REVIEWER wo
 
 The six logical gates remain the canonical signed task gate union. IA26 is an additional terminal PR acceptance obligation executed by GitHub Actions after those gates; it does not introduce a seventh P6 gate or replace any V0-V7 proposition.
 
-## First rendered foundation acceptance — IA28
+##### First rendered foundation acceptance — IA28
 
 IA27's ledger/owner classification, semantic checks, browser proof and `SURF-WI-001` render establish **foundation readiness**, not product acceptance. Foundation correctness must be demonstrated through a real consumer screen family.
 
@@ -1491,11 +1486,11 @@ Failure routing is exact:
 
 Only this checkpoint accepts/freezes IA27 for later screen families. IA26 remains the separate final exhaustive 37-SURF exact-candidate acceptance and can still reopen any defective owner.
 
-## Final exhaustive rendered 0.6.0 UX/UI acceptance — IA26
+##### Final exhaustive rendered 0.6.0 UX/UI acceptance — IA26
 
 The exact PR merge candidate must pass a dedicated GitHub Actions rendered-acceptance step before IA24 closeout. This step uses the existing Playwright production Workbench harness and the reviewed derived SVG pack at `docs/references/workbench-ui/README.md`; it does not create a second visual specification.
 
-### Evidence generation contract
+###### Evidence generation contract
 
 GitHub Actions must:
 
@@ -1509,7 +1504,7 @@ GitHub Actions must:
 
 The capture harness may add deterministic fixture setup and screenshot calls inside the signed `tests/browser.spec.ts` verification owner. The CI mutation remains inside the signed `.github/workflows/ci.yml` owner. Rendered acceptance is carried by its own verification task and does not authorize presentation changes.
 
-### Acceptance review contract
+###### Acceptance review contract
 
 The GitHub Actions artifact is then reviewed row by row. Automated capture/coverage success is not a review verdict. Every review record is bound to the exact capture, governed scope and current authority and includes explicit rationale.
 
@@ -1524,7 +1519,7 @@ Each dimension is `PASS` or `FAIL`; no `PARTIAL`, aggregate-only pass or unrevie
 Any failed row blocks closeout, opens remediation at the defective implementation/authority owner, and requires a fresh exact-candidate GitHub Actions capture and review for the affected row after correction. Existing semantic/browser tests remain mandatory and cannot be replaced by screenshot acceptance.
 
 
-## V0-V7 final review obligations
+##### V0-V7 final review obligations
 
 V4/V5/V6 explicitly verify:
 - all 112 stable rows retain their exact current R1 evidence and DESIGN disposition;
@@ -1542,6 +1537,8 @@ V4/V5/V6 explicitly verify:
 - IA26 exact-candidate rendered evidence is exhaustive and scope-valid; the Actions artifact is bound to the reviewed candidate; the separate acceptance ledger records PASS with rationale for every required schema/information, UX/interaction and visual/UI dimension; zero unresolved discrepancy remains. Capture generation success alone is not acceptance. Required-absent generic composition, direct Review/Dialogue ownership and zero legacy/adapter paths are proven; no parent-SURF PASS hides a visibly nonconforming descendant.
 
 `tests/architecture.test.ts`, `pontivus-order.toml`, P1-P6 docs, package/lock metadata and workflow metadata other than the explicitly signed `.github/workflows/ci.yml` SD20 verification change remain outside T1. The pre-signoff campaign/traceability sensor may change only before Approval; any such change must be included in the exact G5/G5A/R3 evidence package before sign-off and is never a T1 candidate edit.
+
+
 
 ---
 
