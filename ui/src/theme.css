@@ -292,22 +292,21 @@
 .order-workbench-surface {
   height: 100%;
   min-height: 0;
-  display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr);
+  display: flex;
+  flex-direction: column;
   background: var(--color-background-body);
 }
-.order-workbench-surface-attention {
-  padding: var(--spacing-3) var(--spacing-6) 0;
-}
+.order-workbench-surface-attention,
 .order-workbench-surface-selector {
+  flex: 0 0 auto;
   padding: var(--spacing-3) var(--spacing-6) 0;
 }
 .order-workbench-surface-material {
+  flex: 1 1 auto;
   min-height: 0;
   overflow: auto;
   padding: var(--spacing-3) var(--spacing-6) var(--spacing-6);
 }
-.order-workbench-surface-material:nth-child(2) { grid-row: 2 / -1; }
 
 .order-workbench-attention {
   display: flex;
