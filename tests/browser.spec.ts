@@ -2580,6 +2580,43 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
   }, proposal);
   await page.getByRole("radio", { name: "Light" }).click();
+  await page.getByRole("button", { name: "Back to workflow attempt" }).click();
+  await selectCurrentWorkflowMaterial(page, "Attempt 1");
+  await page.getByRole("button", { name: "Review proposed document change" }).click();
+  await capture({
+    id: "ia26-proposal-review-adopted-wide-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Implementation plan",
+    surface: "SURF-MAT-PROPOSAL-001",
+    state: "adopted",
+    fixture: "Proposal review historical adopted proposal",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/proposal-states.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX"],
+  }, page.getByTestId("proposal-review-workspace"));
+  await backToQueue(page);
+
+  await openWorkItem(page, "Proposal rejection review");
+  const rejectionReview = page.getByTestId("proposal-review-workspace");
+  await expect(rejectionReview).toBeVisible();
+  await rejectionReview.getByRole("button", { name: "Reject" }).click();
+  await expect(page.getByTestId("stage-run-material")).toBeVisible({ timeout: 5_000 });
+  await page.getByRole("button", { name: "Review proposed document change" }).click();
+  await capture({
+    id: "ia26-proposal-review-rejected-wide-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Implementation plan",
+    surface: "SURF-MAT-PROPOSAL-001",
+    state: "rejected",
+    fixture: "Proposal rejection review",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/proposal-states.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX"],
+  }, page.getByTestId("proposal-review-workspace"));
   await backToQueue(page);
 
   await openWorkItem(page, "Proposal adoption in progress");
