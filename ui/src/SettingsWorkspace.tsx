@@ -301,10 +301,27 @@ const ModelRuntimeSettings = () => {
     queryFn: api.getAvailableOpenCodeModels,
   });
   const configured = configQuery.data?.config.model ?? null;
+  const availableModels = modelsQuery.data ?? [];
+  const configuredKey = configured === null ? "" : modelKey(configured);
+  const configuredAvailable =
+    configured === null ||
+    availableModels.some((model) => modelKey(model) === configuredKey);
+  const modelOptions = [
+    { value: "", label: "No model configured" },
+    ...(
+      configured !== null && !configuredAvailable
+        ? [{ value: configuredKey, label: configured.providerID + "/" + configured.id }]
+        : []
+    ),
+    ...availableModels.map((model) => ({
+      value: modelKey(model),
+      label: model.providerID + "/" + model.id,
+    })),
+  ];
   const [selection, setSelection] = useState("");
 
   useEffect(() => {
-    setSelection(configured === null ? "" : modelKey(configured));
+    setSelection(configuredKey);
   }, [configured?.providerID, configured?.id]);
 
   const updateModel = useMutation({
@@ -332,12 +349,22 @@ const ModelRuntimeSettings = () => {
       {modelsQuery.error ? (
         <WorkbenchNotice tone="danger" title="Available models could not be loaded" description={errorText(modelsQuery.error)} />
       ) : null}
+      {!modelsQuery.isPending && modelsQuery.error == null && configured !== null && !configuredAvailable ? (
+        <WorkbenchNotice
+          tone="warning"
+          title="Configured model is unavailable"
+          description={
+            configured.providerID + "/" + configured.id +
+            " is not currently available. Select an available model and save to restore productive readiness."
+          }
+        />
+      ) : null}
       <div className="order-settings-task-surface">
         <WorkbenchForm
           content={
             <Selector
               label="Configured model"
-              options={[{ value: "", label: "No model configured" }, ...(modelsQuery.data ?? []).map((model) => ({ value: modelKey(model), label: model.providerID + "/" + model.id }))]}
+              options={modelOptions}
               value={selection}
               onChange={setSelection}
               width="100%"
