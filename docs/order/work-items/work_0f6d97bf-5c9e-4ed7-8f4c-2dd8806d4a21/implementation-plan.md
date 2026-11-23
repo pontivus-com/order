@@ -6,9 +6,9 @@
 
 This file is the single deterministic P7 artifact and sole normative execution authority for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. The directory `implementation-plan/` is only its maintainable authoring decomposition. The complete source content is compiled below and Approval binds this root file's bytes.
 
-This PLAN is reconstructed under G-F12 from current R2 `ff85e33876227ee76f37877252537ab958df4802` and corrected DESIGN `9103f30b09ea12e5cfc0e66db07f5945a3f8d9f2`. Historical PLAN structure, current implementation/UI/tests, prior releases and prior task forecasts are evidence only. They do not define 0.6.0 task scope, preservation targets, compatibility targets, fallback behavior or regression contracts.
+This PLAN is reconstructed under G-F12 from current R2 `e1e53c493f405610f6f73d3e8b83084b91e7db9e` and corrected DESIGN `3091a1dad33b11efb42eab587fc6aadd419d1b67`. Historical PLAN structure, current implementation/UI/tests, prior releases and prior task forecasts are evidence only. They do not define 0.6.0 task scope, preservation targets, compatibility targets, fallback behavior or regression contracts.
 
-This PLAN consumes current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`, current R2 `ff85e33876227ee76f37877252537ab958df4802` and corrected current DESIGN `9103f30b09ea12e5cfc0e66db07f5945a3f8d9f2`. Where DESIGN records `POSITIVE_NO_CHANGE` or baseline reuse, DESIGN—not current implementation—is the authority for that disposition.
+This PLAN consumes current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`, current R2 `e1e53c493f405610f6f73d3e8b83084b91e7db9e` and corrected current DESIGN `3091a1dad33b11efb42eab587fc6aadd419d1b67`. Where DESIGN records `POSITIVE_NO_CHANGE` or baseline reuse, DESIGN—not current implementation—is the authority for that disposition.
 
 ## Current resumed Workbench implementation plan
 
@@ -27,14 +27,14 @@ No compatibility `WorkbenchLayout`, generic workflow-frame/material-selector equ
 
 | Source component | Git blob |
 |---|---|
-| `implementation-plan/00-governance.md` | `860eb208d9f504c87dd0e403726f9bb23f2c6920` |
-| `implementation-plan/01-a01-lifecycle-product.md` | `180f04c51056a8802441a98ed7e9409e36f33157` |
-| `implementation-plan/02-a02-governance-intake.md` | `2322a0bf9a3e139bf8fffcf316859deb20c49677` |
-| `implementation-plan/03-a03-queue-source.md` | `ae5a3c83b0bba6555daa39ab8d82f418f5d4671e` |
-| `implementation-plan/04-a04-workbench-research.md` | `3f75927b1e48152abbd8a11ce747ed814e52bfda` |
-| `implementation-plan/05-a05-requirements-design.md` | `e7e992ee390f2d3b63d858103410e25e71d46522` |
-| `implementation-plan/06-a06-plan-readiness.md` | `23b8309faaf0a876767203c60e70f9030dfdcdfe` |
-| `implementation-plan/07-a07-approval-execution.md` | `f119c181e4a39c826d479439e9e0840f543368c4` |
+| `implementation-plan/00-governance.md` | `38bdaa1f766805ade67efed1892035369611feeb` |
+| `implementation-plan/01-a01-lifecycle-product.md` | `e34114c82a067f0ef32be0255a4a972a2445217d` |
+| `implementation-plan/02-a02-governance-intake.md` | `246a3540f14424527ecd73fa52559f8536be039c` |
+| `implementation-plan/03-a03-queue-source.md` | `edca38500b6200792184f41da3420eb521cb34b7` |
+| `implementation-plan/04-a04-workbench-research.md` | `9c59fc8b29c9373caa04df4a6dd5575cb7ad2638` |
+| `implementation-plan/05-a05-requirements-design.md` | `bbc2299c1c11ffc5fef501fcb58a08c69cc1e88a` |
+| `implementation-plan/06-a06-plan-readiness.md` | `e0a42a763a69b478bc7d31689c28a95e560c8acf` |
+| `implementation-plan/07-a07-approval-execution.md` | `ff45cac7a9abd4ca313e8ebb1d5a3f03c3be6d0e` |
 | `implementation-plan/08-a08-complete-materials.md` | `8d2ad03af1265c694f365a8eb95bb129abeeeaa3` |
 | `implementation-plan/09-a09-provider-settings.md` | `0d700879bfc5c3431f6e6cf00091dc3bafdddd22` |
 | `implementation-plan/10-a10-recovery-accessibility.md` | `f1f20c1808055b91b98b675f6a8058412a577986` |
@@ -175,12 +175,12 @@ This decomposition is reconstructed under G-F12 after G4 closure. Historical PLA
 ## Exact upstream package
 
 - R1 `research.md`: `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`.
-- R2 `requirements.md`: `ff85e33876227ee76f37877252537ab958df4802`.
-- DESIGN `solution-design.md`: `7a434216611b87689af139c36e8e1a37f4b777ea`.
+- R2 `requirements.md`: `e1e53c493f405610f6f73d3e8b83084b91e7db9e`.
+- DESIGN `solution-design.md`: `3091a1dad33b11efb42eab587fc6aadd419d1b67`.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `9c2ec83a9552b7583f90e91080c014df4d6870df`.
-- P3 `GW-DOC-WORKBENCH-UX-V2`: `f38bd9ebf17e0726b51453a7e05dc52175b080fa` — §11.4A/§12/§13/§14.9 own semantic information classes, semantic-region ownership, exactly one primary interaction composition, Terminal-result primacy, singular material/technical-inspection ownership, disclosure-accumulation prohibitions, task anatomy and composition invariants.
+- P3 `GW-DOC-WORKBENCH-UX-V2`: `d47173839201c68937bdb4c840d0273dec5bcffc` — §11.4A/§12/§13/§14 own semantic information classes, state-is-not-interface behavior, direct primary interaction composition, no generic workflow-material selector, continuous Dialogue semantics, Terminal-result primacy, singular technical inspection, task anatomy and composition invariants.
 - P3 `GW-DOC-MARKDOWN-WORKBENCH-V1`: `1cc5a28eff8d180f88106d89990f7b89aa27a132` — §17.4 owns one compact Markdown editor-control region, overflow-before-wrap formatting and control→canvas adjacency.
-- P4 `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`: `bbc934cfd1cf987582f331e1b689b54002de174e` — §8.12-§8.16 own optional semantic Surface attention, one-primary-composition routing, singular Context/Settings technical inspection, same-task-only Disclosure, Review without automatic technical slot, TaskPanel anatomy and renderer composition responsibilities.
+- P4 `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`: `4c418550eeacaeae08c6bfedf4dd8a0c4f6e0e1d` — §8.4-§8.16 own direct interaction-class composition, required absence of WorkflowStepFrame/WorkflowMaterialSelector responsibilities, closed non-compatible design-bearing APIs, primitive consumer allowlists, optional genuine attention, singular Context/Settings technical inspection, direct Review, same-task-only Disclosure and TaskPanel anatomy.
 - P4 `GW-DOC-WORKBENCH-THEME-V1`: `43b81a61291841d827a47f392e0149ace5c8351f` — owns the corrected semantic-disclosure, technical-inspection and task-panel visual roles.
 - P6 `GW-DOC-CANONICAL-CONTRACTS-V2`: `71f829cff8824db18194689eccdec83da6f5d19f`.
 - SD13 checkpoint and SD10 scope/forecast/V4-V6 realization are consumed only because current DESIGN positively proves those canonical capabilities; T1 does not reimplement them.
@@ -315,7 +315,7 @@ Because this exact T1 deliberately sets signed `scope` equal to the same exact 6
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C01 + C21.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `ff85e33876227ee76f37877252537ab958df4802`; current DESIGN `7a434216611b87689af139c36e8e1a37f4b777ea`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `e1e53c493f405610f6f73d3e8b83084b91e7db9e`; current DESIGN `3091a1dad33b11efb42eab587fc6aadd419d1b67`.
 
 ## Stable requirement execution dispositions
 
@@ -373,7 +373,7 @@ Package atoms in phase: **1**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C22 + C02.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `ff85e33876227ee76f37877252537ab958df4802`; current DESIGN `7a434216611b87689af139c36e8e1a37f4b777ea`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `e1e53c493f405610f6f73d3e8b83084b91e7db9e`; current DESIGN `3091a1dad33b11efb42eab587fc6aadd419d1b67`.
 
 ## Stable requirement execution dispositions
 
@@ -427,7 +427,7 @@ Package atoms in phase: **4**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C03 + C04.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `ff85e33876227ee76f37877252537ab958df4802`; current DESIGN `7a434216611b87689af139c36e8e1a37f4b777ea`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `e1e53c493f405610f6f73d3e8b83084b91e7db9e`; current DESIGN `3091a1dad33b11efb42eab587fc6aadd419d1b67`.
 
 ## Stable requirement execution dispositions
 
@@ -496,7 +496,7 @@ Package atoms in phase: **3**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C05 + C06.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `ff85e33876227ee76f37877252537ab958df4802`; current DESIGN `9103f30b09ea12e5cfc0e66db07f5945a3f8d9f2`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `e1e53c493f405610f6f73d3e8b83084b91e7db9e`; current DESIGN `3091a1dad33b11efb42eab587fc6aadd419d1b67`.
 
 ## Stable requirement execution dispositions
 
@@ -565,7 +565,7 @@ Package atoms in phase: **2**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C07 + C08.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `ff85e33876227ee76f37877252537ab958df4802`; current DESIGN `9103f30b09ea12e5cfc0e66db07f5945a3f8d9f2`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `e1e53c493f405610f6f73d3e8b83084b91e7db9e`; current DESIGN `3091a1dad33b11efb42eab587fc6aadd419d1b67`.
 
 ## Stable requirement execution dispositions
 
@@ -609,7 +609,7 @@ Requirements and Solution design retain their authority/proposal semantics. IA30
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C09 + C10.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `ff85e33876227ee76f37877252537ab958df4802`; current DESIGN `9103f30b09ea12e5cfc0e66db07f5945a3f8d9f2`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `e1e53c493f405610f6f73d3e8b83084b91e7db9e`; current DESIGN `3091a1dad33b11efb42eab587fc6aadd419d1b67`.
 
 ## Stable requirement execution dispositions
 
@@ -653,7 +653,7 @@ Package atoms in phase: **2**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C11 + C12.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `ff85e33876227ee76f37877252537ab958df4802`; current DESIGN `7a434216611b87689af139c36e8e1a37f4b777ea`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `e1e53c493f405610f6f73d3e8b83084b91e7db9e`; current DESIGN `3091a1dad33b11efb42eab587fc6aadd419d1b67`.
 
 ## Stable requirement execution dispositions
 
@@ -708,7 +708,7 @@ Package atoms in phase: **4**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C13 + C14.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `ff85e33876227ee76f37877252537ab958df4802`; current DESIGN `7a434216611b87689af139c36e8e1a37f4b777ea`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `e1e53c493f405610f6f73d3e8b83084b91e7db9e`; current DESIGN `3091a1dad33b11efb42eab587fc6aadd419d1b67`.
 
 ## Stable requirement execution dispositions
 
@@ -757,7 +757,7 @@ C13/C14 domain semantics remain stable. Complete and Evidence are rebuilt by SD2
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C15 + C16.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `ff85e33876227ee76f37877252537ab958df4802`; current DESIGN `7a434216611b87689af139c36e8e1a37f4b777ea`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `e1e53c493f405610f6f73d3e8b83084b91e7db9e`; current DESIGN `3091a1dad33b11efb42eab587fc6aadd419d1b67`.
 
 ## Stable requirement execution dispositions
 
@@ -820,7 +820,7 @@ Package atoms in phase: **3**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C17 + C18.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `ff85e33876227ee76f37877252537ab958df4802`; current DESIGN `7a434216611b87689af139c36e8e1a37f4b777ea`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `e1e53c493f405610f6f73d3e8b83084b91e7db9e`; current DESIGN `3091a1dad33b11efb42eab587fc6aadd419d1b67`.
 
 ## Stable requirement execution dispositions
 
@@ -867,7 +867,7 @@ Package atoms in phase: **1**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C19 + C20.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `ff85e33876227ee76f37877252537ab958df4802`; current DESIGN `9103f30b09ea12e5cfc0e66db07f5945a3f8d9f2`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `e1e53c493f405610f6f73d3e8b83084b91e7db9e`; current DESIGN `3091a1dad33b11efb42eab587fc6aadd419d1b67`.
 
 ## Stable requirement execution dispositions
 
