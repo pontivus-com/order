@@ -39,7 +39,7 @@ No compatibility `WorkbenchLayout`, second AppShell, second structural responsiv
 | `implementation-plan/09-a09-provider-settings.md` | `4b6461f538839ec6144721b69cd9d09a86d97758` |
 | `implementation-plan/10-a10-recovery-accessibility.md` | `aa6140f70777cbbf39ca5ba601271ede06454e8c` |
 | `implementation-plan/11-a11-component-certification.md` | `7ce264eaa074025dc99e236b73d46cf392a55108` |
-| `implementation-plan/12-action-catalog.md` | `ebdfa3447e19a36d918d383e143938686a9f76f3` |
+| `implementation-plan/12-action-catalog.md` | `e1445131a40d29fc9cda1acafc228b0c82e3a45f` |
 | `implementation-plan/13-verification-closeout.md` | `7ce8e0415264b8828ac429cd5c2e8b9a799686cd` |
 A source component hash mismatch makes PLAN non-current until this root is regenerated. Directory files contain no `order-tasks` block and no independent lifecycle state.
 
@@ -1377,7 +1377,7 @@ The IA27-IA34 union remains exactly **37 unique SURF rows** with no duplicate or
 
 **Acceptance review:** the Actions artifact is evidence, not authority. Every manifest row must receive an explicit `PASS` or `FAIL` against three independent dimensions before IA24:
 1. **schema/information fidelity** — required Primary information is present and correctly named/grouped/prioritized; Technical/Diagnostic information is absent from the ordinary surface; the authorized Technical details/Context/Evidence/confirmation owner exposes exactly its owned value only after explicit entry; close/return restores the ordinary hierarchy without losing current attention;
-2. **UX/interaction fidelity** — the owning interaction grammar, current-attention owner, semantic-slot meaning, exactly-one-primary-composition invariant, action precedence, navigation/material hierarchy, state/recovery semantics and responsive composition match current authority; Queue/Evidence/Terminal result do not gain synthetic attention and transient Evidence replaces rather than nests;
+2. **UX/interaction fidelity** — the owning interaction grammar, current-attention owner, semantic-slot meaning, exactly-one-primary-composition invariant, action precedence, navigation/material hierarchy, state/recovery semantics and responsive composition match current authority; Queue/Review/Evidence/Terminal result do not gain synthetic outer attention, Proposal Review/Readiness/Approval remain direct `WorkbenchReview` primary compositions, and transient Proposal Review/Evidence replace rather than nest;
 3. **visual/UI fidelity** — hierarchy, density, spacing, alignment, geometry, typography, component consistency, affordances, truncation/wrapping, overlays and theme behavior materially conform to current authority and, where not superseded, the reviewed SVG composition.
 
 Any `FAIL` creates a blocking remediation item owned by the defective implementation/authority layer and requires a fresh post-fix exact-candidate Actions capture for the affected row plus regression revalidation. No aggregate pass may hide a failed row.
