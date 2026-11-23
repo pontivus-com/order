@@ -640,7 +640,6 @@ describe("architecture fitness", () => {
 
     const requiredUiOwners = [
       "ui/src/WorkItemWorkspace.tsx",
-      "ui/src/WorkflowStepFrame.tsx",
       "ui/src/PreSignoffStageWorkspace.tsx",
       "ui/src/ReadinessWorkspace.tsx",
       "ui/src/MarkdownEditor.tsx",
@@ -660,12 +659,12 @@ describe("architecture fitness", () => {
       "ui/src/query-keys.ts",
     ] as const;
 
-    const workflowStepFrame = sourceText("ui/src/WorkflowStepFrame.tsx");
-    for (const forbidden of ["useQuery(", "useMutation(", "./http.ts", "../../src/core/"]) {
-      if (workflowStepFrame.includes(forbidden)) {
-        violations.push(
-          "ui/src/WorkflowStepFrame.tsx must remain presentation-only: " + forbidden,
-        );
+    for (const requiredAbsent of [
+      "ui/src/WorkflowStepFrame.tsx",
+      "ui/src/WorkflowMaterialSelector.tsx",
+    ]) {
+      if (productionFiles.includes(requiredAbsent)) {
+        violations.push(requiredAbsent + " must remain required-absent");
       }
     }
 
@@ -2847,43 +2846,26 @@ describe("architecture fitness", () => {
         }
         const objective = task?.objective ?? "";
         for (const required of [
-          "one cumulative signed task",
-          "SD21",
-          "WorkbenchSurface",
-          "optional semantic attention",
-          "WorkbenchDisclosure remains a retained thin Collapsible atom",
-          "WorkbenchReview has no automatic technical slot",
-          "WorkbenchTaskPanel owns header/body/footer",
-          "WorkItemContext/ContextPanel is the singular selection-aware WorkItem technical-inspection owner",
+          "corrected authority-driven Order 0.6.0 candidate",
+          "IA27 is priority foundational reconstruction",
+          "WorkflowStepFrame",
+          "WorkflowMaterialSelector",
+          "primitive consumer allowlists",
           "IA28",
+          "Queue/Create/application-shell consumers",
           "IA29",
-          "MarkdownEditor",
-          "overflow-before-wrap",
           "IA30",
-          "direct WorkbenchReview",
-          "no outer workflow Surface/Attention",
+          "continuous multi-turn Dialogue",
           "IA31",
-          "IA32",
-          "IA33",
-          "IA34",
-          "no disclosure accumulation",
-          "37-SURF",
+          "required-input Dialogue replacing Review",
+          "IA32-IA34",
+          "37 governed surfaces",
+          "No second AppShell",
+          "DTO/view-model/state family",
         ]) {
           if (!objective.includes(required)) {
-            violations.push("T1 objective must name corrected Workbench reconstruction invariant " + required);
+            violations.push("T1 objective must encode current Workbench execution invariant " + required);
           }
-        }
-        if (
-          !/corrected Approval baseline/i.test(objective) ||
-          !/one material\/history owner/i.test(objective) ||
-          !/direct control-to-canvas adjacency/i.test(objective) ||
-          !/active-state capture/i.test(objective) ||
-          !/modal\/editor anatomy/i.test(objective) ||
-          !/no second .*technical-inspection owner/i.test(objective)
-        ) {
-          violations.push(
-            "T1 objective must encode corrected inspection ownership, editor/modal composition and detection invariants",
-          );
         }
 
         const expectedReplacementScreens = [
@@ -2983,37 +2965,59 @@ describe("architecture fitness", () => {
           }
         }
 
+        const ia27Classifications = [
+          ...actionCatalog.matchAll(
+            /^\| `([^`]+)`(?: [^|]*)? \| `(CONFORMING_NO_EDIT|BOUNDED_RESIDUAL|DESTRUCTIVE_REPLACEMENT|REQUIRED_ABSENT)` \|/gm,
+          ),
+        ].map((match) => ({ path: match[1] ?? "", disposition: match[2] ?? "" }));
+        exactSet(
+          "PLAN IA27 destructive replacement owners",
+          ia27Classifications
+            .filter((row) => row.disposition === "DESTRUCTIVE_REPLACEMENT")
+            .map((row) => row.path),
+          [
+            "ui/src/primitives/WorkbenchAttention.tsx",
+            "ui/src/primitives/WorkbenchConfirmation.tsx",
+            "ui/src/primitives/WorkbenchDialogue.tsx",
+            "ui/src/primitives/WorkbenchReview.tsx",
+            "ui/src/primitives/WorkbenchSurface.tsx",
+            "ui/src/primitives/WorkbenchTaskPanel.tsx",
+          ],
+        );
+        exactSet(
+          "PLAN IA27 required-absent owners",
+          ia27Classifications
+            .filter((row) => row.disposition === "REQUIRED_ABSENT")
+            .map((row) => row.path),
+          [
+            "ui/src/primitives/WorkbenchLayout.tsx",
+            "ui/src/WorkflowStepFrame.tsx",
+            "ui/src/WorkflowMaterialSelector.tsx",
+          ],
+        );
         for (const required of [
-          "SD21 visual-language → foundation realization ledger before inspecting current JSX/CSS",
-          "complete/no-duplicate/no-unowned visual-language → foundation realization ledger",
-          "same semantic role → same primitive + token/variant + hierarchy/inspection behavior",
-          "may compose the accepted foundation but may not extend the visual language locally",
-          "`CONFORMING_NO_EDIT`, `BOUNDED_RESIDUAL` or `DESTRUCTIVE_REPLACEMENT`",
-          "Do not refactor through, wrap or compatibility-shim the superseded structure",
-          "current mandatory destructive replacements are exactly the six ledgered design-bearing owners",
-          "`WorkbenchSurface.tsx`",
-          "`WorkbenchAttention.tsx`",
-          "`WorkbenchDialogue.tsx`",
-          "`WorkbenchConfirmation.tsx`",
-          "`WorkbenchReview.tsx`",
-          "`WorkbenchTaskPanel.tsx`",
-          "mechanical consumer integration is limited to removing an obsolete primitive call shape"
+          "IA27 current-baseline authority classification ledger",
+          "every remaining design-bearing primitive consumer is allowlisted",
+          "no renamed `WorkflowStepFrame`/`WorkflowMaterialSelector`",
+          "zero compatibility/adapter paths",
+          "only genuine attention owners render `WorkbenchAttention`",
+          "current authority-first reconstruction evidence",
         ]) {
           if (!actionCatalog.includes(required)) {
             violations.push(
-              "PLAN IA27 visual-language/foundation execution contract missing " + required,
+              "PLAN IA27 foundation execution contract missing " + required,
             );
           }
         }
 
         for (const required of [
           "Historical reconstruction primitive inputs (20)",
-          "Historical shell-integration cutover inputs (5)",
+          "Historical shell/shared-composition cutover inputs (6)",
           "Foundation owners established by the historical reconstruction (3)",
           "Positively retained atomic adapters (6",
           "WorkbenchDisclosure.tsx",
           "specifically named same-task semantic expansion",
-          "no compatibility `WorkbenchLayout`",
+          "no refactor-through-superseded structure",
           "SURF-WI-001",
           "historical purge-before-fresh-authorship record as provenance only",
           "do not claim a new transient purge checkpoint",
@@ -3071,7 +3075,7 @@ describe("architecture fitness", () => {
           "same operator task",
           "WorkbenchContextPanel",
           "technical-inspection",
-          "WorkbenchSurface({ attention?, selector?, material })",
+          "WorkbenchSurface({ attention?, material })",
           "outer WorkbenchSurface / WorkbenchAttention = absent",
         ]) {
           if (!p4Workbench.includes(required)) {
