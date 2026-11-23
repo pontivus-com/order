@@ -924,7 +924,7 @@ test("CodeMirror editor preserves exact source, formats Markdown, previews one b
   const initial = await markdownSourceValue(editor);
   const unsaved = initial + "\n# Preview continuity\n";
   await replaceMarkdownSource(page, editor, unsaved);
-  await expect(page.getByText("Unsaved", { exact: true })).toBeVisible();
+  await expect(page.getByText("Unsaved edits", { exact: true })).toBeVisible();
 
   await page.getByRole("radio", { name: "Preview" }).click();
   await expect(page.getByTestId("markdown-preview")).toContainText("Preview continuity");
