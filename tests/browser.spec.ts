@@ -2230,6 +2230,8 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   await openWorkItem(page, "Source editing workbench");
   await selectWorkflowStep(page, "Work request");
   const sourceMaterial = page.getByTestId("source-document-material");
+  await expect(sourceMaterial.getByText("Requested outcome", { exact: true }))
+    .toBeVisible({ timeout: 15_000 });
   await capture({
     id: "ia26-work-request-step-wide-light",
     workItemKind: "CHANGE",
