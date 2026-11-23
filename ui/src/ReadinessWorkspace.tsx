@@ -77,7 +77,6 @@ export const ReadinessWorkspace = ({
   artifacts: readonly ArtifactRef[];
   material: WorkflowMaterial;
   materialState: MaterialPresentationState | null;
-  summary: ReactNode;
   reviewNotice?: ReactNode;
   reviewAction?: ReactNode;
   currentRunId: Run["id"] | null;
