@@ -48,8 +48,8 @@ Workbench workflow surfaces use:
 application toolbar
 work-item identity row
 workflow rail
-current-attention / current-task region
-primary interaction surface
+[current-attention / current-task region only when the owning interaction class has genuine current attention]
+exactly one primary interaction surface
 [explicit Context only when opened]
 ```
 
@@ -59,7 +59,7 @@ The references preserve:
 - current lifecycle step = Order blue plus semantic current indication;
 - unreached lifecycle step = neutral;
 - one compact stable WorkItem identity row;
-- one current-attention owner;
+- at most one current-attention owner, rendered only where the owning interaction class/current condition has genuine current-attention semantics; Queue, Evidence and Complete do not invent an attention band for heading/status placement;
 - flat, neutral-first, low-chrome presentation;
 - deep navy / Order-blue identity;
 - border/spacing hierarchy rather than decorative card-dashboard styling;
@@ -73,12 +73,12 @@ The references preserve:
 - no adjacent/nested generic `Technical details`, `Supporting material/history`, `Details` or equivalent disclosure bars;
 - bounded task dialogs use a clear header/body/footer composition with Cancel + the one primary task action in the footer;
 - Markdown authoring uses one compact editor-control region directly adjacent to the source/preview canvas; lower-frequency formatting commands move to overflow before the toolbar becomes multiple stacked rows;
-- Evidence exact-byte/code material uses the pinned Astryx `CodeBlock` standalone card presentation and the root theme's muted surface/text roles; it does not introduce a dedicated dark palette or theme island in Light mode;
+- Evidence exact-byte/code material uses the pinned Astryx `CodeBlock` standalone card presentation and the root theme's muted surface/text roles; while selected it is the one primary material composition, replaces rather than nests inside another Workbench surface, and does not introduce a synthetic current-attention region or dedicated dark palette/theme island in Light mode;
 - human/agent dialogue distinct from workflow events and operational activity;
 - Implementation as the only persistent workflow master/detail geometry.
 - Approval uses the closed `WorkbenchReview` hierarchy and decision region; it does not introduce an Approval-only authorization side pane.
 - Implementation uses the canonical fixed `--order-master-width` / `WorkbenchMasterDetail` geometry, and its current Start/Retry/Resume action remains owned by `WorkbenchAttention` rather than task-detail chrome.
-- Complete uses the flat sequential Terminal-result grammar (`WorkbenchSurface + WorkbenchStatus + result content/resources`); it does not introduce a terminal card-dashboard grid.
+- Complete uses the flat sequential Terminal-result grammar (`WorkbenchSurface` with attention absent + product-facing outcome/status + result content/resources/action); it does not introduce a terminal card-dashboard grid, repeat the terminal outcome through a current-attention band, or expose architecture/governance container terminology as operator copy.
 
 ## Complete audited surface coverage
 
