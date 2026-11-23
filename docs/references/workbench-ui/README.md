@@ -59,7 +59,7 @@ The references preserve:
 - current lifecycle step = Order blue plus semantic current indication;
 - unreached lifecycle step = neutral;
 - one compact stable WorkItem identity row;
-- at most one current-attention owner, rendered only where the owning interaction class/current condition has genuine current-attention semantics; Queue, Evidence and Complete do not invent an attention band for heading/status placement;
+- at most one current-attention owner, rendered only where the owning interaction class/current condition has genuine current-attention semantics; Queue, Review, Evidence and Complete do not invent an outer attention band for heading/currentness/status/action placement;
 - flat, neutral-first, low-chrome presentation;
 - deep navy / Order-blue identity;
 - border/spacing hierarchy rather than decorative card-dashboard styling;
@@ -76,7 +76,7 @@ The references preserve:
 - Evidence exact-byte/code material uses the pinned Astryx `CodeBlock` standalone card presentation and the root theme's muted surface/text roles; while selected it is the one primary material composition, replaces rather than nests inside another Workbench surface, and does not introduce a synthetic current-attention region or dedicated dark palette/theme island in Light mode;
 - human/agent dialogue distinct from workflow events and operational activity;
 - Implementation as the only persistent workflow master/detail geometry.
-- Approval uses the closed `WorkbenchReview` hierarchy and decision region; it does not introduce an Approval-only authorization side pane.
+- Proposal Review, Readiness and Approval each use one direct `WorkbenchReview` primary composition; review currentness/summary/body/decisions remain inside Review, with no outer `WorkflowStepFrame`/`WorkbenchSurface`/`WorkbenchAttention`. Approval also does not introduce an Approval-only authorization side pane.
 - Implementation uses the canonical fixed `--order-master-width` / `WorkbenchMasterDetail` geometry, and its current Start/Retry/Resume action remains owned by `WorkbenchAttention` rather than task-detail chrome.
 - Complete uses the flat sequential Terminal-result grammar (`WorkbenchSurface` with attention absent + product-facing outcome/status + result content/resources/action); it does not introduce a terminal card-dashboard grid, repeat the terminal outcome through a current-attention band, or expose architecture/governance container terminology as operator copy.
 
@@ -199,6 +199,7 @@ The application-wide reference baseline is complete only while all of the follow
 | light/dark semantic parity is represented | PASS |
 | references use repository-backed values or semantic placeholders without leaking raw technical field/event identity into ordinary operator presentation | PASS |
 | references contain no generic local Technical-details/Supporting-material-history disclosure grammar | PASS |
+| Proposal Review / Readiness / Approval references use one direct Review composition with no outer current-attention band | PASS |
 | Create/remediation references show header/body/footer modal anatomy | PASS |
 | document-authoring reference preserves compact editor controls directly adjacent to the canvas | PASS |
 | no reference claims unobserved lifecycle/runtime facts | PASS |
