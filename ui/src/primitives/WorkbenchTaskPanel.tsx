@@ -2,10 +2,18 @@ import { Dialog } from "@astryxdesign/core/Dialog";
 import type { FormEventHandler, ReactNode } from "react";
 
 export const WorkbenchTaskPanel = ({
-  open, title, onOpenChange, body, footer, feedback, onSubmit,
+  open,
+  title,
+  description,
+  onOpenChange,
+  body,
+  footer,
+  feedback,
+  onSubmit,
 }: Readonly<{
   open: boolean;
   title: string;
+  description?: ReactNode;
   onOpenChange: (open: boolean) => void;
   body: ReactNode;
   footer: ReactNode;
@@ -22,6 +30,9 @@ export const WorkbenchTaskPanel = ({
     <form className="order-workbench-task-panel" onSubmit={onSubmit}>
       <header className="order-workbench-task-panel-header">
         <h2 className="order-workbench-task-title">{title}</h2>
+        {description === undefined ? null : (
+          <div className="order-workbench-task-description">{description}</div>
+        )}
       </header>
       <div className="order-workbench-task-panel-body">
         {body}
@@ -29,9 +40,7 @@ export const WorkbenchTaskPanel = ({
           <div className="order-workbench-task-panel-feedback">{feedback}</div>
         )}
       </div>
-      <footer className="order-workbench-task-panel-footer">
-        {footer}
-      </footer>
+      <footer className="order-workbench-task-panel-footer">{footer}</footer>
     </form>
   </Dialog>
 );
