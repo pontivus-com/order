@@ -8,11 +8,11 @@ This decomposition is reconstructed under G-F12 after G4 closure. Historical PLA
 
 - R1 `research.md`: `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`.
 - R2 `requirements.md`: `e1e53c493f405610f6f73d3e8b83084b91e7db9e`.
-- DESIGN `solution-design.md`: `cacbba0f7e3e3e52f22863c91962e8eeadf7328b`.
+- DESIGN `solution-design.md`: `a6dc89a0ce2fcdcb986d6c3fdb3414766562c95f`.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `9c2ec83a9552b7583f90e91080c014df4d6870df`.
 - P3 `GW-DOC-WORKBENCH-UX-V2`: `d47173839201c68937bdb4c840d0273dec5bcffc` — §11.4A/§12/§13/§14 own semantic information classes, state-is-not-interface behavior, direct primary interaction composition, no generic workflow-material selector, continuous Dialogue semantics, Terminal-result primacy, singular technical inspection, task anatomy and composition invariants.
 - P3 `GW-DOC-MARKDOWN-WORKBENCH-V1`: `1cc5a28eff8d180f88106d89990f7b89aa27a132` — §17.4 owns one compact Markdown editor-control region, overflow-before-wrap formatting and control→canvas adjacency.
-- P4 `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`: `98947b743aeb03d57d2b211da8bf9092a1c3a075` — §8.4-§8.16 own direct interaction-class composition, required absence of WorkflowStepFrame/WorkflowMaterialSelector responsibilities, closed non-compatible design-bearing APIs, primitive consumer allowlists, optional genuine attention, singular Context/Settings technical inspection, direct Review, same-task-only Disclosure and TaskPanel anatomy.
+- P4 `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`: `372c7a3380dc200d5ec0b425f2d6cac781f2e6bc` — §8.4-§8.16 own direct interaction-class composition, required absence of WorkflowStepFrame/WorkflowMaterialSelector responsibilities, closed non-compatible design-bearing APIs, primitive consumer allowlists, optional genuine attention, singular Context/Settings technical inspection, direct Review, same-task-only Disclosure and TaskPanel anatomy.
 - P4 `GW-DOC-WORKBENCH-THEME-V1`: `43b81a61291841d827a47f392e0149ace5c8351f` — owns the corrected semantic-disclosure, technical-inspection and task-panel visual roles.
 - P6 `GW-DOC-CANONICAL-CONTRACTS-V2`: `71f829cff8824db18194689eccdec83da6f5d19f`.
 - SD13 checkpoint and SD10 scope/forecast/V4-V6 realization are consumed only because current DESIGN positively proves those canonical capabilities; T1 does not reimplement them.
