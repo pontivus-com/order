@@ -970,7 +970,7 @@ WorkbenchRail({ items })
 Toolbar/identity/rail geometry is primitive-owned. `WorkbenchUtilityLink` is navigation-only and renders link semantics; it never converts Settings/account navigation into a command button. `WorkbenchRail.items` carries only generic id/label/state/selected/onSelect presentation; callers cannot set cell width.
 
 ```ts
-WorkbenchSurface({ attention, selector?, material })
+WorkbenchSurface({ attention?, selector?, material })
 WorkbenchAttention({ title, purpose?, status?, blocker?, action? })
 WorkbenchSectionHeader({ title, description?, action? })
 WorkbenchSelector({
@@ -979,7 +979,7 @@ WorkbenchSelector({
 })
 ```
 
-`WorkbenchSurface` exposes no persistent start/aside/master/columns/breakpoint props. `WorkbenchSelector` is single-selection presentation: exactly one item may be selected when a current selection exists, item `onSelect` is the only selection action, groups are labeling/organization only, and item count never selects topology.
+`WorkbenchSurface` exposes no persistent start/aside/master/columns/breakpoint props. Its `attention` slot is optional and semantic: when present it contains the owning `WorkbenchAttention` composition for an interaction class that explicitly owns current attention. It is not a generic heading/top-content slot, and `WorkbenchSurface` renders no attention wrapper or attention geometry when the slot is absent. `WorkbenchSectionHeader`, result headers/status and Evidence identity belong to the owning `material` composition unless the interaction class explicitly classifies them as current attention. `WorkbenchSelector` is single-selection presentation: exactly one item may be selected when a current selection exists, item `onSelect` is the only selection action, groups are labeling/organization only, and item count never selects topology.
 
 ```ts
 WorkbenchDialogue({ transcript, activity?, composer?, state? })
@@ -1062,9 +1062,10 @@ The functional interaction classes in `GW-DOC-WORKBENCH-UX-V2 §13` map exactly:
 ```text
 Operational scan
   -> WorkbenchSurface
-     + WorkbenchSectionHeader as needed
-     + WorkbenchTable
-     + WorkbenchStatus / WorkbenchNotice / WorkbenchAction
+     attention = absent
+     material = WorkbenchSectionHeader as needed
+              + WorkbenchTable
+              + WorkbenchStatus / WorkbenchNotice / WorkbenchAction
 
 Form / configuration
   -> WorkbenchForm
@@ -1095,17 +1096,21 @@ Review
 Operational master/detail
   -> WorkbenchMasterDetail
      master = WorkbenchTable or compact scan
-     detail = WorkbenchSurface + WorkbenchAttention + selected material
+     detail = WorkbenchSurface
+              attention = WorkbenchAttention for the current task
+              material = selected task/attempt material
 
 Evidence
   -> WorkbenchSurface
-     + WorkbenchSectionHeader / WorkbenchAttention
-     + approved CodeBlock/raw-content leaf
+     attention = absent
+     material = WorkbenchSectionHeader + approved CodeBlock/raw-content leaf
 
 Terminal result
   -> WorkbenchSurface
-     + WorkbenchStatus
-     + result content/evidence/resources
+     attention = absent
+     material = product-facing result header/status
+              + result content/evidence/resources
+              + permitted result action
 
 Compact context
   -> WorkbenchContextPanel hosted only by WorkbenchWorkItemShell
@@ -1123,7 +1128,7 @@ Canonical application services resolve as:
 
 | Service/material | Required primitive composition |
 |---|---|
-| Work queue | `WorkbenchAppShell -> WorkbenchSurface -> WorkbenchTable`; readiness/source diagnostics use `WorkbenchNotice` |
+| Work queue | `WorkbenchAppShell -> WorkbenchSurface(attention absent, material SectionHeader + WorkbenchTable)`; readiness/source diagnostics use `WorkbenchNotice` |
 | Create WorkItem/remediation | `WorkbenchAppShell` hosts the current destination and `WorkbenchTaskPanel -> WorkbenchForm` contains the transient creation/configuration task; Astryx field-owning controls are leaves and `WorkbenchField` is only for a control without its own field shell |
 | Settings | `WorkbenchAppShell -> WorkbenchSettingsLayout -> WorkbenchForm` + Astryx field-owning controls / `WorkbenchField` fallback + Status/Notice/Confirmation |
 | WorkItem shell | `WorkbenchAppShell -> WorkbenchWorkItemShell -> WorkbenchIdentity + WorkbenchRail + one primary composition + optional WorkbenchContextPanel` |
@@ -1132,8 +1137,8 @@ Canonical application services resolve as:
 | Proposal / Readiness / Approval | `WorkbenchReview` (+ selector/disclosure/field where explicitly required) |
 | Implementation | `WorkbenchMasterDetail(master scan, detail WorkbenchSurface)` |
 | Run chronology | `WorkbenchTimeline` |
-| Evidence/raw material | `WorkbenchSurface` + approved raw-content leaf |
-| Complete/result | `WorkbenchSurface + WorkbenchStatus + result content` |
+| Evidence/raw material | one `WorkbenchSurface` with attention absent and `WorkbenchSectionHeader + approved raw-content leaf` in material; it replaces rather than nests inside the owning primary composition |
+| Complete/result | one `WorkbenchSurface` with attention absent and product-facing `WorkbenchStatus/result header + result content/resources/action` in material |
 | Context | `WorkbenchContextPanel` only through `WorkbenchWorkItemShell` |
 | Safety/confirmation | `WorkbenchConfirmation` with P3/DESIGN-derived `kind="safety" | "destructive"` |
 
@@ -1162,12 +1167,12 @@ Examples:
 - `app.tsx` mounts the one `WorkbenchAppShell`, supplies its global toolbar and current application destination, routes creation to `WorkbenchTaskPanel`, dirty navigation to `WorkbenchConfirmation` and toolbar utility state to `WorkbenchUtilityLink`; no destination mounts another AppShell or application toolbar.
 - `WorkItemIdentityRow.tsx` maps identity/status/utilities to `WorkbenchIdentity`.
 - `WorkflowRail.tsx` maps reached/current presentation into `WorkbenchRail`.
-- `WorkflowStepFrame.tsx` maps already-derived attention into `WorkbenchAttention + WorkbenchSurface`.
+- `WorkflowStepFrame.tsx` is used only for interaction classes whose owning composition includes current attention; it maps already-derived attention into `WorkbenchAttention + WorkbenchSurface` and must not wrap Evidence or Terminal-result primary compositions.
 - `WorkflowMaterialSelector.tsx` maps Run/document/proposal/evidence choices into `WorkbenchSelector`.
 - `ActivityWorkspace.tsx` / `ActivityComposer.tsx` map transcript/composer content into `WorkbenchDialogue`.
 - `RunEventTimeline.tsx` maps canonical event presentation into `WorkbenchTimeline`.
 - `ProposalReview.tsx`, `ReadinessWorkspace.tsx`, `SignoffReview.tsx` map review content into `WorkbenchReview`.
-- `ExecutionWorkspace.tsx` maps task/attempt scan into `WorkbenchMasterDetail`, detail into `WorkbenchSurface`, validation scan into `WorkbenchTable`, chronology into `WorkbenchTimeline`.
+- `ExecutionWorkspace.tsx` maps task/attempt scan into `WorkbenchMasterDetail`, current-task detail into one `WorkbenchSurface` with genuine current attention, validation scan into `WorkbenchTable`, and chronology into `WorkbenchTimeline`; explicit Evidence selection replaces the detail primary composition instead of nesting another surface.
 - `WorkItemContext.tsx` supplies content to `WorkbenchContextPanel`.
 - `CreateWorkItem.tsx`, `SettingsWorkspace.tsx` and `OpenCodeAccountSettings.tsx` map form/configuration semantics into `WorkbenchForm`; they render Astryx field-owning controls directly and use `WorkbenchField` only for a native/custom/third-party control without its own field shell.
 - specifically named same-task expansion may use `WorkbenchDisclosure`; WorkItem technical inspection routes through `WorkItemContext` → `WorkbenchContextPanel`; Settings technical diagnostics route through one Settings inspection section; semantic feedback uses `WorkbenchNotice`; semantic state uses `WorkbenchStatus`.
@@ -1670,9 +1675,9 @@ The UI remediation is structurally complete only when all of the following are t
 
 **Realizes:** `GW-FR-218-SPACE-CLASS-CONSISTENCY`, `GW-FR-220-PRESIGNOFF-CONTINUITY`, `GW-FR-221-READINESS-REVIEW-HIERARCHY`, `GW-FR-222-APPROVAL-REVIEW-HIERARCHY`, `GW-FR-223-IMPLEMENTATION-MASTER-DETAIL`, `GW-FR-225-RESPONSIVE-SEMANTIC-CONTINUITY`, `GW-FR-230-CLOSED-WORKBENCH-INTERACTION-GRAMMAR`.
 
-**Required behavior:** every rendered Order Workbench service is built from the complete closed primitive vocabulary in §8.12 according to §8.15. Feature/content owners may supply domain content and §8.19 leaves inside primitive slots, but reusable Workbench structure/interaction/visual semantics remain primitive-owned.
+**Required behavior:** every rendered Order Workbench service is built from the complete closed primitive vocabulary in §8.12 according to §8.15. Feature/content owners may supply domain content and §8.19 leaves inside primitive slots, but reusable Workbench structure/interaction/visual semantics remain primitive-owned. Semantic slots retain their declared meaning: `WorkbenchSurface.attention` is optional and may contain only the interaction class's genuine current-attention composition.
 
-**Acceptance:** architecture fitness rejects bypass of shell/toolbar/utility/identity/rail/surface/attention/form/selector/dialogue/review/master-detail/Context/task-panel/settings/status/notice/table/timeline/disclosure/confirmation mechanics, rejects undeclared screen grammars, and additionally rejects generic local Technical-details/Supporting-material-history disclosure owners, adjacent/nested disclosure stacks, TaskPanel implementations without header/body/footer action ownership, and Markdown editor compositions that insert unrelated bands between controls and canvas. Any new primitive requires DESIGN authority plus permanent fitness coverage.
+**Acceptance:** architecture fitness rejects bypass of shell/toolbar/utility/identity/rail/surface/attention/form/selector/dialogue/review/master-detail/Context/task-panel/settings/status/notice/table/timeline/disclosure/confirmation mechanics, rejects undeclared screen grammars, rejects a primary interaction composition nested inside another primary composition, rejects use of the optional attention slot as a generic heading/top-content slot, and additionally rejects generic local Technical-details/Supporting-material-history disclosure owners, adjacent/nested disclosure stacks, TaskPanel implementations without header/body/footer action ownership, and Markdown editor compositions that insert unrelated bands between controls and canvas. Queue/Evidence/Terminal-result renderers must remain attention-free unless P3 is explicitly amended to give that interaction class current-attention ownership. Any new primitive requires DESIGN authority plus permanent fitness coverage.
 
 ### GW-TR-095-WORKBENCH-RENDERER-COVERAGE
 
