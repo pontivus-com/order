@@ -4,7 +4,6 @@ import {
   type EvidenceSelection, type ProposalSelection,
 } from "./workbench-presentation.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
-import { WorkbenchDisclosure } from "./primitives/WorkbenchDisclosure.tsx";
 import { WorkbenchResourceRow } from "./primitives/WorkbenchResourceRow.tsx";
 import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
 import { WorkbenchTimeline } from "./primitives/WorkbenchTimeline.tsx";
@@ -46,11 +45,5 @@ export const RunEventTimeline = ({
         </div>,
       };
     })} />
-    <WorkbenchDisclosure label="Timeline technical details" content={<div className="order-workflow-event-technical">
-      {workflowEvents.map((event) => <details key={event.id}>
-        <summary><code>{event.event.tag}</code><span>{" · sequence " + event.sequence}</span></summary>
-        <pre>{JSON.stringify(event.event, null, 2)}</pre>
-      </details>)}
-    </div>} />
   </section>;
 };
