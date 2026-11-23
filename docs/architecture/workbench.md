@@ -669,7 +669,7 @@ workflow rail
 primary task surface [ + explicit Context when opened ]
 ```
 
-The first three rows are structurally stable. Their geometry is owned by the Workbench shell, not by the selected workflow material. The step summary/current-attention band also has a stable height within each responsive class: blocker/failure/input/proposal state changes replace content inside that band rather than inserting a new structural header row that shifts the primary surface.
+The first three rows are structurally stable. Their geometry is owned by the Workbench shell, not by the selected workflow material. No generic step-summary/current-attention band exists. When the selected interaction has genuine current human attention, that interaction composes the exact bounded attention/action treatment authorized by §8.4-§8.8; absent attention adds no structural row or reserved height.
 
 No step component may insert another persistent outer navigation column into that topology merely because its local collection grows.
 
@@ -1518,7 +1518,7 @@ The current `Supporting context` disclosure is removed from the leading primary 
 
 The current prominent `OpenCode session` block in `ActivityWorkspace` is removed from primary composition. Canonical workflow interaction state owns the visible status; provider diagnostics remain Technical details/evidence unless they are the active blocker.
 
-`WorkflowStepSummary` renders one current action owner only. A retryable failed Run must not simultaneously expose both generic Start and Retry controls for the same stage.
+The owning interaction renders at most one current mutation action. A retryable failed Run must not simultaneously expose both generic Start and Retry controls for the same stage, and no deleted workflow-summary owner may be recreated to arbitrate those actions.
 
 Implementation validation presentation is sparse/current-state-first as defined in §8.8; a full empty V0–V7 matrix is not rendered before validation begins.
 
@@ -1825,7 +1825,7 @@ Browser tests prove all `GW-DOC-WORKBENCH-UX-V2 §23` certification scenarios, i
 
 ### 14.6 Architecture fitness
 
-For the Workbench V2 P7 transition, `tests/architecture.test.ts` is immutable `VERIFICATION_MATERIAL` because `pontivus-order.toml [verification.architecture].materialRefs` includes that exact path. The signed candidate must not modify it. The existing `architecture` gate continues to execute that baseline sensor unchanged. The required **new** Workbench-specific dependency-map registration, primitive/renderer completeness and forbidden-mechanic assertions below are implemented in the already-existing `tests/certification.test.ts` and exercised by the required `test` gate in the same cumulative implementation. This satisfies the architecture-preserving module-registration requirement of `GW-DOC-TECHNICAL-ARCHITECTURE` without treating a signed verification source as candidate change surface. Neither gate may be removed, waived or weakened; tests must reject omissions/bypasses rather than merely assert that new files exist.
+For the Workbench V2 P7 transition, `tests/architecture.test.ts` is `VERIFICATION_MATERIAL` because `pontivus-order.toml [verification.architecture].materialRefs` includes that exact path. That protection applies to the **signed post-Approval candidate**: T1 must not mutate the architecture sensor it is judged by. Before R3/sign-off, however, the bounded IA27 foundation-realization prerequisite must correct any architecture assertion that positively requires a responsibility P4 now declares required-absent; otherwise the future Approval baseline would contain a self-contradictory gate. Such pre-sign-off sensor correction is authority/evidence-package work, not T1 candidate mutation, and the corrected sensor bytes become part of the exact baseline R3 and Approval later bind. Workbench-specific dependency-map registration, primitive/renderer completeness and forbidden-mechanic assertions may additionally live in the existing `tests/certification.test.ts` under the ordinary `test` gate. After Approval, neither verification source may be weakened or changed by T1. Neither gate may be removed, waived or weakened; tests must reject omissions/bypasses rather than merely assert that new files exist.
 
 Permanent sensors prove:
 
@@ -1838,7 +1838,7 @@ Permanent sensors prove:
 - rail reach/current-marker semantics are referenced only from the authorized `deriveWorkflowRail` projection; UI adapters do not recalculate them;
 - GET handlers cannot call known reconcile/materialization mutation functions;
 - ordinal reached-history comparison is absent from production Workbench code;
-- the generic step frame has no content-count-dependent persistent side-index slot;
+- the generic `WorkflowStepFrame` / `WorkflowStepSummary` / `WorkflowStepIndex` / `PrimaryMaterialFrame` and `WorkflowMaterialSelector` owners are absent, and permanent fitness rejects any renamed/aliased equivalent or persistent generic side-index/material-navigation responsibility;
 - one dedicated selected WorkItem query (not the queue list) owns current WorkItem observation; shared-query secondary consumers cannot become competing workflow-policy/current-attention owners;
 - Workbench responsive structural breakpoints are singular/consistent across JS and CSS;
 - Workbench feature/service renderers do not import foundation mechanics already owned by §8.12; the owning primitive is the only reusable bridge to `AppShell/Layout/Drawer/Dialog/AlertDialog/Button/IconButton/Banner/Badge/Table/List` mechanics, while explicitly approved field/content leaves remain allowed under §8.19;
@@ -1880,7 +1880,7 @@ This section records the P4 consequences of the fresh 0.6.0 functional package w
 
 The canonical current-attention owner remains the pure resolver defined by `GW-TR-089-CURRENT-ATTENTION-OWNERSHIP`. Explicit workflow/document/history selection affects inspected material only.
 
-When an explicit selection is not the current attention owner, the step summary must retain one compact current-attention block containing the exact current owner, human-facing reason/question/status and direct action to return to that owner. Selecting that action changes only inspection selection; it does not invent workflow state.
+When an explicit selection is not the current attention owner and current work genuinely requires human action, the selected interaction must preserve one concise visible signal containing the human-facing reason/question and a direct action to return to the exact current owner. Document may use its authorized optional `WorkbenchAttention`; Dialogue keeps current interaction state inside `WorkbenchDialogue` and uses only the explicitly authorized surrounding return treatment for historical inspection; Review remains a direct Review composition. No generic step-summary owner or status tuple is recreated. Selecting the return action changes only inspection selection; it does not invent workflow state.
 
 The browser must not clear legitimate explicit selection merely because polling discovers new attention. It must also never make the new attention unreachable.
 
