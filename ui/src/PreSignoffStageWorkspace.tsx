@@ -20,6 +20,15 @@ import { WorkbenchState } from "./primitives/WorkbenchState.tsx";
 
 export type SharedPreSignoffStage = "R1" | "R2" | "DESIGN" | "PLAN";
 
+type RelatedMaterialItem = Readonly<{
+  id: string;
+  label: string;
+  description?: string;
+  statusLabel?: string;
+  selected: boolean;
+  onSelect: () => void;
+}>;
+
 const documentLabel=(stage: SharedPreSignoffStage): string =>
   stage==="R1" ? "Research document" :
   stage==="R2" ? "Requirements document" :
@@ -59,7 +68,7 @@ export const PreSignoffStageWorkspace = ({
     return artifact===undefined ? [] : [artifact];
   });
 
-  const items=[
+  const items: RelatedMaterialItem[]=[
     ...stageRuns.map((run)=>({
       id:"run-"+run.id,label:"Attempt "+run.attempt,description:new Date(run.startedAt).toLocaleString(),
       statusLabel:runStatusLabel(run.status),selected:material.kind==="STAGE_RUN" && material.runId===run.id,
