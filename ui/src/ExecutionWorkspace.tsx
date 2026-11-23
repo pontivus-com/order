@@ -328,21 +328,19 @@ export const ExecutionWorkspace = ({ workItem, material, tasks, runs, artifacts,
           />
         </div>
       ) : <WorkbenchState kind="empty" title="No attempts yet"/>}
-      <WorkbenchDisclosure label="Technical details" content={<dl>
-        <div><dt>Task id</dt><dd><code>{selectedTask.id}</code></dd></div>
-        <div><dt>Approval id</dt><dd><code>{selectedTask.approvalId}</code></dd></div>
-        <div><dt>Plan task id</dt><dd><code>{selectedTask.planTaskId}</code></dd></div>
-        <div><dt>Gates</dt><dd>{selectedTask.gateIds.join(", ") || "None"}</dd></div>
-        <div><dt>Depends on</dt><dd>{selectedTask.dependsOn.join(", ") || "None"}</dd></div>
-        <div><dt>Change surface</dt><dd>{selectedTask.changeSurface.join(", ") || "None"}</dd></div>
-        {selectedRun ? <>
-          <div><dt>Run id</dt><dd><code>{selectedRun.id}</code></dd></div>
-          <div><dt>Baseline</dt><dd><code>{selectedRun.baselineCommit}</code></dd></div>
-          <div><dt>Context</dt><dd><code>{selectedRun.contextHash}</code></dd></div>
-          <div><dt>Provider session</dt><dd><code>{selectedRun.providerSessionId??"—"}</code></dd></div>
-          <div><dt>Terminal classification</dt><dd><code>{selectedRun.terminalClassification??"—"}</code></dd></div>
-        </> : null}
-      </dl>}/>
+      <section className="order-execution-task-contract" aria-label="Approved task contract">
+        <WorkbenchSectionHeader title="Approved task contract" />
+        <MetadataList columns="single">
+          <MetadataListItem label="Scope">{selectedTask.scope.join(", ") || "None"}</MetadataListItem>
+          <MetadataListItem label="Exclusions">{selectedTask.exclusions.join(", ") || "None"}</MetadataListItem>
+          <MetadataListItem label="Acceptance">{selectedTask.acceptanceRefs.join(", ") || "None"}</MetadataListItem>
+          <MetadataListItem label="Authority">{selectedTask.authorityRefs.join(", ") || "None"}</MetadataListItem>
+          <MetadataListItem label="Concerns">{selectedTask.concernIds.join(", ") || "None"}</MetadataListItem>
+          <MetadataListItem label="Gates">{selectedTask.gateIds.join(", ") || "None"}</MetadataListItem>
+          <MetadataListItem label="Dependencies">{selectedTask.dependsOn.join(", ") || "None"}</MetadataListItem>
+          <MetadataListItem label="Change surface forecast">{selectedTask.changeSurface.join(", ") || "None"}</MetadataListItem>
+        </MetadataList>
+      </section>
       {activityEvents.length > 0 ? (
         <WorkbenchTimeline
           label="Agent activity"
