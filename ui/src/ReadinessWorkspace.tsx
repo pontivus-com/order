@@ -55,6 +55,8 @@ export const ReadinessWorkspace = ({
   artifacts,
   material,
   materialState,
+  reviewNotice,
+  reviewAction,
   currentRunId,
   currentInteraction,
   currentAttention,
@@ -76,6 +78,8 @@ export const ReadinessWorkspace = ({
   material: WorkflowMaterial;
   materialState: MaterialPresentationState | null;
   summary: ReactNode;
+  reviewNotice?: ReactNode;
+  reviewAction?: ReactNode;
   currentRunId: Run["id"] | null;
   currentInteraction: StageRunInteraction | null;
   currentAttention: CurrentAttentionTag;
@@ -288,8 +292,9 @@ export const ReadinessWorkspace = ({
 
   return (
     <div data-testid="review-workspace">
-          <WorkbenchReview
+      <WorkbenchReview
             currentness={currentness}
+            selector={selector ?? undefined}
             summary={
               <div>
                 <h2>Readiness review</h2>
@@ -298,6 +303,7 @@ export const ReadinessWorkspace = ({
             }
             body={
               <div className="order-review-readiness-body">
+                {reviewNotice}
                 {requiredInputOwnsAttention && selectedSecondary !== null ? (
                   <section
                     className="order-review-readiness-attention"
@@ -366,7 +372,6 @@ export const ReadinessWorkspace = ({
                       </p>
                     </section>
                   </div>
-                  {selector}
                 </section>
 
                 {!requiredInputOwnsAttention && selectedSecondary !== null ? (
@@ -380,7 +385,7 @@ export const ReadinessWorkspace = ({
                 ) : null}
               </div>
             }
-            decisions={<></>}
+            decisions={reviewAction ?? <></>}
           />
     </div>
   );
