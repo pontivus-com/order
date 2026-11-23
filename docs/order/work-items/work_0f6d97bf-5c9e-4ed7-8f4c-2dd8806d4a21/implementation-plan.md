@@ -414,8 +414,6 @@ Package atoms in phase: **4**.
 5. SD02 certification is owned by IA02 and proves the productive production path, including stable-current versus explicit-versioned materiality with both retained and current sources selected/reachable, not only the pure helper/daemon unit boundary;
 6. action-specific tests plus `13-verification-closeout.md` pass;
 7. any evidence contradiction returns upstream rather than broadening scope.
-
-
 ### Compiled component: `implementation-plan/03-a03-queue-source.md`
 #### A03 — Queue, source admission and documentation Git
 
