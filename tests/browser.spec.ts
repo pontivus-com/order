@@ -242,6 +242,19 @@ const selectWorkflowMaterial = async (
   await page.getByRole("option", { name: optionName, exact: true }).click();
 };
 
+const selectCurrentWorkflowMaterial = async (
+  page: Page,
+  optionName: string,
+): Promise<void> => {
+  const selector = page.getByRole("combobox", {
+    name: "Current workflow material",
+    exact: true,
+  });
+  await expect(selector).toBeVisible();
+  await selector.click();
+  await page.getByRole("option", { name: optionName, exact: true }).click();
+};
+
 const openDisclosureResource = async (
   page: Page,
   disclosureName: string,
@@ -1004,10 +1017,11 @@ test("Approval consumes the real typed stale authority owner and returns to the 
   const workItem = await workItemForTitle(page, "Stale approval recovery");
 
   await openWorkItem(page, "Stale approval recovery");
-  const summary = page.getByTestId("workflow-step-summary");
-  await expect(summary).toContainText("Package stale");
-  await expect(summary).toContainText("Approval authority is stale");
-  await expect(summary).toContainText(
+  const review = page.getByTestId("review-workspace");
+  await expect(page.getByTestId("workflow-step-summary")).toHaveCount(0);
+  await expect(review).toContainText("Package stale");
+  await expect(review).toContainText("Approval authority is stale");
+  await expect(review).toContainText(
     "Return workflow ownership to Implementation plan before continuing.",
   );
 
@@ -1058,9 +1072,7 @@ test("Approval consumes the real typed stale authority owner and returns to the 
   );
 
   await selectWorkflowStep(page, "Approval");
-  await expect(page.getByTestId("workflow-step-summary")).toContainText(
-    "Implementation plan",
-  );
+  await expect(page.getByTestId("workflow-step-summary")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Return to Implementation plan", exact: true })).toBeVisible();
   await expect(page.getByTestId("review-workspace")).toContainText(
     "Sign-off not completed · workflow returned upstream",
@@ -1123,8 +1135,9 @@ test("valid external Work request drift keeps source reconciliation distinct fro
   );
 
   await openWorkItem(page, "Awaiting sign-off");
-  const summary = page.getByTestId("workflow-step-summary");
-  await expect(summary).toContainText("Work request source changed");
+  const review = page.getByTestId("review-workspace");
+  await expect(page.getByTestId("workflow-step-summary")).toHaveCount(0);
+  await expect(review).toContainText("Work request source changed");
   const reconcile = page.getByRole("button", {
     name: "Reconcile source authority",
   });
@@ -3155,19 +3168,18 @@ test("narrow workflow work index returns focus and preserves dirty material acro
     initial + "\n# Responsive continuity\n",
   );
 
-  const supporting = page.getByRole("button", { name: "Supporting material and history", exact: true });
-  await supporting.focus();
-  await supporting.click();
+  const materialSelector = page.getByRole("combobox", { name: "Current workflow material" });
+  await materialSelector.focus();
+  await materialSelector.click();
   await page.keyboard.press("Escape");
-  await expect(supporting).toBeFocused();
-  await expect(page.getByTestId("workflow-step-index")).toHaveCount(0);
-  await expect(page.getByRole("combobox", { name: "Current workflow material" })).toBeVisible();
+  await expect(materialSelector).toBeFocused();
+  await expect(page.getByRole("button", { name: "Supporting material and history", exact: true })).toHaveCount(0);
+  await expect(materialSelector).toBeVisible();
   await expect.poll(() => markdownSourceValue(editor))
     .toContain("# Responsive continuity");
 
   await page.setViewportSize({ width: 1600, height: 900 });
-  await expect(page.getByRole("button", { name: "Supporting material and history", exact: true })).toBeVisible();
-  await expect(page.getByTestId("workflow-step-index")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Supporting material and history", exact: true })).toHaveCount(0);
   await expect(page.getByRole("combobox", { name: "Current workflow material" })).toBeVisible();
   await expect.poll(() => markdownSourceValue(editor))
     .toContain("# Responsive continuity");
@@ -3194,11 +3206,8 @@ test("workflow step owns Run history, dialogue, responsive detail, and technical
   await expect(workflowRail.getByRole("button", { name: "Implementation plan" }))
     .toHaveAttribute("aria-current", "step");
   await expect(page.getByTestId("proposal-review-workspace")).toBeVisible();
-  await openDisclosureResource(
-    page,
-    "Supporting material and history",
-    "Open attempt 2",
-  );
+  await expect(page.getByRole("button", { name: "Supporting material and history", exact: true })).toHaveCount(0);
+  await selectCurrentWorkflowMaterial(page, "Attempt 2");
   await expect(page.getByTestId("stage-run-material")).toBeVisible();
   await expect(page.getByRole("radio", { name: "Activity" })).toHaveCount(0);
   await expect(page.getByTestId("selected-run-header")).toHaveCount(1);
@@ -3228,11 +3237,7 @@ test("workflow step owns Run history, dialogue, responsive detail, and technical
   await expect(page.getByTestId("result-workspace")).toBeVisible();
   await selectWorkflowStep(page, "Research");
   await expect(page.getByTestId("workflow-step-index")).toHaveCount(0);
-  await openDisclosureResource(
-    page,
-    "Supporting material and history",
-    "Open attempt 1",
-  );
+  await selectCurrentWorkflowMaterial(page, "Attempt 1");
   await expect(page.getByTestId("stage-run-material")).toBeVisible();
   await expect(page.getByText("Completed", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Workflow step completed", { exact: true })).toBeVisible();
@@ -3337,9 +3342,10 @@ test("historical inspection preserves current attention reason, return and curre
   }
 
   await openWorkItem(page, "Stale approval inspection matrix");
-  const staleSummary = page.getByTestId("workflow-step-summary");
-  await expect(staleSummary).toContainText("Package stale");
+  await expect(page.getByTestId("workflow-step-summary")).toHaveCount(0);
+  await expect(page.getByTestId("review-workspace")).toContainText("Package stale");
   await selectWorkflowStep(page, "Work request");
+  const staleSummary = page.getByTestId("workflow-step-summary");
   await expect(staleSummary.getByText("Stale authority", { exact: true })).toBeVisible();
   const returnToApproval = page.getByRole("button", { name: "Return to Approval", exact: true });
   await expect(returnToApproval).toBeVisible();
@@ -3398,13 +3404,13 @@ test("canonical Run feedback remains visible in the owning workflow context with
   await backToQueue(page);
 
   await openWorkItem(page, "Workflow failure feedback");
-  await openDisclosureResource(page, "Supporting material and history", "Open attempt 4");
+  await selectCurrentWorkflowMaterial(page, "Attempt 4");
   await expect(page.getByText("Work is blocked", { exact: true })).toBeVisible();
   await expect(
     page.getByText("Conformance check failed", { exact: true }),
   ).toBeVisible();
 
-  await openDisclosureResource(page, "Supporting material and history", "Open attempt 2");
+  await selectCurrentWorkflowMaterial(page, "Attempt 2");
   await expect(page.getByText("Agent setup blocked", { exact: true })).toBeVisible();
   await expect(page.getByTestId("workflow-step-summary")).toContainText("Implementation plan");
   await expect(page.getByRole("button", { name: "Return to Implementation plan", exact: true })).toBeVisible();
@@ -3417,7 +3423,7 @@ test("canonical Run feedback remains visible in the owning workflow context with
     .getByRole("button", { name: "Evidence: provider-diagnostics.json" });
   await expect(setupEvidence).toBeVisible();
 
-  await openDisclosureResource(page, "Supporting material and history", "Open attempt 3");
+  await selectCurrentWorkflowMaterial(page, "Attempt 3");
   await expect(
     page.getByText("Agent execution failed", { exact: true }),
   ).toBeVisible();
@@ -3937,24 +3943,27 @@ test("all nine workflow steps keep their canonical summary/material grammar and 
 
   for (const step of cases) {
     await selectWorkflowStep(page, step);
-    const attention = page.getByTestId("workflow-step-summary");
-    await expect(attention).toContainText("Approval");
-    if (step === "Approval") {
-      await expect(attention).toContainText("Package current · ready to sign");
-      await expect(page.getByRole("button", { name: "Return to Approval" })).toHaveCount(0);
+    if (step === "Readiness review" || step === "Approval") {
+      const review = page.getByTestId("review-workspace");
+      await expect(review).toBeVisible();
+      await expect(page.getByTestId("workflow-step-summary")).toHaveCount(0);
+      if (step === "Readiness review") {
+        await expect(page.getByRole("button", { name: "Return to Approval", exact: true })).toBeVisible();
+      } else {
+        await expect(review).toContainText("Awaiting authorization");
+        await expect(page.getByRole("button", { name: "Return to Approval" })).toHaveCount(0);
+      }
     } else {
+      const attention = page.getByTestId("workflow-step-summary");
+      await expect(attention).toContainText("Approval");
       await expect(attention).toContainText("Action required");
       await expect(page.getByRole("button", { name: "Return to Approval" })).toBeVisible();
-    }
-    if (step === "Readiness review" || step === "Approval") {
-      await expect(page.getByTestId("review-workspace")).toBeVisible();
-    } else {
       await expect(page.getByTestId("primary-material-frame")).toBeVisible();
     }
   }
 
   await selectWorkflowStep(page, "Research");
-  await openDisclosureResource(page, "Supporting material and history", "Open Work request");
+  await selectCurrentWorkflowMaterial(page, "Work request");
   await expect(page.getByTestId("source-document-material")).toBeVisible();
   await expect(page.getByTestId("document-git-controls")).toHaveCount(0);
   await expect(
@@ -3964,7 +3973,7 @@ test("all nine workflow steps keep their canonical summary/material grammar and 
   await expect(page.getByTestId("lifecycle-document-material")).toBeVisible();
 
   await selectWorkflowStep(page, "Requirements");
-  await openDisclosureResource(page, "Supporting material and history", "Open Research");
+  await selectCurrentWorkflowMaterial(page, "Research");
   await expect(page.getByTestId("lifecycle-document-material")).toBeVisible();
   await expect(page.getByTestId("document-git-controls")).toHaveCount(0);
   await page.getByRole("button", { name: "Back to workflow context" }).click();
@@ -4235,7 +4244,7 @@ test("Readiness verdict follows typed R3 outcome independently from material cur
   await backToQueue(page);
 
   await openWorkItem(page, "Stale approval inspection matrix");
-  await expect(page.getByTestId("workflow-step-summary")).toContainText("Package stale");
+  await expect(page.getByTestId("review-workspace")).toContainText("Package stale");
   await selectWorkflowStep(page, "Readiness review");
   const staleReview = page.getByTestId("review-workspace");
   await expect(
@@ -4253,7 +4262,8 @@ test("Readiness required input owns the action without replacing Review", async 
   await openWorkItem(page, "Readiness input required");
   const review = page.getByTestId("review-workspace");
   await expect(review).toBeVisible();
-  await expect(page.getByTestId("workflow-step-summary")).toContainText("Waiting for you");
+  await expect(page.getByTestId("workflow-step-summary")).toHaveCount(0);
+  await expect(review).toContainText("Waiting for you");
   const interaction = page.getByTestId("readiness-current-attention");
   await expect(interaction).toBeVisible();
   await expect(interaction).toContainText(
@@ -4298,10 +4308,9 @@ test("proposal decisions are primary, mutation-safe, and Approval keeps sign-off
   await authenticate(page, request);
   await openWorkItem(page, "Proposal review");
 
-  const summary = page.getByTestId("workflow-step-summary");
-  await expect(summary).toContainText("Implementation plan");
-  await expect(summary).toContainText("Proposal review required");
+  await expect(page.getByTestId("workflow-step-summary")).toHaveCount(0);
   const proposalReview = page.getByTestId("proposal-review-workspace");
+  await expect(proposalReview).toContainText("Pending review");
   const proposalDiff = page.getByTestId("proposal-review-diff");
   await expect(proposalReview).toBeVisible();
   await expect(proposalDiff).toBeVisible();
@@ -4344,7 +4353,7 @@ test("proposal decisions are primary, mutation-safe, and Approval keeps sign-off
     page.getByText("Document change adopted", { exact: true }).last(),
   ).toBeVisible();
   await page.unroute("**/api/run-events/*/adopt");
-  await openDisclosureResource(page, "Supporting material and history", "Open attempt 1");
+  await selectCurrentWorkflowMaterial(page, "Attempt 1");
   await expect(
     page.getByText("Document adoption in progress", { exact: true }),
   ).toBeVisible();
