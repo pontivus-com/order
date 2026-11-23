@@ -14,7 +14,7 @@ This PLAN consumes current R1 `3652878e16f8d0e0f956c13f75a6ff30cf4b4a69`, curren
 
 The authority-driven target remains the corrected P3/P4 and SD21-SD30 package. The fresh post-C19-F03/C20-F06 Approval baseline, however, already contains the historically completed IA27-IA31 replacement bytes from the superseded execution package. Those bytes are implementation evidence only; they do not define desired state or become preservation targets.
 
-`GW-DOC-CANONICAL-CONTRACTS-V2` makes task dependencies eligibility-only: every execution Run starts from `Approval.baselineCommit` and successful dependency candidate bytes are not promoted into a later task baseline. The signed execution representation therefore remains exactly **one task, T1**, with the same exact mutable forecast/hard scope of **67 unique paths**. IA01-IA34 remain ordered implementation/proof phases inside T1, not separate ExecutionTasks.
+`GW-DOC-CANONICAL-CONTRACTS-V2` makes task dependencies eligibility-only: every execution Run starts from `Approval.baselineCommit` and successful dependency candidate bytes are not promoted into a later task baseline. The signed execution representation therefore remains exactly **one task, T1**, with the same exact mutable forecast/hard scope of **68 unique paths**. IA01-IA34 remain ordered implementation/proof phases inside T1, not separate ExecutionTasks.
 
 IA27 first derives/revalidates the closed SD21 visual-language → foundation realization ledger from current P3/DESIGN, corrected P4, theme authority and reviewed derived SVG references, then classifies every current design-bearing foundation/shell owner as `CONFORMING_NO_EDIT`, `BOUNDED_RESIDUAL` or `DESTRUCTIVE_REPLACEMENT`. C19-F06-C19-F08/C20-F08-C20-F09 require destructive replacement of the mandatory-attention `WorkbenchSurface`, optional semantic attention with no absent-slot wrapper/geometry, exactly-one-primary-composition routing, and permanent rejection of Queue/Evidence/Terminal synthetic attention and nested primary surfaces. Conforming owners remain untouched; bounded residuals receive only minimum local correction where the canonical owner/topology is already correct; structurally divergent owners are removed together with their exact owned structural selectors and implementation-shaped assertions, then freshly authored from the closed ledger rather than refactored through superseded structure. The historical 20-primitive/five-shell whole-foundation purge and creation of `WorkbenchAppShell`, `WorkbenchWorkItemShell` and `workbench-responsive` remain provenance and are not replayed merely to reproduce history, but a newly proven destructive replacement is current IA27 work. IA27 closes only at foundation-readiness. IA28 consumes that foundation candidate in the first realized application-shell/Queue/Create screen family and is the first rendered acceptance test of the foundation; only after IA28 PASS do IA29-IA31 consume the foundation as accepted/frozen. Each screen phase independently revalidates its already-realized family and corrects only proven residual deltas, including the C19-F03/C20-F06 visibility/disclosure defects.
 
@@ -27,7 +27,7 @@ No compatibility `WorkbenchLayout`, second AppShell, second structural responsiv
 
 | Source component | Git blob |
 |---|---|
-| `implementation-plan/00-governance.md` | `37e168215b4161b5039df40bdede2a904188a243` |
+| `implementation-plan/00-governance.md` | `1ab67f5aa7914dfb6fb0e1376fbffcd72e50e21d` |
 | `implementation-plan/01-a01-lifecycle-product.md` | `372ccb2d0a642b4dda24cb9f84e935b2931a968a` |
 | `implementation-plan/02-a02-governance-intake.md` | `1160a54df9dcb4784b95f183a3bd62f54b0d7626` |
 | `implementation-plan/03-a03-queue-source.md` | `411b21fec974f88cd759ce02cca37f1ea1439f6b` |
@@ -49,7 +49,7 @@ A01-A11 are exhaustive semantic coverage phases. They do **not** define eleven i
 
 ## Signed execution scope
 
-T1 owns the cumulative 0.6.0 repository envelope and produces one verified candidate from the Approval baseline. To preserve minimum-change and prevent the one-task correction from broadening mutation authority, the signed hard `scope` is the **same exact 67 repository paths** as `changeSurface`. There is no directory-wide `src/**`, `ui/src/**` or `tests/**` variance envelope.
+T1 owns the cumulative 0.6.0 repository envelope and produces one verified candidate from the Approval baseline. To preserve minimum-change and prevent the one-task correction from broadening mutation authority, the signed hard `scope` is the **same exact 68 repository paths** as `changeSurface`. There is no directory-wide `src/**`, `ui/src/**` or `tests/**` variance envelope.
 
 IA phase ownership below further constrains internal sequencing and semantic responsibility; it is not a second scope/task model. A newly required physical path is therefore an out-of-scope discovery and returns upstream for DESIGN/PLAN correction rather than being absorbed through forecast variance.
 
@@ -237,7 +237,7 @@ SD20 is a verification-only delta. IA23 owns its permanent realization through `
 
 The canonical PLAN contains exactly one signed execution task because `GW-DOC-CANONICAL-CONTRACTS-V2` does not promote dependency candidate bytes into later task baselines. That task uses:
 
-- the exact same **67 repository paths** for signed `scope` and `changeSurface`; no directory-wide `src/**`, `ui/src/**` or `tests/**` mutation envelope is authorized;
+- the exact same **68 repository paths** for signed `scope` and `changeSurface`; no directory-wide `src/**`, `ui/src/**` or `tests/**` mutation envelope is authorized;
 - explicit `exclusions` for DESIGN-positive-reuse paths, positively retained atomic UI adapters and approved non-screen helpers that must remain unchanged;
 - IA01-IA34 as ordered internal implementation/proof phases. IA phase ownership constrains what a phase may change but is not a second P6 task/scope representation.
 
