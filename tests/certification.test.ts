@@ -1513,27 +1513,29 @@ describe("Order cross-boundary certification", () => {
     );
   });
 
-  it("keeps pre-signoff, Readiness and Approval free of a persistent generic material-selector axis", () => {
+  it("keeps workflow material navigation interaction-specific instead of generic", () => {
     const preSignoff = read("ui/src/PreSignoffStageWorkspace.tsx");
     const readiness = read("ui/src/ReadinessWorkspace.tsx");
     const approval = read("ui/src/SignoffReview.tsx");
     const implementation = read("ui/src/ExecutionWorkspace.tsx");
 
-    for (const source of [readiness, approval]) {
+    for (const source of [preSignoff, readiness, approval, implementation]) {
       expect(source).not.toContain("WorkflowStepIndex");
+      expect(source).not.toContain("WorkflowMaterialSelector");
+      expect(source).not.toContain("PrimaryMaterialFrame");
       expect(source).not.toContain('data-testid="workflow-step-index"');
     }
-    expect(preSignoff).not.toContain("WorkflowStepIndex");
-    expect(preSignoff).toContain("WorkflowMaterialSelector");
+    expect(preSignoff).toContain("WorkbenchResourceRow");
     expect(preSignoff).not.toContain('"Supporting material and history"');
     expect(preSignoff).not.toContain("WorkbenchDisclosure");
+    expect(readiness).toContain("WorkbenchResourceRow");
     expect(readiness).toContain("Evidence / attempt history");
     expect(approval).toContain('"Package material"');
 
-    // Implementation is the sole workflow step allowed to retain persistent
-    // operational master/detail material selection.
-    expect(implementation).toContain("WorkflowStepIndex");
+    // Implementation retains its canonical task master/detail topology while
+    // attempt/history navigation uses explicit resource actions.
     expect(implementation).toContain("WorkbenchMasterDetail");
+    expect(implementation).toContain("WorkbenchResourceRow");
   });
 
   it("keeps the one-command productive installer purpose-built and bootstrap-only", () => {
