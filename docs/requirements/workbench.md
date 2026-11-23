@@ -868,9 +868,9 @@ The set is closed for WorkItem Workbench screen construction:
 
 Every rendered Order Workbench service has exactly one primary interaction class. A Task panel hosts exactly one bounded primary Form/configuration composition. Other auxiliary classes may appear only in support of the owning primary interaction and never become an independent persistent navigation/layout axis. A feature whose required behavior cannot be expressed by these classes returns to DESIGN and amends this canonical owner before implementation; implementation does not create a new geometry or interaction grammar by convenience.
 
-**Semantic-region ownership law.** A region that represents current attention is semantic, not a generic top-of-surface placement slot. A primary interaction class renders a current-attention region only where its class contract declares current attention as part of that composition. Operational scan, Evidence and Terminal result must not manufacture an attention region merely to obtain heading/status/action placement. A heading, result classification or evidence identity is not current attention simply because it is visually prominent.
+**Semantic-region ownership law.** A region that represents current attention is semantic, not a generic top-of-surface placement slot. A primary interaction class renders a current-attention region only where its class contract declares current attention as part of that composition. Operational scan, Review, Evidence and Terminal result must not manufacture an outer attention region merely to obtain heading/status/action placement. A heading, review currentness/verdict/decision, result classification or evidence identity is not current attention simply because it is visually prominent. Review owns currentness, summary/body and decisions inside the single `WorkbenchReview` composition; if the selected interaction truly becomes Dialogue or another primary class, that primary composition replaces Review rather than wrapping Review in a second Surface/Attention frame.
 
-Exactly one primary interaction composition may own the selected task/material at a time. Selecting Evidence replaces the owning material composition for the duration of that explicit inspection; it must not nest an Evidence primary surface inside another primary Workbench surface. Returning from Evidence restores the recorded owning material and focus.
+Exactly one primary interaction composition may own the selected task/material at a time. Selecting Proposal Review or Evidence replaces the owning material composition for the duration of that explicit review/inspection; neither may be wrapped or nested inside another primary Workbench composition. Returning from the transient composition restores the recorded owning material and focus.
 
 For Complete, the terminal result itself is the current orientation. The final outcome classification, substantive result/evidence and permitted follow-up action are one Terminal-result composition; Complete does not add a separate current-attention band that repeats or re-labels the same terminal meaning.
 
@@ -964,11 +964,13 @@ If a legitimate required-input request exists, the current Run interaction tempo
 
 Readiness review material is read-only.
 
+The ordinary Readiness primary composition is one Review. Its verdict/currentness, findings, supporting package material and review actions remain inside that Review composition; Readiness does not receive a separate `WorkbenchSurface`/`WorkbenchAttention` wrapper merely because the workflow step is current. If an exact required-input interaction is promoted to another primary interaction class, that class replaces the selected primary composition for the duration of that interaction rather than nesting around or inside Review.
+
 Readiness does not default to a persistent master/navigation column. Package material, attempts and evidence use a compact subordinate selector unless the interaction is explicitly reclassified as genuine master/detail.
 
 ### 14.7 Approval
 
-Approval is one coherent Review workspace.
+Approval is one coherent Review workspace. Its package currentness/readiness, task/material judgment and sign-off decision are owned inside that Review composition; Approval does not receive a separate `WorkbenchSurface`/`WorkbenchAttention` wrapper for generic workflow-step orientation.
 
 Primary hierarchy:
 
@@ -1671,7 +1673,7 @@ The detailed current-attention/recovery value remains owned by the primary mater
 
 **Required behavior:** every rendered Order Workbench service is classified under exactly one primary interaction-space class from §13; subordinate selection, explicit technical inspection, task-panel and safety/exception behavior use only the declared auxiliary classes and cannot create another persistent layout/navigation/disclosure grammar. Semantic regions are used only for their declared meaning: current-attention content cannot be substituted with a generic heading/status block merely to satisfy a component API.
 
-**Acceptance:** adding a new feature, material type, Run/document/task count, configuration service or technical detail does not create a new screen geometry or generic disclosure lane by implementation convenience. Supporting/history information retains one selector/resource owner; technical information retains one explicit inspection owner. One selected task/material produces exactly one primary interaction composition: a primary surface may not be nested inside another primary surface, and transient Evidence replaces rather than nests inside the owning material composition. Operational scan, Evidence and Terminal result do not fabricate current-attention regions when their class contract does not own one. If none of the §13 classes can express the required interaction, the change returns to DESIGN before implementation.
+**Acceptance:** adding a new feature, material type, Run/document/task count, configuration service or technical detail does not create a new screen geometry or generic disclosure lane by implementation convenience. Supporting/history information retains one selector/resource owner; technical information retains one explicit inspection owner. One selected task/material produces exactly one primary interaction composition: a primary interaction composition may not be wrapped or nested inside another primary composition, and transient Proposal Review/Evidence replace the owning material composition for the duration of explicit review/inspection. Operational scan, Review, Evidence and Terminal result do not fabricate an outer current-attention region when their class contract does not own one; Review currentness/summary/body/decisions remain inside `WorkbenchReview`. If none of the §13 classes can express the required interaction, the change returns to DESIGN before implementation.
 
 ### GW-FR-231-CANONICAL-WORKBENCH-VISUAL-LANGUAGE
 
