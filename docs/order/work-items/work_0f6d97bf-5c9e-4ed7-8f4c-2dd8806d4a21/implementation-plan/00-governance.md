@@ -6,13 +6,13 @@ This decomposition is reconstructed under G-F12 after G4 closure. Historical PLA
 
 ## Exact upstream package
 
-- R1 `research.md`: `d64131df66e9e95aaeaf168f1e6f1cd52cae349d`.
-- R2 `requirements.md`: `8309a079f0f2004ae3c06956143a1493922ea3da`.
-- DESIGN `solution-design.md`: `223d684b44069795e77161ff19ddfb3a9e1b954f`.
+- R1 `research.md`: `8e30f4b998a8149f755f5611cfa4bb8443a89ae8`.
+- R2 `requirements.md`: `b636ea92154a327300ae2edd76ce3950f9d9e827`.
+- DESIGN `solution-design.md`: `3aaeb0a9c5c513d534be9d74d02eed7068e89bcf`.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `9c2ec83a9552b7583f90e91080c014df4d6870df`.
 - P3 `GW-DOC-WORKBENCH-UX-V2`: `f38bd9ebf17e0726b51453a7e05dc52175b080fa` — §11.4A/§12/§13/§14.9 own semantic information classes, semantic-region ownership, exactly one primary interaction composition, Terminal-result primacy, singular material/technical-inspection ownership, disclosure-accumulation prohibitions, task anatomy and composition invariants.
 - P3 `GW-DOC-MARKDOWN-WORKBENCH-V1`: `1cc5a28eff8d180f88106d89990f7b89aa27a132` — §17.4 owns one compact Markdown editor-control region, overflow-before-wrap formatting and control→canvas adjacency.
-- P4 `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`: `05bae4d1895d832ed2461d4bd18e9a709e0bd338` — §8.12-§8.16 own optional semantic Surface attention, one-primary-composition routing, singular Context/Settings technical inspection, same-task-only Disclosure, Review without automatic technical slot, TaskPanel anatomy and renderer composition responsibilities.
+- P4 `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`: `bbc934cfd1cf987582f331e1b689b54002de174e` — §8.12-§8.16 own optional semantic Surface attention, one-primary-composition routing, singular Context/Settings technical inspection, same-task-only Disclosure, Review without automatic technical slot, TaskPanel anatomy and renderer composition responsibilities.
 - P4 `GW-DOC-WORKBENCH-THEME-V1`: `43b81a61291841d827a47f392e0149ace5c8351f` — owns the corrected semantic-disclosure, technical-inspection and task-panel visual roles.
 - P6 `GW-DOC-CANONICAL-CONTRACTS-V2`: `71f829cff8824db18194689eccdec83da6f5d19f`.
 - SD13 checkpoint and SD10 scope/forecast/V4-V6 realization are consumed only because current DESIGN positively proves those canonical capabilities; T1 does not reimplement them.
@@ -41,7 +41,7 @@ This campaign invokes the P0 bounded acceptance-evidence realization control sol
 **Authorization id:** `IA28-RZ1`  
 **State:** `SUSPENDED_PENDING_REVALIDATION`  
 **Purpose:** realize enough of the actual product to judge whether the IA27 foundation and first screen family satisfy current authority.  
-**Start condition:** **not currently satisfied**. C19-F06/C19-F07/C19-F08/C20-F08/C20-F09 materially changed R2/P3/DESIGN/P4 authority after the prior IA27/IA28 acceptance by disproving the mandatory Surface-attention contract, primary-composition routing and acceptance methodology. The historical IA28-RZ1 grant remains suspended. A fresh exact-package bounded-realization authorization may be issued **only after G5 and G5A PASS** against the corrected R1/R2/DESIGN/PLAN/P3/P4/theme package and must explicitly cite those exact identities plus the operator authorization. Fresh IA27/IA28 evidence then becomes an input to R3/G6; requiring G6 before that evidence would be circular.  
+**Start condition:** **not currently satisfied**. C19-F06/C19-F07/C19-F08/C20-F08/C20-F09 materially changed R2/P3/DESIGN/P4 authority after the prior IA27/IA28 acceptance by disproving the mandatory Surface-attention contract, primary-composition routing (including Review-class outer wrapping) and acceptance methodology. The historical IA28-RZ1 grant remains suspended. A fresh exact-package bounded-realization authorization may be issued **only after G5 and G5A PASS** against the corrected R1/R2/DESIGN/PLAN/P3/P4/theme package and must explicitly cite those exact identities plus the operator authorization. Fresh IA27/IA28 evidence then becomes an input to R3/G6; requiring G6 before that evidence would be circular.  
 **Authorized primary owners while suspended:** NONE. The previously listed IA28 owners are historical scope evidence only until reauthorization.  
 **IA27 shell-integration exception:** `ui/src/app.tsx` may be changed only to close a proven `SURF-APP-001` residual exposed by this tranche (global account utility, readiness/diagnostic presentation, Queue/Create entry composition); no selected-WorkItem/material-screen redesign is authorized.  
 **Shared-owner use:** `ui/src/styles.css` / `ui/src/theme.css` only for a proven IA28 screen-local residual or an IA28-observed recurring IA27 foundation defect; other IA27 primitive/shell owners may be reopened only when the rendered first-screen evidence proves a recurring foundation defect.  
