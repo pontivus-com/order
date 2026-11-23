@@ -18,8 +18,6 @@ import {
   WorkflowMaterialSelector, type WorkflowMaterialSelectorGroup,
 } from "./WorkflowMaterialSelector.tsx";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
-import { WorkbenchDisclosure } from "./primitives/WorkbenchDisclosure.tsx";
-import { WorkbenchResourceRow } from "./primitives/WorkbenchResourceRow.tsx";
 import { WorkbenchState } from "./primitives/WorkbenchState.tsx";
 
 export type SharedPreSignoffStage = "R1" | "R2" | "DESIGN" | "PLAN";
@@ -75,6 +73,18 @@ export const PreSignoffStageWorkspace = ({
       selected:material.kind==="STAGE_DOCUMENT" && material.artifactId===stageArtifact.id,
       onSelect:()=>onSelectMaterial({kind:"STAGE_DOCUMENT",artifactId:stageArtifact.id}),
     }]),
+    {
+      id:"source",label:"Work request",description:"Read-only source context",
+      selected:material.kind==="SOURCE_DOCUMENT",
+      onSelect:()=>onOpenSupportingMaterial({kind:"SOURCE_DOCUMENT"}),
+    },
+    ...upstream.map((artifact)=>({
+      id:"supporting-"+artifact.id,
+      label:lifecycleArtifactLabel(artifact.role),
+      description:"Read-only upstream authority",
+      selected:material.kind==="SUPPORTING_DOCUMENT" && material.artifactId===artifact.id,
+      onSelect:()=>onOpenSupportingMaterial({kind:"SUPPORTING_DOCUMENT",artifactId:artifact.id}),
+    })),
   ];
   const selector=items.length===0 ? undefined : <WorkflowMaterialSelector
     groups={[{id:"current",label:"Current work",items}]} label="Current workflow material" />;
@@ -87,24 +97,6 @@ export const PreSignoffStageWorkspace = ({
     <WorkbenchAction label="Open Research document" tone="secondary"
       onClick={()=>onSelectMaterial({kind:"STAGE_DOCUMENT",artifactId:stageArtifact.id})} />
   </section> : undefined;
-
-  const supporting=<WorkbenchDisclosure label="Supporting material and history" content={
-    <div className="order-productive-support-list">
-      {stageRuns.map((run)=><WorkbenchResourceRow key={run.id} label={"Attempt "+run.attempt}
-        detail={runStatusLabel(run.status)+" · "+new Date(run.startedAt).toLocaleString()}
-        actionLabel={"Open attempt "+run.attempt}
-        onOpen={()=>onSelectMaterial({kind:"STAGE_RUN",runId:run.id})} />)}
-      {stageArtifact===null ? null : <WorkbenchResourceRow label={documentLabel(stage)}
-        detail={materialState===null ? "Governed stage document" : materialPresentationStateLabel(materialState)}
-        actionLabel="Open current stage document"
-        onOpen={()=>onSelectMaterial({kind:"STAGE_DOCUMENT",artifactId:stageArtifact.id})} />}
-      <WorkbenchResourceRow label="Work request" detail="Read-only source context" actionLabel="Open Work request"
-        onOpen={()=>onOpenSupportingMaterial({kind:"SOURCE_DOCUMENT"})} />
-      {upstream.map((artifact)=><WorkbenchResourceRow key={artifact.id}
-        label={lifecycleArtifactLabel(artifact.role)+" document"} detail="Read-only upstream authority"
-        actionLabel={"Open "+lifecycleArtifactLabel(artifact.role)}
-        onOpen={()=>onOpenSupportingMaterial({kind:"SUPPORTING_DOCUMENT",artifactId:artifact.id})} />)}
-    </div>} />;
 
   const primary=(()=>{
     switch(material.kind){
@@ -139,7 +131,8 @@ export const PreSignoffStageWorkspace = ({
         selection={{runId:material.runId,eventId:material.eventId}}
         currentRunId={workItem.stage===stage ? currentRunId : null}
         currentInteraction={workItem.stage===stage ? currentInteraction : null}
-        mutationsDisabled={mutationsDisabled} onBack={onReturnFromTransient} onMutationError={onMutationError} />;
+        mutationsDisabled={mutationsDisabled} selector={selector}
+        onBack={onReturnFromTransient} onMutationError={onMutationError} />;
       case "EVIDENCE": return <EvidenceViewer selection={material.selection} onBack={onReturnFromTransient} />;
       case "STEP_STATE": return <WorkbenchState kind="empty" title="This workflow step is ready"
         description="Use the current step action to start work." />;
@@ -154,6 +147,5 @@ export const PreSignoffStageWorkspace = ({
   return <WorkflowStepFrame summary={summary} index={selector} indexLabel="Current workflow material"
     primary={<PrimaryMaterialFrame><section className="order-productive-stage" data-stage={stage}>
       <div className="order-productive-primary">{primary}</div>
-      <div className="order-productive-supporting">{supporting}</div>
     </section></PrimaryMaterialFrame>} />;
 };
