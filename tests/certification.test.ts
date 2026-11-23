@@ -484,6 +484,30 @@ describe("Order cross-boundary certification", () => {
     expect(reviewPrimitive).not.toContain("technicalDetails");
     expect(reviewPrimitive).not.toContain("WorkbenchDisclosure");
 
+    const surfacePrimitive = read("ui/src/primitives/WorkbenchSurface.tsx");
+    expect(surfacePrimitive).toContain("attention?: ReactNode");
+    expect(surfacePrimitive).toContain("attention == null ? null");
+    expect(surfacePrimitive).toContain("selector == null ? null");
+    expect(theme).not.toContain(".order-workbench-surface-material:nth-child");
+
+    const queueSurface = read("ui/src/WorkItemQueue.tsx");
+    expect(queueSurface).toContain("<WorkbenchSurface");
+    expect(queueSurface).toContain("<WorkbenchSectionHeader");
+    expect(queueSurface).not.toContain("attention={");
+
+    const workItemRouter = read("ui/src/WorkItemWorkspace.tsx");
+    expect(workItemRouter).toContain(
+      'material.kind === "EVIDENCE" && selectedStep !== "EXECUTION"',
+    );
+    expect(workItemRouter).toContain('title="Loading evidence…"');
+    const genericFrameStart = workItemRouter.indexOf(
+      "<WorkflowStepFrame\n          summary={stepSummary}",
+    );
+    expect(genericFrameStart).toBeGreaterThanOrEqual(0);
+    expect(workItemRouter.slice(genericFrameStart)).not.toContain(
+      'material.kind === "EVIDENCE"',
+    );
+
     const context = read("ui/src/WorkItemContext.tsx");
     expect(context).toContain('aria-label="WorkItem identity"');
     expect(context).toContain('aria-label="Selected proposal identity"');
