@@ -2550,6 +2550,43 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   }, requiredInputActivity);
   await backToQueue(page);
 
+  const processingDialogueItem = await workItemForTitle(page, "Research processing attention visual");
+  await fixtureMutation(request, "/start-stage", { workItemId: processingDialogueItem.id });
+  await openWorkItem(page, "Research processing attention visual");
+  await expect(page.getByTestId("selected-run-header")).toContainText("Processing");
+  await capture({
+    id: "ia26-stage-dialogue-processing-wide-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Research",
+    surface: "SURF-MAT-ACTIVITY-001",
+    state: "processing",
+    fixture: "Research processing attention visual",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/dialogue-states.svg", "docs/references/workbench-ui/current-attention-states.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX"],
+  }, page.getByTestId("stage-run-material"));
+  await backToQueue(page);
+
+  await openWorkItem(page, "Completed investigation");
+  await selectWorkflowStep(page, "Research");
+  await selectCurrentWorkflowMaterial(page, "Attempt 1");
+  await capture({
+    id: "ia26-stage-dialogue-closed-wide-light",
+    workItemKind: "INVESTIGATION",
+    workflowStep: "Research",
+    surface: "SURF-MAT-ACTIVITY-001",
+    state: "closed-terminal-run",
+    fixture: "Completed investigation historical Research attempt",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/dialogue-states.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX"],
+  }, page.getByTestId("stage-run-material"));
+  await backToQueue(page);
+
   await openWorkItem(page, "Proposal review");
   const proposal = page.getByTestId("proposal-review-workspace");
   await capture({
