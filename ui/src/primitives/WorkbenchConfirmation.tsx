@@ -5,7 +5,14 @@ import { WorkbenchAction } from "./WorkbenchAction.tsx";
 export type WorkbenchConfirmationKind = "safety" | "destructive";
 
 export const WorkbenchConfirmation = ({
-  kind, open, title, description, confirmLabel, pending, onConfirm, onOpenChange,
+  kind,
+  open,
+  title,
+  description,
+  confirmLabel,
+  pending,
+  onConfirm,
+  onOpenChange,
 }: Readonly<{
   kind: WorkbenchConfirmationKind;
   open: boolean;
@@ -16,13 +23,15 @@ export const WorkbenchConfirmation = ({
   onConfirm: () => void | Promise<void>;
   onOpenChange: (open: boolean) => void;
 }>) => {
-  const guardedOpenChange = pending ? () => undefined : onOpenChange;
+  const onGuardedOpenChange = (nextOpen: boolean): void => {
+    if (!pending) onOpenChange(nextOpen);
+  };
 
   if (kind === "destructive") {
     return (
       <AlertDialog
         isOpen={open}
-        onOpenChange={guardedOpenChange}
+        onOpenChange={onGuardedOpenChange}
         title={title}
         description={description}
         actionLabel={confirmLabel}
@@ -34,12 +43,21 @@ export const WorkbenchConfirmation = ({
   }
 
   return (
-    <Dialog isOpen={open} onOpenChange={guardedOpenChange} aria-label={title} padding={0}>
+    <Dialog
+      isOpen={open}
+      onOpenChange={onGuardedOpenChange}
+      aria-label={title}
+      padding={0}
+    >
       <section className="order-workbench-confirmation">
         <h2>{title}</h2>
         <p className="order-workbench-confirmation-description">{description}</p>
         <div className="order-workbench-confirmation-actions">
-          <WorkbenchAction label="Cancel" disabled={pending} onClick={() => onOpenChange(false)} />
+          <WorkbenchAction
+            label="Cancel"
+            disabled={pending}
+            onClick={() => onOpenChange(false)}
+          />
           <WorkbenchAction
             label={confirmLabel}
             tone="primary"
