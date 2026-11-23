@@ -2846,6 +2846,8 @@ describe("architecture fitness", () => {
         for (const required of [
           "one cumulative signed task",
           "SD21",
+          "WorkbenchSurface",
+          "optional semantic attention",
           "WorkbenchDisclosure remains a retained thin Collapsible atom",
           "WorkbenchReview has no automatic technical slot",
           "WorkbenchTaskPanel owns header/body/footer",
@@ -2855,6 +2857,8 @@ describe("architecture fitness", () => {
           "MarkdownEditor",
           "overflow-before-wrap",
           "IA30",
+          "direct WorkbenchReview",
+          "no outer workflow Surface/Attention",
           "IA31",
           "IA32",
           "IA33",
@@ -2983,7 +2987,8 @@ describe("architecture fitness", () => {
           "may compose the accepted foundation but may not extend the visual language locally",
           "`CONFORMING_NO_EDIT`, `BOUNDED_RESIDUAL` or `DESTRUCTIVE_REPLACEMENT`",
           "Do not refactor through, wrap or compatibility-shim the superseded structure",
-          "current mandatory destructive replacements are exactly the five ledgered design-bearing owners",
+          "current mandatory destructive replacements are exactly the six ledgered design-bearing owners",
+          "`WorkbenchSurface.tsx`",
           "`WorkbenchAttention.tsx`",
           "`WorkbenchDialogue.tsx`",
           "`WorkbenchConfirmation.tsx`",
@@ -3063,6 +3068,8 @@ describe("architecture fitness", () => {
           "same operator task",
           "WorkbenchContextPanel",
           "technical-inspection",
+          "WorkbenchSurface({ attention?, selector?, material })",
+          "outer WorkbenchSurface / WorkbenchAttention = absent",
         ]) {
           if (!p4Workbench.includes(required)) {
             violations.push("P4 Workbench corrected foundation contract missing " + required);
@@ -3072,6 +3079,7 @@ describe("architecture fitness", () => {
           "no adjacent/nested generic `Technical details`",
           "header/body/footer",
           "editor-control region directly adjacent",
+          "Proposal Review, Readiness and Approval each use one direct `WorkbenchReview` primary composition",
         ]) {
           if (!referenceReadme.includes(required)) {
             violations.push("Workbench reference-pack composition contract missing " + required);
