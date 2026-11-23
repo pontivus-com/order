@@ -2355,6 +2355,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   }, readOnlyMaterial);
 
   await backToQueue(page);
+  await page.getByRole("radio", { name: "Dark" }).click();
   await page.getByRole("button", { name: "New work item" }).click();
   const create = page.getByRole("dialog", { name: "Create work item" });
   await create.getByRole("combobox", { name: "Project Required" }).click();
@@ -2364,7 +2365,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   await create.getByRole("button", { name: "Concerns", exact: true }).click();
   await page.getByRole("option", { name: "browser" }).click();
   await page.keyboard.press("Escape");
-  await page.getByRole("radio", { name: "Dark" }).click();
   await capture({
     id: "ia26-create-workitem-wide-dark",
     workItemKind: "CHANGE",
@@ -2379,9 +2379,9 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     references: ["docs/references/workbench-ui/create-work-item.svg", "docs/references/workbench-ui/theme-parity.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
   }, create);
-  await page.getByRole("radio", { name: "Light" }).click();
   await create.getByRole("button", { name: "Create work item" }).click();
   await expect(page.getByTestId("work-item-heading")).toHaveText("IA26 confirmation fixture");
+  await page.getByRole("radio", { name: "Light" }).click();
   await page.getByRole("button", { name: "Save documentation to Git" }).click();
   const gitConfirm = page.getByRole("dialog", { name: "Save WorkItem documentation to Git?" });
   await capture({
@@ -2399,6 +2399,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     authorityRefs: ["GW-DOC-MARKDOWN-WORKBENCH-V1"],
   }, gitConfirm);
   await gitConfirm.getByRole("button", { name: "Cancel", exact: true }).click();
+  await page.getByRole("radio", { name: "Dark" }).click();
   await page.getByRole("button", { name: "Archive", exact: true }).click();
   const archiveConfirm = page.getByRole("dialog", { name: "Archive work item?" });
   await capture({
@@ -2415,7 +2416,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     references: ["docs/references/workbench-ui/safety-confirmations.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }, archiveConfirm);
-  await page.getByRole("radio", { name: "Dark" }).click();
   await capture({
     id: "ia26-confirm-archive-wide-dark",
     workItemKind: "CHANGE",
@@ -2430,8 +2430,8 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     references: ["docs/references/workbench-ui/safety-confirmations.svg", "docs/references/workbench-ui/theme-parity.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
   }, archiveConfirm);
-  await page.getByRole("radio", { name: "Light" }).click();
   await archiveConfirm.getByRole("button", { name: "Cancel", exact: true }).click();
+  await page.getByRole("radio", { name: "Light" }).click();
 
   // Work-kind information variants.
   await backToQueue(page);
