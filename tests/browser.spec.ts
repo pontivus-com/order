@@ -2914,7 +2914,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   await fixtureMutation(request, "/tick", { workItemId: processingImplementation.id });
   await page.reload();
   await expect(page.getByTestId("execution-workspace")).toBeVisible();
-  await expect(page.getByTestId("selected-run-header")).toContainText("Processing", { timeout: 5_000 });
+  await expect(page.getByTestId("selected-run-header")).toContainText("Running", { timeout: 5_000 });
   await capture({
     id: "ia26-implementation-processing-wide-light",
     workItemKind: "CHANGE",
