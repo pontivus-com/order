@@ -166,13 +166,13 @@ IA-phase ownership is authoritative inside T1. IA27 owns the five shell-integrat
 ## Compiled modular phase specification
 
 ### Compiled component: `implementation-plan/00-governance.md`
-# 0.6.0 modular PLAN governance
+#### 0.6.0 modular PLAN governance
 
 This directory is the maintainable authoring decomposition of the **single** canonical P7 artifact at `../implementation-plan.md`. The root PLAN compiles these files in full and lists their exact Git blob SHAs. Directory files own no independent lifecycle state, Approval material or executable task block.
 
 This decomposition is reconstructed under G-F12 after G4 closure. Historical PLAN structure, current implementation/UI/tests, prior releases and prior task forecasts are evidence only. They do not define 0.6.0 task scope, preservation targets, compatibility targets, fallback behavior or regression contracts. An action remains here only when the current R2/DESIGN package requires that delta or an explicit positive-reuse proof.
 
-## Exact upstream package
+##### Exact upstream package
 
 - R1 `research.md`: `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`.
 - R2 `requirements.md`: `e1e53c493f405610f6f73d3e8b83084b91e7db9e`.
@@ -185,7 +185,7 @@ This decomposition is reconstructed under G-F12 after G4 closure. Historical PLA
 - P6 `GW-DOC-CANONICAL-CONTRACTS-V2`: `71f829cff8824db18194689eccdec83da6f5d19f`.
 - SD13 checkpoint and SD10 scope/forecast/V4-V6 realization are consumed only because current DESIGN positively proves those canonical capabilities; T1 does not reimplement them.
 
-## Traceability law
+##### Traceability law
 
 Every stable P3 requirement and every package-local atomic obligation follows:
 
@@ -200,9 +200,9 @@ canonical P3 / package consequence
 
 A positive no-change or baseline-reuse disposition is an implementation instruction: **do not edit for that obligation** and revalidate the named evidence/proof. If execution disproves it, return upstream.
 
-## Execution ownership
+##### Execution ownership
 
-## IA28 bounded pre-sign-off realization authorization
+##### IA28 bounded pre-sign-off realization authorization
 
 This campaign invokes the P0 bounded acceptance-evidence realization control solely because the Workbench foundation cannot be meaningfully accepted from IA27 primitives/ledger in isolation. The operator explicitly authorized this exact tranche on **2026-11-22** with the instruction to govern the boundary and implement only until the first rendered sign-off point.
 
@@ -234,7 +234,7 @@ SD13 checkpoint protocol and SD10 scope/forecast/V4-V6 behavior are current exec
 
 SD20 is a verification-only delta. IA23 owns its permanent realization through `tests/opencode.test.ts` and `.github/workflows/ci.yml`: the actual supported OpenCode 2.2.6 process is exercised through Order's production OpenCode boundary while deterministic model responses are provided by exact isolated CI tooling `opencode-drive@2.4.1` + `effect@4.0.1`. These verification tools are not product/runtime dependencies and do not enter `package.json`, lockfiles, release bundles, Order configuration or runtime state.
 
-## Signed scope and forecast law
+##### Signed scope and forecast law
 
 The canonical PLAN contains exactly one signed execution task because `GW-DOC-CANONICAL-CONTRACTS-V2` does not promote dependency candidate bytes into later task baselines. That task uses:
 
@@ -243,7 +243,7 @@ The canonical PLAN contains exactly one signed execution task because `GW-DOC-CA
 - IA01-IA34 as ordered internal implementation/proof phases. IA phase ownership constrains what a phase may change but is not a second P6 task/scope representation.
 
 The baseline V4/V5/V6 forecast-variance capability remains canonical execution machinery, but this exact package deliberately does not use a broader scope to admit new physical paths. A path absent from the 68-path forecast is also absent from signed scope and therefore returns upstream for DESIGN/PLAN correction. This prevents the one-task packaging correction from becoming implicit authorization for unrelated cleanup, speculative decomposition or presentation-layer drift.
-## Architecture constraints
+##### Architecture constraints
 
 FCIS, SoC, DRY/canonical ownership, strict typing, no OOP/DTO/service/repository/controller families, authority-before-inference and minimum change remain binding. Current implementation/tests are evidence only.
 
@@ -251,7 +251,7 @@ For SD02, manifest authority selection is the reachable source set; IA02 must pr
 
 Published `change-v1`/`defect-v1` schema semantics remain immutable. SD10 may add only the current-v2 mechanical non-vacuity admission and matching PLAN/R3 authoring instruction while reusing the one existing SignedTaskBlock shape/parser. Material task sufficiency remains owned by PLAN semantic conformance and independent R3.
 
-## Resumed-baseline presentation realization law
+##### Resumed-baseline presentation realization law
 
 The authority-driven target remains SD21-SD29; the current resumed-baseline bytes never define desired behavior.
 
@@ -278,13 +278,13 @@ The authority-driven target remains SD21-SD29; the current resumed-baseline byte
 
 No IA27-IA34 phase may resurrect `WorkbenchLayout`, create a second AppShell/application toolbar, duplicate structural `matchMedia` ownership, introduce a DTO/browser state family, or treat current implementation/SVG shape as product authority.
 
-## Visual-language → foundation execution law
+##### Visual-language → foundation execution law
 
 SD21's realization ledger is implementation evidence over canonical authority, not a runtime schema or second design-system specification. IA27 may accept a recurring visual/composition role only when it traces to current P3/DESIGN semantics, the canonical P4 primitive/composition owner, the canonical theme/token/style owner and any non-superseded derived SVG reference used for composition evidence.
 
 After IA27 foundation-readiness PASS, IA28 consumes the foundation candidate in the first real screen family. The foundation becomes accepted/frozen only after the IA28 rendered foundation-acceptance checkpoint passes; IA29-IA34 then consume that accepted foundation. Screen phases may not add or locally vary recurring color/token meaning, typography/spacing/density scales, control/button/action treatments, status/notice chrome, progressive-disclosure lanes, overlay mechanics, shell/region hierarchy, foundation geometry or breakpoint/responsive grammar. A screen that appears to require a new recurring role returns to IA27/DESIGN; it is not solved with feature CSS, a new wrapper or an SVG-shaped local composition.
 
-## Information visibility / disclosure execution law
+##### Information visibility / disclosure execution law
 
 Every UI phase consumes the canonical P3 §11.4A classification and P4 §8.12A technical ownership. The implementation may not infer visibility from whichever fields are available in a query or from historical UI/SVG layout.
 
@@ -302,22 +302,20 @@ The implementation rule is exact:
 
 Presence-only browser assertions are nonconforming when they force technical/diagnostic text into ordinary UI. Every affected test is rewritten to prove both default-hidden and authorized post-disclosure visibility.
 
-## Stop conditions
+##### Stop conditions
 
 Return to DESIGN/PLAN before editing when execution requires a new semantic owner, public contract, state meaning, persistence/transport/effect boundary, dependency direction or external dependency, validation contract, provider capability, verification authority, authorized behavior, or any path outside signed scope/exclusions.
 
 Because this exact T1 deliberately sets signed `scope` equal to the same exact 68-path `changeSurface`, any newly required physical path absent from `changeSurface` is also outside signed scope and returns upstream for DESIGN/PLAN correction. The general V4/V5/V6 in-scope-unforecast mechanism remains canonical execution capability but has no admissible physical-path case inside this exact package.
 
----
-
 ### Compiled component: `implementation-plan/01-a01-lifecycle-product.md`
-# A01 — Lifecycle and product identity
+#### A01 — Lifecycle and product identity
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C01 + C21.
 **Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `e1e53c493f405610f6f73d3e8b83084b91e7db9e`; current DESIGN `4da77bb7e047e237fb94b7ed7a44682483e83217`.
 
-## Stable requirement execution dispositions
+##### Stable requirement execution dispositions
 
 | Requirement | R1 evidence | DESIGN disposition | Solution(s) | Execution owner | Consumer dependency | Required proof |
 |---|---|---|---|---|---|---|
@@ -329,7 +327,7 @@ Because this exact T1 deliberately sets signed `scope` equal to the same exact 6
 
 Stable rows in phase: **5**.
 
-## Corrected-upstream authority no-code dispositions
+##### Corrected-upstream authority no-code dispositions
 
 These rows carry material R2 consequences that are already corrected in canonical authority. They authorize **no T1 edit** but remain explicit execution/proof instructions so the correction cannot disappear from the package.
 
@@ -343,7 +341,7 @@ These rows carry material R2 consequences that are already corrected in canonica
 
 No-code rows in phase: **5**.
 
-## Package-local atomic obligations
+##### Package-local atomic obligations
 
 | Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
 |---|---|---|---|---|---|
@@ -351,12 +349,12 @@ No-code rows in phase: **5**.
 
 Package atoms in phase: **1**.
 
-## Referenced actions
+##### Referenced actions
 
 - **IA19** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA33** — consume the single Complete/Evidence destructive replacement definition for terminal-result composition.
 
-## Completion proof
+##### Completion proof
 
 1. every stable row above retains its exact R1 evidence and DESIGN disposition;
 2. `POSITIVE_NO_CHANGE` rows receive no implementation edit for that requirement and their named proof is revalidated;
@@ -366,16 +364,15 @@ Package atoms in phase: **1**.
 6. action-specific exact proof propositions plus `13-verification-closeout.md` pass;
 7. any evidence contradiction returns upstream rather than broadening scope.
 
----
 
 ### Compiled component: `implementation-plan/02-a02-governance-intake.md`
-# A02 — Project governance and WorkItem intake
+#### A02 — Project governance and WorkItem intake
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C22 + C02.
 **Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `e1e53c493f405610f6f73d3e8b83084b91e7db9e`; current DESIGN `4da77bb7e047e237fb94b7ed7a44682483e83217`.
 
-## Stable requirement execution dispositions
+##### Stable requirement execution dispositions
 
 | Requirement | R1 evidence | DESIGN disposition | Solution(s) | Execution owner | Consumer dependency | Required proof |
 |---|---|---|---|---|---|---|
@@ -390,7 +387,7 @@ Package atoms in phase: **1**.
 
 Stable rows in phase: **8**.
 
-## Package-local atomic obligations
+##### Package-local atomic obligations
 
 | Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
 |---|---|---|---|---|---|
@@ -401,7 +398,7 @@ Stable rows in phase: **8**.
 
 Package atoms in phase: **4**.
 
-## Referenced actions
+##### Referenced actions
 
 - **IA11** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA01** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
@@ -410,7 +407,7 @@ Package atoms in phase: **4**.
 - **IA10** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA28** — consume the single Queue/Create resumed-baseline revalidation/remediation definition; C02 owns authoring semantics, not shared primitive implementation.
 
-## Completion proof
+##### Completion proof
 
 1. every stable row above retains its exact R1 evidence and DESIGN disposition;
 2. `POSITIVE_NO_CHANGE` rows receive no implementation edit for that requirement and their named proof is revalidated;
@@ -420,16 +417,15 @@ Package atoms in phase: **4**.
 6. action-specific tests plus `13-verification-closeout.md` pass;
 7. any evidence contradiction returns upstream rather than broadening scope.
 
----
 
 ### Compiled component: `implementation-plan/03-a03-queue-source.md`
-# A03 — Queue, source admission and documentation Git
+#### A03 — Queue, source admission and documentation Git
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C03 + C04.
 **Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `e1e53c493f405610f6f73d3e8b83084b91e7db9e`; current DESIGN `4da77bb7e047e237fb94b7ed7a44682483e83217`.
 
-## Stable requirement execution dispositions
+##### Stable requirement execution dispositions
 
 | Requirement | R1 evidence | DESIGN disposition | Solution(s) | Execution owner | Consumer dependency | Required proof |
 |---|---|---|---|---|---|---|
@@ -461,7 +457,7 @@ Package atoms in phase: **4**.
 
 Stable rows in phase: **25**.
 
-## Package-local atomic obligations
+##### Package-local atomic obligations
 
 | Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
 |---|---|---|---|---|---|
@@ -471,7 +467,7 @@ Stable rows in phase: **25**.
 
 Package atoms in phase: **3**.
 
-## Referenced actions
+##### Referenced actions
 
 - **IA09** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA10** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
@@ -480,7 +476,7 @@ Package atoms in phase: **3**.
 - **IA28** — consume the Queue/Create resumed-baseline revalidation/remediation definition for the Queue operational-scan surface.
 - **IA29** — consume the WorkItem/document resumed-baseline revalidation/remediation definition for source/document/Git presentation.
 
-## Completion proof
+##### Completion proof
 
 1. every stable row above retains its exact R1 evidence and DESIGN disposition;
 2. `POSITIVE_NO_CHANGE` rows receive no implementation edit for that requirement and their named proof is revalidated;
@@ -489,16 +485,15 @@ Package atoms in phase: **3**.
 5. action-specific tests plus `13-verification-closeout.md` pass;
 6. any evidence contradiction returns upstream rather than broadening scope.
 
----
 
 ### Compiled component: `implementation-plan/04-a04-workbench-research.md`
-# A04 — Workbench current attention and Research input
+#### A04 — Workbench current attention and Research input
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C05 + C06.
 **Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `e1e53c493f405610f6f73d3e8b83084b91e7db9e`; current DESIGN `4da77bb7e047e237fb94b7ed7a44682483e83217`.
 
-## Stable requirement execution dispositions
+##### Stable requirement execution dispositions
 
 | Requirement | R1 evidence | DESIGN disposition | Solution(s) | Execution owner | Consumer dependency | Required proof |
 |---|---|---|---|---|---|---|
@@ -523,7 +518,7 @@ Package atoms in phase: **3**.
 
 Stable rows in phase: **18**.
 
-## Package-local atomic obligations
+##### Package-local atomic obligations
 
 | Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
 |---|---|---|---|---|---|
@@ -532,7 +527,7 @@ Stable rows in phase: **18**.
 
 Package atoms in phase: **2**.
 
-## Referenced actions
+##### Referenced actions
 
 - **IA01** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA02** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
@@ -549,7 +544,7 @@ Package atoms in phase: **2**.
 - **IA32** — consume the single Implementation destructive screen replacement definition where C05 geometry is shared.
 - **IA26** — consume scope-valid rendered evidence plus explicit three-dimension acceptance; capture generation alone is not PASS.
 
-## Completion proof
+##### Completion proof
 
 1. every stable row above retains its exact R1 evidence and DESIGN disposition;
 2. `POSITIVE_NO_CHANGE` rows receive no implementation edit for that requirement and their named proof is revalidated;
@@ -558,16 +553,15 @@ Package atoms in phase: **2**.
 5. action-specific tests plus `13-verification-closeout.md` pass;
 6. any evidence contradiction returns upstream rather than broadening scope.
 
----
 
 ### Compiled component: `implementation-plan/05-a05-requirements-design.md`
-# A05 — Requirements and DESIGN authority mutation
+#### A05 — Requirements and DESIGN authority mutation
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C07 + C08.
 **Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `e1e53c493f405610f6f73d3e8b83084b91e7db9e`; current DESIGN `4da77bb7e047e237fb94b7ed7a44682483e83217`.
 
-## Stable requirement execution dispositions
+##### Stable requirement execution dispositions
 
 | Requirement | R1 evidence | DESIGN disposition | Solution(s) | Execution owner | Consumer dependency | Required proof |
 |---|---|---|---|---|---|---|
@@ -575,7 +569,7 @@ Package atoms in phase: **2**.
 
 Stable rows in phase: **1**.
 
-## Package-local atomic obligations
+##### Package-local atomic obligations
 
 | Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
 |---|---|---|---|---|---|
@@ -584,16 +578,16 @@ Stable rows in phase: **1**.
 
 Package atoms in phase: **2**.
 
-## Cross-domain presentation reconstruction dependency
+##### Cross-domain presentation reconstruction dependency
 
 Requirements and Solution design retain their authority/proposal semantics. IA30 must now fresh-author their presentation against corrected SD24: the governed document is primary without generic workflow summary/material-selector chrome or duplicate outer headings; Dialogue/Proposal/Evidence replace the primary interaction when canonically selected. Existing runtime composition is failure evidence only and supplies no compatibility/preservation target.
 
-## Referenced actions
+##### Referenced actions
 
 - **IA03** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA30** — consume the direct productive-stage reconstruction for Requirements/Solution design; no WorkflowStepFrame/WorkflowMaterialSelector equivalent is permitted.
 
-## Completion proof
+##### Completion proof
 
 1. every stable row above retains its exact R1 evidence and DESIGN disposition;
 2. `POSITIVE_NO_CHANGE` rows receive no implementation edit for that requirement and their named proof is revalidated;
@@ -602,16 +596,15 @@ Requirements and Solution design retain their authority/proposal semantics. IA30
 5. action-specific tests plus `13-verification-closeout.md` pass;
 6. any evidence contradiction returns upstream rather than broadening scope.
 
----
 
 ### Compiled component: `implementation-plan/06-a06-plan-readiness.md`
-# A06 — PLAN contract and R3 readiness
+#### A06 — PLAN contract and R3 readiness
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C09 + C10.
 **Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `e1e53c493f405610f6f73d3e8b83084b91e7db9e`; current DESIGN `4da77bb7e047e237fb94b7ed7a44682483e83217`.
 
-## Stable requirement execution dispositions
+##### Stable requirement execution dispositions
 
 | Requirement | R1 evidence | DESIGN disposition | Solution(s) | Execution owner | Consumer dependency | Required proof |
 |---|---|---|---|---|---|---|
@@ -621,7 +614,7 @@ Requirements and Solution design retain their authority/proposal semantics. IA30
 
 Stable rows in phase: **3**.
 
-## Package-local atomic obligations
+##### Package-local atomic obligations
 
 | Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
 |---|---|---|---|---|---|
@@ -630,14 +623,14 @@ Stable rows in phase: **3**.
 
 Package atoms in phase: **2**.
 
-## Referenced actions
+##### Referenced actions
 
 - **IA16** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA05** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA30** — consume the direct Implementation-plan Document/Dialogue/Proposal composition; no generic workflow summary/material selector.
 - **IA31** — consume fresh Readiness/Approval direct Review reconstruction, including non-duplicated R3 verdict/findings and required-input Dialogue replacement.
 
-## Completion proof
+##### Completion proof
 
 1. every stable row above retains its exact R1 evidence and DESIGN disposition;
 2. `POSITIVE_NO_CHANGE` rows receive no implementation edit for that requirement and their named proof is revalidated;
@@ -646,7 +639,6 @@ Package atoms in phase: **2**.
 5. action-specific tests plus `13-verification-closeout.md` pass;
 6. any evidence contradiction returns upstream rather than broadening scope.
 
----
 
 ### Compiled component: `implementation-plan/07-a07-approval-execution.md`
 # A07 — Approval and execution
