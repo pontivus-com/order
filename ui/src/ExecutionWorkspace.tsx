@@ -282,7 +282,7 @@ export const ExecutionWorkspace = ({ workItem, material, tasks, runs, artifacts,
             key={run.id}
             label={runRoleLabel(run.role)+" · Attempt "+run.attempt}
             detail={new Date(run.startedAt).toLocaleString()+" · "+runStatusLabel(run.status)}
-            actionLabel={"Inspect attempt "+run.attempt}
+            actionLabel={"Open "+runRoleLabel(run.role)+" · Attempt "+run.attempt}
             leading={<WorkbenchStatus tone={runTone(run)} label={runStatusLabel(run.status)}/>}
             onOpen={()=>onSelectMaterial({kind:"EXECUTION_TASK",taskId:selectedTask.id,runId:run.id})}
           />
