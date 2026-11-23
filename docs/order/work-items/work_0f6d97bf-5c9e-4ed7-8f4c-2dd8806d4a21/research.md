@@ -155,7 +155,7 @@ This audit is exhaustive by the existing DESIGN screen/service-family partition.
 
 ## Post-G6 terminal-composition/foundation-acceptance audit
 
-**Evidence baseline:** PR #83 head `df6541febc756a5cd8ca1416dfe18e6f7c431f64`; rendered artifact `14778709723`; exact source inspected at that head in `ui/src/primitives/WorkbenchSurface.tsx`, `ui/src/WorkflowStepFrame.tsx`, `ui/src/WorkItemWorkspace.tsx`, `ui/src/WorkItemQueue.tsx`, `ui/src/EvidenceViewer.tsx`, `ui/src/TerminalResult.tsx`, `tests/browser.spec.ts` and `tests/certification.test.ts`. Corrective canonical authority is now P3 Workbench blob `d33801650ab237728a00b6023e1083ccb1d491ec` and P4 Workbench blob `0b3e8a3d5e2d42672de9e787c5fd6afd50713242`.
+**Evidence baseline:** PR #83 head `df6541febc756a5cd8ca1416dfe18e6f7c431f64`; rendered artifact `14778709723`; exact source inspected at that head in `ui/src/primitives/WorkbenchSurface.tsx`, `ui/src/WorkflowStepFrame.tsx`, `ui/src/WorkItemWorkspace.tsx`, `ui/src/WorkItemQueue.tsx`, `ui/src/EvidenceViewer.tsx`, `ui/src/TerminalResult.tsx`, `tests/browser.spec.ts` and `tests/certification.test.ts`. Corrective canonical authority is now P3 Workbench blob `f38bd9ebf17e0726b51453a7e05dc52175b080fa` and P4 Workbench blob `05bae4d1895d832ed2461d4bd18e9a709e0bd338`.
 
 **Observed evidence:**
 
