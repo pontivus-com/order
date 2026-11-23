@@ -724,7 +724,6 @@ describe("Order cross-boundary certification", () => {
     expect(masterDetail).toContain('width="var(--order-master-width)"');
     expect(masterDetail).not.toContain("masterWidth");
 
-    const documentWorkspace = read("ui/src/DocumentWorkspace.tsx");
     expect(documentWorkspace).not.toContain("RequirementsAuthorityFacts");
     expect(documentWorkspace).not.toContain('aria-label="Requirements authority"');
     expect(documentWorkspace).not.toContain("artifact.authorityLayer");
