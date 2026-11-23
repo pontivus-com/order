@@ -36,12 +36,24 @@ export type SettingsSection = "repositories" | "opencode" | "model";
 const errorText = (value: unknown): string =>
   value instanceof Error ? value.message : String(value);
 
+const repositoryAttentionLabel = (
+  attention: ConnectedRepositoryState["attention"][number],
+): string => {
+  switch (attention) {
+    case "REPOSITORY_UNAVAILABLE": return "Repository unavailable";
+    case "REPOSITORY_IDENTITY_INVALID": return "Repository identity is invalid";
+    case "PROJECT_MANIFEST_MISSING": return "Project manifest is missing";
+    case "PROJECT_MANIFEST_INVALID": return "Project manifest is invalid";
+    case "WORKITEM_ROOT_INVALID": return "WorkItem document root is invalid";
+  }
+};
+
 const repositoryAttentionText = (
   repository: ConnectedRepositoryState,
 ): string =>
   repository.attention.length === 0
     ? "Ready"
-    : repository.attention.join(", ").replaceAll("_", " ").toLowerCase();
+    : repository.attention.map(repositoryAttentionLabel).join(" · ");
 
 const modelKey = (model: OpenCodeModelRef): string =>
   model.providerID + "/" + model.id;
@@ -229,7 +241,7 @@ const RepositorySettings = ({
               feedback={connect.error ? <WorkbenchNotice tone="danger" title="Settings update failed" description={errorText(connect.error)} /> : undefined}
             />
           </div>
-          <div className="order-settings-supporting-info"><h3>Admission checks</h3><p>Exact canonical Git root · valid Order manifest · no duplicate/overlap · expected configuration SHA.</p></div>
+          <div className="order-settings-supporting-info"><h3>Before connecting</h3><p>Choose an existing Git repository with a valid Order project manifest. The connection must not duplicate or overlap an existing target repository.</p></div>
         </div>
       </section>
     );
@@ -254,7 +266,7 @@ const RepositorySettings = ({
           rows={repositories.map((repository) => ({
             id: repository.repositoryRoot,
             cells: {
-              project: repository.projectId ?? "Needs attention",
+              project: <div className="order-settings-repository-identity"><strong>{repository.projectId ?? "Needs attention"}</strong><span>Git root: <code>{repository.repositoryRoot}</code></span><span>WorkItem documents: <code>{repository.workItemsRoot ?? "Unavailable until configuration is valid"}</code></span></div>,
               status: <WorkbenchStatus tone={repository.status === "READY" && repository.attention.length === 0 ? "success" : "warning"} label={repositoryAttentionText(repository)} />,
               actions: <div className="order-inline-actions">
                 {repository.status === "READY" ? <WorkbenchAction label={"Move WorkItem documents for " + (repository.projectId ?? repository.repositoryRoot)} onClick={() => { setMigrationRepository(repository.repositoryRoot); setTargetWorkItemsRoot(repository.workItemsRoot ?? ""); }} /> : null}
@@ -262,22 +274,6 @@ const RepositorySettings = ({
               </div>,
             },
           }))}
-        />
-      ) : null}
-      {repositories.length > 0 ? (
-        <WorkbenchDisclosure
-          label="Technical details"
-          content={
-            <div className="order-settings-supporting-info" data-testid="repository-technical-details">
-              {repositories.map((repository) => (
-                <section key={repository.repositoryRoot}>
-                  <h3>{repository.projectId ?? "Repository requiring attention"}</h3>
-                  <p>Git root: <code>{repository.repositoryRoot}</code></p>
-                  <p>WorkItem documents: <code>{repository.workItemsRoot ?? "Unavailable until manifest is valid"}</code></p>
-                </section>
-              ))}
-            </div>
-          }
         />
       ) : null}
       <div className="order-settings-add-repository"><WorkbenchAction label="Add repository" tone="primary" onClick={() => setAddRepositoryOpen(true)} /></div>
@@ -362,19 +358,62 @@ const ModelRuntimeSettings = () => {
           }
         />
       </div>
-      <WorkbenchDisclosure
-        label="Technical details"
-        content={
-          <section className="order-settings-supporting-info">
-            <h3>Model list source</h3>
-            <p><code>GET /api/settings/models</code> → <code>OpenCodeModelRef[]</code>; unavailable or invalid configured values surface with explicit readiness attention.</p>
-          </section>
-        }
-      />
       {updateModel.error ? (
         <WorkbenchNotice tone="danger" title="Model update failed" description={errorText(updateModel.error)} />
       ) : null}
     </section>
+  );
+};
+
+const SettingsDiagnostics = ({ section }: Readonly<{ section: SettingsSection }>) => {
+  const configQuery = useQuery({
+    queryKey: workbenchQueryKeys.settingsConfig,
+    queryFn: api.getOrderConfigState,
+  });
+  const repositoriesQuery = useQuery({
+    queryKey: workbenchQueryKeys.settingsRepositories,
+    queryFn: api.getConnectedRepositories,
+  });
+  const accountStateQuery = useQuery({
+    queryKey: workbenchQueryKeys.openCodeAccountState,
+    queryFn: api.getOpenCodeAccountState,
+  });
+
+  const content = section === "repositories" ? (
+    <div className="order-settings-diagnostics-grid">
+      {configQuery.data ? <p>Configuration SHA-256: <code>{configQuery.data.sha256}</code></p> : null}
+      {(repositoriesQuery.data ?? []).map((repository) => (
+        <section key={repository.repositoryRoot}>
+          <h3>{repository.projectId ?? "Repository requiring attention"}</h3>
+          <p>Manifest SHA-256: <code>{repository.manifestSha256 ?? "Unavailable"}</code></p>
+          <p>Diagnostic state: <code>{repository.attention.join(", ") || "READY"}</code></p>
+        </section>
+      ))}
+    </div>
+  ) : section === "opencode" ? (
+    <div className="order-settings-diagnostics-grid">
+      <p>Active account id: <code>{accountStateQuery.data?.activeAccountId ?? "None"}</code></p>
+      {(accountStateQuery.data?.accounts ?? []).map((account) => (
+        <section key={account.id}>
+          <h3>{account.label}</h3>
+          <p>Account id: <code>{account.id}</code></p>
+          <p>Status: <code>{account.status.status}</code></p>
+        </section>
+      ))}
+      <p>Mutation blockers: <code>{accountStateQuery.data?.mutationBlockers.join(", ") || "None"}</code></p>
+    </div>
+  ) : (
+    <div className="order-settings-diagnostics-grid">
+      {configQuery.data ? <p>Configuration SHA-256: <code>{configQuery.data.sha256}</code></p> : null}
+      <p>Model availability is loaded through the configured OpenCode account boundary.</p>
+    </div>
+  );
+
+  return (
+    <WorkbenchDisclosure
+      label="Settings diagnostics"
+      content={<section data-testid="settings-diagnostics" className="order-settings-diagnostics">{content}</section>}
+    />
   );
 };
 
@@ -447,7 +486,7 @@ export const SettingsWorkspace = ({
       </header>
       <WorkbenchSettingsLayout
         navigation={<SettingsNavigation section={section} onNavigate={onNavigate} />}
-        content={<div className="order-settings-content">{readiness}{content}</div>}
+        content={<div className="order-settings-content">{readiness}{content}<SettingsDiagnostics section={section} /></div>}
       />
     </div>
   );
