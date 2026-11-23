@@ -316,9 +316,6 @@ export const ExecutionWorkspace = ({ workItem, material, tasks, runs, artifacts,
     statePending?<WorkbenchState kind="loading" title="Loading implementation state…"/>:
     selectedTask?<section className="order-execution-task-material" data-testid="execution-task-detail">
       <WorkbenchSectionHeader title={selectedTask.objective} description="Approved task" action={<WorkbenchStatus tone={taskTone(selectedTask)} label={taskStateLabel(selectedTask)}/>} />
-      <MetadataList columns="multi">
-        <MetadataListItem label="Scope">{selectedTask.scope.join(", ")||"None"}</MetadataListItem>
-      </MetadataList>
       {attemptGroups.length>0?<WorkflowStepIndex groups={attemptGroups} label="Attempts"/>:null}
       {selectedRun ? (
         <div data-testid="selected-run-header">
