@@ -1565,7 +1565,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   await expect(createDialog.getByTestId("create-work-item-location")).toContainText(
     "docs/order/work-items",
   );
-  await expect(createDialog).not.toContainText(/(?:change|defect|investigation|audit)-v\\d/i);
+  await expect(createDialog).not.toContainText(/(?:change|defect|investigation|audit)-v\d/i);
   await createDialog.getByLabel("Title").fill("Rendered acceptance change");
   await createDialog.getByRole("button", { name: "Concerns", exact: true }).click();
   await page.getByRole("option", { name: "browser" }).click();
