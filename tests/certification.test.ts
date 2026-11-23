@@ -660,6 +660,17 @@ describe("Order cross-boundary certification", () => {
       expect(evidence).not.toContain(forbidden);
     }
 
+    expect(evidence).not.toContain("attention={");
+    expect(evidence).toContain('data-testid="evidence-workspace"');
+
+    const readiness = read("ui/src/ReadinessWorkspace.tsx");
+    expect(readiness).toContain("WorkbenchReview");
+    expect(readiness).not.toContain("<WorkflowStepFrame");
+    expect(readiness).not.toContain("<WorkbenchAttention");
+
+    const proposal = read("ui/src/PreSignoffStageWorkspace.tsx");
+    expect(proposal).toContain('if (material.kind === "PROPOSAL") return primary;');
+
     const approval = read("ui/src/SignoffReview.tsx");
     expect(approval).toContain("WorkbenchReview");
     expect(approval).toContain("packageStale?: boolean");
@@ -668,9 +679,11 @@ describe("Order cross-boundary certification", () => {
       "historicalArtifact={packageStale ? selectedArtifact : undefined}",
     );
     expect(approval).toContain("embeddedReadOnly={packageStale}");
-    expect(approval).toContain('label="Task technical details"');
-    expect(approval).not.toContain('<MetadataListItem label="Task id">');
-    expect(approval).not.toContain('<MetadataListItem label="Approval">');
+    expect(approval).not.toContain('label="Task technical details"');
+    expect(approval).not.toContain("<WorkflowStepFrame");
+    expect(approval).not.toContain("<WorkbenchAttention");
+    expect(approval).not.toContain("<dt>Task id</dt>");
+    expect(approval).not.toContain("<dt>Approval id</dt>");
 
     const workspace = read("ui/src/WorkItemWorkspace.tsx");
     expect(workspace).toContain("packageStale={packageStaleOwner !== null}");
@@ -700,7 +713,10 @@ describe("Order cross-boundary certification", () => {
     expect(execution).toContain("lifecycleArtifactLabel(artifact.role)");
     expect(execution).toContain('label="Agent activity"');
     expect(execution).toContain("<RunEventTimeline");
-    expect(execution).toContain('label="Technical details"');
+    expect(execution).toContain('title="Approved task contract"');
+    expect(execution).not.toContain('label="Technical details"');
+    expect(execution).not.toContain("<dt>Task id</dt>");
+    expect(execution).not.toContain("<dt>Provider session</dt>");
     expect(execution).not.toContain("MarkdownEditor");
     expect(execution).not.toContain("updateArtifactContent");
 
@@ -712,8 +728,8 @@ describe("Order cross-boundary certification", () => {
     expect(markdownEditor).toContain("WorkbenchSectionHeader");
     expect(markdownEditor).not.toContain("order-markdown-document-view-header");
     expect(markdownEditor).not.toContain("order-markdown-document-view-actions");
-    expect(markdownEditor).not.toContain("{toolbarAccessory}\n            <WorkbenchDisclosure");
-    expect(markdownEditor).toContain("      />\n\n      <WorkbenchDisclosure");
+    expect(markdownEditor).not.toContain("WorkbenchDisclosure");
+    expect(markdownEditor).not.toContain('label="Technical details"');
 
     const table = read("ui/src/primitives/WorkbenchTable.tsx");
     expect(table).toContain('overflowWrap: "normal"');
@@ -2118,18 +2134,19 @@ describe("0.6.0 Wave 4 Workbench and product-language certification", () => {
     expect(approval).toContain('data-testid="approval-readiness-summary"');
     expect(approval).toContain('label="Ready for sign-off"');
 
-    expect(settings).toContain('label="Technical details"');
-    expect(settings).toContain('data-testid="repository-technical-details"');
-    expect(settings).not.toContain('{ key: "repository", label: "Git root" }');
+    expect(settings).toContain('label="Settings diagnostics"');
+    expect(settings).toContain('data-testid="settings-diagnostics"');
+    expect(settings).not.toContain('label="Technical details"');
+    expect(settings).not.toContain('data-testid="repository-technical-details"');
 
     expect(presentation).toContain("export const workOutcomeProductLabel");
     expect(presentation).toContain('case "CANDIDATE_DONE": return "Verified candidate"');
     expect(terminal).toContain("workOutcomeProductLabel(workItem.outcome)");
-    const terminalOutcomeOwner = terminal.slice(
-      terminal.indexOf("const attention="),
-      terminal.indexOf("const material="),
-    );
-    expect(terminalOutcomeOwner).not.toContain("replaceAll(\"_\",\" \")");
+    expect(terminal).not.toContain("WorkbenchAttention");
+    expect(terminal).not.toContain("Final governed outcome");
+    expect(terminal).not.toContain("Governed result material");
+    expect(terminal).not.toContain('attention={');
+    expect(terminal).not.toContain('candidate.eventTag.replaceAll');
     expect(readme).toContain("Every WorkItem ends at a governed **verified result**");
     expect(readme).toContain("Explicit operator-triggered WorkItem documentation Git commits remain a governed documentation capability");
   });
