@@ -27,7 +27,6 @@ import {
   runIsActive,
   workflowMaterialIdentity,
   workflowPresentation,
-  workflowStepState,
   workflowSteps,
   type EvidenceSelection,
   type ProposalSelection,
@@ -358,23 +357,6 @@ export const WorkItemWorkspace = ({
     tasks,
   );
 
-  const selectedStepState = workflowStepState(workItem, reachedStages, selectedStep);
-  const selectedLatestStageRun =
-    selectedStep === "R1" ||
-    selectedStep === "R2" ||
-    selectedStep === "DESIGN" ||
-    selectedStep === "PLAN" ||
-    selectedStep === "R3"
-      ? [...runs]
-          .filter((run) =>
-            run.role === "STAGE" &&
-            run.stage === selectedStep)
-          .sort((left, right) =>
-            left.attempt - right.attempt ||
-            left.startedAt.localeCompare(right.startedAt) ||
-            left.id.localeCompare(right.id))
-          .at(-1) ?? null
-      : null;
   const selectedStageArtifact =
     selectedStep === "R1" ||
     selectedStep === "R2" ||
