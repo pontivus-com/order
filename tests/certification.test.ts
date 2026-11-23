@@ -724,6 +724,16 @@ describe("Order cross-boundary certification", () => {
     expect(masterDetail).toContain('width="var(--order-master-width)"');
     expect(masterDetail).not.toContain("masterWidth");
 
+    const documentWorkspace = read("ui/src/DocumentWorkspace.tsx");
+    expect(documentWorkspace).not.toContain("RequirementsAuthorityFacts");
+    expect(documentWorkspace).not.toContain('aria-label="Requirements authority"');
+    expect(documentWorkspace).not.toContain("artifact.authorityLayer");
+
+    const workItemContext = read("ui/src/WorkItemContext.tsx");
+    expect(workItemContext).toContain('label="Artifact id"');
+    expect(workItemContext).toContain('label="Authority layer"');
+    expect(workItemContext).toContain('label="Git commit"');
+
     const markdownEditor = read("ui/src/MarkdownEditor.tsx");
     expect(markdownEditor).toContain("WorkbenchSectionHeader");
     expect(markdownEditor).not.toContain("order-markdown-document-view-header");
