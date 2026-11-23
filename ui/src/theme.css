@@ -706,10 +706,9 @@
 
 
 /* IA30 — productive Research/Requirements/Design/Plan composition. */
-.order-productive-stage{height:100%;min-height:0;display:grid;grid-template-rows:minmax(0,1fr) auto}
+.order-productive-stage{height:100%;min-height:0;display:grid;grid-template-rows:minmax(0,1fr)}
 .order-productive-primary{min-height:0;overflow:auto}
-.order-productive-supporting{min-width:0;padding:var(--spacing-2) var(--spacing-3);border-top:1px solid var(--color-border-emphasized)}
-.order-productive-support-list,.order-activity-support,.order-activity-workflow-state,.order-proposal-review-body{min-width:0;display:grid;gap:var(--spacing-3)}
+.order-activity-support,.order-activity-workflow-state,.order-proposal-review-body{min-width:0;display:grid;gap:var(--spacing-3)}
 .order-productive-research-context,.order-productive-transient{min-width:0;display:grid;gap:var(--spacing-2)}
 .order-productive-research-context{padding:var(--spacing-3);border:1px solid var(--color-border-emphasized);border-radius:var(--radius-container);background:var(--color-background-muted)}
 .order-productive-research-context span,.order-productive-research-context code{color:var(--color-text-secondary)}
@@ -1156,6 +1155,13 @@
 
 .order-secondary-copy { color: var(--color-text-secondary); }
 
+.order-evidence-primary {
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: var(--spacing-3);
+}
 .order-evidence-content {
   height: 100%;
   min-height: 0;
