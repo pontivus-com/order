@@ -1168,7 +1168,7 @@ Examples:
 - `app.tsx` mounts the one `WorkbenchAppShell`, supplies its global toolbar and current application destination, routes creation to `WorkbenchTaskPanel`, dirty navigation to `WorkbenchConfirmation` and toolbar utility state to `WorkbenchUtilityLink`; no destination mounts another AppShell or application toolbar.
 - `WorkItemIdentityRow.tsx` maps identity/status/utilities to `WorkbenchIdentity`.
 - `WorkflowRail.tsx` maps reached/current presentation into `WorkbenchRail`.
-- `WorkflowStepFrame.tsx` is used only for interaction classes whose owning composition includes current attention; it maps already-derived attention into `WorkbenchAttention + WorkbenchSurface` and must not wrap Evidence or Terminal-result primary compositions.
+- `WorkflowStepFrame.tsx` is used only for interaction classes whose owning composition includes current attention; it maps already-derived attention into `WorkbenchAttention + WorkbenchSurface` and must not wrap Review, Evidence or Terminal-result primary compositions. Proposal Review, Readiness and Approval render their single `WorkbenchReview` composition directly as the WorkItem shell primary material.
 - `WorkflowMaterialSelector.tsx` maps Run/document/proposal/evidence choices into `WorkbenchSelector`.
 - `ActivityWorkspace.tsx` / `ActivityComposer.tsx` map transcript/composer content into `WorkbenchDialogue`.
 - `RunEventTimeline.tsx` maps canonical event presentation into `WorkbenchTimeline`.
