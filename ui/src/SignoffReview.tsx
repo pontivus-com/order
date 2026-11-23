@@ -18,7 +18,6 @@ import * as api from "./http.ts";
 import { ReadOnlyLifecycleDocumentMaterial } from "./DocumentWorkspace.tsx";
 import { invalidateWorkbenchMutation } from "./query-keys.ts";
 import { lifecycleArtifactLabel } from "./workbench-presentation.ts";
-import { WorkflowStepFrame } from "./WorkflowStepFrame.tsx";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchDisclosure } from "./primitives/WorkbenchDisclosure.tsx";
 import { WorkbenchReview } from "./primitives/WorkbenchReview.tsx";
@@ -81,14 +80,6 @@ const SignedTaskDetail = ({
       <section><h3>Change surface</h3>{listValues(task.changeSurface)}</section>
       <section><h3>Authority</h3>{listValues(task.authorityRefs)}</section>
     </div>
-    <WorkbenchDisclosure
-      label="Task technical details"
-      content={
-        <dl>
-          <div><dt>Task id</dt><dd><code>{task.id}</code></dd></div>
-        </dl>
-      }
-    />
   </section>
 );
 
@@ -129,16 +120,6 @@ const HistoricalTaskDetail = ({
       <section><h3>Change surface</h3>{listValues(task.changeSurface)}</section>
       <section><h3>Authority</h3>{listValues(task.authorityRefs)}</section>
     </div>
-    <WorkbenchDisclosure
-      label="Task technical details"
-      content={
-        <dl>
-          <div><dt>Execution task id</dt><dd><code>{task.id}</code></dd></div>
-          <div><dt>Plan task id</dt><dd><code>{task.planTaskId}</code></dd></div>
-          <div><dt>Approval id</dt><dd><code>{task.approvalId}</code></dd></div>
-        </dl>
-      }
-    />
   </section>
 );
 
@@ -213,7 +194,6 @@ const ApprovalContext = ({
 
 export const SignoffReview = ({
   workItem,
-  summary,
   packageValue,
   packageFetching,
   packageError,
@@ -348,9 +328,7 @@ export const SignoffReview = ({
                 })}
             />
           ))}
-        </div>
-      }
-    />
+    </div>
   );
 
   const selectedMaterial = (() => {
@@ -597,10 +575,7 @@ export const SignoffReview = ({
           : "Inspect the reached Approval stage retained after workflow returned upstream without sign-off.";
 
   return (
-    <WorkflowStepFrame
-      summary={summary}
-      primary={
-        <div data-testid="review-workspace">
+    <div data-testid="review-workspace">
           <WorkbenchReview
             currentness={headerStatus}
             summary={<div><h2>{title}</h2><p>{description}</p></div>}
