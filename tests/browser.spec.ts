@@ -2093,6 +2093,21 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     references: ["docs/references/workbench-ui/settings-model.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-OPENCODE-INTEGRATION-V1"],
   }, modelSettings);
+  await page.getByRole("radio", { name: "Dark" }).click();
+  await capture({
+    id: "ia26-settings-model-wide-dark",
+    workItemKind: "QUEUE",
+    workflowStep: null,
+    surface: "SURF-SET-MODEL-001",
+    state: "configured-model-task-dark",
+    fixture: "deterministic model/runtime settings",
+    viewport: light,
+    theme: "Dark",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/settings-model.svg", "docs/references/workbench-ui/theme-parity.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
+  }, modelSettings);
+  await page.getByRole("radio", { name: "Light" }).click();
 
   const diagnosticsToggle = settings.getByRole("button", { name: "Settings diagnostics", exact: true });
   await diagnosticsToggle.click();
@@ -2148,6 +2163,65 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     references: ["docs/references/workbench-ui/work-request.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-MARKDOWN-WORKBENCH-V1"],
   });
+  await page.setViewportSize(narrow);
+  await capture({
+    id: "ia26-work-request-step-narrow-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Work request",
+    surface: "SURF-STEP-WR-001",
+    state: "source-selected-narrow",
+    fixture: "Source editing workbench",
+    viewport: narrow,
+    theme: "Light",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/work-request.svg", "docs/references/workbench-ui/responsive-composition.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2"],
+  });
+  await page.setViewportSize({ width: 1000, height: 800 });
+  await capture({
+    id: "ia26-workitem-medium-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Work request",
+    surface: "SURF-WI-001",
+    state: "selected-workitem-medium",
+    fixture: "Source editing workbench",
+    viewport: { width: 1000, height: 800 },
+    theme: "Light",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/workitem-shell-controls.svg", "docs/references/workbench-ui/responsive-composition.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2"],
+  });
+  await page.setViewportSize(light);
+  await page.getByRole("radio", { name: "Dark" }).click();
+  await capture({
+    id: "ia26-work-request-step-wide-dark",
+    workItemKind: "CHANGE",
+    workflowStep: "Work request",
+    surface: "SURF-STEP-WR-001",
+    state: "source-selected-dark",
+    fixture: "Source editing workbench",
+    viewport: light,
+    theme: "Dark",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/work-request.svg", "docs/references/workbench-ui/theme-parity.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
+  });
+  await page.getByRole("button", { name: "Context", exact: true }).click();
+  await capture({
+    id: "ia26-context-wide-dark",
+    workItemKind: "CHANGE",
+    workflowStep: "Work request",
+    surface: "SURF-WI-CONTEXT-001",
+    state: "explicit-technical-context-dark",
+    fixture: "Source editing workbench",
+    viewport: light,
+    theme: "Dark",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/workitem-context.svg", "docs/references/workbench-ui/theme-parity.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
+  }, page.getByTestId("work-item-context"));
+  await page.getByRole("button", { name: "Close context", exact: true }).click();
+  await page.getByRole("radio", { name: "Light" }).click();
   await capture({
     id: "ia26-source-document-wide-light",
     workItemKind: "CHANGE",
@@ -2177,6 +2251,21 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     references: ["docs/references/workbench-ui/document-authoring.svg", "docs/references/workbench-ui/document-states.svg"],
     authorityRefs: ["GW-DOC-MARKDOWN-WORKBENCH-V1"],
   }, page.locator("form.order-markdown-editor"));
+  await page.getByRole("radio", { name: "Dark" }).click();
+  await capture({
+    id: "ia26-source-document-editor-wide-dark",
+    workItemKind: "CHANGE",
+    workflowStep: "Work request",
+    surface: "SURF-MAT-SOURCE-001",
+    state: "active-editor-dark",
+    fixture: "Source editing workbench active source editor",
+    viewport: light,
+    theme: "Dark",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/document-authoring.svg", "docs/references/workbench-ui/theme-parity.svg"],
+    authorityRefs: ["GW-DOC-MARKDOWN-WORKBENCH-V1", "GW-DOC-WORKBENCH-THEME-V1"],
+  }, page.locator("form.order-markdown-editor"));
+  await page.getByRole("radio", { name: "Light" }).click();
 
   const sourceText = await markdownSourceValue(sourceEditor);
   await replaceMarkdownSource(page, sourceEditor, sourceText + "\nIA26 unsaved material\n");
@@ -2297,6 +2386,22 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     references: ["docs/references/workbench-ui/safety-confirmations.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }, archiveConfirm);
+  await page.getByRole("radio", { name: "Dark" }).click();
+  await capture({
+    id: "ia26-confirm-archive-wide-dark",
+    workItemKind: "CHANGE",
+    workflowStep: "Work request",
+    surface: "SURF-CONF-ARCHIVE-001",
+    state: "archive-confirmation-dark",
+    fixture: "IA26 confirmation fixture",
+    viewport: light,
+    theme: "Dark",
+    route: routeValue(),
+    captureScope: "production confirmation only",
+    references: ["docs/references/workbench-ui/safety-confirmations.svg", "docs/references/workbench-ui/theme-parity.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
+  }, archiveConfirm);
+  await page.getByRole("radio", { name: "Light" }).click();
   await archiveConfirm.getByRole("button", { name: "Cancel", exact: true }).click();
 
   // Work-kind information variants.
@@ -2379,6 +2484,21 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
         references: ["docs/references/workbench-ui/dialogue-states.svg", "docs/references/workbench-ui/research.svg"],
         authorityRefs: ["GW-DOC-WORKBENCH-UX"],
       }, activity);
+      await page.getByRole("radio", { name: "Dark" }).click();
+      await capture({
+        id: "ia26-stage-dialogue-open-wide-dark",
+        workItemKind: "CHANGE",
+        workflowStep: "Research",
+        surface: "SURF-MAT-ACTIVITY-001",
+        state: "open-continuation-dark",
+        fixture: title,
+        viewport: light,
+        theme: "Dark",
+        route: routeValue(),
+        references: ["docs/references/workbench-ui/dialogue-states.svg", "docs/references/workbench-ui/theme-parity.svg"],
+        authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
+      }, activity);
+      await page.getByRole("radio", { name: "Light" }).click();
     }
     await backToQueue(page);
   }
@@ -2526,6 +2646,21 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     references: ["docs/references/workbench-ui/approval-task-detail.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }, approvalTask);
+  await page.getByRole("radio", { name: "Dark" }).click();
+  await capture({
+    id: "ia26-approval-task-wide-dark",
+    workItemKind: "CHANGE",
+    workflowStep: "Approval",
+    surface: "SURF-MAT-APPROVAL-TASK-001",
+    state: "signed-task-detail-dark",
+    fixture: "Awaiting sign-off task",
+    viewport: light,
+    theme: "Dark",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/approval-task-detail.svg", "docs/references/workbench-ui/theme-parity.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
+  }, approvalTask);
+  await page.getByRole("radio", { name: "Light" }).click();
   await backToQueue(page);
 
   await openWorkItem(page, "Readiness input required");
@@ -2560,6 +2695,21 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     references: ["docs/references/workbench-ui/implementation.svg", "docs/references/workbench-ui/implementation-states.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }, execution);
+  await page.getByRole("radio", { name: "Dark" }).click();
+  await capture({
+    id: "ia26-implementation-wide-dark",
+    workItemKind: "CHANGE",
+    workflowStep: "Implementation",
+    surface: "SURF-STEP-EXEC-001",
+    state: "current-task-ready-dark",
+    fixture: "Implementation action ready",
+    viewport: light,
+    theme: "Dark",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/implementation.svg", "docs/references/workbench-ui/theme-parity.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
+  }, execution);
+  await page.getByRole("radio", { name: "Light" }).click();
   await capture({
     id: "ia26-implementation-task-wide-light",
     workItemKind: "CHANGE",
@@ -2622,6 +2772,21 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     references: ["docs/references/workbench-ui/complete.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }, complete);
+  await page.getByRole("radio", { name: "Dark" }).click();
+  await capture({
+    id: "ia26-complete-candidate-wide-dark",
+    workItemKind: "CHANGE",
+    workflowStep: "Complete",
+    surface: "SURF-STEP-COMPLETE-001",
+    state: "verified-candidate-dark",
+    fixture: "Verified candidate",
+    viewport: light,
+    theme: "Dark",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/complete.svg", "docs/references/workbench-ui/theme-parity.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
+  }, complete);
+  await page.getByRole("radio", { name: "Light" }).click();
   await page.setViewportSize(narrow);
   await capture({
     id: "ia26-complete-candidate-narrow-light",
@@ -2723,13 +2888,20 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
 
   writeRenderedAcceptanceEvidence(entries);
 
-  const requiredDownstreamSurfaces = [
+  const manifest = JSON.parse(
+    readFileSync(join(renderedAcceptanceDir!, "manifest.json"), "utf8"),
+  ) as { candidateSha: string; entries: RenderedAcceptanceEntry[] };
+  expect(manifest.candidateSha).toBe(renderedAcceptanceCandidateSha);
+  const allEntries = manifest.entries;
+  const requiredSurfaces = [
+    "SURF-APP-001",
     "SURF-CONF-ARCHIVE-001",
     "SURF-CONF-DIRTY-DEST-001",
     "SURF-CONF-DIRTY-MATERIAL-001",
     "SURF-CONF-DOC-GIT-001",
     "SURF-CONF-OC-REMOVE-001",
     "SURF-CONF-REPO-DISCONNECT-001",
+    "SURF-CREATE-001",
     "SURF-MAT-ACTIVITY-001",
     "SURF-MAT-APPROVAL-TASK-001",
     "SURF-MAT-DOC-001",
@@ -2738,6 +2910,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     "SURF-MAT-EXEC-TASK-001",
     "SURF-MAT-PROPOSAL-001",
     "SURF-MAT-SOURCE-001",
+    "SURF-QUEUE-001",
     "SURF-SET-001",
     "SURF-SET-MODEL-001",
     "SURF-SET-OC-001",
@@ -2756,9 +2929,61 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     "SURF-STEP-R2-001",
     "SURF-STEP-R3-001",
     "SURF-STEP-WR-001",
+    "SURF-WI-001",
+    "SURF-WI-CONTEXT-001",
   ].sort();
-  expect([...new Set(entries.map((entry) => entry.surface))].sort())
-    .toEqual(requiredDownstreamSurfaces);
+  expect([...new Set(allEntries.map((entry) => entry.surface))].sort())
+    .toEqual(requiredSurfaces);
+
+  for (const step of [
+    "Work request",
+    "Research",
+    "Requirements",
+    "Solution design",
+    "Implementation plan",
+    "Readiness review",
+    "Approval",
+    "Implementation",
+    "Complete",
+  ]) {
+    expect(allEntries.some((entry) =>
+      entry.workflowStep === step &&
+      entry.viewport.width === 1440 &&
+      entry.theme === "Light"
+    )).toBe(true);
+    expect(allEntries.some((entry) =>
+      entry.workflowStep === step &&
+      entry.viewport.width === 700 &&
+      entry.theme === "Light"
+    )).toBe(true);
+  }
+
+  const darkClassRepresentatives = [
+    "SURF-QUEUE-001",
+    "SURF-CREATE-001",
+    "SURF-WI-CONTEXT-001",
+    "SURF-MAT-SOURCE-001",
+    "SURF-MAT-ACTIVITY-001",
+    "SURF-MAT-PROPOSAL-001",
+    "SURF-SET-MODEL-001",
+    "SURF-MAT-APPROVAL-TASK-001",
+    "SURF-STEP-EXEC-001",
+    "SURF-STEP-COMPLETE-001",
+    "SURF-MAT-EVIDENCE-001",
+    "SURF-CONF-ARCHIVE-001",
+  ];
+  for (const surface of darkClassRepresentatives) {
+    expect(allEntries.some((entry) =>
+      entry.surface === surface && entry.theme === "Dark"
+    )).toBe(true);
+  }
+  expect(allEntries.some((entry) => entry.theme === "System/light")).toBe(true);
+  expect(allEntries.some((entry) => entry.theme === "System/dark")).toBe(true);
+  expect(allEntries.some((entry) =>
+    entry.viewport.width === 1000 &&
+    entry.references.includes("docs/references/workbench-ui/responsive-composition.svg")
+  )).toBe(true);
+  expect(new Set(allEntries.map((entry) => entry.id)).size).toBe(allEntries.length);
   expect(runtimeErrors).toEqual([]);
 });
 
