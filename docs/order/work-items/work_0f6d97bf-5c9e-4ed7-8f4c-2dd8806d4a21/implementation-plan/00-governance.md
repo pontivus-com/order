@@ -6,9 +6,9 @@ This decomposition is reconstructed under G-F12 after G4 closure. Historical PLA
 
 ## Exact upstream package
 
-- R1 `research.md`: `db81af903badbbbb1f546f62cc4fddcea3b2f18b`.
-- R2 `requirements.md`: `bd62cb694feda6bceeeaa5655005d7c886d072ee`.
-- DESIGN `solution-design.md`: `1d8ffb1e74485885d445489c2b1d86e3977d2d00`.
+- R1 `research.md`: `d64131df66e9e95aaeaf168f1e6f1cd52cae349d`.
+- R2 `requirements.md`: `8309a079f0f2004ae3c06956143a1493922ea3da`.
+- DESIGN `solution-design.md`: `223d684b44069795e77161ff19ddfb3a9e1b954f`.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `9c2ec83a9552b7583f90e91080c014df4d6870df`.
 - P3 `GW-DOC-WORKBENCH-UX-V2`: `f38bd9ebf17e0726b51453a7e05dc52175b080fa` — §11.4A/§12/§13/§14.9 own semantic information classes, semantic-region ownership, exactly one primary interaction composition, Terminal-result primacy, singular material/technical-inspection ownership, disclosure-accumulation prohibitions, task anatomy and composition invariants.
 - P3 `GW-DOC-MARKDOWN-WORKBENCH-V1`: `1cc5a28eff8d180f88106d89990f7b89aa27a132` — §17.4 owns one compact Markdown editor-control region, overflow-before-wrap formatting and control→canvas adjacency.
