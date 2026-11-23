@@ -1297,6 +1297,97 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     ],
   }));
 
+  await page.route("**/api/settings/readiness", async (route) => {
+    if (route.request().method() !== "GET") {
+      await route.fallback();
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        ready: false,
+        blockers: ["REPOSITORY_REQUIRED", "OPENCODE_ACCOUNT_REQUIRED"],
+      }),
+    });
+  });
+  await page.reload();
+  await expect(page.getByTestId("installation-readiness")).toBeVisible();
+  await expect(page.getByTestId("work-item-queue")).toBeVisible();
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "application-wide-light-installation-readiness",
+    workItemKind: "QUEUE",
+    workflowStep: null,
+    surface: "SURF-APP-001",
+    state: "installation-readiness-blocked",
+    fixture: "application shell with deterministic readiness blockers",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: "/",
+    references: [
+      "docs/references/workbench-ui/installation-readiness.svg",
+      "docs/references/workbench-ui/application-notices-states.svg",
+    ],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-INSTALLATION-READINESS",
+    ],
+  }));
+  await page.unroute("**/api/settings/readiness");
+  await page.reload();
+
+  await page.unroute("**/api/work-item-sources/diagnostics");
+  await page.route("**/api/work-item-sources/diagnostics", async (route) => {
+    if (route.request().method() !== "GET") {
+      await route.fallback();
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify([{
+        projectId: "order-e2e",
+        path: "docs/order/work-items/broken/work-request.md",
+        workItemId: null,
+        code: "INVALID_SOURCE",
+        detail: "The WorkItem source could not be parsed.",
+      }]),
+    });
+  });
+  await page.reload();
+  const diagnostics = page.getByTestId("source-diagnostics");
+  await expect(diagnostics).toBeVisible();
+  await expect(diagnostics).toContainText("docs/order/work-items/broken/work-request.md");
+  await expect(diagnostics).toContainText("The WorkItem source could not be parsed.");
+  await expect(diagnostics).not.toContainText("INVALID_SOURCE");
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "queue-wide-light-source-diagnostic",
+    workItemKind: "QUEUE",
+    workflowStep: null,
+    surface: "SURF-QUEUE-001",
+    state: "source-diagnostic-human-recovery",
+    fixture: "deterministic invalid WorkItem source diagnostic",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: "/",
+    references: [
+      "docs/references/workbench-ui/queue-states.svg",
+      "docs/references/workbench-ui/application-notices-states.svg",
+    ],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM",
+    ],
+  }));
+  await page.unroute("**/api/work-item-sources/diagnostics");
+  await page.route("**/api/work-item-sources/diagnostics", async (route) => {
+    if (route.request().method() !== "GET") {
+      await route.fallback();
+      return;
+    }
+    await route.fulfill({ status: 200, contentType: "application/json", body: "[]" });
+  });
+  await page.reload();
   const queue = page.getByTestId("work-item-queue");
   await expect(queue.locator(".order-workbench-surface-attention")).toHaveCount(0);
   await expect(queue.getByRole("heading", { name: "Work items", exact: true })).toBeVisible();
