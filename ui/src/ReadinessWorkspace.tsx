@@ -23,10 +23,7 @@ import {
   type EvidenceSelection,
   type WorkflowMaterial,
 } from "./workbench-presentation.ts";
-import {
-  WorkflowMaterialSelector,
-  type WorkflowMaterialSelectorGroup,
-} from "./WorkflowMaterialSelector.tsx";
+import { WorkbenchResourceRow } from "./primitives/WorkbenchResourceRow.tsx";
 import { WorkbenchReview } from "./primitives/WorkbenchReview.tsx";
 import { WorkbenchState } from "./primitives/WorkbenchState.tsx";
 import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
@@ -140,7 +137,7 @@ export const ReadinessWorkspace = ({
       ? artifacts.find((artifact) => artifact.id === material.artifactId) ?? null
       : null;
 
-  const selectorItems: WorkflowMaterialSelectorGroup["items"] = [
+  const relatedItems = [
     ...(readinessArtifact === null
       ? []
       : [{
@@ -176,22 +173,6 @@ export const ReadinessWorkspace = ({
         }),
     })),
   ];
-
-  const selector =
-    selectorItems.length > 1
-      ? (
-        <WorkflowMaterialSelector
-          groups={[
-            {
-              id: "readiness",
-              label: "Readiness material",
-              items: selectorItems,
-            },
-          ]}
-          label="Readiness material"
-        />
-      )
-      : null;
 
   const reviewMaterial =
     readinessArtifact === null
@@ -293,7 +274,6 @@ export const ReadinessWorkspace = ({
     <div data-testid="review-workspace">
       <WorkbenchReview
             currentness={currentness}
-            selector={selector ?? undefined}
             summary={
               <div>
                 <h2>Readiness review</h2>
@@ -371,6 +351,23 @@ export const ReadinessWorkspace = ({
                       </p>
                     </section>
                   </div>
+                  {relatedItems.filter((item) => item.selected !== true).length === 0 ? null : (
+                    <div className="order-resource-list">
+                      {relatedItems
+                        .filter((item) => item.selected !== true)
+                        .map((item) => (
+                          <WorkbenchResourceRow
+                            key={item.id}
+                            label={item.label}
+                            detail={[item.description, item.statusLabel]
+                              .filter(Boolean)
+                              .join(" · ") || undefined}
+                            actionLabel={"Open " + item.label}
+                            onOpen={item.onSelect}
+                          />
+                        ))}
+                    </div>
+                  )}
                 </section>
 
                 {!requiredInputOwnsAttention && selectedSecondary !== null ? (
