@@ -1222,7 +1222,7 @@ test("queue opens a primary workspace, keeps context compact, preserves URL hist
 });
 
 
-test("rendered acceptance phase 1 captures bounded IA27 IA28 surfaces", async ({
+test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   page,
   request,
 }) => {
