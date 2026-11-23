@@ -1,12 +1,14 @@
 import { useId, type ReactNode } from "react";
 
 export const WorkbenchAttention = ({
-  title, purpose, status, blocker, action,
+  title,
+  description,
+  feedback,
+  action,
 }: Readonly<{
   title: string;
-  purpose?: string;
-  status?: ReactNode;
-  blocker?: ReactNode;
+  description?: ReactNode;
+  feedback?: ReactNode;
   action?: ReactNode;
 }>) => {
   const titleId = useId();
@@ -14,17 +16,12 @@ export const WorkbenchAttention = ({
   return (
     <section className="order-workbench-attention" aria-labelledby={titleId}>
       <div className="order-workbench-attention-content">
-        <div className="order-workbench-attention-heading">
-          <h2 id={titleId}>Current attention: {title}</h2>
-          {status === undefined ? null : (
-            <div className="order-workbench-attention-status">{status}</div>
-          )}
-        </div>
-        {purpose === undefined ? null : (
-          <p className="order-workbench-attention-purpose">{purpose}</p>
+        <h2 id={titleId}>{title}</h2>
+        {description === undefined ? null : (
+          <div className="order-workbench-attention-description">{description}</div>
         )}
-        {blocker === undefined ? null : (
-          <div className="order-workbench-attention-blocker">{blocker}</div>
+        {feedback === undefined ? null : (
+          <div className="order-workbench-attention-feedback">{feedback}</div>
         )}
       </div>
       {action === undefined ? null : (
