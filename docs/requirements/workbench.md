@@ -622,7 +622,7 @@ The class does **not** authorize a generic container. Progressive disclosure is 
 | Class | Meaning | Default presentation |
 |---|---|---|
 | **Primary task information** | required to understand or perform the current operator task | visible in the owning primary interaction surface and allowed to dominate |
-| **Supporting operator information** | useful to judge or orient the current task but not itself the task | visible subordinately or reachable through the one semantic selector/resource owner for that information |
+| **Supporting operator information** | useful to judge or orient the current task but not itself the task | visible subordinately or reachable through the owning interaction-specific resource/timeline/action treatment; a selector is used only when peer selection is itself part of that interaction |
 | **Operational detail** | low-frequency operator-facing history, resource or status detail | subordinate and selected/inspected through the owning history/material/resource interaction when persistent display would compete with primary work |
 | **Technical detail** | exact implementation/audit identity such as UUIDs, hashes, commit/baseline identity, raw repository paths where a semantic label suffices, provider/session identity, schema/internal-role identity and comparable mechanics | absent from the productive task flow by default; available only through the explicit technical-inspection destination for the current scope |
 | **Diagnostic/console detail** | raw diagnostic codes, raw event tags/payloads, parser/provider mechanics and other implementation-facing failure evidence | absent from ordinary product presentation; available only through intentional technical/evidence inspection when legitimate operator inspection requires it |
@@ -631,7 +631,7 @@ A normally subordinate technical condition may become the current blocker withou
 
 The ordinary ownership model is closed:
 
-- **material/history selection** — attempts, upstream/current governed material and other operator-facing workflow history use the owning semantic selector/resource interaction; there is no second generic **Supporting material/history** strip;
+- **material/history access** — attempts, upstream/current governed material and other operator-facing workflow history use the owning interaction-specific resource, timeline, action or explicitly justified peer selector. There is no generic workflow-material selector and no second generic **Supporting material/history** strip;
 - **technical inspection** — each application scope has at most one explicit technical-inspection destination. For a selected WorkItem/material this is **Context**. Technical identity is grouped there by the selected object/material rather than repeated as local **Technical details** bars throughout productive surfaces;
 - **Evidence** — exact evidence/resource identity and bytes become primary only after intentional Evidence inspection;
 - **Safety/confirmation** — exact facts required to consent safely to the pending mutation may become decision-primary only for the life of that confirmation.
@@ -640,11 +640,11 @@ A productive surface therefore must not create a local generic **Technical detai
 
 The following composition invariants are binding:
 
-1. **one semantic owner** — the same supporting/history information is not exposed through both a selector/navigation owner and a generic disclosure bar;
+1. **one semantic owner** — the same supporting/history information has one interaction-specific access owner and is not duplicated through a selector/navigation owner plus another disclosure/resource lane;
 2. **no disclosure accumulation** — adjacent or nested generic collapsed containers whose purpose is only “technical”, “supporting”, “history”, “details” or equivalent are prohibited;
 3. **primary adjacency** — controls that directly operate on primary content remain adjacent to that content. Unrelated technical/supporting inspection cannot be inserted between an editor toolbar and its canvas, between a task form body and its governed action region, or otherwise interrupt the active task relationship;
 4. **inspection is intentional** — technical/diagnostic content never auto-opens, never becomes persistent because viewport geometry changes and never becomes the only owner of a current blocker/action;
-5. **container count is not information architecture** — adding more collapsed containers cannot satisfy progressive disclosure. If information lacks a semantic selector/resource/inspection owner, the design returns upstream rather than inventing another accordion;
+5. **container count is not information architecture** — adding more collapsed containers cannot satisfy progressive disclosure. If information lacks an interaction-specific resource/timeline/action/inspection owner, the design returns upstream rather than inventing another accordion or generic selector;
 6. **decision exceptions are bounded** — Evidence and Safety/confirmation may temporarily elevate exact technical facts only because the operator intentionally selected the evidence or must consent to the exact mutation.
 
 Primary information may never be available **only** through Context, Evidence or technical inspection. Conversely, Technical/Diagnostic information may not occupy ordinary productive space merely because it is hidden inside a collapsed control.
@@ -870,6 +870,8 @@ Every rendered Order Workbench service has exactly one primary interaction class
 
 **Semantic-region ownership law.** A region that represents current attention is semantic, not a generic top-of-surface placement slot. A primary interaction class renders a current-attention region only where its class contract declares current attention as part of that composition. Operational scan, Review, Evidence and Terminal result must not manufacture an outer attention region merely to obtain heading/status/action placement. A heading, review currentness/verdict/decision, result classification or evidence identity is not current attention simply because it is visually prominent. Review owns currentness, summary/body and decisions inside the single `WorkbenchReview` composition; if the selected interaction truly becomes Dialogue or another primary class, that primary composition replaces Review rather than wrapping Review in a second Surface/Attention frame.
 
+**State-is-not-interface law.** Canonical stage, current-attention, Run-interaction and material-currentness values determine which interaction composition and human-facing message is rendered; they are not themselves a generic visible status tuple. The Workbench must not render a reusable stage-summary strip that concatenates stage identity, `Current`, Run/document status and stage purpose. Internal classifications such as `OPEN`, `REQUIRED_INPUT`, `PROCESSING`, `READY_FOR_SIGNOFF` or prose labels that merely restate those classifications are not ordinary operator copy unless an independent product-language requirement explicitly names that wording.
+
 Exactly one primary interaction composition may own the selected task/material at a time. Selecting Proposal Review or Evidence replaces the owning material composition for the duration of that explicit review/inspection; neither may be wrapped or nested inside another primary Workbench composition. Returning from the transient composition restores the recorded owning material and focus.
 
 For Complete, the terminal result itself is the current orientation. The final outcome classification, substantive result/evidence and permitted follow-up action are one Terminal-result composition; Complete does not add a separate current-attention band that repeats or re-labels the same terminal meaning.
@@ -922,9 +924,9 @@ No Run-history rail exists here.
 
 **Primary when document selected and no more urgent current interaction owns attention:** Research document.
 
-Attempt/document selection is compact and does not alter canvas width.
+Attempt/history access is subordinate to the Dialogue/Document task and does not create a generic workflow-material selector or alter canvas width. A selector is permitted only when the specific interaction genuinely requires choosing among peer objects.
 
-Current required input, proposal or blocker remains visible even while historical Research material is inspected.
+Current required input, proposal or blocker remains visible even while historical Research material is inspected. Dialogue is continuous across reply → processing → another question/open continuation/proposal/block/completion; answering one required question does not visually imply closure of the Run or stage.
 
 ### 14.3 Requirements
 
@@ -966,7 +968,7 @@ Readiness review material is read-only.
 
 The ordinary Readiness primary composition is one Review. Its verdict/currentness, findings, supporting package material and review actions remain inside that Review composition; Readiness does not receive a separate `WorkbenchSurface`/`WorkbenchAttention` wrapper merely because the workflow step is current. If an exact required-input interaction is promoted to another primary interaction class, that class replaces the selected primary composition for the duration of that interaction rather than nesting around or inside Review.
 
-Readiness does not default to a persistent master/navigation column. Package material, attempts and evidence use a compact subordinate selector unless the interaction is explicitly reclassified as genuine master/detail.
+Readiness does not default to a persistent master/navigation column and does not expose a generic `Readiness material` selector. Package material, attempts and evidence use Review-owned subordinate resources/actions/history treatment. A selector is used only when a specifically defined peer-selection interaction requires it; collection size or heterogeneous material availability is not sufficient justification.
 
 ### 14.7 Approval
 
@@ -1609,7 +1611,7 @@ The detailed current-attention/recovery value remains owned by the primary mater
 
 ### GW-FR-217-PRIMARY-INFORMATION-ECONOMY
 
-**Required behavior:** primary task content dominates; Supporting/Operational information uses one semantic selector/resource/history owner; Technical/Diagnostic information is removed from the productive task flow into the explicit inspection owner. Progressive disclosure cannot be satisfied by accumulating generic collapsed containers.
+**Required behavior:** primary task content dominates; Supporting/Operational information uses one interaction-specific resource/timeline/action owner, with a selector only where peer selection is itself part of the task. A generic workflow-material selector is prohibited. Technical/Diagnostic information is removed from the productive task flow into the explicit inspection owner. Progressive disclosure cannot be satisfied by accumulating generic collapsed containers.
 
 **Acceptance:** required Primary information is visible without opening inspection; Technical/Diagnostic information is absent from the ordinary productive surface unless the active decision explicitly requires that exact value; no adjacent/nested generic technical/supporting/history disclosure bars exist; opening the authorized Context/technical-inspection or Evidence owner exposes only its owned information; closing/returning restores the ordinary hierarchy without losing current attention.
 
@@ -1673,7 +1675,7 @@ The detailed current-attention/recovery value remains owned by the primary mater
 
 **Required behavior:** every rendered Order Workbench service is classified under exactly one primary interaction-space class from §13; subordinate selection, explicit technical inspection, task-panel and safety/exception behavior use only the declared auxiliary classes and cannot create another persistent layout/navigation/disclosure grammar. Semantic regions are used only for their declared meaning: current-attention content cannot be substituted with a generic heading/status block merely to satisfy a component API.
 
-**Acceptance:** adding a new feature, material type, Run/document/task count, configuration service or technical detail does not create a new screen geometry or generic disclosure lane by implementation convenience. Supporting/history information retains one selector/resource owner; technical information retains one explicit inspection owner. One selected task/material produces exactly one primary interaction composition: a primary interaction composition may not be wrapped or nested inside another primary composition, and transient Proposal Review/Evidence replace the owning material composition for the duration of explicit review/inspection. Operational scan, Review, Evidence and Terminal result do not fabricate an outer current-attention region when their class contract does not own one; Review currentness/summary/body/decisions remain inside `WorkbenchReview`. If none of the §13 classes can express the required interaction, the change returns to DESIGN before implementation.
+**Acceptance:** adding a new feature, material type, Run/document/task count, configuration service or technical detail does not create a new screen geometry, generic workflow-summary/material selector or generic disclosure lane by implementation convenience. Supporting/history information retains one interaction-specific resource/timeline/action owner; technical information retains one explicit inspection owner. One selected task/material produces exactly one primary interaction composition: a primary interaction composition may not be wrapped or nested inside another primary composition, and transient Proposal Review/Evidence replace the owning material composition for the duration of explicit review/inspection. Operational scan, Review, Evidence and Terminal result do not fabricate an outer current-attention region when their class contract does not own one; Review currentness/summary/body/decisions remain inside `WorkbenchReview`. Canonical state classifications are not emitted as a generic status tuple or internal enum copy. If none of the §13 classes can express the required interaction, the change returns to DESIGN before implementation.
 
 ### GW-FR-231-CANONICAL-WORKBENCH-VISUAL-LANGUAGE
 
