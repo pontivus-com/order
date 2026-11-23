@@ -1896,6 +1896,10 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   const repositories = page.getByTestId("settings-repositories");
   await expect(settings).toBeVisible();
   await expect(repositories).toBeVisible();
+  await expect(settings.getByText("Checking installation readiness…", { exact: true }))
+    .toHaveCount(0, { timeout: 15_000 });
+  await expect(settings.getByText("Settings readiness unavailable", { exact: true }))
+    .toHaveCount(0);
   await capture({
     id: "ia26-settings-frame-wide-light",
     workItemKind: "QUEUE",
@@ -2781,6 +2785,10 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
 
   await selectWorkflowStep(page, "Approval");
   const approval = page.getByTestId("review-workspace");
+  await expect(approval.getByText("Resolving exact package…", { exact: true }))
+    .toHaveCount(0, { timeout: 15_000 });
+  await expect(page.getByRole("button", { name: "Sign off exact package", exact: true }))
+    .toBeVisible();
   await capture({
     id: "ia26-approval-wide-light",
     workItemKind: "CHANGE",
