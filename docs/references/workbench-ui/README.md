@@ -59,7 +59,7 @@ The references preserve:
 - current lifecycle step = Order blue plus semantic current indication;
 - unreached lifecycle step = neutral;
 - one compact stable WorkItem identity row;
-- at most one current-attention owner, rendered only where the owning interaction class/current condition has genuine current-attention semantics; Queue, Review, Evidence and Complete do not invent an outer attention band for heading/currentness/status/action placement;
+- at most one current-attention owner, rendered only where the owning interaction class/current condition has genuine current-attention semantics; canonical stage/status/material classifications are not rendered as a generic `Current attention:` summary band or state tuple; Queue, ordinary Document, Review, Evidence and Complete do not invent an outer attention band for heading/currentness/status/action placement;
 - flat, neutral-first, low-chrome presentation;
 - deep navy / Order-blue identity;
 - border/spacing hierarchy rather than decorative card-dashboard styling;
@@ -69,7 +69,7 @@ The references preserve:
 - exact technical values may be primary only where the active task requires that exact value (for example an Add/Move configuration input or mutation-confirmation path list);
 - one primary command per current task;
 - no persistent second pre-signoff navigation rail;
-- supporting material subordinate to current work and owned by one material/history selector rather than a second generic disclosure strip;
+- supporting/history information remains subordinate through the owning interaction-specific resource/timeline/action treatment; a selector exists only when peer selection is itself part of that interaction, and there is no generic workflow-material selector;
 - no adjacent/nested generic `Technical details`, `Supporting material/history`, `Details` or equivalent disclosure bars;
 - bounded task dialogs use a clear header/body/footer composition with Cancel + the one primary task action in the footer;
 - Markdown authoring uses one compact editor-control region directly adjacent to the source/preview canvas; lower-frequency formatting commands move to overflow before the toolbar becomes multiple stacked rows;
@@ -79,6 +79,8 @@ The references preserve:
 - Proposal Review, Readiness and Approval each use one direct `WorkbenchReview` primary composition; review currentness/summary/body/decisions remain inside Review, with no outer `WorkflowStepFrame`/`WorkbenchSurface`/`WorkbenchAttention`. Approval also does not introduce an Approval-only authorization side pane.
 - Implementation uses the canonical fixed `--order-master-width` / `WorkbenchMasterDetail` geometry, and its current Start/Retry/Resume action remains owned by `WorkbenchAttention` rather than task-detail chrome.
 - Complete uses the flat sequential Terminal-result grammar (`WorkbenchSurface` with attention absent + product-facing outcome/status + result content/resources/action); it does not introduce a terminal card-dashboard grid, repeat the terminal outcome through a current-attention band, or expose architecture/governance container terminology as operator copy.
+
+The corrected reference set also follows a strict composition rule: the workflow rail provides lifecycle orientation; ordinary step/document screens begin with their primary interaction rather than a generic step-summary/material-selection band. Dialogue remains continuous across reply → processing → subsequent question/open continuation/proposal/block/completion. Readiness maps the typed R3 result into one human Review hierarchy rather than displaying raw outcome enums or embedding the whole R3 document as a findings block.
 
 ## Complete audited surface coverage
 
@@ -199,6 +201,8 @@ The application-wide reference baseline is complete only while all of the follow
 | light/dark semantic parity is represented | PASS |
 | references use repository-backed values or semantic placeholders without leaking raw technical field/event identity into ordinary operator presentation | PASS |
 | references contain no generic local Technical-details/Supporting-material-history disclosure grammar | PASS |
+| step references contain no generic workflow-summary/current-attention band or generic workflow-material selector | PASS |
+| rendered-acceptance comparisons declare an explicit governed capture scope and compare only scope-equivalent runtime/reference compositions | PASS |
 | Proposal Review / Readiness / Approval references use one direct Review composition with no outer current-attention band | PASS |
 | Create/remediation references show header/body/footer modal anatomy | PASS |
 | document-authoring reference preserves compact editor controls directly adjacent to the canvas | PASS |
@@ -210,4 +214,4 @@ Phase 2B is closed in `work_2778105b-d919-4fcd-91e7-dd9b23812aac/solution-design
 
 The technical design binds these references to the existing Workbench primitives, pinned Astryx Chat leaves, canonical Run/RunEvent/material projections and exact command boundaries without introducing a second state model, DTO/view-model family, browser workflow store, event bus, parallel document owner or feature-local theme.
 
-The SVGs continue to constrain **presentation, hierarchy and interaction composition** only after applying canonical P3/P4 information/inspection ownership. A field/path/code shown in an explicit developer annotation is not runtime operator copy; the depicted operator surface itself must obey the same default-hidden/explicit-inspection contract as implementation. The pack does not use a generic local `Technical details` or `Supporting material/history` bar as a presentation primitive.
+The SVGs continue to constrain **presentation, hierarchy and interaction composition** only after applying canonical P3/P4 information/inspection ownership. Runtime capture generation is evidence only: every IA26 comparison must identify the same governed composition scope on both sides, and human `schema_information`, `ux_interaction` and `visual_ui` verdicts remain separate acceptance evidence. A field/path/code shown in an explicit developer annotation is not runtime operator copy; the depicted operator surface itself must obey the same default-hidden/explicit-inspection contract as implementation. The pack does not use a generic local `Technical details` or `Supporting material/history` bar as a presentation primitive.
