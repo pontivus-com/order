@@ -1852,9 +1852,18 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   test.setTimeout(300_000);
 
   const runtimeErrors: string[] = [];
+  let expectedConflictConsoleErrors = 0;
   page.on("pageerror", (error) => runtimeErrors.push("pageerror: " + error.message));
   page.on("console", (message) => {
-    if (message.type() === "error") runtimeErrors.push("console: " + message.text());
+    if (message.type() !== "error") return;
+    if (
+      expectedConflictConsoleErrors > 0 &&
+      message.text().includes("status of 409 (Conflict)")
+    ) {
+      expectedConflictConsoleErrors -= 1;
+      return;
+    }
+    runtimeErrors.push("console: " + message.text());
   });
 
   let loginStatus: "PENDING" | "COMPLETED" | "FAILED" | "EXPIRED" | "CANCELLED" = "PENDING";
@@ -2422,8 +2431,10 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
       "# Source editing IA26 external change",
     ),
   );
+  expectedConflictConsoleErrors = 1;
   await page.getByRole("button", { name: "Save", exact: true }).click();
   await expect(page.getByText(/canonical file changed while this buffer was open/i)).toBeVisible();
+  await expect.poll(() => expectedConflictConsoleErrors).toBe(0);
   await capture({
     id: "ia26-source-document-conflict-wide-light",
     workItemKind: "CHANGE",
@@ -3414,6 +3425,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   }
 
   expect(new Set(allEntries.map((entry) => entry.id)).size).toBe(allEntries.length);
+  expect(expectedConflictConsoleErrors).toBe(0);
   expect(runtimeErrors).toEqual([]);
 });
 
