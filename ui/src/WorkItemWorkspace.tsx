@@ -1146,6 +1146,27 @@ export const WorkItemWorkspace = ({
       />
     );
 
+  const historicalAttentionReason =
+    currentAttention === "REQUIRED_INPUT"
+      ? {
+          title: "Waiting for you",
+          description:
+            workflow.label + " has a current required question. Return to current work to answer it.",
+        }
+      : currentAttention === "PROPOSAL_DECISION"
+        ? {
+            title: "Proposal review required",
+            description:
+              workflow.label + " has a current proposal decision. Return to current work to review it.",
+          }
+        : currentAttention === "ACTIONABLE"
+          ? {
+              title: workflow.label + " is ready for your action",
+              description:
+                "Return to current work to continue the active workflow.",
+            }
+          : null;
+
   const stepAttention =
     summaryBlocker !== null ? (
       <WorkbenchAttention
@@ -1153,13 +1174,15 @@ export const WorkItemWorkspace = ({
         description={summaryBlocker.description}
         action={currentMaterialAction}
       />
-    ) : inspectedHistorical && currentMaterialAction !== undefined ? (
+    ) : inspectedHistorical &&
+        historicalAttentionReason !== null &&
+        currentMaterialAction !== undefined ? (
       <WorkbenchAttention
-        title={workflow.label + " needs your attention"}
-        description={"You are inspecting " + selectedWorkflow.label + ". Return to current work to continue."}
+        title={historicalAttentionReason.title}
+        description={historicalAttentionReason.description}
         action={currentMaterialAction}
       />
-    ) : currentOwnerAction !== null ? (
+    ) : !inspectedHistorical && currentOwnerAction !== null ? (
       <WorkbenchAttention
         title={workflow.label + " is ready for your action"}
         action={currentOwnerAction}
