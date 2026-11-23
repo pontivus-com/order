@@ -12,7 +12,7 @@ This DESIGN is the corrected technical-design candidate for the reopened C19/C20
 - P4 Technical Architecture: `868a73535b080bfeb5519865ffe21bad754315a3` — §35.1 now explicitly separates reachable authority selection from stage-material applicability for stable/versioned refs.
 - P3 Workbench UX: `d47173839201c68937bdb4c840d0273dec5bcffc` — §11.4A/§12/§13/§14.9 own semantic classes, semantic-region ownership, exactly one primary interaction composition, terminal-result primacy and product-copy boundaries.
 - P3 Markdown Workbench: `1cc5a28eff8d180f88106d89990f7b89aa27a132` — §17.4 owns the compact editor-control region, overflow-before-wrap behavior and control→canvas adjacency.
-- P4 Workbench: `4c418550eeacaeae08c6bfedf4dd8a0c4f6e0e1d` — §8.12-§8.16 own the optional semantic `WorkbenchSurface.attention` slot, one-primary-composition routing, singular Context/Settings technical inspection, same-task-only Disclosure, Review without an automatic technical slot, Evidence replacement routing, Terminal-result attention absence and TaskPanel header/body/footer anatomy.
+- P4 Workbench: `389bf5edb96dcad81e9b18ffb4f2077395b0005e` — §8.12-§8.16 own the optional semantic `WorkbenchSurface.attention` slot, one-primary-composition routing, singular Context/Settings technical inspection, same-task-only Disclosure, Review without an automatic technical slot, Evidence replacement routing, Terminal-result attention absence and TaskPanel header/body/footer anatomy.
 - P4 Workbench Theme: `43b81a61291841d827a47f392e0149ace5c8351f`.
 - P4 OpenCode Integration: `4416547cba749fc9a3fec62dd4be76ad94952527`.
 - P4 Execution Control Plane: `5348404854f317a017fa3efdc2436b06bcfeb9f2`.
