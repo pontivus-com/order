@@ -284,10 +284,12 @@ export const MarkdownEditor = ({
             {toolbarAccessory}
             {!readOnly ? (
               <>
-                <WorkbenchStatus
-                  tone={dirty ? "warning" : "success"}
-                  label={dirty ? "Unsaved" : "Current"}
-                />
+                {toolbarAccessory === undefined ? (
+                  <WorkbenchStatus
+                    tone={dirty ? "warning" : "success"}
+                    label={dirty ? "Unsaved" : "Current"}
+                  />
+                ) : null}
                 <WorkbenchAction
                   type="submit"
                   label={saving ? "Saving…" : "Save"}
