@@ -2,13 +2,13 @@
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C05 + C06.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `ff85e33876227ee76f37877252537ab958df4802`; current DESIGN `7a434216611b87689af139c36e8e1a37f4b777ea`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `ff85e33876227ee76f37877252537ab958df4802`; current DESIGN `9103f30b09ea12e5cfc0e66db07f5945a3f8d9f2`.
 
 ## Stable requirement execution dispositions
 
 | Requirement | R1 evidence | DESIGN disposition | Solution(s) | Execution owner | Consumer dependency | Required proof |
 |---|---|---|---|---|---|---|
-| `GW-FR-005-LOCAL-WORKBENCH` | `C05-O01`, `C05-O04`, `C05-O12`, `C19-O06`, `C19-O08` | `MIXED_TECHNICAL_AND_VERIFICATION_DELTA` | `SD21`, `SD23`, `SD29`, `SD30` | `IA27`, `IA29`, `IA26` | — | Re-prove the local Workbench from the fresh Approval baseline by independently revalidating/remediating the already-realized IA27 foundation and IA29 screen against current authority, then completing remaining reconstruction and rendered acceptance. |
+| `GW-FR-005-LOCAL-WORKBENCH` | `C05-O01`, `C05-O04`, `C05-O12`, `C19-O06`, `C19-O08` | `MIXED_TECHNICAL_AND_VERIFICATION_DELTA` | `SD21`, `SD23`, `SD29`, `SD30` | `IA27`, `IA29`, `IA26` | — | Re-prove the local Workbench only after IA27 deletes the invalid generic workflow frame/material-selector responsibilities and destructively closes the shared component APIs; IA29 then proves direct Document composition and IA26 performs scope-valid rendered acceptance. |
 | `GW-FR-015-SOURCE-CONTEXT-PROJECTION` | `C06-O02`, `C22-O06` | `DEPENDENCY_DELTA` | `SD02` | — | `IA01`, `IA02` | Recheck `C06-O02`, `C22-O06` via tests/daemon.test.ts; tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-019-SOURCE-CLARIFICATION-DURABILITY` | `C06-O13` | `TECHNICAL_DELTA` | `SD08` | `IA04` | `IA03` | Recheck `C06-O13` via tests/daemon.test.ts; tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-021-MARKDOWN-WORKSPACE` | `C04-O15`, `C05-O02`, `C05-O10` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C04-O15`, `C05-O02`, `C05-O10` via tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
@@ -16,14 +16,14 @@
 | `GW-FR-200-CANONICAL-WORKFLOW-OBSERVATION` | `C05-O05`, `C05-O06`, `C05-O11` | `MIXED_TECHNICAL_DELTA` | `SD07` | `IA14` | — | Recheck `C05-O05`, `C05-O06`, `C05-O11` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-201-OBSERVATIONAL-READS` | `C05-O03`, `C05-O09` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C05-O03`, `C05-O09` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-204-EXACT-HUMAN-INPUT-OWNERSHIP` | `C06-O09` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C06-O09` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
-| `GW-FR-214-STABLE-WORKBENCH-GEOMETRY` | `C05-O08` | `MIXED_TECHNICAL_AND_VERIFICATION_DELTA` | `SD21`, `SD23`, `SD24`, `SD26`, `SD29`, `SD30` | `IA27`, `IA29`, `IA30`, `IA32`, `IA26` | — | IA27 must revalidate the already-realized shared foundation-owned geometry against P3/P4/new-design authority and remediate only residual defects; resumed IA29/IA30 and fresh IA32 screens then prove the same geometry semantically and visually. |
+| `GW-FR-214-STABLE-WORKBENCH-GEOMETRY` | `C05-O08` | `MIXED_TECHNICAL_AND_VERIFICATION_DELTA` | `SD21`, `SD23`, `SD24`, `SD26`, `SD29`, `SD30` | `IA27`, `IA29`, `IA30`, `IA32`, `IA26` | — | IA27 performs destructive foundation correction where shared topology/API is wrong, including required absence of generic WorkflowStepFrame/material-selector composition; downstream screens then prove only their authorized interaction-class geometry. |
 | `GW-FR-215-STABLE-WORKFLOW-RAIL` | `C05-O01`, `C05-O08` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C05-O01`, `C05-O08` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-216-NO-CONDITIONAL-PRESIGNOFF-RAIL` | `C05-O08` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C05-O08` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
-| `GW-FR-217-PRIMARY-INFORMATION-ECONOMY` | `C05-O10`, `C05-O12`, `C19-O03` | `TECHNICAL_DELTA` | `SD21`, `SD22`, `SD23`, `SD24`, `SD25`, `SD26`, `SD27`, `SD28` | `IA27`-`IA34` | — | Realize the canonical visibility hierarchy from the exhaustive signed DESIGN surface-information contract in every interaction class: revalidate/remediate IA27-IA31 baseline bytes and freshly reconstruct IA32-IA34; local SD11/12/14 semantics remain inputs to the owning phase. |
-| `GW-FR-218-SPACE-CLASS-CONSISTENCY` | `C05-O12`, `C19-O04` | `TECHNICAL_DELTA` | `SD21`-`SD29` | `IA27`-`IA34` | — | Revalidate the already-realized shared primitive spatial grammar and IA28-IA31 screen families against current authority, then destructively replace IA32-IA34; rendered evidence is required at every ownership boundary. |
+| `GW-FR-217-PRIMARY-INFORMATION-ECONOMY` | `C05-O10`, `C05-O12`, `C19-O03` | `TECHNICAL_DELTA` | `SD21`, `SD22`, `SD23`, `SD24`, `SD25`, `SD26`, `SD27`, `SD28` | `IA27`-`IA34` | — | Canonical state selects the interaction composition; it is not rendered as generic stage/status/material chrome. IA27 removes the generic summary/selector APIs; IA29-IA34 compose only task-relevant Primary/Supporting information and route Technical/Diagnostic identity to its singular owner. |
+| `GW-FR-218-SPACE-CLASS-CONSISTENCY` | `C05-O12`, `C19-O04` | `TECHNICAL_DELTA` | `SD21`-`SD29` | `IA27`-`IA34` | — | Rebuild the shared spatial grammar at the closed primitive level with no compatibility adapters; consumers that no longer fit must be rewritten to their canonical interaction class before any screen acceptance. |
 | `GW-FR-219-EXPLICIT-CONTEXT` | `C05-O04` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C05-O04` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-220-PRESIGNOFF-CONTINUITY` | `C05-O05`, `C05-O06`, `C05-O12` | `MIXED_TECHNICAL_DELTA` | `SD07` | `IA14` | — | Recheck `C05-O05`, `C05-O06`, `C05-O12` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
-| `GW-FR-230-CLOSED-WORKBENCH-INTERACTION-GRAMMAR` | `C05-O08`, `C05-O12`, `C19-O01` | `TECHNICAL_DELTA` | `SD21`-`SD29` | `IA27`-`IA34` | — | Every renderer must resolve to its P4 interaction class; semantic slots retain their meaning, one selected material produces one primary composition, Evidence replaces rather than nests, and old recurring feature-owned UI grammar is deleted. |
+| `GW-FR-230-CLOSED-WORKBENCH-INTERACTION-GRAMMAR` | `C05-O08`, `C05-O12`, `C19-O01` | `TECHNICAL_DELTA` | `SD21`-`SD29` | `IA27`-`IA34` | — | Delete WorkflowStepFrame/WorkflowStepSummary/WorkflowStepIndex/PrimaryMaterialFrame workflow composition and WorkflowMaterialSelector; direct Document/Dialogue/Review/Evidence/State composition is mandatory, and architecture fitness rejects aliases/wrappers/unauthorized primitive consumers. |
 | `GW-FR-233-CANONICAL-WORKFLOW-RAIL-PROJECTION` | `C05-O01`, `C05-O02` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C05-O01`, `C05-O02` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-236-WORK-TYPE-AWARE-TASK-INFORMATION` | `C06-O03`, `C06-O04`, `C06-O05`, `C06-O06`, `C20-O07` | `VERIFICATION_DELTA` | `SD17` | `IA21` | — | Recheck `C06-O03`, `C06-O04`, `C06-O05`, `C06-O06`, `C20-O07` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 
@@ -33,7 +33,7 @@ Stable rows in phase: **18**.
 
 | Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
 |---|---|---|---|---|---|
-| `PL-C05-01` | C05-F01 | `SD07` | `IA14` | — | Exact current attention owner/reason/action remains visible/reachable while other material is inspected; attention is rendered only where the owning interaction class/current condition has genuine current-attention semantics, and Evidence routing preserves exactly one primary composition. |
+| `PL-C05-01` | C05-F01 | `SD07`, `SD21`, `SD24` | `IA14`, `IA27`, `IA30` | — | Exact current owner/reason/action remains visible when required, but no generic state tuple is rendered as a current-attention strip. Historical inspection uses at most one human return-to-current-work affordance; productive screens use direct interaction classes. |
 | `PL-C06-01` | C06-F01 | `SD08` | `IA04` | `IA03` | Authority-changing input is not sufficient durable authority until a later adopted canonical proposal exists. |
 
 Package atoms in phase: **2**.
@@ -49,11 +49,11 @@ Package atoms in phase: **2**.
 - **IA17** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA18** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA21** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
-- **IA27** — consume the resumed-baseline Workbench foundation revalidation/remediation/acceptance definition.
-- **IA29** — consume the WorkItem shell/Work request resumed-baseline revalidation/remediation definition.
-- **IA30** — consume the productive pre-signoff resumed-baseline revalidation/remediation definition.
+- **IA27** — consume the reopened destructive foundation correction: required absence of generic workflow frame/material-selector APIs, closed primitive APIs, consumer allowlist and zero compatibility adapters.
+- **IA29** — consume the direct Work request/document reconstruction with no generic workflow summary/selector or duplicate document heading.
+- **IA30** — consume the direct productive-stage interaction reconstruction and continuous Dialogue lifecycle.
 - **IA32** — consume the single Implementation destructive screen replacement definition where C05 geometry is shared.
-- **IA26** — consume the rendered acceptance owner; this phase does not produce screenshots independently.
+- **IA26** — consume scope-valid rendered evidence plus explicit three-dimension acceptance; capture generation alone is not PASS.
 
 ## Completion proof
 
