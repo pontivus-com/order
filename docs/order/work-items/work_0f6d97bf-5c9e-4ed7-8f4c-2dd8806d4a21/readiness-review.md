@@ -4,58 +4,81 @@
 
 ## Readiness verdict
 
-`RETURN_TO_DESIGN`.
+`READY_FOR_SIGNOFF`.
 
-The prior `READY_FOR_SIGNOFF` verdict is superseded. Post-G6 inspection of rendered artifact `14778709723` proved C19-F06/C19-F07/C19-F08 and C20-F08/C20-F09: the accepted Workbench foundation had an internally contradictory Surface/attention contract, Evidence could nest a primary surface inside another primary surface, Terminal result duplicated outcome semantics and exposed specification/container terminology as product copy, and the rendered/certification process could positively protect those defects.
+This is a fresh adversarial R3 review after the C19-F06-C19-F08 / C20-F08-C20-F10 Workbench composition remediation and the bounded IA27/IA28 RZ5 evidence tranche. The earlier `RETURN_TO_DESIGN` verdict is superseded by this review; its findings remain historical provenance for the corrections now proven below.
 
-This return is authority-driven. It does not use the current UI as a replacement design; current implementation, screenshots and tests remain evidence that the prior P3/P4/DESIGN/PLAN realization was incomplete.
+The package is ready for normal human Approval of the exact signed 0.6.0 package. This verdict does **not** execute IA29-IA34, merge the PR, create a release, or treat current later-surface implementation as a desired baseline.
 
-## Exact return-to-design review basis
+## Exact authority/package basis
 
-- R1 `research.md`: `d64131df66e9e95aaeaf168f1e6f1cd52cae349d`;
-- R2 `requirements.md`: `8309a079f0f2004ae3c06956143a1493922ea3da`;
-- DESIGN `solution-design.md`: `223d684b44069795e77161ff19ddfb3a9e1b954f`;
+- R1 `research.md`: `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`;
+- R2 `requirements.md`: `ff85e33876227ee76f37877252537ab958df4802`;
+- DESIGN `solution-design.md`: `7a434216611b87689af139c36e8e1a37f4b777ea`;
+- PLAN `implementation-plan.md`: `3cb3c6c2fe1e7762eee1a75640dd4851ffdf7b6c`;
 - canonical P3 Workbench: `f38bd9ebf17e0726b51453a7e05dc52175b080fa`;
 - canonical P3 Markdown Workbench: `1cc5a28eff8d180f88106d89990f7b89aa27a132`;
-- canonical P4 Workbench: `05bae4d1895d832ed2461d4bd18e9a709e0bd338`;
-- PLAN at the time of this verdict: `285042e2aadf1a7d28cc0d0865208c20a0a91757` — this was stale for C19-F06-C20-F09. The return route subsequently regenerated the canonical PLAN again as the root-cause scope expanded to Review-class composition; the exact current PLAN identity is owned by the campaign register and is not retroactive evidence for this R3 verdict;
-- prior rendered evidence: artifact `14778709723`, implementation candidate `faee3429d914040ca6ff6c12a82ac85ca214299d`, rendered candidate `12de328d50c65dde6c430b283faaa362c4f9fb20` — retained only as causal evidence of the newly proven defects;
-- campaign current state is owned only by `0.6.0-design-campaign-plan.md` §7/§8.4/§13A/§18.
+- canonical P4 Workbench: `bbc934cfd1cf987582f331e1b689b54002de174e`;
+- Workbench theme: `43b81a61291841d827a47f392e0149ace5c8351f`;
+- signed PLAN hard scope/changeSurface: exactly 68 unique paths in one T1.
 
-## Adversarial findings
+Current implementation/UI/tests are used only as realization evidence. They do not replace any authority above.
 
-| Finding | Result | R3 disposition |
+## Exact RZ5 realization evidence
+
+- repository head used for the bounded evidence run: `760df7b515fa2e3e00b2f4ffd1574636f43ed8fd`;
+- exact PR merge candidate rendered by PR Verification: `b5d2997b15228bdbdfcadd126ff777d76eedcbc8`;
+- PR Verification run: `45103316407` — **SUCCESS**;
+- rendered acceptance artifact: `14787230104`, `rendered-acceptance-phase-1-b5d2997b15228bdbdfcadd126ff777d76eedcbc8`;
+- artifact digest: `sha256:f49c09ba5b50638b6d903da4998d3ca939ad7b7dbe10cbbd0704fecea62813b0`;
+- manifest candidate SHA equals the PR merge candidate exactly.
+
+The artifact contains 15 captures and only the authorized RZ5 acceptance rows: `SURF-WI-001`, `SURF-WI-CONTEXT-001`, `SURF-APP-001`, `SURF-QUEUE-001` and `SURF-CREATE-001`. WorkItem proof uses a real Work-request state and isolates real production shell/current-attention/Context regions; Complete, Proposal Review, Readiness, Approval and other IA29-IA34 descendants are not used as positive `SURF-WI-001` evidence.
+
+## Adversarial finding disposition
+
+| Finding | Current disposition | R3 conclusion |
 |---|---|---|
-| C19-F06 — semantic-region / primitive-contract contradiction | BLOCKING | P4 now makes `WorkbenchSurface.attention` optional and semantic. PLAN/IA27 must reclassify `WorkbenchSurface` and all consumers against the corrected interaction grammar. |
-| C19-F07 — wrapped/nested primary interaction composition | BLOCKING | Proposal Review/Evidence must replace the selected owning material composition; `WorkflowStepFrame` may not wrap Proposal Review/Readiness/Approval/Evidence/Terminal-result primary compositions inside another Surface/Attention frame. |
-| C19-F08 — specification/container terminology leakage | BLOCKING | Complete must use canonical product-facing outcome language and substantive result/evidence directly; architecture/governance/container labels cannot become ordinary copy without product-language authority. |
-| C20-F08 — composite rendered-evidence scope defect | BLOCKING | A parent `SURF-*` PASS may not ignore a visibly rendered nonconforming descendant that materially determines the reviewed composition. |
-| C20-F09 — composition-certification defect | BLOCKING | Permanent verification must prove allowed renderer→interaction-class composition, semantic-slot integrity, direct Review composition and no wrapped/nested primary compositions; presence-only assertions and `workflow-step-summary` assertions around Review are insufficient. |
-| prior IA27 foundation acceptance | INVALIDATED | `WorkbenchSurface = CONFORMING_NO_EDIT` and the retained interaction-class PASS are disproven. The prior foundation cannot be frozen for IA29+. |
-| prior IA28 Queue / SURF-WI-001 rendered acceptance | INVALIDATED | Queue used the mandatory attention slot as generic placement, and the SURF-WI-001 Complete fixture positively required the noncanonical attention band. |
-| prior IA28-RZ2 authorization | TERMINATED / HISTORICAL | It bound a superseded exact package and produced its evidence. It authorizes no current production mutation. |
+| C19-F06 — semantic-region / primitive-contract contradiction | CLOSED | P3/P4 make Surface attention optional and semantic; current IA27 Surface implementation omits the wrapper/geometry when attention is absent; Queue uses material directly. |
+| C19-F07 — wrapped/nested primary interaction composition | CLOSED AT FOUNDATION / OWNED DOWNSTREAM | IA27 routing now bypasses generic WorkflowStepFrame for explicit Evidence. Proposal Review, Readiness and Approval direct-Review reconstruction is explicitly owned by IA30/IA31; Complete/Evidence screen reconstruction by IA33. Those later consumers are not accepted by RZ5 and cannot invalidate the now-correct shared foundation merely because their signed remediation has not executed yet. |
+| C19-F08 — specification/container terminology leakage | CLOSED IN AUTHORITY / OWNED DOWNSTREAM | Product-copy law is explicit; IA33 owns Complete reconstruction and must reject generic container taxonomy as ordinary result copy. |
+| C20-F08 — composite rendered-evidence scope defect | CLOSED | RZ5 captures use explicit real-production capture scopes and do not obtain parent-SURF PASS from visibly unaccepted descendants. |
+| C20-F09 — composition-certification defect | CLOSED IN PLAN / PHASE-LOCAL PROOF ACTIVE | IA20/IA26 own the final application-wide renderer matrix; RZ5 proves the shared/IA28 subset without falsely requiring IA30/IA31/IA33 repair before sign-off. |
+| C20-F10 — phase-local proof ownership contradiction | CLOSED | The PLAN now distinguishes IA27/IA28 shared-foundation proof from later consumer proof; final global negative composition certification occurs after the owning phases execute. |
 
-## Required return route
+No unresolved factual, functional, technical, PLAN or ALIGN finding remains. G2-G5A are current PASS on the exact package above.
 
-The package returns to the earliest affected owners:
+## Bounded rendered acceptance
 
-1. R1 retains the factual findings C19-F06-C19-F08/C20-F08-C20-F09.
-2. P3/R2 own the semantic-region, one-primary-composition, Terminal-result and acceptance consequences.
-3. P4/DESIGN own the corrected optional-semantic Surface contract, renderer composition and exact SURF realization.
-4. PLAN must regenerate IA27/IA28/IA33 and permanent certification ownership from that corrected package.
-5. All exact-hash pair audits and ALIGN audits must be freshly revalidated.
-6. Only after G5/G5A regain PASS may a new bounded IA27/IA28 evidence authorization be issued against that exact package.
-7. The corrected foundation/Queue evidence must be produced and reviewed before a fresh R3 can return `READY_FOR_SIGNOFF`.
-8. IA29 and every later ordinary implementation phase remain forbidden until that fresh readiness plus separate sign-off.
+| Surface | schema_information | ux_interaction | visual_ui | R3 assessment |
+|---|---|---|---|---|
+| `SURF-WI-001` | PASS | PASS | PASS | Real Work-request shell/rail and current-attention regions are reviewed independently at wide/narrow widths; no Complete/Review descendant is used as positive evidence. |
+| `SURF-WI-CONTEXT-001` | PASS | PASS | PASS | One explicit WorkItem technical Context exposes exact identity only after entry and remains visually/substantively separate from productive work. |
+| `SURF-APP-001` | PASS | PASS | PASS | Application chrome, active account/readiness and theme states preserve one application shell and human-readable recovery. |
+| `SURF-QUEUE-001` | PASS | PASS | PASS | Wide/narrow/populated/archive/no-match/diagnostic states use the Operational-scan composition with attention absent; no synthetic attention band is present. |
+| `SURF-CREATE-001` | PASS | PASS | PASS | Ordinary and linked-remediation Create are bounded TaskPanel/Form compositions with explicit body/footer ownership and no duplicate primary action. |
 
-## Prior evidence disposition
+**Foundation-realization verdict:** `PASS`.
 
-The previous rendered artifact and green verification runs remain useful evidence of the failure mechanism. They are not desired-state authority and they do not retain acceptance by inertia.
+## Remaining signed implementation obligations
 
-In particular, the prior screenshot labels `SURF-WI-001`, `SURF-QUEUE-001` and the former foundation-realization `PASS` do not override the newly proven canonical contradiction. The old `READY_FOR_SIGNOFF` result is historical provenance only.
+The following are **not** readiness blockers because they are explicit signed T1 remediation work to execute only after normal human Approval; they are not accepted as desired current UI:
+
+- IA29 — Work request/document/Markdown composition;
+- IA30 — productive pre-signoff stages and direct Proposal Review;
+- IA31 — direct Readiness/Approval Review composition and review technical-detail cleanup;
+- IA32 — Implementation destructive replacement;
+- IA33 — attention-free Complete/Evidence destructive replacement and product-copy cleanup;
+- IA34 — Settings/OpenCode destructive replacement;
+- IA20-IA23/IA26 — final global renderer, semantic, theme, responsive, scenario and rendered acceptance;
+- IA24 — exact candidate closeout.
+
+The accepted IA27 foundation/IA28 Queue/Create/application tranche is frozen for downstream consumption. A later phase that proves a shared-foundation defect returns to IA27/DESIGN; later consumer nonconformance is repaired by its signed owner and must not be patched into the foundation.
 
 ## Final R3 disposition
 
-**Verdict at this review:** `RETURN_TO_DESIGN`.
+**Verdict:** `READY_FOR_SIGNOFF`.
 
-This record is retained as the adversarial review that invalidated the prior `READY_FOR_SIGNOFF` package. Its required authority/DESIGN/PLAN return work has subsequently been completed through the campaign's current G5A closure. This file does not project a new R3/G6 state and does not authorize implementation. Current campaign state is owned only by `0.6.0-design-campaign-plan.md` §18; a fresh R3 review can occur only after a newly authorized exact-package IA27/IA28 evidence tranche.
+The exact current authority package is coherent, the signed implementation plan is executable, the corrected foundation has been consumer-proven by the bounded RZ5 evidence, and no unresolved upstream/design/proof contradiction remains.
+
+**Next permitted action:** normal human Approval/sign-off of the exact package. IA29+ remains forbidden until that Approval exists. After sign-off, the single signed T1 resumes from the already-accepted IA27/IA28 foundation boundary and executes the remaining IA29-IA34 plus final certification/closeout obligations.
