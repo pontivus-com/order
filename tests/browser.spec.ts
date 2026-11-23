@@ -3286,12 +3286,8 @@ test("completed pre-signoff history never suppresses the canonical next-stage ac
 
     if (entry.currentStep === "Requirements") {
       await selectWorkflowStep(page, "Research");
-      await expect(page.getByTestId("workflow-step-index")).toHaveCount(0);
-      await openDisclosureResource(
-        page,
-        "Supporting material and history",
-        "Open attempt 1",
-      );
+      await expect(page.getByRole("button", { name: "Supporting material and history", exact: true })).toHaveCount(0);
+      await selectCurrentWorkflowMaterial(page, "Attempt 1");
       await expect(page.getByTestId("stage-run-material")).toBeVisible();
       await expect(
         page.getByText("Workflow step completed", { exact: true }),
@@ -3432,7 +3428,7 @@ test("canonical Run feedback remains visible in the owning workflow context with
   ).toBeVisible();
   await expect(page.getByText("Repository changed", { exact: true })).toBeVisible();
 
-  await openDisclosureResource(page, "Supporting material and history", "Open attempt 1");
+  await selectCurrentWorkflowMaterial(page, "Attempt 1");
   await expect(page.getByText("Cancelled", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Attempt cancelled", { exact: true })).toBeVisible();
   await backToQueue(page);
@@ -4398,9 +4394,8 @@ test("proposal decisions are primary, mutation-safe, and Approval keeps sign-off
   await openWorkItem(page, "Awaiting sign-off");
   const approvalReview = page.getByTestId("review-workspace");
   await expect(approvalReview).toBeVisible();
-  await expect(page.getByTestId("workflow-step-summary")).toContainText(
-    "Package current · ready to sign",
-  );
+  await expect(page.getByTestId("workflow-step-summary")).toHaveCount(0);
+  await expect(approvalReview).toContainText("Awaiting authorization");
   await expect(approvalReview.getByTestId("approval-readiness-summary"))
     .toContainText("Ready for sign-off");
   await expect(approvalReview.getByTestId("signoff-package-hash")).toHaveCount(0);
