@@ -1,5 +1,4 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { ReactNode } from "react";
 import { CodeBlock } from "@astryxdesign/core/CodeBlock";
 import type { Run, WorkItem } from "../../src/core/contracts.ts";
 import type { StageRunInteraction } from "../../src/core/lifecycle.ts";
@@ -16,11 +15,11 @@ import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
 
 export const ProposalReview = ({
   workItem, selection, currentRunId, currentInteraction,
-  mutationsDisabled = false, selector, onBack, onMutationError,
+  mutationsDisabled = false, onBack, onMutationError,
 }: Readonly<{
   workItem: WorkItem; selection: ProposalSelection;
   currentRunId: Run["id"] | null; currentInteraction: StageRunInteraction | null;
-  mutationsDisabled?: boolean; selector?: ReactNode; onBack: () => void;
+  mutationsDisabled?: boolean; onBack: () => void;
   onMutationError?: (error: unknown) => void;
 }>) => {
   const queryClient = useQueryClient();
@@ -67,7 +66,6 @@ export const ProposalReview = ({
     <WorkbenchReview
       currentness={currentness}
       summary={<div><h2>Artifact proposal review</h2><p>Review the proposed governed-document change before disposition.</p></div>}
-      selector={selector}
       body={<div className="order-proposal-review-body">
         <dl className="order-proposal-facts">
           <div><dt>Target document</dt><dd>{lifecycleArtifactLabel(proposal.role)} document</dd></div>
