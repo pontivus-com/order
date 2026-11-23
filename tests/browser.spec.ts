@@ -58,13 +58,36 @@ const writeRenderedAcceptanceEvidence = (
     );
   }
   mkdirSync(renderedAcceptanceDir, { recursive: true });
+  const manifestPath = join(renderedAcceptanceDir, "manifest.json");
+  let priorEntries: readonly RenderedAcceptanceEntry[] = [];
+  try {
+    const prior = JSON.parse(readFileSync(manifestPath, "utf8")) as {
+      candidateSha?: unknown;
+      entries?: unknown;
+    };
+    if (prior.candidateSha !== renderedAcceptanceCandidateSha) {
+      throw new TypeError("rendered acceptance candidate changed within one evidence run");
+    }
+    if (Array.isArray(prior.entries)) {
+      priorEntries = prior.entries as readonly RenderedAcceptanceEntry[];
+    }
+  } catch (error) {
+    if (!(error instanceof Error) || !error.message.includes("ENOENT")) throw error;
+  }
+  const merged = [...priorEntries, ...entries];
+  const duplicateIds = merged
+    .map((entry) => entry.id)
+    .filter((id, index, all) => all.indexOf(id) !== index);
+  if (duplicateIds.length > 0) {
+    throw new TypeError("duplicate rendered acceptance capture id: " + duplicateIds.join(", "));
+  }
   writeFileSync(
-    join(renderedAcceptanceDir, "manifest.json"),
+    manifestPath,
     JSON.stringify(
       {
         schemaVersion: 1,
         candidateSha: renderedAcceptanceCandidateSha,
-        entries,
+        entries: merged,
       },
       null,
       2,
@@ -73,13 +96,13 @@ const writeRenderedAcceptanceEvidence = (
   writeFileSync(
     join(renderedAcceptanceDir, "index.md"),
     [
-      "# Order 0.6.0 rendered acceptance — phase 1",
+      "# Order 0.6.0 rendered acceptance — IA26",
       "",
       "Exact candidate: \`" + renderedAcceptanceCandidateSha + "\`",
       "",
       "| Capture | Surface/state | Scope | Reference | Authority |",
       "|---|---|---|---|---|",
-      ...entries.map((entry) =>
+      ...merged.map((entry) =>
         "| \`" + entry.screenshot + "\` | " + entry.surface + " / " + entry.state +
         " | " + (entry.captureScope ?? "viewport") +
         " | " + entry.references.map((value) => "\`" + value + "\`").join(", ") +
