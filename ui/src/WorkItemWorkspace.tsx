@@ -1303,6 +1303,37 @@ export const WorkItemWorkspace = ({
       />
     ) : null;
 
+  const currentMaterialAction =
+    titleEditing ? undefined : inspectedHistorical ? (
+      <WorkbenchAction
+        label={"Return to " + workflow.label}
+        tone="primary"
+        onClick={() => inspectWorkflowStep(workItem.stage)}
+      />
+    ) : currentOwnerAction ?? (
+      workItem.stage === "COMPLETE" &&
+      (
+        workItem.outcome === "INVESTIGATION_COMPLETE" ||
+        workItem.outcome === "AUDIT_COMPLETE"
+      ) ? (
+        <WorkbenchAction
+          label="Create linked remediation"
+          tone="primary"
+          disabled={mutationsDisabled}
+          onClick={() => onCreateRemediation(workItem)}
+        />
+      ) : undefined
+    );
+
+  const currentReviewNotice =
+    summaryBlocker === null ? undefined : (
+      <WorkbenchNotice
+        tone={summaryBlocker.status === "error" ? "danger" : summaryBlocker.status}
+        title={summaryBlocker.title}
+        description={summaryBlocker.description}
+      />
+    );
+
   const stepSummary = (
     <WorkflowStepSummary
       label={inspectedHistorical ? workflow.label : selectedWorkflow.label}
@@ -1312,28 +1343,7 @@ export const WorkItemWorkspace = ({
       statusLabel={currentAttentionStatusLabel}
       statusVariant={currentAttentionVariant}
       blocker={summaryBlocker}
-      action={
-        titleEditing ? undefined : inspectedHistorical ? (
-          <WorkbenchAction
-            label={"Return to " + workflow.label}
-            tone="primary"
-            onClick={() => inspectWorkflowStep(workItem.stage)}
-          />
-        ) : currentOwnerAction ?? (
-          workItem.stage === "COMPLETE" &&
-          (
-            workItem.outcome === "INVESTIGATION_COMPLETE" ||
-            workItem.outcome === "AUDIT_COMPLETE"
-          ) ? (
-            <WorkbenchAction
-              label="Create linked remediation"
-              tone="primary"
-              disabled={mutationsDisabled}
-              onClick={() => onCreateRemediation(workItem)}
-            />
-          ) : undefined
-        )
-      }
+      action={currentMaterialAction}
     />
   );
 
@@ -1426,6 +1436,8 @@ export const WorkItemWorkspace = ({
             material={material}
             materialState={selectedStageMaterialState}
             summary={stepSummary}
+            reviewNotice={currentReviewNotice}
+            reviewAction={currentMaterialAction}
             currentRunId={currentStageRun?.id ?? null}
             currentInteraction={currentStageInteraction}
             currentAttention={currentAttention}
@@ -1483,6 +1495,8 @@ export const WorkItemWorkspace = ({
           <SignoffReview
             workItem={workItem}
             summary={stepSummary}
+            reviewNotice={currentReviewNotice}
+            reviewAction={currentMaterialAction}
             packageValue={signoffPackageQuery.data ?? null}
             packageFetching={signoffPackageQuery.isFetching}
             packageError={signoffPackageQuery.error}
