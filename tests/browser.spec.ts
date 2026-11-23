@@ -287,30 +287,20 @@ const openMarkdownEditor = async (
   return editor;
 };
 
-const selectWorkflowMaterial = async (
+const openWorkflowResource = async (
   page: Page,
-  optionName: string,
+  label: string,
 ): Promise<void> => {
-  const selector = page
-    .getByTestId("workflow-step-index")
-    .getByRole("combobox");
-  await expect(selector).toBeVisible();
-  await selector.click();
-  await page.getByRole("option", { name: optionName, exact: true }).click();
-};
-
-const selectCurrentWorkflowMaterial = async (
-  page: Page,
-  optionName: string,
-): Promise<void> => {
-  const selector = page.getByRole("combobox", {
-    name: "Current workflow material",
+  const action = page.getByRole("button", {
+    name: "Open " + label,
     exact: true,
   });
-  await expect(selector).toBeVisible();
-  await selector.click();
-  await page.getByRole("option", { name: optionName, exact: true }).click();
+  await expect(action).toBeVisible();
+  await action.click();
 };
+
+const selectWorkflowMaterial = openWorkflowResource;
+const selectCurrentWorkflowMaterial = openWorkflowResource;
 
 const openDisclosureResource = async (
   page: Page,
@@ -4703,10 +4693,7 @@ test("active agent ownership keeps title and lifecycle authoring read-only while
   await expect(page.getByTestId("workflow-step-summary")).toContainText("Processing");
   await expect(page.getByRole("button", { name: "Edit title", exact: true })).toBeDisabled();
 
-  const selector = page.getByRole("combobox", { name: "Current workflow material" });
-  await expect(selector).toBeVisible();
-  await selector.click();
-  await page.getByRole("option", { name: "Implementation plan document", exact: true }).click();
+  await openWorkflowResource(page, "Implementation plan document");
   await expect(page.getByTestId("lifecycle-document-material")).toBeVisible();
   await expect(page.getByRole("button", { name: "Edit", exact: true })).toHaveCount(0);
   await expect(page.getByLabel("Implementation plan document Markdown source")).toHaveCount(0);
@@ -4960,10 +4947,7 @@ test("Readiness keeps verdict and findings primary while subordinate material ch
     review.getByTestId("readiness-verdict").getByText("Review in progress", { exact: true }),
   ).toBeVisible();
   await expect(review.getByText("Findings / defective owner", { exact: true })).toBeVisible();
-  const selector = page.getByRole("combobox", { name: "Readiness material" });
-  await expect(selector).toBeVisible();
-  await selector.click();
-  await page.getByRole("option", { name: "Implementation plan", exact: true }).click();
+  await openWorkflowResource(page, "Implementation plan");
   await expect(review.getByText("Readiness verdict", { exact: true })).toBeVisible();
   await expect(review.getByText("Findings / defective owner", { exact: true })).toBeVisible();
   await expect(review.getByText("Selected supporting material", { exact: true })).toBeVisible();
