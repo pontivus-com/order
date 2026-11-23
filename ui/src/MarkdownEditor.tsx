@@ -18,7 +18,6 @@ import {
 } from "./MarkdownSourceEditor.tsx";
 import type { MarkdownFormatCommand } from "./markdown-source-formatting.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
-import { WorkbenchDisclosure } from "./primitives/WorkbenchDisclosure.tsx";
 import {
   WorkbenchIcon,
   type WorkbenchIconName,
@@ -41,7 +40,6 @@ export type MarkdownEditorProps = Readonly<{
   onSave: (expectedSha256: Sha256, markdown: string) => Promise<ExpectedHashWriteResult>;
   onDirtyChange?: (dirty: boolean) => void;
   toolbarAccessory?: ReactNode;
-  technicalDetails?: ReactNode;
   editingTitle?: string;
   viewAside?: ReactNode;
 }>;
@@ -93,7 +91,6 @@ export const MarkdownEditor = ({
   onSave,
   onDirtyChange,
   toolbarAccessory,
-  technicalDetails,
   editingTitle,
   viewAside,
 }: MarkdownEditorProps) => {
@@ -268,10 +265,6 @@ export const MarkdownEditor = ({
           {preview}
           {viewAside ? <aside className="order-markdown-document-view-aside">{viewAside}</aside> : null}
         </div>
-        <WorkbenchDisclosure
-          label="Technical details"
-          content={<div className="order-editor-technical-content"><div><span>SHA-256</span><code>{loadedSha256}</code></div>{technicalDetails}</div>}
-        />
       </section>
     );
   }
@@ -310,16 +303,6 @@ export const MarkdownEditor = ({
               </>
             ) : null}
           </WorkbenchToolbarGroup>
-        }
-      />
-
-      <WorkbenchDisclosure
-        label="Technical details"
-        content={
-          <div className="order-editor-technical-content">
-            <div><span>SHA-256</span><code>{loadedSha256}</code></div>
-            {technicalDetails}
-          </div>
         }
       />
 
