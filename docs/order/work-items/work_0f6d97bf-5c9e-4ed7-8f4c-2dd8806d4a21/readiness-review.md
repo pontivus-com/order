@@ -22,7 +22,7 @@ The current corrected package is:
 - PLAN `implementation-plan.md`: `f8161c5b85eaec74d00cdf54613ae6669805c5de`;
 - reference-pack README: `6aff4233f4f0c9c2a09c6aa2504b7e2cef1708fb`.
 
-The canonical current-state owner remains `0.6.0-design-campaign-plan.md §7/§18`. At this review boundary G3, G4, G5, G5A and G6 are all `REVALIDATION`.
+The canonical current-state owners remain `0.6.0-design-campaign-plan.md §7/§18`; this R3 artifact does not project or maintain campaign gate state.
 
 ## Why the previous READY_FOR_SIGNOFF is stale
 
