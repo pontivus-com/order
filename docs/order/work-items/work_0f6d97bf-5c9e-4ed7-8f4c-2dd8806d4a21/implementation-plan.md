@@ -35,10 +35,10 @@ No compatibility `WorkbenchLayout`, generic workflow-frame/material-selector equ
 | `implementation-plan/05-a05-requirements-design.md` | `bbc2299c1c11ffc5fef501fcb58a08c69cc1e88a` |
 | `implementation-plan/06-a06-plan-readiness.md` | `e0a42a763a69b478bc7d31689c28a95e560c8acf` |
 | `implementation-plan/07-a07-approval-execution.md` | `ff45cac7a9abd4ca313e8ebb1d5a3f03c3be6d0e` |
-| `implementation-plan/08-a08-complete-materials.md` | `8d2ad03af1265c694f365a8eb95bb129abeeeaa3` |
-| `implementation-plan/09-a09-provider-settings.md` | `0d700879bfc5c3431f6e6cf00091dc3bafdddd22` |
-| `implementation-plan/10-a10-recovery-accessibility.md` | `f1f20c1808055b91b98b675f6a8058412a577986` |
-| `implementation-plan/11-a11-component-certification.md` | `79b02d6bd1ce4191b709346a8784ba744f856ac2` |
+| `implementation-plan/08-a08-complete-materials.md` | `d372f66ae11ad4c80b34157ccc7e66c82366df70` |
+| `implementation-plan/09-a09-provider-settings.md` | `356fbd56272562548cf57235580608549579eaf2` |
+| `implementation-plan/10-a10-recovery-accessibility.md` | `5b6bf8e2c9b9badc15a6cc43355cb0cce22b7adc` |
+| `implementation-plan/11-a11-component-certification.md` | `7a94950716a4aa55c76b7f424fa71901fa9833e8` |
 | `implementation-plan/12-action-catalog.md` | `8ad5de41d04403c22c9945998063c7765c443161` |
 | `implementation-plan/13-verification-closeout.md` | `42104f93f027004f9ddd6fa22a7ac6d2e6012687` |
 A source component hash mismatch makes PLAN non-current until this root is regenerated. Directory files contain no `order-tasks` block and no independent lifecycle state.
