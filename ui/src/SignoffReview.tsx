@@ -205,6 +205,8 @@ export const SignoffReview = ({
   tasksPending,
   tasksError,
   mutationsDisabled = false,
+  reviewNotice,
+  reviewAction,
   onOpenArtifactEvidence,
   onContextDocumentChange,
   onMutationError,
@@ -222,6 +224,8 @@ export const SignoffReview = ({
   tasksPending: boolean;
   tasksError: unknown;
   mutationsDisabled?: boolean;
+  reviewNotice?: ReactNode;
+  reviewAction?: ReactNode;
   onOpenArtifactEvidence: (artifactId: ArtifactRef["id"]) => void;
   onContextDocumentChange: (path: string | null, sha256: Sha256 | null) => void;
   onMutationError?: (error: unknown) => void;
@@ -583,6 +587,7 @@ export const SignoffReview = ({
         summary={<div><h2>{title}</h2><p>{description}</p></div>}
         body={
           <div className="order-review-approval-body">
+            {reviewNotice}
             <ApprovalContext
               currentApproval={currentApproval}
               packageValue={packageValue}
@@ -593,7 +598,7 @@ export const SignoffReview = ({
             {packageMaterial}
           </div>
         }
-        decisions={approvalAction ?? <></>}
+        decisions={reviewAction ?? approvalAction ?? <></>}
       />
     </div>
   );
