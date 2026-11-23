@@ -6,13 +6,13 @@
 
 This DESIGN is the corrected technical-design candidate for the reopened C19/C20 remediation. Its semantic direction is canonical authority -> current R1 facts -> current R2 functional consequences -> explicit package technical realization. It does not project G4 closure; current gate state remains owned by the campaign registers until fresh DESIGN pair/H3 audit passes. Current implementation/tests are realization evidence only and never supply missing design semantics.
 
-- R1 `research.md`: blob `9f99a885da3757afad112dfd5d9d5e26782c41f9` — includes C19-F04/C19-F05/C20-F07 proving disclosure-container accumulation, incomplete foundation anatomy and acceptance/detection gaps. Current UI/tests remain evidence only.
-- R2 `requirements.md`: blob `50e717a814b2710f25748a0bbe81552819946e64` — binds singular material/history ownership, explicit technical-inspection ownership, no disclosure accumulation, modal anatomy and Markdown editor-control→canvas adjacency.
+- R1 `research.md`: blob `3652878e16f8d0e0f956c13f75a6ff30cf4b4a69` — includes C19-F04-C19-F08 and C20-F07-C20-F09 proving disclosure-container accumulation, incomplete foundation anatomy, semantic-slot contradiction, nested primary interaction composition, product-copy leakage and acceptance/detection gaps. Current UI/tests remain evidence only.
+- R2 `requirements.md`: blob `2f9b0e452f76cc5a7ca346bdde56bdb902e59e47` — binds singular material/history ownership, explicit technical-inspection ownership, semantic-region ownership, exactly one selected primary interaction composition, terminal-result primacy without duplicate attention, no disclosure accumulation, modal anatomy and Markdown editor-control→canvas adjacency.
 - Corrected P3 Installation Readiness: blob `9c2ec83a9552b7583f90e91080c014df4d6870df` — §§2/4.2 and `GW-FR-079` now distinguish successful fresh-install completion from post-install/update recovery without adding `precedence.p3`.
 - P4 Technical Architecture: `868a73535b080bfeb5519865ffe21bad754315a3` — §35.1 now explicitly separates reachable authority selection from stage-material applicability for stable/versioned refs.
-- P3 Workbench UX: `497029fca2b7dc7cdd7f15a6947acab42358be9e` — §11.4A/§12 own the semantic classes, prominence bands, singular owners and composition invariants.
+- P3 Workbench UX: `d33801650ab237728a00b6023e1083ccb1d491ec` — §11.4A/§12/§13/§14.9 own semantic classes, semantic-region ownership, exactly one primary interaction composition, terminal-result primacy and product-copy boundaries.
 - P3 Markdown Workbench: `1cc5a28eff8d180f88106d89990f7b89aa27a132` — §17.4 owns the compact editor-control region, overflow-before-wrap behavior and control→canvas adjacency.
-- P4 Workbench: `f501ac7eb79dfffd34ee32a1d3e10f11f7f515ee` — §8.12/§8.12A own singular Context/Settings technical inspection, same-task-only Disclosure, Review without an automatic technical slot and TaskPanel header/body/footer anatomy.
+- P4 Workbench: `0b3e8a3d5e2d42672de9e787c5fd6afd50713242` — §8.12-§8.16 own the optional semantic `WorkbenchSurface.attention` slot, one-primary-composition routing, singular Context/Settings technical inspection, same-task-only Disclosure, Review without an automatic technical slot, Evidence replacement routing, Terminal-result attention absence and TaskPanel header/body/footer anatomy.
 - P4 Workbench Theme: `43b81a61291841d827a47f392e0149ace5c8351f`.
 - P4 OpenCode Integration: `4416547cba749fc9a3fec62dd4be76ad94952527`.
 - P4 Execution Control Plane: `5348404854f317a017fa3efdc2436b06bcfeb9f2`.
@@ -150,6 +150,7 @@ C19-F04/C19-F05/C20-F07 disprove the previous assumption that datum-level visibi
 - canonical lifecycle/domain/query/daemon/persistence/provider owners remain unchanged unless another existing SD explicitly changes them;
 - the six narrow atomic adapters `WorkbenchAction`, `WorkbenchDisclosure`, `WorkbenchField`, `WorkbenchIcon`, `WorkbenchNotice` and `WorkbenchStatus` remain reusable. `WorkbenchDisclosure` is reusable only as a low-level Astryx Collapsible for a specifically named expansion of the **same operator task**; it owns no technical/supporting inspection semantics;
 - IA27 re-derives the design-bearing foundation from corrected P3/P4. Current foundation bytes are evidence only. A design-bearing owner is left unchanged only when authority proves it conforming, receives a bounded residual correction only when its responsibility/topology is already correct, and is destructively replaced when its API/topology materially contradicts the corrected foundation contract;
+- C19-F06-C19-F08/C20-F08-C20-F09 additionally require IA27 to reclassify `WorkbenchSurface`: a mandatory attention slot is no longer admissible. Queue and Evidence may not route headings through attention, Terminal result may not compose `WorkbenchAttention`, and a selected Evidence material may not be nested inside another primary `WorkbenchSurface`;
 - `WorkbenchReview` must lose its automatic technical-details slot; `WorkbenchTaskPanel` must own header/body/footer with footer actions; `WorkItemContext` + `WorkbenchContextPanel` become the singular selection-aware WorkItem technical-inspection owner;
 - IA28-IA31 are **resumed authority-first revalidation/remediation** phases. They inspect current screen bytes only after loading their exact corrected surface contract, retain independently conforming behavior under minimum change and correct only proven residual deltas. They do not replay a historical purge merely to reproduce process history;
 - IA32-IA34 retain purge-before-fresh-authorship because those screen families remain structurally superseded under the campaign reconstruction;
@@ -346,7 +347,7 @@ Queue-local search, New WorkItem, Refresh sources and source diagnostics are own
 | New WorkItem | local Create entry | begin governed authoring | Primary | Queue command region | opens `SURF-CREATE-001` | no lifecycle mutation |
 | Refresh sources | canonical source-reconciliation command | explicitly reconcile configured repository WorkItem sources | Supporting | Queue command region | failure remains human-readable Queue notice | UI does not scan/parse repository files independently |
 | open WorkItem | row navigation | inspect selected work | Primary | row | enters `SURF-WI-001` | no lifecycle mutation |
-| source diagnostic human reason | `WorkItemSourceDiagnostic.detail` mapped/escaped as operator text | explain why a source cannot become/remain productive | Primary when blocking | Queue diagnostic notice | technical cause does not promote raw code/parser payload | no raw `code` as ordinary heading |
+| source diagnostic human reason | `WorkItemSourceDiagnostic.detail` mapped/escaped as operator text | explain why a source cannot become/remain productive | Primary when blocking | Queue diagnostic notice inside the Operational-scan material composition | technical cause does not promote raw code/parser payload | no raw `code` as ordinary heading; Queue heading/notice must not be passed through a semantic attention slot |
 | defective source identity | `WorkItemSourceDiagnostic.path` when non-null, otherwise human WorkItem/project identity from `workItemId/projectId` | identify the defective source named by the recovery task | Supporting, default-visible with the diagnostic | same Queue diagnostic notice | exact path is ordinary here because no semantic WorkItem label may exist | do not hide the only actionable source identity |
 | raw source diagnostic mechanics | `WorkItemSourceDiagnostic.code` and parser/provider payload mechanics | implementation-facing diagnosis | Diagnostic | Settings diagnostics/Evidence inspection only | never promoted by blocker state | no raw diagnostic dump in Queue |
 
@@ -474,8 +475,8 @@ Queue-local search, New WorkItem, Refresh sources and source diagnostics are own
 | work kind / concise overall status where needed | catalog `kind` + human mapping of `WorkItem.status/outcome` | orient operator | Supporting | identity/status | `schemaId` and raw enums stay Technical | no metadata dump |
 | current lifecycle step | `deriveWorkflowRail` from `WorkItem.stage` | orientation | Primary | rail/current marker | none | no raw enum |
 | reached/historical/unreached navigation | `deriveReachedStages/deriveWorkflowRail` | inspect legitimate history | Supporting | rail | none | history selection cannot steal current attention |
-| current attention human meaning | `deriveCurrentAttention` + recovery/currentness/coherence | answer “what needs action now?” | Primary | stable attention region | technical cause promotes meaning/consequence/action only | no raw diagnostic/session/path |
-| current valid action | canonical attention/recovery owner | operate current workflow | Primary | attention action region; exactly one visually primary mutation owner | none | no generic Start beside higher-priority action |
+| current attention human meaning | `deriveCurrentAttention` + recovery/currentness/coherence | answer “what needs action now?” | Primary | stable attention region only for interaction classes/current conditions that own current attention | technical cause promotes meaning/consequence/action only | no raw diagnostic/session/path; Complete uses the Terminal-result outcome itself as current orientation and does not add a duplicate attention band |
+| current valid action | canonical attention/recovery owner | operate current workflow | Primary | attention action region when current attention owns the action; otherwise the owning primary interaction action region | none | no generic Start beside higher-priority action; no synthetic attention region solely to host an action |
 | Context open/close | local state | inspect technical orientation | Supporting | identity/utility region | opens `SURF-WI-CONTEXT-001`; never auto-open | Context not sole blocker/action owner |
 | Archive / Restore selected WorkItem | WorkItem archive mutation | manage active-queue visibility | Supporting | identity/utility region | always interposes `SURF-CONF-ARCHIVE-001` on selected WorkItem | no immediate destructive mutation |
 | title edit / Save / Cancel | title mutation contract | maintain human identity | Supporting; Save becomes Primary inside edit mode | identity row | mutation error stays with title | unavailable in EXECUTION/COMPLETE |
@@ -645,10 +646,10 @@ Same productive-stage grammar as Research, with the governed Requirements docume
 
 | Datum/action | Source | Intent | Class | Default placement | Rule |
 |---|---|---|---|---|---|
-| canonical final outcome human label/explanation | `WorkItem.outcome` → product language | state what happened | Primary | result header/status | use “Verified candidate” only for executed delivery; umbrella product outcome remains verified result semantics |
-| governed result material | terminal ArtifactRefs/content | present investigation/audit result where applicable | Primary | result body | exact artifact identity Technical |
+| canonical final outcome human label/explanation | `WorkItem.outcome` → product language | state what happened | Primary | single Terminal-result header/status | use “Verified candidate” only for executed delivery; umbrella product outcome remains verified result semantics; do not also render this outcome through `WorkbenchAttention` |
+| governed result material | terminal ArtifactRefs/content | present investigation/audit result where applicable | Primary | directly beneath the result header/status in the same Terminal-result composition | exact artifact identity Technical; no generic “governed result material” container heading unless product authority requires that wording |
 | candidate evidence/resources | successful execution Runs/RunEvents/EvidenceRefs | support verified candidate | Supporting | resource list | human resource labels ordinarily; exact identity in Evidence |
-| linked remediation action | eligible Audit/Investigation outcome | create separately governed Change/Defect | Primary | result action | opens `SURF-CREATE-001` |
+| linked remediation action | eligible Audit/Investigation outcome | create separately governed Change/Defect | Primary | result action in the same Terminal-result composition | opens `SURF-CREATE-001`; does not create a separate current-attention band |
 | exact terminal artifact/Run identity | `ArtifactRef.id/workItemId/sha256/gitCommit/authorityLayer` + relevant `Run.id/baselineCommit/contextHash/providerSessionId` | audit exact result identity | Technical | WorkItem Context / Evidence after explicit inspection | never ordinary result copy |
 | raw event tags/payloads | RunEvents | debug implementation evidence | Diagnostic | Evidence only when explicitly inspected | never ordinary result copy |
 | result loading/error state | content/evidence query | explain unavailable supporting material | Supporting | owning result notice | raw transport internals hidden |
@@ -737,7 +738,7 @@ Same productive-stage grammar as Research, with the governed Requirements docume
 
 ##### SURF-MAT-EVIDENCE-001 — exact Evidence
 
-Evidence is an explicit inspection surface; exact identity and exact bytes are intentionally Primary here.
+Evidence is an explicit inspection surface; exact identity and exact bytes are intentionally Primary here. While selected, Evidence is the one primary interaction composition for the material region: it replaces the owning Document/Dialogue/Review/Implementation material and is never nested inside another primary `WorkbenchSurface`. Its heading/identity/Back action belong to the Evidence material header, not to a synthetic current-attention slot.
 
 | Datum/action | Source | Intent | Class | Placement | Rule |
 |---|---|---|---|---|---|
@@ -811,6 +812,15 @@ Evidence is an explicit inspection surface; exact identity and exact bytes are i
 ---
 
 ##### Cross-surface action and placement laws
+
+##### Primary-composition and semantic-region ownership
+
+- one selected task/material owns exactly one primary interaction composition;
+- a primary `WorkbenchSurface` may not be nested inside another primary `WorkbenchSurface`; transient Evidence replaces the owning material composition and Back restores the recorded origin/focus;
+- `WorkbenchSurface.attention` is optional and contains only genuine current-attention semantics for classes that own it;
+- Operational scan, Evidence and Terminal result keep headings/status/actions in their material composition and do not populate the attention slot for placement convenience;
+- Complete renders one product-facing Terminal-result composition; the outcome label/explanation is not duplicated through current attention or architecture/container headings;
+- architecture/governance/specification taxonomy is never ordinary operator copy unless the canonical product-language owner explicitly authorizes the exact wording.
 
 ##### Current-attention precedence
 
@@ -1359,8 +1369,8 @@ The IA27 realization ledger is closed over these dimensions:
 | Design-language dimension | Canonical input | Required foundation realization |
 |---|---|---|
 | semantic information hierarchy | P3 §11.4A + this DESIGN's 37-SURF datum/action rows | Primary/Supporting/Operational/Technical/Diagnostic content is accepted only through the owning interaction/secondary/disclosure primitive slot; primitives never infer class from field shape |
-| interaction-class composition | P4 §§8.12-8.15 | each Operational scan/Form/Document/Dialogue/Review/Master-detail/Evidence/Terminal/Context/Task/Safety surface resolves to the one canonical primitive composition |
-| application and WorkItem chrome | P4 shell responsibilities + reviewed shell SVGs | one `WorkbenchAppShell`, one `WorkbenchWorkItemShell`, one identity/rail/current-attention hierarchy; no second persistent navigation/layout grammar |
+| interaction-class composition | P4 §§8.12-8.15 | each Operational scan/Form/Document/Dialogue/Review/Master-detail/Evidence/Terminal/Context/Task/Safety surface resolves to the one canonical primitive composition; `WorkbenchSurface.attention` is optional/semantic, Evidence replaces rather than nests, Queue/Evidence/Terminal remain attention-free, and exactly one primary composition owns the selected material |
+| application and WorkItem chrome | P4 shell responsibilities + reviewed shell SVGs | one `WorkbenchAppShell`, one `WorkbenchWorkItemShell`, one identity/rail hierarchy and current-attention region only where semantically owned; no second persistent navigation/layout grammar or nested primary surface |
 | actions and confirmations | P4 Astryx-conformance/action rules + theme action roles | the same semantic primary/secondary/destructive/navigation role uses the same Workbench/Astryx primitive, variant, size family, focus/pending treatment and confirmation grammar everywhere |
 | status, notices and states | P4 Status/Notice/State responsibilities + theme semantic status roles | one semantic tone vocabulary and one recurring visual treatment; feature code supplies meaning/tone, never colors or alternate chrome |
 | supporting and operational material | P3 class/placement + P4 Selector/ResourceRow/Timeline rules | subordinate selection/history/resource treatment cannot displace current attention or introduce another navigation axis |
@@ -1398,7 +1408,7 @@ P3 information hierarchy + this DESIGN's 37-SURF contract
  -> one workbench-responsive owner
  -> fresh app.tsx root-shell/destination integration
  -> fresh WorkItemWorkspace / IdentityRow / WorkflowRail / WorkflowStepFrame shell integration
- -> reconstructed Toolbar / Identity / Rail / Surface / Attention /
+ -> reconstructed Toolbar / Identity / Rail / Surface(optional semantic attention) / Attention /
     Dialogue / Review / MasterDetail / Context / Settings / Form /
     Selector / TaskPanel / Table / Timeline / ResourceRow / SectionHeader
  -> prove visual-language realization across representative services:
