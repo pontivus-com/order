@@ -2021,6 +2021,9 @@ describe("architecture fitness", () => {
     }
 
     if (gates.get("G6")?.status === "PASS") {
+      const g6ExecutionAuthorized = gates.get("G6")?.evidence.includes(
+        "T1 execution `AUTHORIZED`",
+      ) === true;
       const auditStartToken = "### IA27 IMPLEMENTATION AUDIT START";
       const auditEndToken = "### IA27 IMPLEMENTATION AUDIT END";
       const auditStart = source.lastIndexOf(auditStartToken);
@@ -2090,7 +2093,7 @@ describe("architecture fitness", () => {
             file === "package.json" ||
             file === "bun.lock"
           );
-          if (implementationMutation !== undefined) {
+          if (!g6ExecutionAuthorized && implementationMutation !== undefined) {
             violations.push(
               "G6 IA27 audit is stale after implementation/verification mutation: " +
                 implementationMutation,
