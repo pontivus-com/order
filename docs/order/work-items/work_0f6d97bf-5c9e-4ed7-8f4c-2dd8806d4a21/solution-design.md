@@ -150,7 +150,7 @@ C19-F04/C19-F05/C20-F07 disprove the previous assumption that datum-level visibi
 - canonical lifecycle/domain/query/daemon/persistence/provider owners remain unchanged unless another existing SD explicitly changes them;
 - the six narrow atomic adapters `WorkbenchAction`, `WorkbenchDisclosure`, `WorkbenchField`, `WorkbenchIcon`, `WorkbenchNotice` and `WorkbenchStatus` remain reusable. `WorkbenchDisclosure` is reusable only as a low-level Astryx Collapsible for a specifically named expansion of the **same operator task**; it owns no technical/supporting inspection semantics;
 - IA27 re-derives the design-bearing foundation from corrected P3/P4. Current foundation bytes are evidence only. A design-bearing owner is left unchanged only when authority proves it conforming, receives a bounded residual correction only when its responsibility/topology is already correct, and is destructively replaced when its API/topology materially contradicts the corrected foundation contract;
-- C19-F06-C19-F08/C20-F08-C20-F10 require a singular interaction-composition target but preserve phase ownership. IA27 reclassifies `WorkbenchSurface` and generic `WorkflowStepFrame`, removes the mandatory-attention foundation assumption and fixes the IA27-owned selected-material routing so Evidence bypasses the generic frame; IA28 proves Queue consumes the attention-free Operational-scan composition. Proposal Review direct-Review reconstruction remains IA30, Readiness/Approval direct-Review reconstruction remains IA31, and Terminal-result reconstruction remains IA33. Those later consumer defects are explicit obligations, not IA27 completion conditions;
+- C19-F06-C19-F08/C20-F08-C20-F10 require a singular interaction-composition target but preserve phase ownership. IA27 reconstructs the shared design-bearing foundation from corrected P4/SD21, makes `WorkflowStepFrame`/`WorkflowStepSummary`/`WorkflowStepIndex`/generic `PrimaryMaterialFrame` and `WorkflowMaterialSelector` responsibilities required-absent, removes the mandatory-attention/selector foundation assumptions, closes primitive APIs/consumer sets, and migrates the exact IA27-owned shell/routing consumers so Evidence and other direct interaction classes no longer depend on the deleted generic frame/selector. IA28 then proves Queue/Create/application-shell consumption of that corrected foundation. Proposal Review direct-Review reconstruction remains IA30, Readiness/Approval direct-Review reconstruction remains IA31, and Terminal-result reconstruction remains IA33. Those later consumer defects are explicit obligations, not a reason to preserve the deleted foundation owners;
 - `WorkbenchReview` must lose its automatic technical-details slot; `WorkbenchTaskPanel` must own header/body/footer with footer actions; `WorkItemContext` + `WorkbenchContextPanel` become the singular selection-aware WorkItem technical-inspection owner;
 - IA28-IA31 are **resumed authority-first revalidation/remediation** phases. They inspect current screen bytes only after loading their exact corrected surface contract, retain independently conforming behavior under minimum change and correct only proven residual deltas. They do not replay a historical purge merely to reproduce process history;
 - IA32-IA34 retain purge-before-fresh-authorship because those screen families remain structurally superseded under the campaign reconstruction;
@@ -178,9 +178,9 @@ Retained capability is not permission to preserve presentation. `MarkdownEditor.
 
 #### Resumed and destructive screen boundaries
 
-**IA27 foundation/shell:** `app.tsx`, `WorkItemWorkspace.tsx`, `WorkItemIdentityRow.tsx`, `WorkflowRail.tsx`, `WorkflowStepFrame.tsx`, `WorkItemContext.tsx` and the design-bearing primitive/theme owners are classified and remediated from the corrected foundation ledger.
+**IA27 foundation/shell:** `app.tsx`, `WorkItemWorkspace.tsx`, `WorkItemIdentityRow.tsx`, `WorkflowRail.tsx`, `WorkItemContext.tsx` and the design-bearing primitive/theme owners are classified and remediated from the corrected foundation ledger; `WorkflowStepFrame.tsx` and `WorkflowMaterialSelector.tsx` are deletion targets owned by IA27 and must be absent before IA28 acceptance.
 
-**IA28-IA31 resumed consumers:** `OpenCodeAccountControl.tsx`, `WorkItemQueue.tsx`, `CreateWorkItem.tsx`, `DocumentWorkspace.tsx`, `MarkdownEditor.tsx`, `PreSignoffStageWorkspace.tsx`, `ActivityWorkspace.tsx`, `ActivityComposer.tsx`, `WorkflowMaterialSelector.tsx`, `ProposalReview.tsx`, `RunEventTimeline.tsx`, `ReadinessWorkspace.tsx`, and `SignoffReview.tsx`. Their current implementation is evidence only; conforming bytes may remain, but no historical layout/disclosure pattern is a compatibility target.
+**IA28-IA31 resumed consumers:** `OpenCodeAccountControl.tsx`, `WorkItemQueue.tsx`, `CreateWorkItem.tsx`, `DocumentWorkspace.tsx`, `MarkdownEditor.tsx`, `PreSignoffStageWorkspace.tsx`, `ActivityWorkspace.tsx`, `ActivityComposer.tsx`, `ProposalReview.tsx`, `RunEventTimeline.tsx`, `ReadinessWorkspace.tsx`, and `SignoffReview.tsx`. `WorkflowMaterialSelector.tsx` is not a resumed consumer: it is deleted by IA27. These consumer implementations are evidence only; conforming bytes may remain only when they already consume the corrected direct interaction-class foundation, and no historical layout/disclosure pattern is a compatibility target.
 
 **IA32-IA34 destructive consumers:** `ExecutionWorkspace.tsx`, `TerminalResult.tsx`, `EvidenceViewer.tsx`, `SettingsWorkspace.tsx`, and `OpenCodeAccountSettings.tsx`. These phases retain bounded purge-before-fresh-authorship for their owned screen/selectors.
 
@@ -199,8 +199,8 @@ Implementation consumes that contract. It may not infer another placement from a
 | Queue / application shell | actionable WorkItems; Queue commands; human lifecycle/status/outcome meaning; human-readable blocker/recovery; source path only when it is the only usable defective-source identity | Queue filters/scan context; global account/Settings/theme utilities | one explicit application/Settings diagnostics owner; Evidence only when exact evidence exists | blocker promotes human meaning/action, never raw code; no generic technical strip | Operational scan | NONE |
 | Create/remediation | Project, kind, title, Concerns, Create; linked parent meaning/title | documentation root, derived/fixed-field explanation, Cancel | no local technical inspection; created WorkItem technical identity is later inspectable through Context | one TaskPanel header/body/footer; footer owns Cancel + primary Create | Task panel → Form/configuration | NONE |
 | WorkItem shell | WorkItem title/meaning, current lifecycle step, current attention/action | reached/historical rail navigation; explicit Context entry | **Context** is the one WorkItem-scoped technical-inspection destination | Context never auto-opens and never becomes sole blocker/action owner | Workbench shell + owning material | NONE |
-| Work request/document/editor | governed content and current authoring/reading action | one material selector, maturity/currentness, repository path/document directory, compact Git state | selected document/source technical identity in Context; exact incompatible bytes in Evidence | editor controls stay adjacent to canvas; exact changed paths become decision-primary only in Git confirmation | Document | NONE |
-| Research/Requirements/Design/Plan | current Dialogue/Document/Proposal by current-attention precedence | one material/history selector; bounded activity/timeline; evidence/resource links | selected Run/document/proposal technical identity in Context; exact evidence/payload inspection in Evidence | no Supporting-material/history strip; no local/Timeline Technical-details bar | Document / Dialogue / Review | NONE |
+| Work request/document/editor | governed content and current authoring/reading action | maturity/currentness, repository path/document directory, compact Git state, plus interaction-specific peer/resource selection only when that Document task actually requires peer choice | selected document/source technical identity in Context; exact incompatible bytes in Evidence | no generic workflow-material selector or duplicate outer heading; editor controls stay adjacent to canvas; exact changed paths become decision-primary only in Git confirmation | Document | NONE |
+| Research/Requirements/Design/Plan | current Dialogue/Document/Proposal by current-attention precedence | interaction-specific attempt/history/activity/timeline and evidence/resource actions; peer selection only where the exact selected interaction requires it | selected Run/document/proposal technical identity in Context; exact evidence/payload inspection in Evidence | no generic workflow summary/material selector, no Supporting-material/history strip and no local/Timeline Technical-details bar | Document / Dialogue / Review | NONE |
 | Readiness | typed R3 verdict/readiness, findings/defective owner, return action | package material, evidence, attempt history through semantic review/material owners | selected R3/package/Run technical identity in Context | one `WorkbenchReview` primary composition; no outer WorkflowStepFrame/Surface/Attention and no automatic technical-details slot | Review | NONE |
 | Approval | readiness/currentness, signed task meaning/scope/gates, approver/sign-off | governed package/task selection/detail | package/approval/task technical identity in Context | one `WorkbenchReview` primary composition; no outer WorkflowStepFrame/Surface/Attention and no local Task-technical-details drawer | Review | NONE |
 | Implementation | current task/action/blocker/attempt meaning and validation boundary | task master/history, chronology, evidence/resources | selected task/Run technical identity in Context; exact evidence in Evidence | same-task expansion such as Complete validation matrix may use Disclosure; generic technical drawer forbidden | Operational master/detail | NONE |
@@ -819,7 +819,7 @@ Evidence is an explicit inspection surface; exact identity and exact bytes are i
 - a primary `WorkbenchSurface` may not be nested inside another primary `WorkbenchSurface`; transient Evidence replaces the owning material composition and Back restores the recorded origin/focus;
 - `WorkbenchSurface.attention` is optional and contains only genuine current-attention semantics for classes that own it;
 - Operational scan, Review, Evidence and Terminal result keep headings/currentness/status/actions in their owning primary composition and do not populate or acquire an outer attention slot for placement convenience;
-- Proposal Review, Readiness and Approval are one `WorkbenchReview` composition; generic `WorkflowStepFrame` is not their primary wrapper;
+- Proposal Review, Readiness and Approval are one `WorkbenchReview` composition; `WorkflowStepFrame`/generic workflow-material-selection responsibilities are absent rather than retained as wrappers;
 - Complete renders one product-facing Terminal-result composition; the outcome label/explanation is not duplicated through current attention or architecture/container headings;
 - architecture/governance/specification taxonomy is never ordinary operator copy unless the canonical product-language owner explicitly authorizes the exact wording.
 
@@ -1436,29 +1436,28 @@ P3 information hierarchy + this DESIGN's 37-SURF contract
  + reviewed derived SVG composition references
  -> IA27 visual-language → foundation realization ledger
  -> prove every recurring role has exactly one foundation owner
- -> retain only proven atomic semantic/foundation adapters
- -> PURGE implementation checkpoint (not a Git commit):
-      old WorkbenchLayout
-      + 19 other design-bearing composition primitive implementations
-      + their structural selectors
-      + implementation-specific geometry assertions
-      + no replacement primitive JSX
- -> fresh foundation composition schema from the closed ledger
+ -> retain only authority-proven atomic/foundation capabilities
+ -> classify every current design-bearing IA27 owner before editing:
+      CONFORMING_NO_EDIT | BOUNDED_RESIDUAL | DESTRUCTIVE_REPLACEMENT | REQUIRED_ABSENT
+ -> delete required-absent `WorkflowStepFrame`/summary/index/PrimaryMaterialFrame and `WorkflowMaterialSelector` responsibilities first
+ -> destructively recreate only owners whose topology/API/semantic slots are nonconforming
+ -> keep conforming owners unchanged and correct only strictly local bounded residuals
+ -> realize the closed foundation composition schema from the ledger
  -> WorkbenchAppShell (one root application chrome)
  -> WorkbenchWorkItemShell (one selected-WorkItem chrome)
  -> one workbench-responsive owner
- -> fresh app.tsx root-shell/destination integration
- -> fresh WorkItemWorkspace / IdentityRow / WorkflowRail / WorkflowStepFrame shell integration
- -> reconstructed Toolbar / Identity / Rail / Surface(optional semantic attention) / Attention /
+ -> corrected app.tsx root-shell/destination integration
+ -> corrected WorkItemWorkspace / IdentityRow / WorkflowRail shell integration with direct primary interaction composition
+ -> closed Toolbar / Identity / Rail / Surface(optional semantic attention) / Attention /
     Dialogue / Review / MasterDetail / Context / Settings / Form /
-    Selector / TaskPanel / Table / Timeline / ResourceRow / SectionHeader
+    Selector only for explicitly authorized true-selection consumers / TaskPanel / Table / Timeline / ResourceRow / SectionHeader
  -> prove visual-language realization across representative services:
       same semantic role -> same primitive + token/variant + hierarchy/inspection behavior
  -> foundation architecture + theme + accessibility + responsive + rendered acceptance
  -> freeze accepted foundation for IA28-IA34 consumption
 ```
 
-This is one ordered implementation phase inside the single signed 0.6.0 task. Its purge checkpoint is a procedural in-task boundary, not a purge-only candidate or Git commit: the old foundation/shell implementation is removed and observed before replacement authorship, then the fresh foundation is completed and accepted before IA28 begins. Because the old `WorkbenchLayout` API is deleted, its application/selected-WorkItem shell consumers are destructively cut over in the same phase; no compatibility facade or temporary second shell is permitted. The existing primitive directory, class names, DOM hierarchy, component APIs, structural CSS and implementation-specific tests are evidence only. Current implementation may satisfy a ledger row only when current P3/P4/theme authority and, where applicable, the reviewed derived reference independently require that result.
+This is one ordered implementation phase inside the single signed 0.6.0 task. Historical whole-foundation purge records are provenance only and are not replayed mechanically. IA27 first classifies every current design-bearing owner from the closed ledger, then deletes required-absent generic workflow owners, destructively recreates materially divergent APIs/topologies, leaves independently conforming owners unchanged, and applies only strictly local bounded residual corrections. No compatibility facade, alias, old-to-new translator, hidden legacy path, CSS shim or temporary second shell is permitted. The existing primitive directory, class names, DOM hierarchy, component APIs, structural CSS and implementation-specific tests are evidence only. Current implementation may satisfy a ledger row only when current P3/P4/theme authority and, where applicable, the reviewed derived reference independently require that result.
 
 After IA27 acceptance, IA28-IA34 may compose classified SURF content only through the accepted foundation. They may not introduce a recurring color/token, typography/spacing/density scale, button/action treatment, status/notice treatment, disclosure lane, overlay mechanic, hierarchy convention, shell/region geometry or breakpoint/responsive grammar. A screen that appears to need such a new recurring concern has discovered a foundation/DESIGN defect and returns to IA27/DESIGN rather than solving it locally.
 
