@@ -2283,6 +2283,56 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
 
   const sourceText = await markdownSourceValue(sourceEditor);
   await replaceMarkdownSource(page, sourceEditor, sourceText + "\nIA26 unsaved material\n");
+  await capture({
+    id: "ia26-source-document-dirty-wide-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Work request",
+    surface: "SURF-MAT-SOURCE-001",
+    state: "dirty-unsaved-buffer",
+    fixture: "Source editing workbench dirty source",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/document-states.svg"],
+    authorityRefs: ["GW-DOC-MARKDOWN-WORKBENCH-V1"],
+  }, page.locator("form.order-markdown-editor"));
+
+  const sourceItem = await workItemForTitle(page, "Source editing workbench");
+  const sourceResponse = await page.context().request.get(
+    "/api/work-items/" + sourceItem.id + "/source",
+  );
+  expect(sourceResponse.status()).toBe(200);
+  const sourceSnapshot = WorkItemSourceSnapshotSchema.parse(await sourceResponse.json());
+  const sourceFilePath = join(repositoryRoot, sourceSnapshot.path);
+  const canonicalSourceBeforeConflict = readFileSync(sourceFilePath, "utf8");
+  writeFileSync(
+    sourceFilePath,
+    canonicalSourceBeforeConflict.replace(
+      "# Source editing workbench",
+      "# Source editing IA26 external change",
+    ),
+  );
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.getByText(/canonical file changed while this buffer was open/i)).toBeVisible();
+  await capture({
+    id: "ia26-source-document-conflict-wide-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Work request",
+    surface: "SURF-MAT-SOURCE-001",
+    state: "canonical-document-changed",
+    fixture: "Source editing workbench external canonical drift",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    references: ["docs/references/workbench-ui/document-states.svg"],
+    authorityRefs: ["GW-DOC-MARKDOWN-WORKBENCH-V1"],
+  }, page.locator("form.order-markdown-editor"));
+  writeFileSync(sourceFilePath, canonicalSourceBeforeConflict);
+  await page.getByRole("button", { name: "Reload current", exact: true }).click();
+  await expect.poll(() => markdownSourceValue(sourceEditor)).toContain("# Source editing workbench");
+  const reloadedSource = await markdownSourceValue(sourceEditor);
+  await replaceMarkdownSource(page, sourceEditor, reloadedSource + "\nIA26 unsaved material\n");
+
   await page.getByTestId("workflow-rail").getByRole("button", { name: "Research", exact: true }).click();
   const dirtyMaterial = page.getByRole("alertdialog", { name: "Discard unsaved Markdown?" });
   await capture({
