@@ -18,8 +18,8 @@ import {
   type EvidenceSelection,
   type WorkflowMaterial,
 } from "./workbench-presentation.ts";
-import { WorkflowStepIndex, WorkflowStepSummary, type WorkflowStepIndexGroup } from "./WorkflowStepFrame.tsx";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
+import { WorkbenchAttention } from "./primitives/WorkbenchAttention.tsx";
 import { WorkbenchDisclosure } from "./primitives/WorkbenchDisclosure.tsx";
 import { WorkbenchMasterDetail } from "./primitives/WorkbenchMasterDetail.tsx";
 import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
@@ -69,19 +69,11 @@ const taskTone = (task: ExecutionTask): "danger" | "warning" | "success" | "neut
   task.state === "BLOCKED" ? "danger" :
   task.state === "CANDIDATE_DONE" || task.state === "ALREADY_SATISFIED" ? "success" :
   task.state === "TODO" ? "warning" : "neutral";
-const taskVariant = (task: ExecutionTask): "error" | "warning" | "success" | "neutral" =>
-  task.state === "BLOCKED" ? "error" :
-  task.state === "CANDIDATE_DONE" || task.state === "ALREADY_SATISFIED" ? "success" :
-  task.state === "TODO" ? "warning" : "neutral";
 const runTone = (run: Run): "danger" | "warning" | "success" | "info" | "neutral" =>
   run.status === "FAILED" || run.status === "BLOCKED" ? "danger" :
   run.status === "WAITING_FOR_INPUT" ? "warning" :
   run.status === "COMPLETED" ? "success" :
   run.status === "RUNNING" ? "info" : "neutral";
-const runVariant = (run: Run): "error" | "warning" | "success" | "neutral" =>
-  run.status === "FAILED" || run.status === "BLOCKED" ? "error" :
-  run.status === "WAITING_FOR_INPUT" ? "warning" :
-  run.status === "COMPLETED" ? "success" : "neutral";
 const taskStateLabel = (task: ExecutionTask): string => {
   switch (task.state) {
     case "TODO": return "Ready to start";
@@ -281,27 +273,36 @@ export const ExecutionWorkspace = ({ workItem, material, tasks, runs, artifacts,
     {status:"error" as const,title:"Implementation task is blocked",description:"Resolve the recorded blocker before resuming this approved task."}:
     mutationError?{status:"error" as const,title:"Implementation action failed",description:mutationError instanceof Error?mutationError.message:String(mutationError)}:null;
 
-  const attemptGroups:WorkflowStepIndexGroup[]=selectedTask&&taskRuns.length>0?[{
-    id:"attempts",
-    label:"Attempts",
-    items:taskRuns.map((run)=>({
-      id:run.id,
-      label:runRoleLabel(run.role)+" · Attempt "+run.attempt,
-      description:new Date(run.startedAt).toLocaleString(),
-      statusLabel:runStatusLabel(run.status),
-      statusVariant:runVariant(run),
-      selected:run.id===selectedRun?.id,
-      onSelect:()=>onSelectMaterial({kind:"EXECUTION_TASK",taskId:selectedTask.id,runId:run.id}),
-    })),
-  }]:[];
+  const attempts=selectedTask&&taskRuns.length>0?(
+    <section className="order-execution-attempts" aria-label="Implementation attempts">
+      <WorkbenchSectionHeader title="Attempts"/>
+      <div className="order-resource-list">
+        {taskRuns.map((run)=>(
+          <WorkbenchResourceRow
+            key={run.id}
+            label={runRoleLabel(run.role)+" · Attempt "+run.attempt}
+            detail={new Date(run.startedAt).toLocaleString()+" · "+runStatusLabel(run.status)}
+            actionLabel={"Inspect attempt "+run.attempt}
+            leading={<WorkbenchStatus tone={runTone(run)} label={runStatusLabel(run.status)}/>}
+            onOpen={()=>onSelectMaterial({kind:"EXECUTION_TASK",taskId:selectedTask.id,runId:run.id})}
+          />
+        ))}
+      </div>
+    </section>
+  ):null;
 
-  const summary=<WorkflowStepSummary
-    label="Implementation" purpose="Execute and verify the approved change"
-    stateLabel={workItem.stage==="EXECUTION"?"Current":"Reached"} stateVariant={workItem.stage==="EXECUTION"?"info":"neutral"}
-    statusLabel={currentOwnerTask?taskStateLabel(currentOwnerTask):workItem.status==="COMPLETE"?"Complete":workItem.status.toLowerCase()}
-    statusVariant={currentOwnerTask?taskVariant(currentOwnerTask):workItem.status==="BLOCKED"?"error":workItem.status==="COMPLETE"?"success":"neutral"}
-    blocker={summaryBlocker} action={currentAction}
-  />;
+  const attention=summaryBlocker!==null?(
+    <WorkbenchAttention
+      title={summaryBlocker.title}
+      description={summaryBlocker.description}
+      action={currentAction}
+    />
+  ):currentAction===undefined?undefined:(
+    <WorkbenchAttention
+      title="Implementation is ready for your action"
+      action={currentAction}
+    />
+  );
 
   const master=tasks.length>0?<WorkbenchTable
     label="Approved tasks"
@@ -324,7 +325,7 @@ export const ExecutionWorkspace = ({ workItem, material, tasks, runs, artifacts,
     statePending?<WorkbenchState kind="loading" title="Loading implementation state…"/>:
     selectedTask?<section className="order-execution-task-material" data-testid="execution-task-detail">
       <WorkbenchSectionHeader title={selectedTask.objective} description="Approved task" action={<WorkbenchStatus tone={taskTone(selectedTask)} label={taskStateLabel(selectedTask)}/>} />
-      {attemptGroups.length>0?<WorkflowStepIndex groups={attemptGroups} label="Attempts"/>:null}
+      {attempts}
       {selectedRun ? (
         <div data-testid="selected-run-header">
           <WorkbenchSectionHeader
@@ -389,7 +390,7 @@ export const ExecutionWorkspace = ({ workItem, material, tasks, runs, artifacts,
 
   const detailSurface=material.kind==="EVIDENCE"&&stateError===null&&!statePending
     ?<EvidenceViewer selection={material.selection} onBack={onReturnFromEvidence}/>
-    :<WorkbenchSurface attention={summary} material={detail}/>;
+    :<WorkbenchSurface attention={attention} material={detail}/>;
 
   return (
     <div data-testid="execution-workspace">
