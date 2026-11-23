@@ -10,7 +10,7 @@ The prior `READY_FOR_SIGNOFF` verdict is superseded. Post-G6 inspection of rende
 
 This return is authority-driven. It does not use the current UI as a replacement design; current implementation, screenshots and tests remain evidence that the prior P3/P4/DESIGN/PLAN realization was incomplete.
 
-## Exact current review basis
+## Exact return-to-design review basis
 
 - R1 `research.md`: `3652878e16f8d0e0f956c13f75a6ff30cf4b4a69`;
 - R2 `requirements.md`: `2f9b0e452f76cc5a7ca346bdde56bdb902e59e47`;
@@ -18,7 +18,7 @@ This return is authority-driven. It does not use the current UI as a replacement
 - canonical P3 Workbench: `d33801650ab237728a00b6023e1083ccb1d491ec`;
 - canonical P3 Markdown Workbench: `1cc5a28eff8d180f88106d89990f7b89aa27a132`;
 - canonical P4 Workbench: `0b3e8a3d5e2d42672de9e787c5fd6afd50713242`;
-- prior PLAN `implementation-plan.md`: `285042e2aadf1a7d28cc0d0865208c20a0a91757` — stale for C19-F06-C20-F09 and must be regenerated;
+- PLAN at the time of this verdict: `285042e2aadf1a7d28cc0d0865208c20a0a91757` — this was stale for C19-F06-C20-F09. The return route subsequently produced corrected canonical PLAN `ecc5d0c6560aee069797e0760dcf4490f3f15e91`; that later package is not retroactive evidence for this R3 verdict;
 - prior rendered evidence: artifact `14778709723`, implementation candidate `faee3429d914040ca6ff6c12a82ac85ca214299d`, rendered candidate `12de328d50c65dde6c430b283faaa362c4f9fb20` — retained only as causal evidence of the newly proven defects;
 - campaign current state is owned only by `0.6.0-design-campaign-plan.md` §7/§8.4/§13A/§18.
 
@@ -56,6 +56,6 @@ In particular, the prior screenshot labels `SURF-WI-001`, `SURF-QUEUE-001` and t
 
 ## Final R3 disposition
 
-**Verdict:** `RETURN_TO_DESIGN`.
+**Verdict at this review:** `RETURN_TO_DESIGN`.
 
-There is no current sign-off-ready 0.6.0 package. The next valid work is corrected DESIGN/PLAN and fresh exact-package revalidation, not IA29+ implementation.
+This record is retained as the adversarial review that invalidated the prior `READY_FOR_SIGNOFF` package. Its required authority/DESIGN/PLAN return work has subsequently been completed through the campaign's current G5A closure. This file does not project a new R3/G6 state and does not authorize implementation. Current campaign state is owned only by `0.6.0-design-campaign-plan.md` §18; a fresh R3 review can occur only after a newly authorized exact-package IA27/IA28 evidence tranche.
