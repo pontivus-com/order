@@ -3189,6 +3189,112 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     entry.viewport.width === 1000 &&
     entry.references.includes("docs/references/workbench-ui/responsive-composition.svg")
   )).toBe(true);
+
+  const requiredReferencePaths = [
+    "application-notices-states.svg",
+    "approval-task-detail.svg",
+    "approval.svg",
+    "complete-linked-remediation.svg",
+    "complete.svg",
+    "create-linked-remediation.svg",
+    "create-work-item.svg",
+    "current-attention-states.svg",
+    "dialogue-states.svg",
+    "document-authoring.svg",
+    "document-readonly.svg",
+    "document-states.svg",
+    "evidence-viewer.svg",
+    "implementation-plan.svg",
+    "implementation-states.svg",
+    "implementation.svg",
+    "installation-readiness.svg",
+    "proposal-review.svg",
+    "proposal-states.svg",
+    "queue-states.svg",
+    "queue.svg",
+    "readiness-review.svg",
+    "requirements.svg",
+    "research.svg",
+    "responsive-composition.svg",
+    "safety-confirmations.svg",
+    "settings-model.svg",
+    "settings-opencode-add.svg",
+    "settings-opencode-login-states.svg",
+    "settings-opencode-login.svg",
+    "settings-opencode-rename.svg",
+    "settings-opencode.svg",
+    "settings-repositories.svg",
+    "settings-repository-add.svg",
+    "settings-repository-move.svg",
+    "solution-design.svg",
+    "theme-parity.svg",
+    "work-request.svg",
+    "work-type-variants.svg",
+    "workitem-context.svg",
+    "workitem-shell-controls.svg",
+  ].map((name) => "docs/references/workbench-ui/" + name);
+  const capturedReferences = new Set(allEntries.flatMap((entry) => entry.references));
+  for (const reference of requiredReferencePaths) {
+    expect(capturedReferences.has(reference)).toBe(true);
+  }
+
+  for (const kind of ["CHANGE", "DEFECT", "INVESTIGATION", "AUDIT"] as const) {
+    expect(allEntries.some((entry) => entry.workItemKind === kind)).toBe(true);
+  }
+
+  for (const proposalState of [
+    "pending-decision-direct-review",
+    "adoption-in-progress",
+    "adopted",
+    "rejected",
+  ]) {
+    expect(allEntries.some((entry) =>
+      entry.surface === "SURF-MAT-PROPOSAL-001" && entry.state === proposalState
+    )).toBe(true);
+  }
+  for (const dialogueState of [
+    "open-continuation",
+    "required-input",
+    "processing",
+    "closed-terminal-run",
+  ]) {
+    expect(allEntries.some((entry) =>
+      entry.surface === "SURF-MAT-ACTIVITY-001" && entry.state === dialogueState
+    )).toBe(true);
+  }
+  for (const executionState of [
+    "current-task-ready",
+    "processing",
+    "blocked-validation-failure",
+    "validation-recorded",
+  ]) {
+    expect(allEntries.some((entry) =>
+      entry.surface === "SURF-STEP-EXEC-001" && entry.state === executionState
+    )).toBe(true);
+  }
+  for (const loginState of [
+    "pending-authorization",
+    "sign-in-complete",
+    "sign-in-failed",
+    "sign-in-expired",
+    "sign-in-cancelled",
+  ]) {
+    expect(allEntries.some((entry) =>
+      entry.surface === "SURF-SET-OC-LOGIN-001" && entry.state === loginState
+    )).toBe(true);
+  }
+  for (const documentState of [
+    "active-editor",
+    "dirty-unsaved-buffer",
+    "canonical-document-changed",
+    "read-only-governed-document",
+  ]) {
+    expect(allEntries.some((entry) =>
+      (entry.surface === "SURF-MAT-SOURCE-001" || entry.surface === "SURF-MAT-DOC-RO-001") &&
+      entry.state === documentState
+    )).toBe(true);
+  }
+
   expect(new Set(allEntries.map((entry) => entry.id)).size).toBe(allEntries.length);
   expect(runtimeErrors).toEqual([]);
 });
