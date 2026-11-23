@@ -804,6 +804,11 @@ describe("Order cross-boundary certification", () => {
     const editorRule = theme.match(/\.order-markdown-editor\s*\{([^}]*)\}/)?.[1] ?? "";
     expect(editorRule).toContain("grid-template-rows: auto auto auto auto minmax(0, 1fr);");
 
+    const formattingToolbarRule =
+      theme.match(/\.order-markdown-format-toolbar\s*\{([^}]*)\}/)?.[1] ?? "";
+    expect(formattingToolbarRule).toContain("display: flex;");
+    expect(formattingToolbarRule).toContain("flex-wrap: nowrap;");
+
     const editorPaneRule = theme.match(/\.order-editor-source-pane,\s*\n\.order-editor-preview-pane\s*\{([^}]*)\}/)?.[1] ?? "";
     expect(editorPaneRule).toContain("min-width: 0;");
     expect(editorPaneRule).toContain("min-height: 0;");
