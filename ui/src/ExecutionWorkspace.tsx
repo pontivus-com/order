@@ -82,7 +82,15 @@ const runVariant = (run: Run): "error" | "warning" | "success" | "neutral" =>
   run.status === "FAILED" || run.status === "BLOCKED" ? "error" :
   run.status === "WAITING_FOR_INPUT" ? "warning" :
   run.status === "COMPLETED" ? "success" : "neutral";
-const taskStateLabel = (task: ExecutionTask): string => task.state.replaceAll("_"," ").toLowerCase();
+const taskStateLabel = (task: ExecutionTask): string => {
+  switch (task.state) {
+    case "TODO": return "Ready to start";
+    case "RUNNING": return "Processing";
+    case "CANDIDATE_DONE": return "Candidate ready";
+    case "ALREADY_SATISFIED": return "No change required";
+    case "BLOCKED": return "Blocked";
+  }
+};
 const latestValidationEvent = (events: readonly RunEvent[], stage: ValidationStage): RunEvent | null =>
   events.findLast((event) => (event.event.tag === "VALIDATION_PASSED" || event.event.tag === "VALIDATION_FAILED") && event.event.stage === stage) ?? null;
 
