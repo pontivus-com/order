@@ -212,7 +212,6 @@ export const SignoffReview = ({
   onMutationError,
 }: Readonly<{
   workItem: WorkItem;
-  summary: ReactNode;
   packageValue: SignoffPackage | null;
   packageFetching: boolean;
   packageError: unknown;
