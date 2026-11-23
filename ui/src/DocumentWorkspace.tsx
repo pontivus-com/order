@@ -280,37 +280,6 @@ const WorkRequestFacts = ({
   </dl>
 );
 
-const RequirementsAuthorityFacts = ({
-  artifact,
-  readOnly,
-}: Readonly<{
-  artifact: ArtifactRef;
-  readOnly: boolean;
-}>) => (
-  <dl className="order-document-facts" aria-label="Requirements authority">
-    <div>
-      <dt>Status</dt>
-      <dd>
-        <WorkbenchStatus
-          tone="success"
-          label={readOnly ? "Reviewed governed material" : "Current governed material"}
-        />
-      </dd>
-    </div>
-    <div>
-      <dt>Authority</dt>
-      <dd>
-        <span>Requirements document</span>
-        <code>
-          {artifact.authorityLayer === null
-            ? "Lifecycle authority"
-            : artifact.authorityLayer + " lifecycle authority"}
-        </code>
-      </dd>
-    </div>
-  </dl>
-);
-
 export const SourceDocumentMaterial = ({
   workItem,
   readOnly = false,
@@ -622,14 +591,6 @@ export const LifecycleDocumentMaterial = ({
                 mutationsDisabled={mutationsDisabled}
               />
             )
-          }
-          viewAside={
-            selectedArtifact.role === "R2" ? (
-              <RequirementsAuthorityFacts
-                artifact={selectedArtifact}
-                readOnly={artifactReadOnly}
-              />
-            ) : undefined
           }
         />
       )}
