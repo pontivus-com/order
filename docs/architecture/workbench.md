@@ -1088,6 +1088,7 @@ Dialogue
 
 Review
   -> WorkbenchReview
+     outer WorkbenchSurface / WorkbenchAttention = absent
      + optional WorkbenchSelector
      + WorkbenchStatus / WorkbenchNotice
      + WorkbenchDisclosure for technical detail
@@ -1134,7 +1135,7 @@ Canonical application services resolve as:
 | WorkItem shell | `WorkbenchAppShell -> WorkbenchWorkItemShell -> WorkbenchIdentity + WorkbenchRail + one primary composition + optional WorkbenchContextPanel` |
 | Work request/lifecycle document | `WorkbenchSurface -> WorkbenchAttention + optional WorkbenchSelector + document renderer` |
 | Active/historical STAGE Run | `WorkbenchSurface -> WorkbenchAttention + optional WorkbenchSelector + WorkbenchDialogue` |
-| Proposal / Readiness / Approval | `WorkbenchReview` (+ selector/disclosure/field where explicitly required) |
+| Proposal / Readiness / Approval | one `WorkbenchReview` primary composition (+ selector/disclosure/field where explicitly required); no outer `WorkbenchSurface`/`WorkbenchAttention` wrapper |
 | Implementation | `WorkbenchMasterDetail(master scan, detail WorkbenchSurface)` |
 | Run chronology | `WorkbenchTimeline` |
 | Evidence/raw material | one `WorkbenchSurface` with attention absent and `WorkbenchSectionHeader + approved raw-content leaf` in material; it replaces rather than nests inside the owning primary composition |
@@ -1677,7 +1678,7 @@ The UI remediation is structurally complete only when all of the following are t
 
 **Required behavior:** every rendered Order Workbench service is built from the complete closed primitive vocabulary in §8.12 according to §8.15. Feature/content owners may supply domain content and §8.19 leaves inside primitive slots, but reusable Workbench structure/interaction/visual semantics remain primitive-owned. Semantic slots retain their declared meaning: `WorkbenchSurface.attention` is optional and may contain only the interaction class's genuine current-attention composition.
 
-**Acceptance:** architecture fitness rejects bypass of shell/toolbar/utility/identity/rail/surface/attention/form/selector/dialogue/review/master-detail/Context/task-panel/settings/status/notice/table/timeline/disclosure/confirmation mechanics, rejects undeclared screen grammars, rejects a primary interaction composition nested inside another primary composition, rejects use of the optional attention slot as a generic heading/top-content slot, and additionally rejects generic local Technical-details/Supporting-material-history disclosure owners, adjacent/nested disclosure stacks, TaskPanel implementations without header/body/footer action ownership, and Markdown editor compositions that insert unrelated bands between controls and canvas. Queue/Evidence/Terminal-result renderers must remain attention-free unless P3 is explicitly amended to give that interaction class current-attention ownership. Any new primitive requires DESIGN authority plus permanent fitness coverage.
+**Acceptance:** architecture fitness rejects bypass of shell/toolbar/utility/identity/rail/surface/attention/form/selector/dialogue/review/master-detail/Context/task-panel/settings/status/notice/table/timeline/disclosure/confirmation mechanics, rejects undeclared screen grammars, rejects a primary interaction composition nested inside another primary composition, rejects use of the optional attention slot as a generic heading/top-content slot, and additionally rejects generic local Technical-details/Supporting-material-history disclosure owners, adjacent/nested disclosure stacks, TaskPanel implementations without header/body/footer action ownership, and Markdown editor compositions that insert unrelated bands between controls and canvas. Queue/Review/Evidence/Terminal-result renderers must remain free of an outer attention band unless P3 is explicitly amended to give that interaction class such ownership. Review currentness/summary/body/decisions remain inside `WorkbenchReview`; Proposal Review, Readiness and Approval may not be wrapped in `WorkflowStepFrame -> WorkbenchSurface -> WorkbenchAttention`. Any new primitive requires DESIGN authority plus permanent fitness coverage.
 
 ### GW-TR-095-WORKBENCH-RENDERER-COVERAGE
 
