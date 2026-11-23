@@ -3603,7 +3603,7 @@ test("long Source and lifecycle Markdown keep the final line editable, savable, 
     await expect(page.getByRole("button", { name: "Save", exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Cancel", exact: true })).toBeVisible();
     await page.getByRole("button", { name: "Save", exact: true }).click();
-    await expect(page.getByText("Unsaved", { exact: true })).toHaveCount(0);
+    await expect(page.getByText("Unsaved edits", { exact: true })).toHaveCount(0);
 
     await backToQueue(page);
     await openWorkItem(page, title);
@@ -4007,7 +4007,10 @@ test("canonical Run feedback remains visible in the owning workflow context with
   await expect(page.getByTestId("result-workspace"))
     .toContainText("Already satisfied");
   await selectWorkflowStep(page, "Implementation");
-  await expect(page.getByText("No change required", { exact: true })).toBeVisible();
+  await expect(
+    page.getByTestId("execution-task-detail")
+      .getByText("No change required", { exact: true }),
+  ).toBeVisible();
   await backToQueue(page);
 
   await openWorkItem(page, "Failed implementation feedback");
@@ -4159,7 +4162,7 @@ test("P5 keeps current execution ownership independent from historical selection
   await historicalTaskRow.click();
   const detail = page.getByTestId("execution-task-detail");
   await expect(detail).toContainText("Completed prerequisite");
-  await expect(detail).toContainText("already satisfied");
+  await expect(detail).toContainText("No change required");
   await expect(page.getByRole("button", { name: "Start current task", exact: true }))
     .toBeVisible();
 
