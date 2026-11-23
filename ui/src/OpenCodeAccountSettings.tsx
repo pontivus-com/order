@@ -40,6 +40,18 @@ const accountStatusText = (account: OpenCodeAccount): string =>
     ? account.active ? "Active" : "Saved"
     : account.active ? "Active · needs sign-in" : "Needs sign-in";
 
+const loginStatusText = (
+  status: "PENDING" | "COMPLETED" | "FAILED" | "EXPIRED" | "CANCELLED",
+): string => {
+  switch (status) {
+    case "PENDING": return "Waiting for sign-in";
+    case "COMPLETED": return "Sign-in complete";
+    case "FAILED": return "Sign-in failed";
+    case "EXPIRED": return "Sign-in expired";
+    case "CANCELLED": return "Sign-in cancelled";
+  }
+};
+
 export const OpenCodeAccountSettings = () => {
   const queryClient = useQueryClient();
   const [adding, setAdding] = useState(false);
@@ -176,7 +188,7 @@ export const OpenCodeAccountSettings = () => {
     return (
       <section className="order-settings-section" data-testid="settings-opencode">
         <section data-testid="rename-opencode-account">
-          <WorkbenchSectionHeader title="Rename saved OpenCode account" description="Bounded account-label mutation." />
+          <WorkbenchSectionHeader title="Rename saved OpenCode account" description="Change the human-facing label for this saved account." />
           <div className="order-settings-task-surface">
             <WorkbenchForm
               content={<TextInput label="Account label" value={renameLabel} onChange={setRenameLabel} hasAutoFocus width="100%" />}
@@ -187,7 +199,6 @@ export const OpenCodeAccountSettings = () => {
               feedback={rename.error ? <WorkbenchNotice tone="danger" title="Account rename failed" description={errorText(rename.error)} /> : undefined}
             />
           </div>
-          <div className="order-settings-supporting-info"><h3>Admission</h3><p>Disabled when account mutation is blocked or another account operation is pending.</p></div>
         </section>
       </section>
     );
@@ -207,7 +218,7 @@ export const OpenCodeAccountSettings = () => {
               feedback={startLogin.error ? <WorkbenchNotice tone="danger" title="OpenCode sign-in could not start" description={errorText(startLogin.error)} /> : undefined}
             />
           </div>
-          <div className="order-settings-supporting-info"><h3>Effect</h3><p>Starts OpenCode account login only after label validation and account-mutation admission checks.</p></div>
+          <div className="order-settings-supporting-info"><p>This starts a saved-account sign-in after the account label is valid and no other account change is in progress.</p></div>
         </section>
       </section>
     );
@@ -217,12 +228,12 @@ export const OpenCodeAccountSettings = () => {
       <section className="order-settings-section" data-testid="settings-opencode">
         <section data-testid="add-opencode-account">
           <section className="order-settings-task-surface" data-testid="opencode-login-attempt">
-            <WorkbenchSectionHeader title="OpenCode sign-in" description="Track the exact OpenCodeAccountLoginAttempt returned by the account-control boundary." />
+            <WorkbenchSectionHeader title="OpenCode sign-in" description="Complete the current saved-account sign-in." />
             {loginAttempt ? <>
               <p>{loginAttempt.instructions}</p>
               <Link href={loginAttempt.authorizationUrl} isExternalLink>Open OpenCode sign-in</Link>
-              <WorkbenchStatus tone={loginAttempt.status === "PENDING" ? "info" : loginAttempt.status === "COMPLETED" ? "success" : "warning"} label={loginAttempt.status} />
-              <p>{loginAttempt.status === "PENDING" ? "Waiting for OpenCode sign-in…" : loginAttempt.status === "COMPLETED" ? "OpenCode sign-in complete." : loginAttempt.status === "FAILED" ? loginAttempt.message ?? "OpenCode sign-in failed." : loginAttempt.status === "EXPIRED" ? "OpenCode sign-in expired." : "OpenCode sign-in cancelled."}</p>
+              <WorkbenchStatus tone={loginAttempt.status === "PENDING" ? "info" : loginAttempt.status === "COMPLETED" ? "success" : "warning"} label={loginStatusText(loginAttempt.status)} />
+              <p>{loginAttempt.status === "PENDING" ? "Waiting for OpenCode sign-in…" : loginAttempt.status === "COMPLETED" ? "OpenCode sign-in complete." : loginAttempt.status === "FAILED" ? loginAttempt.message ?? "OpenCode sign-in failed." : loginAttempt.status === "EXPIRED" ? "OpenCode sign-in expired." : "OpenCode sign-in cancelled."}</p>{loginAttempt.status === "PENDING" ? <p>Authorization expires {new Date(loginAttempt.expiresAt).toLocaleString()}.</p> : null}
               {loginAttempt.status === "PENDING" ? <WorkbenchAction label="Cancel OpenCode sign-in" loading={cancelLogin.isPending} onClick={() => cancelLogin.mutate(loginAttempt.id)} /> : <WorkbenchAction label="Done" tone="primary" onClick={resetAdd} />}
             </> : loginQuery.isPending ? <WorkbenchState kind="loading" title="Starting OpenCode sign-in…" /> : null}
             {loginQuery.error ? <WorkbenchNotice tone="danger" title="OpenCode sign-in state unavailable" description={errorText(loginQuery.error)} /> : null}
@@ -248,10 +259,9 @@ export const OpenCodeAccountSettings = () => {
         }))} />
       ) : null}
       <div className="order-settings-add-repository"><WorkbenchAction label="Add account" tone="primary" disabled={mutationBlocked} onClick={() => setAdding(true)} /></div>
-      <div className="order-settings-supporting-info"><h3>Mutation blockers</h3><p>ACTIVE_RUN → finish/cancel active agent work · LOGIN_ATTEMPT_ACTIVE → finish/cancel current sign-in · ACCOUNT_MUTATION_ACTIVE → wait for current account change.</p></div>
       {activate.error ? <WorkbenchNotice tone="danger" title="Account switch failed" description={errorText(activate.error)} /> : null}
       {remove.error ? <WorkbenchNotice tone="danger" title="Account removal failed" description={errorText(remove.error)} /> : null}
-      <p className="order-opencode-account-footnote">Account changes affect login identity only; the configured provider and model stay unchanged.</p>
+      <p className="order-opencode-account-footnote">Account changes affect login identity only; repository selection and the configured provider/model stay unchanged.</p>
       <WorkbenchConfirmation kind="destructive" open={removeAccountId !== null} onOpenChange={(open) => { if (!open) setRemoveAccountId(null); }} title="Remove saved OpenCode account?" description="Remove the selected saved OpenCode credential from this installation." confirmLabel="Remove account" pending={remove.isPending} onConfirm={() => { if (removeAccountId !== null) remove.mutate(removeAccountId); }} />
     </section>
   );
