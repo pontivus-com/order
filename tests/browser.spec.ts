@@ -1486,6 +1486,22 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   await page.setViewportSize({ width: 700, height: 800 });
   await expect(queue).toBeVisible();
   await expect(queue.locator(".order-workbench-surface-attention")).toHaveCount(0);
+  const narrowQueueTable = page.getByRole("table", { name: "Work items" });
+  await expect(narrowQueueTable).toHaveCSS("table-layout", "auto");
+  const concernsHeader = narrowQueueTable.getByRole("columnheader", { name: "Concerns" });
+  await expect(concernsHeader).toBeVisible();
+  await expect(concernsHeader).toHaveCSS("text-overflow", "clip");
+  await expect(concernsHeader).toHaveCSS("white-space", "normal");
+  const narrowCellWrapping = await narrowQueueTable.locator("tbody td").evaluateAll((cells) =>
+    cells.map((cell) => {
+      const style = getComputedStyle(cell);
+      return { wordBreak: style.wordBreak, overflowWrap: style.overflowWrap };
+    }),
+  );
+  expect(narrowCellWrapping.length).toBeGreaterThan(0);
+  expect(narrowCellWrapping.every((style) =>
+    style.wordBreak === "normal" && style.overflowWrap === "normal"
+  )).toBe(true);
   entries.push(await captureRenderedAcceptance(page, {
     id: "queue-narrow-light-populated",
     workItemKind: "QUEUE",
@@ -1506,14 +1522,55 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     ],
   }));
   await page.setViewportSize({ width: 1440, height: 900 });
+  await page.getByRole("radio", { name: "Dark" }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "application-queue-wide-dark",
+    workItemKind: "QUEUE",
+    workflowStep: null,
+    surface: "SURF-APP-001",
+    state: "queue-dark-theme-parity",
+    fixture: "order-e2e populated queue",
+    viewport: { width: 1440, height: 900 },
+    theme: "Dark",
+    route: "/",
+    references: [
+      "docs/references/workbench-ui/queue.svg",
+      "docs/references/workbench-ui/theme-parity.svg",
+    ],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-WORKBENCH-THEME-V1",
+    ],
+  }));
+  await page.getByRole("radio", { name: "Light" }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
 
   await page.getByRole("button", { name: "New work item" }).click();
   const createDialog = page.getByRole("dialog", { name: "Create work item" });
   await expect(createDialog).toBeVisible();
+  const createPanel = createDialog.locator(".order-workbench-task-panel");
+  const createHeader = createPanel.locator(".order-workbench-task-panel-header");
+  const createBody = createPanel.locator(".order-workbench-task-panel-body");
+  const createFooter = createPanel.locator(".order-workbench-task-panel-footer");
+  await expect(createHeader).toBeVisible();
+  await expect(createBody).toBeVisible();
+  await expect(createFooter).toBeVisible();
+  await expect(createFooter.getByRole("button", { name: "Cancel", exact: true })).toBeVisible();
+  await expect(createFooter.getByRole("button", { name: "Create work item", exact: true })).toBeVisible();
+  await expect(createBody.getByRole("button", { name: "Create work item", exact: true })).toHaveCount(0);
   await createDialog.getByRole("combobox", { name: "Project Required" }).click();
   await page.getByRole("option", { name: "order-e2e", exact: true }).click();
   await createDialog.getByRole("radio", { name: "Change" }).click();
+  await expect(createDialog.getByTestId("create-work-item-location")).toContainText(
+    "docs/order/work-items",
+  );
+  await expect(createDialog).not.toContainText(/(?:change|defect|investigation|audit)-v\\d/i);
   await createDialog.getByLabel("Title").fill("Rendered acceptance change");
+  await createDialog.getByRole("button", { name: "Concerns", exact: true }).click();
+  await page.getByRole("option", { name: "browser" }).click();
+  await page.keyboard.press("Escape");
+  await expect(createDialog.getByLabel("Title")).toHaveValue("Rendered acceptance change");
   entries.push(await captureRenderedAcceptance(page, {
     id: "create-work-item-wide-light-change",
     workItemKind: "CHANGE",
