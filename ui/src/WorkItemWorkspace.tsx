@@ -1408,7 +1408,14 @@ export const WorkItemWorkspace = ({
       aria-label={selectedWorkflow.label + " workspace"}
       data-testid="workflow-step-workspace"
     >
-      {sharedPreSignoffStage ? (
+      {material.kind === "EVIDENCE" && selectedStep !== "EXECUTION" ? (
+        <Suspense fallback={<WorkbenchState kind="loading" title="Loading evidence…" />}>
+          <EvidenceViewer
+            selection={material.selection}
+            onBack={returnFromTransient}
+          />
+        </Suspense>
+      ) : sharedPreSignoffStage ? (
         <Suspense fallback={<WorkbenchState kind="loading" title="Loading workflow step…" />}>
           <PreSignoffStageWorkspace
             workItem={workItem}
@@ -1563,12 +1570,6 @@ export const WorkItemWorkspace = ({
             onOpenArtifactEvidence={openArtifactEvidence}
             onContextDocumentChange={onContextDocumentChange}
             onMutationError={reportMutationError}
-          />
-        ) : null}
-        {material.kind === "EVIDENCE" ? (
-          <EvidenceViewer
-            selection={evidence}
-            onBack={returnFromTransient}
           />
         ) : null}
         {material.kind === "STEP_STATE" ? (
