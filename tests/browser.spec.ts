@@ -5199,7 +5199,7 @@ test("source editor preserves stale buffers, never overwrites newer source, and 
   ).toHaveAttribute("aria-current", "step");
   await expect(page.getByRole("button", { name: "Sign off exact package" })).toHaveCount(0);
 
-  await selectWorkflowStep(page, "Implementation plan");
+  await workflowRail.getByRole("button", { name: "Implementation plan", exact: true }).click();
   await expect(
     workflowRail.getByRole("button", { name: "Research" }),
   ).toHaveAttribute("aria-current", "step");
