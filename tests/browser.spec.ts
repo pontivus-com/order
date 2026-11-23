@@ -93,6 +93,21 @@ const writeRenderedAcceptanceEvidence = (
       2,
     ) + "\n",
   );
+  const referenceDir = join(renderedAcceptanceDir, "references");
+  mkdirSync(referenceDir, { recursive: true });
+  for (const reference of new Set(merged.flatMap((entry) => entry.references))) {
+    const prefix = "docs/references/workbench-ui/";
+    if (!reference.startsWith(prefix)) {
+      throw new TypeError("rendered acceptance reference is outside the reviewed SVG pack: " + reference);
+    }
+    const name = reference.slice(prefix.length);
+    writeFileSync(join(referenceDir, name), readFileSync(reference));
+  }
+  writeFileSync(
+    join(referenceDir, "README.md"),
+    readFileSync("docs/references/workbench-ui/README.md"),
+  );
+
   writeFileSync(
     join(renderedAcceptanceDir, "index.md"),
     [
