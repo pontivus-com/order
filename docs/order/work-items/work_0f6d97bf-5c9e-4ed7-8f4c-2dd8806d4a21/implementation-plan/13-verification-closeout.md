@@ -4,7 +4,7 @@ This component allocates proof across the one canonical signed task T1 and its o
 
 ## In-task architecture and reconstruction checkpoints
 
-Before ordinary signed-task execution exists, `IA28-RZ1` is currently `SUSPENDED_PENDING_REVALIDATION`; it permits no production mutation. A fresh bounded IA27/IA28 evidence grant may be issued only after exact G5/G5A PASS plus explicit operator authorization against that exact package. The resulting evidence is reviewed by R3/G6. IA28 → IA29 remains a **human sign-off boundary** after G6, never an automatic phase advance.
+Before ordinary signed-task execution exists, bounded IA27/IA28 evidence realization is governed by the canonical campaign register rather than this verification component. Eligibility requires exact G5/G5A PASS plus explicit operator authorization bound to that exact package. The resulting IA27/IA28 evidence is reviewed by R3/G6. IA28 → IA29 remains a **human sign-off boundary** after G6, never an automatic phase advance.
 
 
 Preflight IA07 re-proves the existing coordinator-owned signed-checkpoint capability; no candidate byte is relied upon to create it.
