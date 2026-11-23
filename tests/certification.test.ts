@@ -1453,7 +1453,8 @@ describe("Order cross-boundary certification", () => {
     }
     expect(preSignoff).not.toContain("WorkflowStepIndex");
     expect(preSignoff).toContain("WorkflowMaterialSelector");
-    expect(preSignoff).toContain('"Supporting material and history"');
+    expect(preSignoff).not.toContain('"Supporting material and history"');
+    expect(preSignoff).not.toContain("WorkbenchDisclosure");
     expect(readiness).toContain("Evidence / attempt history");
     expect(approval).toContain('"Package material"');
 
