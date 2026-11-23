@@ -1800,7 +1800,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     if (message.type() === "error") runtimeErrors.push("console: " + message.text());
   });
 
-  let loginStatus: "PENDING" | "FAILED" | "EXPIRED" | "CANCELLED" = "PENDING";
+  let loginStatus: "PENDING" | "COMPLETED" | "FAILED" | "EXPIRED" | "CANCELLED" = "PENDING";
   const loginAttemptId = "00000000-0000-4000-8000-00000000a026";
   const accountState = OpenCodeAccountStateSchema.parse({
     accounts: [
@@ -2052,6 +2052,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   await expect(openCode.getByRole("button", { name: "Add account" })).toBeVisible();
 
   for (const [status, label] of [
+    ["COMPLETED", "sign-in-complete"],
     ["FAILED", "sign-in-failed"],
     ["EXPIRED", "sign-in-expired"],
     ["CANCELLED", "sign-in-cancelled"],
