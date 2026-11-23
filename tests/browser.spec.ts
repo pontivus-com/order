@@ -120,7 +120,10 @@ const writeRenderedAcceptanceEvidence = (
       ...merged.map((entry) =>
         "| \`" + entry.screenshot + "\` | " + entry.surface + " / " + entry.state +
         " | " + (entry.captureScope ?? "viewport") +
-        " | " + entry.references.map((value) => "\`" + value + "\`").join(", ") +
+        " | " + entry.references.map((value) => {
+          const name = value.split("/").at(-1) ?? value;
+          return "\`" + value + "\` ([artifact copy](references/" + name + "))";
+        }).join(", ") +
         " | " + entry.authorityRefs.map((value) => "\`" + value + "\`").join(", ") +
         " |"
       ),
