@@ -1087,6 +1087,17 @@
   font-size: var(--order-font-size-technical-xs);
 }
 
+.order-markdown-format-toolbar {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-wrap: nowrap;
+}
+.order-markdown-format-toolbar > * {
+  flex: 0 0 auto;
+}
+
 .order-markdown-editor {
   height: 100%;
   min-height: 0;
