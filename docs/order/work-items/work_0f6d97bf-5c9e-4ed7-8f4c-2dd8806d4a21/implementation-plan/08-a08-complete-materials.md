@@ -2,7 +2,7 @@
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C13 + C14.
-**Upstream:** current R1 `9f99a885da3757afad112dfd5d9d5e26782c41f9`; current R2 `50e717a814b2710f25748a0bbe81552819946e64`; current DESIGN `afa606cb7678be569d8fb3a84fb9c75770ea188c`.
+**Upstream:** current R1 `3652878e16f8d0e0f956c13f75a6ff30cf4b4a69`; current R2 `2f9b0e452f76cc5a7ca346bdde56bdb902e59e47`; current DESIGN `315afe47dad86e26ad83449c6fc8adf52ed5c27c`.
 
 ## Stable requirement execution dispositions
 
@@ -28,7 +28,7 @@ Package atoms in phase: **0**.
 
 ## Cross-domain presentation reconstruction dependency
 
-C13/C14 domain semantics remain stable. Complete and Evidence are rebuilt by SD27/IA33 under PL-C19-02. WorkItem technical Context is no longer deferred to IA33: SD21/IA27 establishes the singular selection-aware Context inspection owner before document/productive/review/execution consumers migrate. This phase consumes that owner and does not preserve the current feature-card/layout implementation as a baseline.
+C13/C14 domain semantics remain stable. Complete and Evidence are rebuilt by SD27/IA33 under PL-C19-02. Complete is one attention-free Terminal-result composition: canonical product-facing outcome/status, substantive result/evidence/resources and permitted linked-remediation action without duplicate outcome/attention copy or architecture/container terminology. Evidence is one attention-free primary inspection composition and replaces rather than nests inside the owning workflow material. WorkItem technical Context is no longer deferred to IA33: SD21/IA27 establishes the singular selection-aware Context inspection owner and the one-primary-composition router before document/productive/review/execution consumers migrate. This phase consumes those owners and does not preserve the current feature-card/layout implementation as a baseline.
 
 ## Referenced actions
 
