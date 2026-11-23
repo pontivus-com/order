@@ -25,6 +25,7 @@ import { invalidateWorkbenchMutation, workbenchQueryKeys } from "./query-keys.ts
 import {
   resolveWorkflowMaterial,
   runIsActive,
+  workflowStepState,
   workflowMaterialIdentity,
   workflowPresentation,
   workflowSteps,
@@ -355,6 +356,12 @@ export const WorkItemWorkspace = ({
     allRunEvents,
     artifacts,
     tasks,
+  );
+
+  const selectedStepState = workflowStepState(
+    workItem,
+    reachedStages,
+    selectedStep,
   );
 
   const selectedStageArtifact =
@@ -1411,12 +1418,12 @@ export const WorkItemWorkspace = ({
                 <WorkbenchEmptyState
                   compact
                   title={
-                    selectedStep === workItem.stage && canStart
+                    selectedStepState === "CURRENT" && canStart
                       ? selectedWorkflow.label + " is ready to start"
                       : "No current material for " + selectedWorkflow.label
                   }
                   description={
-                    selectedStep === workItem.stage && canStart
+                    selectedStepState === "CURRENT" && canStart
                       ? "Use the current workflow action to begin this step."
                       : "This reached workflow step has no current canonical material to inspect."
                   }
