@@ -1235,7 +1235,10 @@
   .order-workitem-identity-copy { text-align: start; }
   .order-toolbar-search-wrap { min-width: min-content; }
   .order-markdown-document-view-with-aside {
-    grid-template-columns: minmax(0, 1fr);
+    display: block;
+  }
+  .order-markdown-document-view-aside {
+    margin-top: var(--spacing-4);
   }
 }
 
