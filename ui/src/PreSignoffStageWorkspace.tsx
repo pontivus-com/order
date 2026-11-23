@@ -149,6 +149,8 @@ export const PreSignoffStageWorkspace = ({
     }
   })();
 
+  if (material.kind === "PROPOSAL") return primary;
+
   return <WorkflowStepFrame summary={summary} index={selector} indexLabel="Current workflow material"
     primary={<PrimaryMaterialFrame><section className="order-productive-stage" data-stage={stage}>
       <div className="order-productive-primary">{primary}</div>
