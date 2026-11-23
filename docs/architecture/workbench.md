@@ -1168,9 +1168,9 @@ Canonical application services resolve as:
 | Create WorkItem/remediation | `WorkbenchAppShell` hosts the current destination and `WorkbenchTaskPanel -> WorkbenchForm` contains the transient creation/configuration task; Astryx field-owning controls are leaves and `WorkbenchField` is only for a control without its own field shell |
 | Settings | `WorkbenchAppShell -> WorkbenchSettingsLayout -> WorkbenchForm` + Astryx field-owning controls / `WorkbenchField` fallback + Status/Notice/Confirmation |
 | WorkItem shell | `WorkbenchAppShell -> WorkbenchWorkItemShell -> WorkbenchIdentity + WorkbenchRail + one primary composition + optional WorkbenchContextPanel` |
-| Work request/lifecycle document | `WorkbenchSurface -> WorkbenchAttention + optional WorkbenchSelector + document renderer` |
-| Active/historical STAGE Run | `WorkbenchSurface -> WorkbenchAttention + optional WorkbenchSelector + WorkbenchDialogue` |
-| Proposal / Readiness / Approval | one `WorkbenchReview` primary composition (+ selector/disclosure/field where explicitly required); no outer `WorkbenchSurface`/`WorkbenchAttention` wrapper |
+| Work request/lifecycle document | direct Document composition; where the selected/current Document interaction has genuine human attention, the Document owner may compose the one optional `WorkbenchAttention` region defined by its exact interaction contract; no generic `WorkbenchSelector` or outer workflow wrapper |
+| Active/historical STAGE Run | direct `WorkbenchDialogue`; current human-action feedback/composer/state remains Dialogue-owned, while historical current-owner return uses the one explicitly authorized attention/action treatment outside the transcript only when that return is genuinely current |
+| Proposal / Readiness / Approval | one direct `WorkbenchReview` primary composition; supporting package/history uses interaction-specific `WorkbenchResourceRow`/Action treatment, exact technical identity routes to WorkItem Context/Evidence, and REQUIRED_INPUT in Readiness replaces Review with Dialogue for that turn; no selector/disclosure/outer `WorkbenchSurface`/`WorkbenchAttention` wrapper |
 | Implementation | `WorkbenchMasterDetail(master scan, detail WorkbenchSurface)` |
 | Run chronology | `WorkbenchTimeline` |
 | Evidence/raw material | one `WorkbenchSurface` with attention absent and `WorkbenchSectionHeader + approved raw-content leaf` in material; it replaces rather than nests inside the owning primary composition |
@@ -1501,7 +1501,7 @@ This is not a new UI framework or controller layer. These modules remain ordinar
 
 `WorkflowStepFrame.tsx`, `WorkflowStepSummary`, `WorkflowStepIndex`, `PrimaryMaterialFrame` and `WorkflowMaterialSelector.tsx` are deleted and remain absent. There is no compatibility replacement. Pre-signoff screen owners select Document/Dialogue/Review/Evidence/State directly from canonical material/interaction state; supporting attempts/upstream material use only the specifically authorized subordinate resource/timeline/action treatment. Active/historical dialogue uses `WorkbenchDialogue`; feature code supplies transcript/composer content but does not own anchored-composer geometry or responsive dialogue mechanics.
 
-Proposal, Readiness and Approval map into `WorkbenchReview`; they do not reuse a generic side-index simply because documents/tasks exist. Secondary technical/supporting detail uses `WorkbenchDisclosure`.
+Proposal, Readiness and Approval map into `WorkbenchReview`; they do not reuse a generic side-index simply because documents/tasks exist. Supporting package/history access uses the Review interaction’s explicit `WorkbenchResourceRow`/Action treatment; exact technical identity routes through selected WorkItem Context/Evidence. `WorkbenchDisclosure` remains limited to specifically named same-task semantic expansion and is not a Review material-navigation or technical-inspection owner.
 
 Implementation maps into `WorkbenchMasterDetail`; feature code does not create its own persistent grid columns.
 
