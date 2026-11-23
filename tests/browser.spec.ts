@@ -4091,7 +4091,8 @@ test("canonical Run feedback remains visible in the owning workflow context with
   await selectWorkflowStep(page, "Implementation");
   await expect(
     page.getByTestId("execution-task-detail")
-      .getByText("No change required", { exact: true }),
+      .getByText("No change required", { exact: true })
+      .first(),
   ).toBeVisible();
   await backToQueue(page);
 
