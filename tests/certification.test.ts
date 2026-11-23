@@ -2294,6 +2294,9 @@ describe("public release delivery certification", () => {
     expect(ci).toContain("pull_request:");
     expect(ci).toContain("name: verify");
     expect(ci).toContain("scripts/verify-release.ts --mode pr");
+    expect(ci).toContain("name: rendered acceptance IA26");
+    expect(ci).toContain("rendered-acceptance-ia26-${{ steps.rendered_candidate.outputs.sha }}");
+    expect(ci).toContain('--grep "rendered acceptance"');
     expect(
       [...ci.matchAll(/^\s*uses:\s*(\S+)\s*$/gm)].map((match) => match[1]),
     ).toEqual([
