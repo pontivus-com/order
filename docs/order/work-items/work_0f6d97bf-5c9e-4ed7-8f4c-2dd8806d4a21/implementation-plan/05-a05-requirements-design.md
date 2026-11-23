@@ -2,7 +2,7 @@
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C07 + C08.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `ff85e33876227ee76f37877252537ab958df4802`; current DESIGN `7a434216611b87689af139c36e8e1a37f4b777ea`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `ff85e33876227ee76f37877252537ab958df4802`; current DESIGN `9103f30b09ea12e5cfc0e66db07f5945a3f8d9f2`.
 
 ## Stable requirement execution dispositions
 
@@ -23,12 +23,12 @@ Package atoms in phase: **2**.
 
 ## Cross-domain presentation reconstruction dependency
 
-Requirements and Solution design retain their authority/proposal semantics. Their already-replaced IA30 runtime screens on the fresh Approval baseline are evidence only and must be revalidated/remediated against SD24/current authority; this phase supplies stage-specific governed information and does not own another layout grammar.
+Requirements and Solution design retain their authority/proposal semantics. IA30 must now fresh-author their presentation against corrected SD24: the governed document is primary without generic workflow summary/material-selector chrome or duplicate outer headings; Dialogue/Proposal/Evidence replace the primary interaction when canonically selected. Existing runtime composition is failure evidence only and supplies no compatibility/preservation target.
 
 ## Referenced actions
 
 - **IA03** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
-- **IA30** — consume the productive pre-signoff resumed-baseline revalidation/remediation definition for Requirements and Solution design.
+- **IA30** — consume the direct productive-stage reconstruction for Requirements/Solution design; no WorkflowStepFrame/WorkflowMaterialSelector equivalent is permitted.
 
 ## Completion proof
 
