@@ -1435,7 +1435,6 @@ export const WorkItemWorkspace = ({
             artifacts={artifacts}
             material={material}
             materialState={selectedStageMaterialState}
-            summary={stepSummary}
             currentRunId={currentStageRun?.id ?? null}
             currentInteraction={currentStageInteraction}
             currentAttention={currentAttention}
@@ -1492,7 +1491,6 @@ export const WorkItemWorkspace = ({
         <Suspense fallback={<WorkbenchState kind="loading" title="Loading approval package…" />}>
           <SignoffReview
             workItem={workItem}
-            summary={stepSummary}
             reviewNotice={currentReviewNotice}
             reviewAction={currentMaterialAction}
             packageValue={signoffPackageQuery.data ?? null}
