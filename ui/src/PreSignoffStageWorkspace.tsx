@@ -13,11 +13,9 @@ import {
   lifecycleArtifactLabel, materialPresentationStateLabel, runStatusLabel,
   type EvidenceSelection, type ProposalSelection, type WorkflowMaterial,
 } from "./workbench-presentation.ts";
-import { PrimaryMaterialFrame, WorkflowStepFrame } from "./WorkflowStepFrame.tsx";
-import {
-  WorkflowMaterialSelector, type WorkflowMaterialSelectorGroup,
-} from "./WorkflowMaterialSelector.tsx";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
+import { WorkbenchResourceRow } from "./primitives/WorkbenchResourceRow.tsx";
+import { WorkbenchSurface } from "./primitives/WorkbenchSurface.tsx";
 import { WorkbenchState } from "./primitives/WorkbenchState.tsx";
 
 export type SharedPreSignoffStage = "R1" | "R2" | "DESIGN" | "PLAN";
@@ -30,7 +28,7 @@ const supportingRoles=(stage: SharedPreSignoffStage): readonly ArtifactRef["role
   stage==="R1" ? [] : stage==="R2" ? ["R1"] : stage==="DESIGN" ? ["R2","R1"] : ["DESIGN","R2"];
 
 export const PreSignoffStageWorkspace = ({
-  workItem, stage, runs, runEvents, artifacts, material, materialState, summary,
+  workItem, stage, runs, runEvents, artifacts, material, materialState, attention,
   currentRunId, currentInteraction, currentAttention, focusedRequiredInputEventId,
   mutationsDisabled=false, authoringMutationsDisabled=false, onRequiredInputFocused,
   onSelectMaterial, onDirtyChange, onOpenArtifactEvidence, onOpenEvidence,
@@ -39,7 +37,7 @@ export const PreSignoffStageWorkspace = ({
 }: Readonly<{
   workItem: WorkItem; stage: SharedPreSignoffStage; runs: readonly Run[];
   runEvents: readonly RunEvent[]; artifacts: readonly ArtifactRef[]; material: WorkflowMaterial;
-  materialState: MaterialPresentationState | null; summary: ReactNode;
+  materialState: MaterialPresentationState | null; attention?: ReactNode;
   currentRunId: Run["id"] | null; currentInteraction: StageRunInteraction | null;
   currentAttention: CurrentAttentionTag; focusedRequiredInputEventId: RunEvent["id"] | null;
   mutationsDisabled?: boolean; authoringMutationsDisabled?: boolean;
@@ -61,7 +59,7 @@ export const PreSignoffStageWorkspace = ({
     return artifact===undefined ? [] : [artifact];
   });
 
-  const items: WorkflowMaterialSelectorGroup["items"]=[
+  const items=[
     ...stageRuns.map((run)=>({
       id:"run-"+run.id,label:"Attempt "+run.attempt,description:new Date(run.startedAt).toLocaleString(),
       statusLabel:runStatusLabel(run.status),selected:material.kind==="STAGE_RUN" && material.runId===run.id,
@@ -86,8 +84,23 @@ export const PreSignoffStageWorkspace = ({
       onSelect:()=>onOpenSupportingMaterial({kind:"SUPPORTING_DOCUMENT",artifactId:artifact.id}),
     })),
   ];
-  const selector=items.length===0 ? undefined : <WorkflowMaterialSelector
-    groups={[{id:"current",label:"Current work",items}]} label="Current workflow material" />;
+  const relatedResources=items.filter((item)=>item.selected!==true);
+  const related=relatedResources.length===0 ? null : (
+    <section className="order-productive-related" aria-label="Related workflow material">
+      <h3>Related material</h3>
+      <div className="order-resource-list">
+        {relatedResources.map((item)=>(
+          <WorkbenchResourceRow
+            key={item.id}
+            label={item.label}
+            detail={[item.description,item.statusLabel].filter(Boolean).join(" · ") || undefined}
+            actionLabel={"Open "+item.label}
+            onOpen={item.onSelect}
+          />
+        ))}
+      </div>
+    </section>
+  );
 
   const companion=stage==="R1" && stageArtifact!==null ? <section
     className="order-productive-research-context" aria-label="Research governed material">
@@ -130,7 +143,7 @@ export const PreSignoffStageWorkspace = ({
         selection={{runId:material.runId,eventId:material.eventId}}
         currentRunId={workItem.stage===stage ? currentRunId : null}
         currentInteraction={workItem.stage===stage ? currentInteraction : null}
-        mutationsDisabled={mutationsDisabled} selector={selector}
+        mutationsDisabled={mutationsDisabled}
         onBack={onReturnFromTransient} onMutationError={onMutationError} />;
       case "EVIDENCE": return <EvidenceViewer selection={material.selection} onBack={onReturnFromTransient} />;
       case "STEP_STATE": return <WorkbenchState kind="empty" title="This workflow step is ready"
@@ -143,8 +156,13 @@ export const PreSignoffStageWorkspace = ({
 
   if (material.kind === "PROPOSAL") return primary;
 
-  return <WorkflowStepFrame summary={summary} index={selector} indexLabel="Current workflow material"
-    primary={<PrimaryMaterialFrame><section className="order-productive-stage" data-stage={stage}>
-      <div className="order-productive-primary">{primary}</div>
-    </section></PrimaryMaterialFrame>} />;
+  return <WorkbenchSurface
+    attention={attention}
+    material={
+      <section className="order-productive-stage" data-stage={stage}>
+        <div className="order-productive-primary">{primary}</div>
+        {related}
+      </section>
+    }
+  />;
 };
