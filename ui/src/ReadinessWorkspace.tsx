@@ -23,7 +23,6 @@ import {
   type EvidenceSelection,
   type WorkflowMaterial,
 } from "./workbench-presentation.ts";
-import { WorkflowStepFrame } from "./WorkflowStepFrame.tsx";
 import {
   WorkflowMaterialSelector,
   type WorkflowMaterialSelectorGroup,
@@ -56,7 +55,6 @@ export const ReadinessWorkspace = ({
   artifacts,
   material,
   materialState,
-  summary,
   currentRunId,
   currentInteraction,
   currentAttention,
@@ -289,10 +287,7 @@ export const ReadinessWorkspace = ({
   );
 
   return (
-    <WorkflowStepFrame
-      summary={summary}
-      primary={
-        <div data-testid="review-workspace">
+    <div data-testid="review-workspace">
           <WorkbenchReview
             currentness={currentness}
             summary={
@@ -387,8 +382,6 @@ export const ReadinessWorkspace = ({
             }
             decisions={<></>}
           />
-        </div>
-      }
-    />
+    </div>
   );
 };
