@@ -28,6 +28,15 @@ import { WorkbenchReview } from "./primitives/WorkbenchReview.tsx";
 import { WorkbenchState } from "./primitives/WorkbenchState.tsx";
 import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
 
+type ReadinessResourceItem = Readonly<{
+  id: string;
+  label: string;
+  description?: string;
+  statusLabel?: string;
+  selected: boolean;
+  onSelect: () => void;
+}>;
+
 const packageRoles = new Set<ArtifactRef["role"]>([
   "R1",
   "R2",
@@ -137,7 +146,7 @@ export const ReadinessWorkspace = ({
       ? artifacts.find((artifact) => artifact.id === material.artifactId) ?? null
       : null;
 
-  const relatedItems = [
+  const relatedItems: ReadinessResourceItem[] = [
     ...(readinessArtifact === null
       ? []
       : [{
