@@ -1109,25 +1109,26 @@ Form / configuration
      + WorkbenchNotice / WorkbenchStatus / WorkbenchAction
 
 Document
-  -> WorkbenchSurface
-     attention = WorkbenchAttention
-     selector = optional WorkbenchSelector
-     material = specialized document/editor renderer
-     secondary detail = optional WorkbenchDisclosure
+  -> specialized document/editor renderer as the one primary material
+     + optional genuine WorkbenchAttention only when the exact Document interaction owns current human attention
+     + interaction-specific WorkbenchResourceRow / Action access for subordinate material where DESIGN requires it
+     + exact technical identity routes to WorkItem Context / Evidence
+     + no generic WorkbenchSelector / WorkbenchDisclosure / outer workflow wrapper
 
 Dialogue
-  -> WorkbenchSurface
-     attention = WorkbenchAttention
-     selector = optional WorkbenchSelector
-     material = WorkbenchDialogue(transcript, activity?, composer, state)
+  -> WorkbenchDialogue(transcript, activity?, composer?, state?)
+     + no outer WorkbenchSurface / WorkbenchAttention wrapper
+     + current human input, processing/open continuation and bounded activity remain Dialogue-owned
+     + historical current-owner return is an explicit surrounding action treatment only when required by the exact historical-inspection contract
 
 Review
   -> WorkbenchReview
      outer WorkbenchSurface / WorkbenchAttention = absent
-     + optional WorkbenchSelector
-     + WorkbenchStatus / WorkbenchNotice
-     + WorkbenchDisclosure for technical detail
+     + WorkbenchStatus / WorkbenchNotice as semantic content inside the declared Review regions
+     + interaction-specific WorkbenchResourceRow / Action access for supporting package/history where required
      + WorkbenchAction for already-derived decisions
+     + exact technical identity routes to WorkItem Context / Evidence
+     + no selector/material-navigation or generic WorkbenchDisclosure slot
 
 Operational master/detail
   -> WorkbenchMasterDetail
@@ -1513,7 +1514,7 @@ Queue uses `WorkbenchTable` and `WorkbenchNotice`; Create WorkItem uses `Workben
 
 ### UI attention/presentation cleanup
 
-The current `Supporting context` disclosure is removed from the leading primary position in pre-signoff activity/document surfaces and is represented through the subordinate material selector/secondary access defined in §8.5.
+The current `Supporting context` disclosure is removed from the leading primary position in pre-signoff activity/document surfaces and is represented only through the interaction-specific subordinate resource/timeline/action access defined in §8.5; no generic material selector or disclosure lane is created.
 
 The current prominent `OpenCode session` block in `ActivityWorkspace` is removed from primary composition. Canonical workflow interaction state owns the visible status; provider diagnostics remain Technical details/evidence unless they are the active blocker.
 
@@ -1950,17 +1951,19 @@ The replacement foundation introduces `WorkbenchAppShell.tsx` and `WorkbenchWork
 
 The following current primitives are **positively retained atomic adapters** because their audited bytes are narrow public-Astryx/semantic adapters and do not establish screen, region or toolbar composition: `WorkbenchAction.tsx`, `WorkbenchDisclosure.tsx`, `WorkbenchField.tsx`, `WorkbenchIcon.tsx`, `WorkbenchNotice.tsx`, and `WorkbenchStatus.tsx`. `WorkbenchDisclosure.tsx` is retained only under its corrected §8.12 responsibility: a low-level Collapsible for specifically named same-task semantic expansion. Its former use as a generic technical/supporting inspection lane is revoked and permanent renderer/architecture fitness must reject those consumer usages. `WorkbenchConfirmation.tsx` remains design-bearing under the Safety/confirmation contract.
 
-The destructive foundation task also removes the old structural selectors and implementation-specific geometry assertions associated with the design-bearing set before fresh primitive authorship. `GW-DOC-WORKBENCH-THEME-V1` remains the token/stylesheet owner, but current `theme.css` declarations are not preservation targets merely because a current primitive consumes them. No browser/certification assertion that encodes the superseded primitive implementation (for example a particular component tag, old `WorkbenchLayout` API, duplicate responsive hook, or old structural selector) may survive as compatibility authority; it is replaced by assertions against the corrected P3/P4 responsibility and rendered-design contract.
+Current foundation remediation is authority-first, not a replay of the historical whole-foundation purge. `GW-DOC-WORKBENCH-THEME-V1` remains the token/stylesheet owner, but current `theme.css` declarations and current primitive bytes are evidence only. No browser/certification assertion that encodes a superseded implementation shape may survive as compatibility authority.
 
 Foundation phasing is mandatory:
 
-1. record the exact retained-atomic versus destructive-composition ledger above;
-2. purge the exact twenty destructive primitive files/old `WorkbenchLayout`, their structural selectors and implementation-specific compatibility assertions in one checkpoint with **no replacement primitive JSX authored in that checkpoint**;
-3. derive the fresh foundation information/composition schema from current P3 interaction classes, information hierarchy and reviewed visual references;
-4. create `WorkbenchAppShell`, `WorkbenchWorkItemShell`, the single responsive owner and the remaining reconstructed composition primitives from that schema over pinned Astryx public APIs;
-5. pass foundation architecture, theme, responsive, accessibility and representative rendered acceptance before any application/workflow screen reconstruction begins.
+1. derive and close the visual-language → foundation realization ledger from current P3/P4/theme authority and reviewed references **before** judging current JSX/CSS;
+2. classify every current design-bearing owner exactly once as `CONFORMING_NO_EDIT`, `BOUNDED_RESIDUAL`, `DESTRUCTIVE_REPLACEMENT` or `REQUIRED_ABSENT`;
+3. delete required-absent generic owners/responsibilities first, including `WorkflowStepFrame` / summary / index / generic `PrimaryMaterialFrame` and `WorkflowMaterialSelector`, and remove their obsolete selectors/assertions;
+4. destructively recreate only owners whose topology, semantic slots or public API contradict current authority; retain independently conforming owners unchanged and apply only strictly local bounded residual corrections;
+5. migrate consumers directly to the already-authorized interaction class. Compile/type breakage caused by removed APIs is a compliance signal and may not be hidden by aliases, wrappers, prop translators, hidden DOM, dual paths, feature flags or CSS shims;
+6. enforce exact primitive consumer allowlists and absence/singularity sensors, then pass IA27 foundation-readiness proof;
+7. run IA28 application-shell/Queue/Create as the first real consumer acceptance. Any recurring foundation defect returns to IA27/DESIGN rather than being patched locally.
 
-Every consuming screen task is downstream of that foundation checkpoint. A screen may not patch around a foundation defect, resurrect the deleted `WorkbenchLayout`, recreate application/WorkItem chrome locally, or add feature-owned structural CSS/responsive branches.
+Every later consuming screen task is downstream of IA28 foundation acceptance. A screen may not patch around a foundation defect, resurrect the deleted `WorkbenchLayout`, recreate generic workflow frame/material-selection responsibilities, recreate application/WorkItem chrome locally, or add feature-owned structural CSS/responsive branches.
 
 The application-global shell owns the globally visible active saved OpenCode-account status/quick-access affordance required by `GW-FR-073-OPENCODE-ACCOUNT-VISIBILITY`. That affordance routes management to the one Settings owner; it is not itself account-management UI. Full repository/account/model configuration remains in Settings.
 
