@@ -23,11 +23,8 @@ import {
 import * as api from "./http.ts";
 import { invalidateWorkbenchMutation, workbenchQueryKeys } from "./query-keys.ts";
 import {
-  materialPresentationStateLabel,
   resolveWorkflowMaterial,
-  workOutcomeProductLabel,
   runIsActive,
-  runStatusLabel,
   workflowMaterialIdentity,
   workflowPresentation,
   workflowStepState,
@@ -37,8 +34,10 @@ import {
   type WorkflowMaterial,
 } from "./workbench-presentation.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
+import { WorkbenchAttention } from "./primitives/WorkbenchAttention.tsx";
 import { WorkbenchConfirmation } from "./primitives/WorkbenchConfirmation.tsx";
 import { WorkbenchWorkItemShell } from "./primitives/WorkbenchWorkItemShell.tsx";
+import { WorkbenchSurface } from "./primitives/WorkbenchSurface.tsx";
 import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
 import { WorkItemIdentityRow } from "./WorkItemIdentityRow.tsx";
 import { WorkflowRail } from "./WorkflowRail.tsx";
@@ -48,11 +47,6 @@ import {
   WorkbenchErrorState,
   WorkbenchState,
 } from "./primitives/WorkbenchState.tsx";
-import {
-  PrimaryMaterialFrame,
-  WorkflowStepFrame,
-  WorkflowStepSummary,
-} from "./WorkflowStepFrame.tsx";
 
 const SourceDocumentMaterial = lazy(() =>
   import("./DocumentWorkspace.tsx").then((module) => ({ default: module.SourceDocumentMaterial })));
@@ -84,37 +78,6 @@ type WorkspaceSelection = Readonly<{
   step: WorkItem["stage"];
   material: WorkflowMaterial | null;
 }>;
-
-const materialTitle = (
-  material: WorkflowMaterial,
-  stepLabel: string,
-): string => {
-  switch (material.kind) {
-    case "SOURCE_DOCUMENT":
-      return "Work request";
-    case "STAGE_RUN":
-      return stepLabel + " activity";
-    case "STAGE_DOCUMENT":
-      return stepLabel + " document";
-    case "SUPPORTING_DOCUMENT":
-      return "Supporting document";
-    case "PROPOSAL":
-      return "Proposal review";
-    case "READINESS_REVIEW":
-      return "Readiness review";
-    case "APPROVAL_PACKAGE":
-      return "Approval package";
-    case "EXECUTION_TASK":
-      return "Implementation task";
-    case "EVIDENCE":
-      return "Evidence";
-    case "TERMINAL_RESULT":
-      return "Final outcome";
-    case "STEP_STATE":
-    case "UNREACHED":
-      return stepLabel;
-  }
-};
 
 const startLabelForStage = (stage: WorkItem["stage"]): string =>
   stage === "IDEA"
@@ -420,14 +383,6 @@ export const WorkItemWorkspace = ({
     selectedStep === "R3"
       ? artifacts.find((artifact) => artifact.role === selectedStep) ?? null
       : null;
-  const selectedStateLabel =
-    selectedStepState === "CURRENT"
-      ? "Current"
-      : selectedStepState === "HISTORICAL"
-        ? "Reached"
-        : "Not reached";
-  const selectedStateVariant =
-    selectedStepState === "CURRENT" ? "info" as const : "neutral" as const;
 
   const sourceDiagnostics = (diagnosticsQuery.data ?? []).filter(
     (item) => item.workItemId === workItem.id || item.path === workItem.sourcePath,
@@ -667,114 +622,6 @@ export const WorkItemWorkspace = ({
     explicitStageArtifactStillCurrent,
     selectedStageArtifact?.id,
   ]);
-  const ordinaryClassification = (value: string): string =>
-    value
-      .replaceAll("_", " ")
-      .toLowerCase()
-      .replace(/^./, (first) => first.toUpperCase());
-  const summaryStatusLabel = (() => {
-    if (selectedStep === "IDEA") {
-      return sourceDiagnostics.length > 0
-        ? "Source needs attention"
-        : "Source current";
-    }
-    if (
-      selectedStep === "R1" ||
-      selectedStep === "R2" ||
-      selectedStep === "DESIGN" ||
-      selectedStep === "PLAN"
-    ) {
-      if (pendingProposal && selectedStepState === "CURRENT") {
-        return "Proposal review required";
-      }
-      if (selectedLatestStageRun) {
-        const classification =
-          selectedLatestStageRun.terminalClassification === null
-            ? ""
-            : " · " +
-              ordinaryClassification(selectedLatestStageRun.terminalClassification);
-        const documentState = selectedStageMaterialState === null
-          ? ""
-          : " · " + materialPresentationStateLabel(selectedStageMaterialState);
-        const interactionState =
-          selectedStep === workItem.stage &&
-          selectedLatestStageRun.id === currentStageRun?.id
-            ? currentStageInteraction?.tag === "PROCESSING"
-              ? "Processing"
-              : currentStageInteraction?.tag === "OPEN"
-                ? "Open for continuation"
-                : currentStageInteraction?.tag === "REQUIRED_INPUT"
-                  ? "Waiting for you"
-                  : runStatusLabel(selectedLatestStageRun.status)
-            : runStatusLabel(selectedLatestStageRun.status);
-        return interactionState + classification + documentState;
-      }
-      if (selectedStageMaterialState !== null) {
-        return materialPresentationStateLabel(selectedStageMaterialState);
-      }
-      return selectedStepState === "CURRENT" ? "Ready to start" : "No governed material";
-    }
-    if (selectedStep === "R3") {
-      if (selectedStepState === "HISTORICAL") return "Ready for sign-off";
-      if (selectedLatestStageRun) {
-        return selectedLatestStageRun.terminalClassification
-          ? ordinaryClassification(selectedLatestStageRun.terminalClassification)
-          : runStatusLabel(selectedLatestStageRun.status);
-      }
-      if (selectedStageMaterialState !== null) {
-        return materialPresentationStateLabel(selectedStageMaterialState);
-      }
-      return selectedStepState === "CURRENT"
-        ? "Review in progress"
-        : "Not yet reached";
-    }
-    if (selectedStep === "AWAITING_SIGNOFF") {
-      if (selectedStepState === "HISTORICAL") {
-        if (tasksQuery.isPending) return "Loading approval history";
-        return tasks.length > 0
-          ? "Approved · historical"
-          : "Returned upstream before sign-off";
-      }
-      if (selectedStepState === "UNREACHED") return "Not yet reached";
-      if (signoffPackageQuery.isFetching) return "Resolving package";
-      if (packageStaleOwner !== null) return "Package stale";
-      if (signoffPackageQuery.isError || !signoffPackageQuery.data) {
-        return "Package unavailable";
-      }
-      return "Package current · ready to sign";
-    }
-    if (selectedStep === "COMPLETE") {
-      return selectedStepState === "CURRENT"
-        ? workOutcomeProductLabel(workItem.outcome)
-        : "Not yet reached";
-    }
-    return undefined;
-  })();
-  const summaryStatusVariant =
-    selectedStep === "IDEA" && sourceDiagnostics.length > 0
-      ? "error" as const
-      : selectedLatestStageRun?.status === "FAILED" ||
-          selectedLatestStageRun?.status === "BLOCKED"
-        ? "error" as const
-        : selectedLatestStageRun?.status === "WAITING_FOR_INPUT"
-          ? "warning" as const
-          : selectedStep === "AWAITING_SIGNOFF" &&
-              selectedStepState === "CURRENT" &&
-              packageStaleOwner !== null
-            ? "warning" as const
-            : selectedStep === "AWAITING_SIGNOFF" &&
-                selectedStepState === "CURRENT" &&
-                (signoffPackageQuery.isError || !signoffPackageQuery.data)
-              ? "error" as const
-            : selectedStep === "AWAITING_SIGNOFF" &&
-                selectedStepState === "HISTORICAL" &&
-                tasks.length === 0
-              ? "neutral" as const
-              : selectedStep === "COMPLETE" ||
-                  selectedStepState === "HISTORICAL" ||
-                  selectedLatestStageRun?.status === "COMPLETED"
-                ? "success" as const
-                : "neutral" as const;
 
   const currentStageEventUpdatedAt =
     currentStageRun === null
@@ -1226,41 +1073,6 @@ export const WorkItemWorkspace = ({
   const inspectedHistorical =
     !currentStepSelected ||
     materialIdentity !== canonicalCurrentMaterialIdentity;
-  const currentAttentionStatusLabel = (() => {
-    if (!inspectedHistorical) return summaryStatusLabel;
-    switch (currentAttention) {
-      case "CONVERGING": return "Applying change";
-      case "MUTATION_CONFLICT": return "Mutation conflict";
-      case "REQUIRED_INPUT": return "Waiting for you";
-      case "PROPOSAL_DECISION": return "Proposal review required";
-      case "PROPOSAL_ADOPTION": return "Applying change";
-      case "BLOCKER": return "Blocked";
-      case "RECOVERY": return "Recovery required";
-      case "STALE_AUTHORITY": return "Stale authority";
-      case "PROCESSING": return "Processing";
-      case "ACTIONABLE": return "Action required";
-      case "ORDINARY": return "Current material";
-    }
-  })();
-  const currentAttentionVariant = (() => {
-    if (!inspectedHistorical) return summaryStatusVariant;
-    switch (currentAttention) {
-      case "BLOCKER":
-      case "MUTATION_CONFLICT": return "error" as const;
-      case "REQUIRED_INPUT":
-      case "PROPOSAL_DECISION":
-      case "RECOVERY":
-      case "STALE_AUTHORITY":
-        return "warning" as const;
-      case "CONVERGING":
-      case "PROPOSAL_ADOPTION":
-      case "PROCESSING":
-      case "ACTIONABLE":
-        return "info" as const;
-      case "ORDINARY":
-        return "neutral" as const;
-    }
-  })();
 
   const currentOwnerAction =
     canRetry ? (
@@ -1334,18 +1146,25 @@ export const WorkItemWorkspace = ({
       />
     );
 
-  const stepSummary = (
-    <WorkflowStepSummary
-      label={inspectedHistorical ? workflow.label : selectedWorkflow.label}
-      purpose={inspectedHistorical ? workflow.purpose : selectedWorkflow.purpose}
-      stateLabel={inspectedHistorical ? "Current" : selectedStateLabel}
-      stateVariant={inspectedHistorical ? currentAttentionVariant : selectedStateVariant}
-      statusLabel={currentAttentionStatusLabel}
-      statusVariant={currentAttentionVariant}
-      blocker={summaryBlocker}
-      action={currentMaterialAction}
-    />
-  );
+  const stepAttention =
+    summaryBlocker !== null ? (
+      <WorkbenchAttention
+        title={summaryBlocker.title}
+        description={summaryBlocker.description}
+        action={currentMaterialAction}
+      />
+    ) : inspectedHistorical && currentMaterialAction !== undefined ? (
+      <WorkbenchAttention
+        title={workflow.label + " needs your attention"}
+        description={"You are inspecting " + selectedWorkflow.label + ". Return to current work to continue."}
+        action={currentMaterialAction}
+      />
+    ) : currentOwnerAction !== null ? (
+      <WorkbenchAttention
+        title={workflow.label + " is ready for your action"}
+        action={currentOwnerAction}
+      />
+    ) : undefined;
 
   const semanticWorkItemKind = schemas.find(
     (schema) => schema.schemaId === workItem.schemaId,
@@ -1435,7 +1254,7 @@ export const WorkItemWorkspace = ({
             artifacts={artifacts}
             material={material}
             materialState={selectedStageMaterialState}
-            summary={stepSummary}
+            attention={stepAttention}
             currentRunId={currentStageRun?.id ?? null}
             currentInteraction={currentStageInteraction}
             currentAttention={currentAttention}
@@ -1559,56 +1378,54 @@ export const WorkItemWorkspace = ({
           />
         </Suspense>
       ) : (
-        <WorkflowStepFrame
-          summary={stepSummary}
-          primary={
-          <PrimaryMaterialFrame title={materialTitle(material, selectedWorkflow.label)}>
+        <WorkbenchSurface
+          attention={stepAttention}
+          material={
             <Suspense fallback={<WorkbenchState kind="loading" title="Loading workspace…" />}>
-        {material.kind === "SOURCE_DOCUMENT" ? (
-          <SourceDocumentMaterial
-            workItem={workItem}
-            mutationsDisabled={documentMutationsDisabled}
-            onDirtyChange={setDirtyState}
-            onContextDocumentChange={onContextDocumentChange}
-            onMutationError={reportMutationError}
-          />
-        ) : null}
-        {material.kind === "STAGE_DOCUMENT" ? (
-          <LifecycleDocumentMaterial
-            workItem={workItem}
-            artifactId={material.artifactId}
-            mutationsDisabled={documentMutationsDisabled}
-            onDirtyChange={setDirtyState}
-            onOpenArtifactEvidence={openArtifactEvidence}
-            onContextDocumentChange={onContextDocumentChange}
-            onMutationError={reportMutationError}
-          />
-        ) : null}
-        {material.kind === "STEP_STATE" ? (
-          <WorkbenchEmptyState
-            compact
-            title={
-              selectedStep === workItem.stage && canStart
-                ? selectedWorkflow.label + " is ready to start"
-                : "No current material for " + selectedWorkflow.label
-            }
-            description={
-              selectedStep === workItem.stage && canStart
-                ? "Use the current workflow action to begin this step."
-                : "This reached workflow step has no current canonical material to inspect."
-            }
-          />
-        ) : null}
-        {material.kind === "UNREACHED" ? (
-          <WorkbenchEmptyState
-            compact
-            title={selectedWorkflow.label + " has not been reached"}
-            description="Workflow inspection does not create or promote lifecycle state."
-          />
-        ) : null}
+              {material.kind === "SOURCE_DOCUMENT" ? (
+                <SourceDocumentMaterial
+                  workItem={workItem}
+                  mutationsDisabled={documentMutationsDisabled}
+                  onDirtyChange={setDirtyState}
+                  onContextDocumentChange={onContextDocumentChange}
+                  onMutationError={reportMutationError}
+                />
+              ) : null}
+              {material.kind === "STAGE_DOCUMENT" ? (
+                <LifecycleDocumentMaterial
+                  workItem={workItem}
+                  artifactId={material.artifactId}
+                  mutationsDisabled={documentMutationsDisabled}
+                  onDirtyChange={setDirtyState}
+                  onOpenArtifactEvidence={openArtifactEvidence}
+                  onContextDocumentChange={onContextDocumentChange}
+                  onMutationError={reportMutationError}
+                />
+              ) : null}
+              {material.kind === "STEP_STATE" ? (
+                <WorkbenchEmptyState
+                  compact
+                  title={
+                    selectedStep === workItem.stage && canStart
+                      ? selectedWorkflow.label + " is ready to start"
+                      : "No current material for " + selectedWorkflow.label
+                  }
+                  description={
+                    selectedStep === workItem.stage && canStart
+                      ? "Use the current workflow action to begin this step."
+                      : "This reached workflow step has no current canonical material to inspect."
+                  }
+                />
+              ) : null}
+              {material.kind === "UNREACHED" ? (
+                <WorkbenchEmptyState
+                  compact
+                  title={selectedWorkflow.label + " has not been reached"}
+                  description="Workflow inspection does not create or promote lifecycle state."
+                />
+              ) : null}
             </Suspense>
-          </PrimaryMaterialFrame>
-        }
+          }
         />
       )}
     </div>
