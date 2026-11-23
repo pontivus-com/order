@@ -132,6 +132,45 @@ const writeRenderedAcceptanceEvidence = (
       "",
     ].join("\n"),
   );
+
+  const escapeHtml = (value: string): string =>
+    value
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
+  writeFileSync(
+    join(renderedAcceptanceDir, "comparison.html"),
+    [
+      "<!doctype html>",
+      '<html lang="en"><head><meta charset="utf-8">',
+      "<title>Order 0.6.0 IA26 rendered acceptance</title>",
+      "<style>",
+      "body{font-family:system-ui,sans-serif;margin:0;background:#f6f7f9;color:#111827}header{position:sticky;top:0;background:white;border-bottom:1px solid #d1d5db;padding:16px 24px;z-index:2}main{padding:24px;display:grid;gap:24px}.case{background:white;border:1px solid #d1d5db;border-radius:8px;padding:16px}.meta{display:flex;gap:12px;flex-wrap:wrap;margin:8px 0 16px;color:#4b5563}.pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}.visual{border:1px solid #e5e7eb;background:#fff;padding:8px;overflow:auto}.visual img,.visual object{display:block;width:100%;height:auto;min-height:240px}.refs{display:grid;gap:12px}@media(max-width:900px){.pair{grid-template-columns:1fr}}code{font-size:.9em}h2{margin-bottom:4px}",
+      "</style></head><body>",
+      "<header><strong>Order 0.6.0 IA26</strong> · exact candidate <code>" +
+        escapeHtml(renderedAcceptanceCandidateSha) + "</code></header>",
+      "<main>",
+      ...merged.map((entry) => {
+        const refs = entry.references.map((value) => {
+          const name = value.split("/").at(-1) ?? value;
+          return '<div class="visual"><strong>Reference: ' + escapeHtml(name) +
+            '</strong><object data="references/' + encodeURIComponent(name) +
+            '" type="image/svg+xml"></object></div>';
+        }).join("");
+        return '<section class="case"><h2>' + escapeHtml(entry.id) + '</h2>' +
+          '<div class="meta"><span><code>' + escapeHtml(entry.surface) + '</code></span>' +
+          '<span>' + escapeHtml(entry.state) + '</span><span>' +
+          escapeHtml(entry.viewport.width + "×" + entry.viewport.height) +
+          '</span><span>' + escapeHtml(entry.theme) + '</span></div>' +
+          '<div class="pair"><div class="visual"><strong>Runtime PNG</strong><img src="' +
+          encodeURIComponent(entry.screenshot) + '" alt="' + escapeHtml(entry.id) +
+          '"></div><div class="refs">' + refs + '</div></div></section>';
+      }),
+      "</main></body></html>",
+    ].join("\n"),
+  );
 };
 
 const captureRenderedAcceptance = async (
