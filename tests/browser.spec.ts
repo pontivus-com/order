@@ -2148,6 +2148,8 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     .toHaveCount(0);
   await expect(modelSettings.getByText("opencode/glm-5.3-flash-free", { exact: true }))
     .toBeVisible();
+  await expect(modelSettings.getByText("Configured model is unavailable", { exact: true }))
+    .toBeVisible();
   await capture({
     id: "ia26-settings-model-wide-light",
     workItemKind: "QUEUE",
