@@ -93,7 +93,6 @@ export const PreSignoffStageWorkspace = ({
     className="order-productive-research-context" aria-label="Research governed material">
     <strong>Repository-backed Research material</strong>
     <span>{materialState===null ? "Current governed Research material" : materialPresentationStateLabel(materialState)}</span>
-    <code>{stageArtifact.repositoryPath}</code>
     <WorkbenchAction label="Open Research document" tone="secondary"
       onClick={()=>onSelectMaterial({kind:"STAGE_DOCUMENT",artifactId:stageArtifact.id})} />
   </section> : undefined;
