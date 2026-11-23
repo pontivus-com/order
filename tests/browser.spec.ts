@@ -1411,6 +1411,78 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     ],
   }));
 
+  await page.route("**/api/work-items**", async (route) => {
+    const url = new URL(route.request().url());
+    if (route.request().method() !== "GET" || url.pathname !== "/api/work-items") {
+      await route.fallback();
+      return;
+    }
+    const upstream = await route.fetch();
+    const rows = WorkItemSchema.array().parse(await upstream.json());
+    const template = rows[0];
+    if (template === undefined) {
+      throw new Error("rendered Queue archived state requires one WorkItem fixture");
+    }
+    const archived = WorkItemSchema.parse({
+      ...template,
+      id: "work_c1a55e11-7ae0-4aac-9f0c-d5ff82f5c629",
+      title: "Rendered archived work item",
+      archived: true,
+    });
+    await route.fulfill({
+      status: upstream.status(),
+      contentType: "application/json",
+      body: JSON.stringify([
+        ...rows,
+        ...(url.searchParams.get("includeArchived") === "true" ? [archived] : []),
+      ]),
+    });
+  });
+  await page.getByRole("button", { name: "Show archived" }).click();
+  const archivedSearch = page.getByLabel("Search work items");
+  await archivedSearch.fill("Rendered archived work item");
+  const archivedRow = rowFor(page, "Rendered archived work item");
+  await expect(archivedRow).toContainText("Archived");
+  await expect(archivedRow.getByRole("button", {
+    name: "Restore Rendered archived work item",
+  })).toBeVisible();
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "queue-wide-light-archived",
+    workItemKind: "QUEUE",
+    workflowStep: null,
+    surface: "SURF-QUEUE-001",
+    state: "archived-visible",
+    fixture: "deterministic archived WorkItem filtered for explicit archived-state review",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: "/",
+    references: ["docs/references/workbench-ui/queue-states.svg"],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM",
+    ],
+  }));
+  await archivedSearch.fill("");
+  await page.getByRole("button", { name: "Hide archived" }).click();
+  await page.unroute("**/api/work-items**");
+
+  const noMatchSearch = page.getByLabel("Search work items");
+  await noMatchSearch.fill("no rendered acceptance match");
+  await expect(page.getByText("No matching work items", { exact: true })).toBeVisible();
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "queue-wide-light-no-matches",
+    workItemKind: "QUEUE",
+    workflowStep: null,
+    surface: "SURF-QUEUE-001",
+    state: "no-search-matches",
+    fixture: "order-e2e queue filtered to no matches",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: "/",
+    references: ["docs/references/workbench-ui/queue-states.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX"],
+  }));
+  await noMatchSearch.fill("");
   await page.setViewportSize({ width: 700, height: 800 });
   await expect(queue).toBeVisible();
   await expect(queue.locator(".order-workbench-surface-attention")).toHaveCount(0);
