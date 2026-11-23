@@ -72,14 +72,16 @@ export const EvidenceViewer = ({
 
   return (
     <WorkbenchSurface
-      attention={
-        <WorkbenchSectionHeader
-          title="Evidence"
-          description="Read-only exact material. UTF-8 is shown verbatim; non-UTF-8 uses the bounded binary preview."
-          action={<WorkbenchAction label="Back to workflow context" tone="secondary" onClick={onBack} />}
-        />
+      material={
+        <section className="order-evidence-primary" data-testid="evidence-workspace">
+          <WorkbenchSectionHeader
+            title="Evidence"
+            description="Read-only exact material. UTF-8 is shown verbatim; non-UTF-8 uses the bounded binary preview."
+            action={<WorkbenchAction label="Back to workflow context" tone="secondary" onClick={onBack} />}
+          />
+          {material}
+        </section>
       }
-      material={material}
     />
   );
 };
