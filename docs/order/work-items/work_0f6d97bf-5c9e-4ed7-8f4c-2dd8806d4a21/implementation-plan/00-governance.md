@@ -34,25 +34,26 @@ A positive no-change or baseline-reuse disposition is an implementation instruct
 
 ## Execution ownership
 
-## IA28 bounded pre-sign-off realization authorization
+## Bounded pre-sign-off IA27/IA28 realization contract
 
-This campaign invokes the P0 bounded acceptance-evidence realization control solely because the Workbench foundation cannot be meaningfully accepted from IA27 primitives/ledger in isolation. The operator explicitly authorized this exact tranche on **2026-11-22** with the instruction to govern the boundary and implement only until the first rendered sign-off point.
+This PLAN source defines the bounded-realization **eligibility, scope and sequence only**. Current grant identity/state is owned exclusively by the canonical campaign registers in `0.6.0-design-campaign-plan.md §17A/§18`; it must not be copied or projected here.
 
-**Authorization id:** `IA28-RZ1`  
-**State:** `SUSPENDED_PENDING_REVALIDATION`  
-**Purpose:** realize enough of the actual product to judge whether the IA27 foundation and first screen family satisfy current authority.  
-**Start condition:** **not currently satisfied**. C19-F06/C19-F07/C19-F08/C20-F08/C20-F09/C20-F10 materially changed R2/P3/DESIGN/P4/PLAN authority after the prior IA27/IA28 acceptance by disproving the mandatory Surface-attention contract, primary-composition routing (including Review-class outer wrapping) and acceptance methodology. The historical IA28-RZ1 grant remains suspended. A fresh exact-package bounded-realization authorization may be issued **only after G5 and G5A PASS** against the corrected R1/R2/DESIGN/PLAN/P3/P4/theme package and must explicitly cite those exact identities plus the operator authorization. Fresh IA27/IA28 evidence then becomes an input to R3/G6; requiring G6 before that evidence would be circular.  
-**Authorized primary owners while suspended:** NONE. The previously listed IA28 owners are historical scope evidence only until reauthorization.  
-**IA27 shell-integration exception:** `ui/src/app.tsx` may be changed only to close a proven `SURF-APP-001` residual exposed by this tranche (global account utility, readiness/diagnostic presentation, Queue/Create entry composition); no selected-WorkItem/material-screen redesign is authorized.  
-**Shared-owner use:** `ui/src/styles.css` / `ui/src/theme.css` only for a proven IA28 screen-local residual or an IA28-observed recurring IA27 foundation defect; other IA27 primitive/shell owners may be reopened only when the rendered first-screen evidence proves a recurring foundation defect.  
-**Verification owners:** existing `tests/browser.spec.ts`, `tests/certification.test.ts` and `.github/workflows/ci.yml` only as required to produce/verify the declared IA28 evidence package.  
-**Forbidden:** any IA29-IA34 screen-family mutation; unrelated non-UI mutation; new product/architecture/contract semantics; delivery/merge/release; treating current JSX/SVG as authority.  
-**Required evidence:** actual production-browser captures for `SURF-APP-001`, `SURF-QUEUE-001`, `SURF-CREATE-001` and their required IA28 state/reference sheets, reviewed against current authority and paired non-superseded SVGs with independent `schema_information`, `ux_interaction`, `visual_ui` verdicts plus one foundation-realization verdict.  
-**Failure routing:** recurring primitive/token/shell/hierarchy/disclosure/theme/responsive defect → IA27; Queue/Create/application-utility-local defect → IA28; missing/contradictory product or information classification → DESIGN.  
-**Mandatory stop:** once the complete IA28 rendered evidence package exists and is ready for human review, all implementation stops before IA29 regardless of verdict. Human acceptance/sign-off is the next action.
+The exception exists because R3/G6 requires implementation/rendered evidence of the corrected Workbench foundation, while normal signed implementation still begins only after R3 `READY_FOR_SIGNOFF` plus human Approval.
 
-`IA28-RZ1` is currently suspended and authorizes no production mutation. Any fresh bounded grant after G5A remains evidence-production authority only: it is not Approval, does not materialize ordinary T1 execution, and cannot authorize post-IA28 work. The mandatory order is G5/G5A PASS → explicit exact-package bounded authorization → IA27/IA28 evidence → R3/G6 → normal human sign-off → IA29+.
+The bounded realization contract is:
 
+- prerequisite: exact G5 and G5A PASS on the current R1/R2/DESIGN/PLAN/P3/P4/theme package;
+- activation: a fresh explicit operator authorization bound to that exact package in the campaign register;
+- permitted production mutation: **IA27 then IA28 only**;
+- IA27 purpose: reconstruct/close the shared foundation, delete required-absent generic workflow owners, migrate only the exact consumers necessary to consume the closed foundation, and produce foundation-readiness proof;
+- IA28 purpose: accept the corrected foundation through the actual application shell, Queue and Create consumers and produce the declared rendered evidence;
+- shared-owner use: `ui/src/styles.css` / `ui/src/theme.css` only for IA27 foundation or proven IA28 screen-local residuals;
+- verification owners: existing `tests/browser.spec.ts`, `tests/certification.test.ts` and `.github/workflows/ci.yml` only as required to produce/verify the declared evidence package;
+- forbidden: IA29-IA34 production mutation, unrelated non-UI mutation, new product/architecture/contract semantics, compatibility aliases/wrappers/translators, hidden legacy DOM, dual paths, feature flags, CSS shims, DTO/view-model/state families, second shell/responsive ownership, delivery/merge/release, or treating current JSX/SVG as authority;
+- failure routing: recurring primitive/token/shell/hierarchy/disclosure/theme/responsive defect → IA27; Queue/Create/application-utility-local defect → IA28; missing/contradictory product or information classification → DESIGN;
+- mandatory stop: after the complete IA28 evidence package exists, stop before IA29 and route the exact package/evidence to R3/G6.
+
+The mandatory order is therefore **G5/G5A PASS → explicit exact-package bounded authorization → IA27 → IA28 evidence → R3/G6 → normal human sign-off → IA29+**. The bounded grant is evidence-production authority only; it is not Approval and does not materialize ordinary signed T1 execution.
 
 A semantic phase may reference an IA action owned by another phase. That reference is a consumer dependency, not permission to re-implement the action. Each IA01-IA34 entry is defined exactly once in `12-action-catalog.md`. IA entries may own a production mutation, a verification-only delta, a DESIGN-positive-reuse/no-code proof obligation, rendered-product acceptance evidence, or final closeout; they do not create a second task representation.
 
