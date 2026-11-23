@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { MetadataList, MetadataListItem } from "@astryxdesign/core/MetadataList";
 import { Markdown } from "@astryxdesign/core/Markdown";
@@ -224,49 +224,6 @@ const DocumentationGitBar = ({
   );
 };
 
-const DocumentationTechnicalDetails = ({
-  selectedRepositoryPath,
-  projection,
-  children,
-}: Readonly<{
-  selectedRepositoryPath: string | null;
-  projection: DocumentationGitProjection;
-  children?: ReactNode;
-}>) => (
-  <div className="order-document-technical">
-    <MetadataList columns="single">
-      <MetadataListItem label="Selected path">
-        <code>
-          {selectedRepositoryPath ?? projection.workItemDirectory}
-        </code>
-      </MetadataListItem>
-      {projection.selectedPath === null ? null : (
-        <MetadataListItem label="Working tree">
-          <code>
-            {projection.selectedPath.state.replaceAll("_", " ").toLowerCase()}
-          </code>
-        </MetadataListItem>
-      )}
-      <MetadataListItem label="WorkItem directory">
-        <code>{projection.workItemDirectory}</code>
-      </MetadataListItem>
-      {projection.statusQuery.data === undefined ? null : (
-        <>
-          <MetadataListItem label="Branch">
-            <code>
-              {projection.statusQuery.data.branch ?? "detached HEAD"}
-            </code>
-          </MetadataListItem>
-          <MetadataListItem label="HEAD">
-            <code>{projection.statusQuery.data.headCommit}</code>
-          </MetadataListItem>
-        </>
-      )}
-    </MetadataList>
-    {children}
-  </div>
-);
-
 const DocumentationGitReview = ({
   projection,
 }: Readonly<{ projection: DocumentationGitProjection }>) => {
@@ -474,17 +431,6 @@ export const SourceDocumentMaterial = ({
             concernIds={git.sourceQuery.data.metadata.concernIds}
           />
         }
-        technicalDetails={
-          <DocumentationTechnicalDetails
-            selectedRepositoryPath={selectedRepositoryPath}
-            projection={git}
-          >
-            <section className="order-document-source-bytes" aria-label="Complete portable source">
-              <strong>Complete portable source</strong>
-              <pre><code>{git.sourceQuery.data.markdown}</code></pre>
-            </section>
-          </DocumentationTechnicalDetails>
-        }
       />
       {sourceReadOnly ? null : <DocumentationGitReview projection={git} />}
     </section>
@@ -684,12 +630,6 @@ export const LifecycleDocumentMaterial = ({
                 readOnly={artifactReadOnly}
               />
             ) : undefined
-          }
-          technicalDetails={
-            <DocumentationTechnicalDetails
-              selectedRepositoryPath={selectedArtifact.repositoryPath}
-              projection={git}
-            />
           }
         />
       )}
