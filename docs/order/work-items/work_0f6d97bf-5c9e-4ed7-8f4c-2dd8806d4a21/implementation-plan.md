@@ -786,8 +786,6 @@ Package atoms in phase: **3**.
 4. every package atom is satisfied by its one execution owner;
 5. action-specific tests plus `13-verification-closeout.md` pass;
 6. any evidence contradiction returns upstream rather than broadening scope.
-
-
 ### Compiled component: `implementation-plan/10-a10-recovery-accessibility.md`
 #### A10 — Recovery, current attention and accessibility
 
