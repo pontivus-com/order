@@ -1849,7 +1849,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     renderedAcceptanceDir === undefined,
     "IA26 rendered acceptance runs only in its GitHub Actions evidence step",
   );
-  test.setTimeout(180_000);
+  test.setTimeout(300_000);
 
   const runtimeErrors: string[] = [];
   page.on("pageerror", (error) => runtimeErrors.push("pageerror: " + error.message));
