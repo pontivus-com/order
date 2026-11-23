@@ -4613,11 +4613,12 @@ test("all nine workflow steps keep their canonical summary/material grammar and 
         await expect(page.getByRole("button", { name: "Return to Approval" })).toHaveCount(0);
       }
     } else {
-      const attention = page.getByTestId("workflow-step-summary");
+      const attention = page.locator(".order-workbench-attention");
       await expect(attention).toContainText("Approval");
-      await expect(attention).toContainText("Action required");
       await expect(page.getByRole("button", { name: "Return to Approval" })).toBeVisible();
-      await expect(page.getByTestId("primary-material-frame")).toBeVisible();
+      await expect(page.getByTestId("workflow-step-summary")).toHaveCount(0);
+      await expect(page.getByTestId("primary-material-frame")).toHaveCount(0);
+      await expect(page.getByTestId("workflow-step-workspace")).toBeVisible();
     }
   }
 
@@ -4640,7 +4641,7 @@ test("all nine workflow steps keep their canonical summary/material grammar and 
   await backToQueue(page);
   await openWorkItem(page, "Verified candidate");
   await selectWorkflowStep(page, "Implementation");
-  await expect(page.getByTestId("workflow-step-summary")).toContainText("Implementation");
+  await expect(page.getByTestId("workflow-step-summary")).toHaveCount(0);
   await expect(page.getByTestId("execution-workspace")).toBeVisible();
   await selectWorkflowStep(page, "Complete");
   await expect(page.getByTestId("result-workspace")).toContainText("Verified candidate");
@@ -4654,7 +4655,7 @@ test("OPEN continuation keeps the agent anchor visible and admits exactly one cu
   await openWorkItem(page, "Research open continuation");
   const detail = page.getByTestId("activity-detail");
   await expect(detail).toBeVisible();
-  await expect(page.getByTestId("workflow-step-summary")).toContainText("Open for continuation");
+  await expect(page.getByTestId("workflow-step-summary")).toHaveCount(0);
   await expect(page.getByTestId("selected-run-header")).toContainText("Open for continuation");
   await expect(detail).toContainText("The current Research findings are ready for your continuation.");
   const composer = detail.getByTestId("activity-composer");
@@ -4676,7 +4677,7 @@ test("PROCESSING dialogue state is visibly distinct and has no reply composer", 
   await fixtureMutation(request, "/start-stage", { workItemId: item.id });
   await openWorkItem(page, "Research processing attention visual");
 
-  await expect(page.getByTestId("workflow-step-summary")).toContainText("Processing");
+  await expect(page.getByTestId("workflow-step-summary")).toHaveCount(0);
   await expect(page.getByTestId("selected-run-header")).toContainText("Processing");
   await expect(page.getByTestId("activity-composer")).toHaveCount(0);
 });
@@ -4690,7 +4691,8 @@ test("active agent ownership keeps title and lifecycle authoring read-only while
   await fixtureMutation(request, "/start-stage", { workItemId: item.id });
   await openWorkItem(page, "Implementation plan document visual");
 
-  await expect(page.getByTestId("workflow-step-summary")).toContainText("Processing");
+  await expect(page.getByTestId("workflow-step-summary")).toHaveCount(0);
+  await expect(page.getByTestId("selected-run-header")).toContainText("Processing");
   await expect(page.getByRole("button", { name: "Edit title", exact: true })).toBeDisabled();
 
   await openWorkflowResource(page, "Implementation plan document");
@@ -4704,7 +4706,8 @@ test("active agent ownership keeps title and lifecycle authoring read-only while
   await expect(page.getByRole("button", { name: "Save", exact: true })).toHaveCount(0);
 
   await selectWorkflowStep(page, "Implementation plan");
-  await expect(page.getByTestId("workflow-step-summary")).toContainText("Processing");
+  await expect(page.getByTestId("workflow-step-summary")).toHaveCount(0);
+  await expect(page.getByTestId("selected-run-header")).toContainText("Processing");
 });
 
 test("work-type variants preserve their canonical Work request information contracts in one shared shell", async ({
@@ -4910,28 +4913,27 @@ test("Readiness verdict follows typed R3 outcome independently from material cur
   await expect(staleReview.getByText("Stale", { exact: true })).toBeVisible();
 });
 
-test("Readiness required input owns the action without replacing Review", async ({
+test("Readiness required input exposes the exact current question without sign-off", async ({
   page,
   request,
 }) => {
   await authenticate(page, request);
   await openWorkItem(page, "Readiness input required");
-  const review = page.getByTestId("review-workspace");
-  await expect(review).toBeVisible();
   await expect(page.getByTestId("workflow-step-summary")).toHaveCount(0);
-  await expect(review).toContainText("Waiting for you");
-  const interaction = page.getByTestId("readiness-current-attention");
-  await expect(interaction).toBeVisible();
-  await expect(interaction).toContainText(
-    "Which readiness finding should be resolved before approval?",
-  );
-  const readinessComposer = interaction.getByTestId("activity-composer");
+  await expect(
+    page.getByText(
+      "Which readiness finding should be resolved before approval?",
+      { exact: true },
+    ),
+  ).toBeVisible();
+  const readinessComposer = page.getByTestId("activity-composer");
   await expect(readinessComposer).toBeVisible();
   await expect(readinessComposer.getByLabel("Message input")).toBeVisible();
   await expect(readinessComposer).toContainText("Answer the question above");
-  await expect(review.getByText("Readiness verdict", { exact: true })).toBeVisible();
-  await expect(review.getByText("Findings / defective owner", { exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Sign off exact package" })).toHaveCount(0);
+  await expect(page.getByRole("combobox", { name: "Readiness material" }))
+    .toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Sign off exact package" }))
+    .toHaveCount(0);
 });
 
 test("Readiness keeps verdict and findings primary while subordinate material changes", async ({
@@ -5130,8 +5132,9 @@ test("historical pre-signoff inspection returns to the current owner before offe
   await expect(page.getByRole("button", { name: "Start Requirements", exact: true })).toBeVisible();
 
   await selectWorkflowStep(page, "Research");
-  const summary = page.getByTestId("workflow-step-summary");
-  await expect(summary).toContainText("Requirements");
+  const attention = page.locator(".order-workbench-attention");
+  await expect(attention).toContainText("Requirements");
+  await expect(page.getByTestId("workflow-step-summary")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Return to Requirements", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Start Requirements", exact: true })).toHaveCount(0);
 });
