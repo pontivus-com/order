@@ -842,6 +842,9 @@ describe("Order cross-boundary certification", () => {
     }
     for (const forbidden of [
       "order-evidence-viewer",
+      "order-evidence-primary",
+      "order-evidence-content",
+      "order-evidence-identity",
       "order-code-view",
       "order-evidence-code-bytes",
       "<pre",
@@ -851,6 +854,9 @@ describe("Order cross-boundary certification", () => {
 
     expect(evidence).not.toContain("attention={");
     expect(evidence).toContain('data-testid="evidence-workspace"');
+    expect(evidence).toContain('className="order-evidence-composition"');
+    expect(evidence).toContain('className="order-evidence-exact-identity"');
+    expect(evidence).toContain('className="order-evidence-raw"');
 
     const readiness = read("ui/src/ReadinessWorkspace.tsx");
     expect(readiness).toContain("WorkbenchReview");
@@ -2380,9 +2386,15 @@ describe("0.6.0 Wave 4 Workbench and product-language certification", () => {
     expect(presentation).toContain("export const workOutcomeProductLabel");
     expect(presentation).toContain('case "CANDIDATE_DONE": return "Verified candidate"');
     expect(terminal).toContain("workOutcomeProductLabel(workItem.outcome)");
+    expect(terminal).toContain('className="order-terminal-result"');
+    expect(terminal).toContain('data-testid="final-governed-outcome"');
+    expect(terminal).toContain('data-testid="candidate-result-material"');
     expect(terminal).not.toContain("WorkbenchAttention");
     expect(terminal).not.toContain("Final governed outcome");
     expect(terminal).not.toContain("Governed result material");
+    expect(terminal).not.toContain("Terminal outcome");
+    expect(terminal).not.toContain("order-result-material-root");
+    expect(terminal).not.toContain("candidate.proof.relativePath} label=");
     expect(terminal).not.toContain('attention={');
     expect(terminal).not.toContain('candidate.eventTag.replaceAll');
     expect(readme).toContain("Every WorkItem ends at a governed **verified result**");
