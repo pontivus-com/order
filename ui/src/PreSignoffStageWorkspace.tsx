@@ -36,7 +36,8 @@ const supportingRoles=(stage: SharedPreSignoffStage): readonly ArtifactRef["role
   stage==="R1" ? [] : stage==="R2" ? ["R1"] : stage==="DESIGN" ? ["R2","R1"] : ["DESIGN","R2"];
 
 export const PreSignoffStageWorkspace = ({
-  workItem, stage, runs, runEvents, artifacts, material, materialState, attention,
+  workItem, stage, runs, runEvents, artifacts, material, materialState,
+  documentAttention, historicalReturn, stateNotice, stateAction,
   currentRunId, currentInteraction, currentAttention, focusedRequiredInputEventId,
   mutationsDisabled=false, authoringMutationsDisabled=false, onRequiredInputFocused,
   onSelectMaterial, onDirtyChange, onOpenArtifactEvidence, onOpenEvidence,
@@ -45,7 +46,9 @@ export const PreSignoffStageWorkspace = ({
 }: Readonly<{
   workItem: WorkItem; stage: SharedPreSignoffStage; runs: readonly Run[];
   runEvents: readonly RunEvent[]; artifacts: readonly ArtifactRef[]; material: WorkflowMaterial;
-  materialState: MaterialPresentationState | null; attention?: ReactNode;
+  materialState: MaterialPresentationState | null;
+  documentAttention?: ReactNode; historicalReturn?: ReactNode;
+  stateNotice?: ReactNode; stateAction?: ReactNode;
   currentRunId: Run["id"] | null; currentInteraction: StageRunInteraction | null;
   currentAttention: CurrentAttentionTag; focusedRequiredInputEventId: RunEvent["id"] | null;
   mutationsDisabled?: boolean; authoringMutationsDisabled?: boolean;
@@ -129,14 +132,17 @@ export const PreSignoffStageWorkspace = ({
         onSelectedRunChange={(runId)=>onSelectMaterial({kind:"STAGE_RUN",runId})}
         onOpenEvidence={onOpenEvidence} onOpenProposalReview={onOpenProposalReview}
         onMutationRefresh={onMutationRefresh} onMutationError={onMutationError} />;
-      case "STAGE_DOCUMENT": return materialState?.tag==="DRAFT" || materialState?.tag==="HISTORICAL" ||
-        materialState?.tag==="SIGNED_LOCKED"
-        ? <ReadOnlyLifecycleDocumentMaterial workItem={workItem} artifactId={material.artifactId}
-            onOpenArtifactEvidence={onOpenArtifactEvidence} onContextDocumentChange={onContextDocumentChange} />
-        : <LifecycleDocumentMaterial workItem={workItem} artifactId={material.artifactId}
-            mutationsDisabled={authoringMutationsDisabled} onDirtyChange={onDirtyChange}
-            onOpenArtifactEvidence={onOpenArtifactEvidence} onContextDocumentChange={onContextDocumentChange}
-            onMutationError={onMutationError} />;
+      case "STAGE_DOCUMENT": return <>
+        {documentAttention}
+        {materialState?.tag==="DRAFT" || materialState?.tag==="HISTORICAL" ||
+          materialState?.tag==="SIGNED_LOCKED"
+          ? <ReadOnlyLifecycleDocumentMaterial workItem={workItem} artifactId={material.artifactId}
+              onOpenArtifactEvidence={onOpenArtifactEvidence} onContextDocumentChange={onContextDocumentChange} />
+          : <LifecycleDocumentMaterial workItem={workItem} artifactId={material.artifactId}
+              mutationsDisabled={authoringMutationsDisabled} onDirtyChange={onDirtyChange}
+              onOpenArtifactEvidence={onOpenArtifactEvidence} onContextDocumentChange={onContextDocumentChange}
+              onMutationError={onMutationError} />}
+      </>;
       case "SOURCE_DOCUMENT": return <section className="order-productive-transient">
         <WorkbenchAction label="Back to workflow context" tone="ghost" onClick={onReturnFromTransient} />
         <SourceDocumentMaterial workItem={workItem} readOnly onDirtyChange={onDirtyChange}
@@ -154,8 +160,11 @@ export const PreSignoffStageWorkspace = ({
         mutationsDisabled={mutationsDisabled}
         onBack={onReturnFromTransient} onMutationError={onMutationError} />;
       case "EVIDENCE": return <EvidenceViewer selection={material.selection} onBack={onReturnFromTransient} />;
-      case "STEP_STATE": return <WorkbenchState kind="empty" title="This workflow step is ready"
-        description="Use the current step action to start work." />;
+      case "STEP_STATE": return <>
+        {stateNotice}
+        <WorkbenchState kind="empty" title="This workflow step is ready"
+          description="Use the current step action to start work." action={stateAction} />
+      </>;
       case "UNREACHED": return <WorkbenchState kind="empty" title="This workflow step has not been reached"
         description="Workflow inspection does not create or promote lifecycle state." />;
       default: return <WorkbenchState kind="empty" title="Selected material does not belong to this workflow step" />;
@@ -165,7 +174,9 @@ export const PreSignoffStageWorkspace = ({
   if (material.kind === "PROPOSAL") return primary;
 
   return <section className="order-productive-stage" data-stage={stage}>
-    {attention}
+    {historicalReturn === undefined ? null : (
+      <div className="order-inline-actions">{historicalReturn}</div>
+    )}
     <div className="order-productive-primary">{primary}</div>
     {related}
   </section>;
