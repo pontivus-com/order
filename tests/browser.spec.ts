@@ -220,7 +220,12 @@ const captureRenderedAcceptance = async (
       animations: "disabled",
     });
   }
-  return { ...entry, screenshot };
+  return {
+    ...entry,
+    captureScope: entry.captureScope ??
+      (target === undefined ? "full application viewport" : "explicit locator crop"),
+    screenshot,
+  };
 };
 
 const fixtureMutation = async (
