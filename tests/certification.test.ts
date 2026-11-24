@@ -2400,7 +2400,9 @@ describe("0.6.0 Wave 4 Workbench and product-language certification", () => {
     expect(readiness).not.toContain("READY_FOR_SIGNOFF");
 
     expect(settings).toContain('data-testid="settings-diagnostics"');
-    expect(settings).toContain('label="Inspect settings diagnostics"');
+    expect(settings).toContain('"Inspect settings diagnostics"');
+    expect(settings).toContain('"Hide settings diagnostics"');
+    expect(settings).toContain("ariaExpanded={diagnosticsOpen}");
     expect(settings).toContain('aria-label="Settings diagnostics"');
     expect(settings).not.toContain("WorkbenchDisclosure");
     expect(settings).not.toContain('label="Technical details"');
