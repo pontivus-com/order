@@ -1163,10 +1163,10 @@ export const WorkItemWorkspace = ({
         description={summaryBlocker.description}
         action={currentMaterialAction}
       />
-    ) : !inspectedHistorical && currentOwnerAction !== null ? (
+    ) : !inspectedHistorical && currentMaterialAction != null ? (
       <WorkbenchAttention
         title={workflow.label + " is ready for your action"}
-        action={currentOwnerAction}
+        action={currentMaterialAction}
       />
     ) : undefined;
 
