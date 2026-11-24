@@ -5,10 +5,10 @@ import { Markdown } from "@astryxdesign/core/Markdown";
 import {
   MarkdownTextSchema,
   type ArtifactRef,
-  Run,
-  RunEvent,
-  Sha256,
-  WorkItem,
+  type Run,
+  type RunEvent,
+  type Sha256,
+  type WorkItem,
 } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
 import { workbenchQueryKeys } from "./query-keys.ts";
