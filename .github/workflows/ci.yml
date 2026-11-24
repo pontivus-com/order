@@ -172,18 +172,14 @@ jobs:
           set -euo pipefail
           campaign="docs/order/work-items/work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21/0.6.0-design-campaign-plan.md"
           line="$(grep -F 'Current bounded authorization:' "$campaign" | tail -n 1)"
-          case "$line" in
-            *"Current bounded authorization: NONE."*)
-              echo "active=false" >> "$GITHUB_OUTPUT"
-              ;;
-            *"Current bounded authorization:"*" only."*)
-              echo "active=true" >> "$GITHUB_OUTPUT"
-              ;;
-            *)
-              echo "Unreadable current bounded authorization register: $line" >&2
-              exit 1
-              ;;
-          esac
+          if [[ "$line" == *"Current bounded authorization: NONE."* ]]; then
+            echo "active=false" >> "$GITHUB_OUTPUT"
+          elif [[ "$line" == *"Current bounded authorization:"* && "$line" == *" only."* ]]; then
+            echo "active=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Unreadable current bounded authorization register: $line" >&2
+            exit 1
+          fi
 
       - name: Verify release packager
         shell: bash
