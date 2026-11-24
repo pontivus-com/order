@@ -683,6 +683,12 @@ describe("Order cross-boundary certification", () => {
         )
         .sort();
 
+    expect(consumersOf("WorkbenchAppShell")).toEqual([
+      "app.tsx",
+    ]);
+    expect(consumersOf("WorkbenchWorkItemShell")).toEqual([
+      "WorkItemWorkspace.tsx",
+    ]);
     expect(consumersOf("WorkbenchSurface")).toEqual([
       "EvidenceViewer.tsx",
       "ExecutionWorkspace.tsx",
@@ -713,7 +719,80 @@ describe("Order cross-boundary certification", () => {
       "WorkItemWorkspace.tsx",
       "app.tsx",
     ]);
+    expect(consumersOf("WorkbenchContextPanel")).toEqual([
+      "WorkItemContext.tsx",
+    ]);
+    expect(consumersOf("WorkbenchForm")).toEqual([
+      "OpenCodeAccountSettings.tsx",
+      "SettingsWorkspace.tsx",
+    ]);
+    expect(consumersOf("WorkbenchIdentity")).toEqual([
+      "WorkItemIdentityRow.tsx",
+    ]);
+    expect(consumersOf("WorkbenchMasterDetail")).toEqual([
+      "ExecutionWorkspace.tsx",
+    ]);
+    expect(consumersOf("WorkbenchRail")).toEqual([
+      "WorkflowRail.tsx",
+    ]);
+    expect(consumersOf("WorkbenchResourceRow")).toEqual([
+      "ExecutionWorkspace.tsx",
+      "PreSignoffStageWorkspace.tsx",
+      "ReadinessWorkspace.tsx",
+      "RunEventTimeline.tsx",
+      "SignoffReview.tsx",
+      "TerminalResult.tsx",
+    ]);
+    expect(consumersOf("WorkbenchSectionHeader")).toEqual([
+      "ActivityWorkspace.tsx",
+      "EvidenceViewer.tsx",
+      "ExecutionWorkspace.tsx",
+      "MarkdownEditor.tsx",
+      "OpenCodeAccountSettings.tsx",
+      "SettingsWorkspace.tsx",
+      "TerminalResult.tsx",
+      "WorkItemQueue.tsx",
+    ]);
+    expect(consumersOf("WorkbenchSettingsLayout")).toEqual([
+      "SettingsWorkspace.tsx",
+    ]);
+    expect(consumersOf("WorkbenchState")).toEqual([
+      "ActivityWorkspace.tsx",
+      "DocumentWorkspace.tsx",
+      "EvidenceViewer.tsx",
+      "ExecutionWorkspace.tsx",
+      "OpenCodeAccountSettings.tsx",
+      "PreSignoffStageWorkspace.tsx",
+      "ProposalReview.tsx",
+      "ReadinessWorkspace.tsx",
+      "SettingsWorkspace.tsx",
+      "SignoffReview.tsx",
+      "TerminalResult.tsx",
+      "WorkItemQueue.tsx",
+      "WorkItemWorkspace.tsx",
+      "app.tsx",
+    ]);
+    expect(consumersOf("WorkbenchTable")).toEqual([
+      "ExecutionWorkspace.tsx",
+      "OpenCodeAccountSettings.tsx",
+      "SettingsWorkspace.tsx",
+      "WorkItemQueue.tsx",
+    ]);
     expect(consumersOf("WorkbenchTaskPanel")).toEqual([
+      "app.tsx",
+    ]);
+    expect(consumersOf("WorkbenchTimeline")).toEqual([
+      "ActivityWorkspace.tsx",
+      "ExecutionWorkspace.tsx",
+      "RunEventTimeline.tsx",
+    ]);
+    expect(consumersOf("WorkbenchToolbar")).toEqual([
+      "MarkdownEditor.tsx",
+      "app.tsx",
+    ]);
+    expect(consumersOf("WorkbenchUtilityLink")).toEqual([
+      "OpenCodeAccountControl.tsx",
+      "SettingsWorkspace.tsx",
       "app.tsx",
     ]);
   });
