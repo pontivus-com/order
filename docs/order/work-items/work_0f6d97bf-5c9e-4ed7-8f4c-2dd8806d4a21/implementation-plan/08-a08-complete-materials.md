@@ -32,8 +32,10 @@ C13/C14 domain semantics remain stable. Complete and Evidence are rebuilt by SD2
 
 ## Referenced actions
 
-- **IA27** — consume the already-established singular WorkItem Context/technical-inspection owner as a dependency only.
-- **IA33** — consume the single Complete/Evidence destructive replacement definition; C13/C14 remain the semantic owners of outcome/material meaning.
+Action mutation/disposition semantics are owned only by `12-action-catalog.md`; the bullets below are dependency/traceability references, not alternate IA definitions.
+
+- **IA27** — consume the single IA27 definition in `12-action-catalog.md`.
+- **IA33** — consume the single IA33 definition in `12-action-catalog.md`.
 
 ## Completion proof
 
