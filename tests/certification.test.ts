@@ -693,6 +693,19 @@ describe("Order cross-boundary certification", () => {
       "SignoffReview.tsx",
     ]);
     expect(consumersOf("WorkbenchSelector")).toEqual([]);
+    expect(consumersOf("WorkbenchDialogue")).toEqual([
+      "ActivityWorkspace.tsx",
+    ]);
+    expect(consumersOf("WorkbenchConfirmation")).toEqual([
+      "DocumentWorkspace.tsx",
+      "OpenCodeAccountSettings.tsx",
+      "SettingsWorkspace.tsx",
+      "WorkItemWorkspace.tsx",
+      "app.tsx",
+    ]);
+    expect(consumersOf("WorkbenchTaskPanel")).toEqual([
+      "app.tsx",
+    ]);
   });
 
   it("keeps reference-driven presentation subordinate to Workbench and Astryx ownership", () => {
