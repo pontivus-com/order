@@ -618,11 +618,6 @@
 .order-review-approval-authorization p {
   color: var(--color-text-secondary);
 }
-.order-review-readiness-attention {
-  padding-block: var(--spacing-2);
-  border-bottom: 1px solid var(--color-border-emphasized);
-}
-.order-review-readiness-attention h3,
 .order-review-readiness-findings h3,
 .order-review-readiness-support h3,
 .order-review-readiness-support p,
