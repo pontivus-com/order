@@ -832,12 +832,6 @@ const retryRun = RunSchema.parse({
 });
 storeRun(database, retryRun);
 persistEvent(retryRun.id, 1, {
-  tag: "STAGE_STARTED",
-  stage: "PLAN",
-  mode: "INTERACTIVE",
-  contextHash: retryRun.contextHash,
-});
-persistEvent(retryRun.id, 2, {
   tag: "PROVIDER_FAILED",
   detail: "Synthetic provider failure for browser retry certification.",
   evidence: [],
@@ -1484,12 +1478,6 @@ const resumeRun = RunSchema.parse({
 });
 storeRun(database, resumeRun);
 persistEvent(resumeRun.id, 1, {
-  tag: "STAGE_STARTED",
-  stage: "PLAN",
-  mode: "INTERACTIVE",
-  contextHash: resumeRun.contextHash,
-});
-persistEvent(resumeRun.id, 2, {
   tag: "STAGE_BLOCKED",
   reason: "Synthetic blocker for browser Resume certification.",
   owningStage: "PLAN",
