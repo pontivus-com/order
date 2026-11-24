@@ -1077,6 +1077,8 @@
   align-items: center;
   gap: var(--spacing-2);
   flex-wrap: nowrap;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
 }
 .order-markdown-format-toolbar > * {
   flex: 0 0 auto;
