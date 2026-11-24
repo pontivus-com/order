@@ -445,17 +445,17 @@ test("appearance uses a direct compact mode switcher, follows system mode, and p
 
   const root = page.locator("html");
   const layout = page.getByTestId("workbench-app-shell");
-  const toolbar = page.locator(".order-toolbar").first();
+  const toolbar = page.getByTestId("workbench-toolbar");
   const system = page.getByRole("radio", { name: "System" });
   const light = page.getByRole("radio", { name: "Light" });
   const dark = page.getByRole("radio", { name: "Dark" });
 
-  await expect(page.locator(".order-theme-control select")).toHaveCount(0);
+  await expect(toolbar.locator("select")).toHaveCount(0);
   await expect(system).toBeChecked();
   await expect(root).not.toHaveAttribute("data-theme");
   await expect(root).toHaveAttribute("data-astryx-theme");
   await expect(layout).toHaveCSS("background-color", "rgb(17, 26, 41)");
-  await expect(toolbar).toHaveCSS("background-color", "rgb(23, 34, 51)");
+  await expect(toolbar).toHaveCSS("background-color", "rgb(17, 26, 41)");
   await expect(
     page.getByTestId("workbench-search").getByRole("searchbox"),
   ).toHaveCSS("color", "rgb(237, 243, 250)");
@@ -463,14 +463,14 @@ test("appearance uses a direct compact mode switcher, follows system mode, and p
   await light.click();
   await expect(root).toHaveAttribute("data-theme", "light");
   await expect(layout).toHaveCSS("background-color", "rgb(255, 255, 255)");
-  await expect(toolbar).toHaveCSS("background-color", "rgb(15, 23, 42)");
+  await expect(toolbar).toHaveCSS("background-color", "rgb(255, 255, 255)");
   await page.reload();
   await expect(page.getByRole("radio", { name: "Light" })).toBeChecked();
 
   await page.getByRole("radio", { name: "Dark" }).click();
   await expect(root).toHaveAttribute("data-theme", "dark");
   await expect(layout).toHaveCSS("background-color", "rgb(17, 26, 41)");
-  await expect(toolbar).toHaveCSS("background-color", "rgb(23, 34, 51)");
+  await expect(toolbar).toHaveCSS("background-color", "rgb(17, 26, 41)");
   await page.reload();
   await expect(page.getByRole("radio", { name: "Dark" })).toBeChecked();
 
@@ -478,10 +478,10 @@ test("appearance uses a direct compact mode switcher, follows system mode, and p
   await expect(root).not.toHaveAttribute("data-theme");
   await page.emulateMedia({ colorScheme: "light" });
   await expect(layout).toHaveCSS("background-color", "rgb(255, 255, 255)");
-  await expect(toolbar).toHaveCSS("background-color", "rgb(15, 23, 42)");
+  await expect(toolbar).toHaveCSS("background-color", "rgb(255, 255, 255)");
   await page.emulateMedia({ colorScheme: "dark" });
   await expect(layout).toHaveCSS("background-color", "rgb(17, 26, 41)");
-  await expect(toolbar).toHaveCSS("background-color", "rgb(23, 34, 51)");
+  await expect(toolbar).toHaveCSS("background-color", "rgb(17, 26, 41)");
   await page.reload();
   await expect(page.getByRole("radio", { name: "System" })).toBeChecked();
 });
