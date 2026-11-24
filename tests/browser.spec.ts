@@ -2855,6 +2855,15 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   expect(narrowFormattingButtonTops.length).toBeGreaterThan(0);
   expect(Math.max(...narrowFormattingButtonTops) - Math.min(...narrowFormattingButtonTops))
     .toBeLessThanOrEqual(2);
+  const narrowFormattingOverflow = await page.getByTestId("markdown-format-toolbar")
+    .evaluate((node) => ({
+      overflowX: getComputedStyle(node).overflowX,
+      scrollWidth: node.scrollWidth,
+      clientWidth: node.clientWidth,
+    }));
+  expect(narrowFormattingOverflow.overflowX).toBe("auto");
+  expect(narrowFormattingOverflow.scrollWidth)
+    .toBeGreaterThanOrEqual(narrowFormattingOverflow.clientWidth);
   await capture({
     id: "ia26-source-document-editor-narrow-light",
     workItemKind: "CHANGE",
