@@ -1002,6 +1002,8 @@ Pre-signoff and review screens instead resolve canonical state directly to Docum
 Permanent architecture fitness must maintain an allowlist of design-bearing primitive consumers. Unauthorized imports/usages fail. `WorkbenchReview` is consumed only by Proposal/Readiness/Approval Review owners; `WorkbenchMasterDetail` only by Implementation; `WorkbenchDialogue` only by STAGE conversation owners; `WorkbenchAttention` only by genuine current-attention owners. This package authorizes no true peer-selection consumer, so `WorkbenchSelector.tsx` is `REQUIRED_ABSENT`; a future consumer requires a new explicit DESIGN/P4 decision rather than speculative retention.
 ## Technical change solution catalog
 
+## Technical change solution catalog
+
 | Solution | Owned defect/outcome | Canonical technical owner | Expected implementation surface | Technical decision | Permanent proof |
 |---|---|---|---|---|---|
 | SD01 | C21 product-language realization | P2 Product Identity + P4 Workbench presentation | README.md; ui/src/TerminalResult.tsx; ui/src/workbench-presentation.ts | Use verified result as umbrella product outcome and Verified candidate only for executed delivery; reuse the canonical P4 terminal-result projection and replace local enum prettification; no lifecycle/state/contract change. | tests/workbench-presentation.test.ts; tests/browser.spec.ts; tests/certification.test.ts |
