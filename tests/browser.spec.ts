@@ -2874,6 +2874,28 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   expect(narrowFormattingOverflow.overflowX).toBe("auto");
   expect(narrowFormattingOverflow.scrollWidth)
     .toBeGreaterThanOrEqual(narrowFormattingOverflow.clientWidth);
+  const narrowEditorActionRegion = page.locator(
+    "form.order-markdown-editor .order-workbench-toolbar-secondary",
+  );
+  const narrowEditorActionOverflow = await narrowEditorActionRegion.evaluate((node) => ({
+    scrollWidth: node.scrollWidth,
+    clientWidth: node.clientWidth,
+  }));
+  expect(narrowEditorActionOverflow.scrollWidth)
+    .toBeLessThanOrEqual(narrowEditorActionOverflow.clientWidth);
+  const narrowEditorBounds = await page.locator("form.order-markdown-editor").boundingBox();
+  expect(narrowEditorBounds).not.toBeNull();
+  for (const label of ["Save", "Cancel"] as const) {
+    const actionBounds = await page.locator("form.order-markdown-editor")
+      .getByRole("button", { name: label, exact: true })
+      .boundingBox();
+    expect(actionBounds).not.toBeNull();
+    if (narrowEditorBounds !== null && actionBounds !== null) {
+      expect(actionBounds.x).toBeGreaterThanOrEqual(narrowEditorBounds.x - 1);
+      expect(actionBounds.x + actionBounds.width)
+        .toBeLessThanOrEqual(narrowEditorBounds.x + narrowEditorBounds.width + 1);
+    }
+  }
   await capture({
     id: "ia26-source-document-editor-narrow-light",
     workItemKind: "CHANGE",
