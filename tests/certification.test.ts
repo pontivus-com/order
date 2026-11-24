@@ -398,6 +398,7 @@ describe("Order cross-boundary certification", () => {
       "WorkbenchConfirmation.tsx",
       "WorkbenchContextPanel.tsx",
       "WorkbenchDialogue.tsx",
+      "WorkbenchFacts.tsx",
       "WorkbenchDisclosure.tsx",
       "WorkbenchField.tsx",
       "WorkbenchForm.tsx",
@@ -408,6 +409,7 @@ describe("Order cross-boundary certification", () => {
       "WorkbenchRail.tsx",
       "WorkbenchResourceRow.tsx",
       "WorkbenchReview.tsx",
+      "WorkbenchSection.tsx",
       "WorkbenchSectionHeader.tsx",
       "WorkbenchSettingsLayout.tsx",
       "WorkbenchState.tsx",
@@ -753,6 +755,20 @@ describe("Order cross-boundary certification", () => {
     expect(consumersOf("WorkbenchContextPanel")).toEqual([
       "WorkItemContext.tsx",
     ]);
+    expect(consumersOf("WorkbenchSection")).toEqual([
+      "WorkItemContext.tsx",
+    ]);
+    expect(consumersOf("WorkbenchFacts")).toEqual([
+      "WorkItemContext.tsx",
+    ]);
+    const contextPanel = read("ui/src/primitives/WorkbenchContextPanel.tsx");
+    const workItemContext = read("ui/src/WorkItemContext.tsx");
+    expect(contextPanel).toContain("sections:");
+    expect(contextPanel).not.toContain("children:");
+    expect(workItemContext).toContain("<WorkbenchSection");
+    expect(workItemContext).toContain("<WorkbenchFacts");
+    expect(workItemContext).not.toContain("MetadataList");
+    expect(workItemContext).not.toContain("order-workbench-context-group");
     expect(consumersOf("WorkbenchForm")).toEqual([
       "OpenCodeAccountSettings.tsx",
       "SettingsWorkspace.tsx",
