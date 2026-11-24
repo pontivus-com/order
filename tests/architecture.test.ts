@@ -2711,9 +2711,9 @@ describe("architecture fitness", () => {
     const designSurface = [...designSurfaceSection.matchAll(/^- `([^\`]+)`(?:\s+—.*)?$/gm)].map(
       (match) => match[1],
     );
-    if (designSurface.length !== 68 || duplicates(designSurface).length > 0) {
+    if (designSurface.length !== 76 || duplicates(designSurface).length > 0) {
       violations.push(
-        "DESIGN implementation forecast must contain 68 unique paths; found " +
+        "DESIGN implementation forecast must contain 76 unique paths; found " +
           designSurface.length,
       );
     }
@@ -2767,9 +2767,9 @@ describe("architecture fitness", () => {
             task.gateIds ?? [],
             ["architecture", "browser", "build", "dependency-lock", "test", "typecheck"],
           );
-          if ((task.scope ?? []).length !== 68 || duplicates(task.scope ?? []).length > 0) {
+          if ((task.scope ?? []).length !== 76 || duplicates(task.scope ?? []).length > 0) {
             violations.push(
-              "T1 hard scope must contain the exact 68 unique forecast paths; found " +
+              "T1 hard scope must contain the exact 76 unique forecast paths; found " +
                 (task.scope ?? []).length,
             );
           }
@@ -2777,24 +2777,24 @@ describe("architecture fitness", () => {
         }
 
         const signedSurface = task?.changeSurface ?? [];
-        if (signedSurface.length !== 68 || duplicates(signedSurface).length > 0) {
+        if (signedSurface.length !== 76 || duplicates(signedSurface).length > 0) {
           violations.push(
-            "PLAN signed T1 changeSurface must contain 68 unique paths; found " +
+            "PLAN signed T1 changeSurface must contain 76 unique paths; found " +
               signedSurface.length,
           );
         }
         exactSet("PLAN signed T1 changeSurface", signedSurface, designSurface);
 
         const surfaceSection =
-          plan.split("## Exact signed implementation surface")[1]?.split(
+          plan.split("## Exact candidate implementation surface")[1]?.split(
             "## Exhaustive traceability invariants",
           )[0] ?? "";
         const documentedSurface = [...surfaceSection.matchAll(/^- \`([^\`]+)\`$/gm)].map(
           (match) => match[1],
         );
-        if (documentedSurface.length !== 68 || duplicates(documentedSurface).length > 0) {
+        if (documentedSurface.length !== 76 || duplicates(documentedSurface).length > 0) {
           violations.push(
-            "PLAN documented signed surface must contain 68 unique paths; found " +
+            "PLAN documented candidate surface must contain 76 unique paths; found " +
               documentedSurface.length,
           );
         }
@@ -2840,10 +2840,12 @@ describe("architecture fitness", () => {
           }
         }
 
-        const destructiveFoundation = [
+        const governedFoundationAndShell = [
           "ui/src/primitives/WorkbenchAttention.tsx",
           "ui/src/primitives/WorkbenchConfirmation.tsx",
           "ui/src/primitives/WorkbenchContextPanel.tsx",
+          "ui/src/primitives/WorkbenchDocument.tsx",
+          "ui/src/primitives/WorkbenchFacts.tsx",
           "ui/src/primitives/WorkbenchDialogue.tsx",
           "ui/src/primitives/WorkbenchForm.tsx",
           "ui/src/primitives/WorkbenchIdentity.tsx",
@@ -2851,7 +2853,12 @@ describe("architecture fitness", () => {
           "ui/src/primitives/WorkbenchMasterDetail.tsx",
           "ui/src/primitives/WorkbenchRail.tsx",
           "ui/src/primitives/WorkbenchResourceRow.tsx",
+          "ui/src/primitives/WorkbenchResourceList.tsx",
+          "ui/src/primitives/WorkbenchResult.tsx",
           "ui/src/primitives/WorkbenchReview.tsx",
+          "ui/src/primitives/WorkbenchReviewSection.tsx",
+          "ui/src/primitives/WorkbenchReviewVerdict.tsx",
+          "ui/src/primitives/WorkbenchSection.tsx",
           "ui/src/primitives/WorkbenchSectionHeader.tsx",
           "ui/src/primitives/WorkbenchSelector.tsx",
           "ui/src/primitives/WorkbenchSettingsLayout.tsx",
@@ -2862,48 +2869,55 @@ describe("architecture fitness", () => {
           "ui/src/primitives/WorkbenchToolbar.tsx",
           "ui/src/primitives/WorkbenchState.tsx",
           "ui/src/primitives/WorkbenchUtilityLink.tsx",
-        ];
-        const newFoundationOwners = [
           "ui/src/primitives/WorkbenchAppShell.tsx",
           "ui/src/primitives/WorkbenchWorkItemShell.tsx",
           "ui/src/primitives/workbench-responsive.ts",
-        ];
-        const shellIntegration = [
           "ui/src/app.tsx",
           "ui/src/WorkItemWorkspace.tsx",
           "ui/src/WorkItemIdentityRow.tsx",
           "ui/src/WorkflowRail.tsx",
           "ui/src/WorkflowStepFrame.tsx",
-        ];
-        for (const requiredPath of [
-          ...destructiveFoundation,
-          ...newFoundationOwners,
-          ...shellIntegration,
           "ui/src/styles.css",
           "ui/src/theme.css",
-        ]) {
+        ];
+        for (const requiredPath of governedFoundationAndShell) {
           if (!signedSurface.includes(requiredPath)) {
-            violations.push("T1 foundation/shell surface missing " + requiredPath);
+            violations.push("T1 foundation/component/shell surface missing " + requiredPath);
           }
         }
+
+        const requiredNewComponentPaths = [
+          "ui/src/primitives/WorkbenchDocument.tsx",
+          "ui/src/primitives/WorkbenchFacts.tsx",
+          "ui/src/primitives/WorkbenchResourceList.tsx",
+          "ui/src/primitives/WorkbenchResult.tsx",
+          "ui/src/primitives/WorkbenchReviewSection.tsx",
+          "ui/src/primitives/WorkbenchReviewVerdict.tsx",
+          "ui/src/primitives/WorkbenchSection.tsx",
+          "ui/src/DocumentChangeView.tsx",
+        ];
+        for (const requiredPath of requiredNewComponentPaths) {
+          if (!signedSurface.includes(requiredPath)) {
+            violations.push("T1 corrected component forecast missing " + requiredPath);
+          }
+        }
+
         const objective = task?.objective ?? "";
         for (const required of [
           "corrected authority-driven Order 0.6.0 candidate",
-          "IA27 is priority foundation revalidation",
-          "WorkflowStepFrame",
-          "WorkflowMaterialSelector",
-          "primitive consumer allowlists",
-          "IA28",
-          "Queue/Create/application-shell consumers",
-          "IA29",
-          "IA30",
-          "continuous multi-turn Dialogue",
-          "IA31",
-          "required-input Dialogue replacing Review",
-          "IA32-IA34",
-          "37 governed surfaces",
-          "No second AppShell",
-          "DTO/view-model/state family",
+          "fresh G4-G6/sign-off",
+          "P4/SD21/F6B as closed component authority",
+          "IA27 realizes the required semantic component foundation",
+          "IA28 freshly accepts it in Queue/Create",
+          "IA29 reconstructs Document composition",
+          "Proposal Review with DocumentChangeView",
+          "IA31 destructively rebuilds Readiness/Approval",
+          "IA32 rebuilds Implementation",
+          "IA33 rebuilds Complete around WorkbenchResult",
+          "IA34 rebuilds Settings",
+          "physical SoC",
+          "all 37 governed surfaces",
+          "No prior RZ16/IA27-IA34 PASS",
         ]) {
           if (!objective.includes(required)) {
             violations.push("T1 objective must encode current Workbench execution invariant " + required);
@@ -2919,6 +2933,7 @@ describe("architecture fitness", () => {
           "ui/src/WorkflowRail.tsx",
           "ui/src/WorkflowStepFrame.tsx",
           "ui/src/DocumentWorkspace.tsx",
+          "ui/src/DocumentChangeView.tsx",
           "ui/src/MarkdownEditor.tsx",
           "ui/src/PreSignoffStageWorkspace.tsx",
           "ui/src/ActivityWorkspace.tsx",
@@ -2986,15 +3001,19 @@ describe("architecture fitness", () => {
         }
         exactSet("PLAN rendered face allocation", faceSurfaceUnion, referenceSurfaceIds);
 
-        if (
-          !actionCatalog.includes("current replacement bytes/selectors only after that schema exists") ||
-          !actionCatalog.includes("do not weaken still-applicable semantic/accessibility/browser requirements") ||
-          !actionCatalog.includes("IA32-IA34 fresh reconstruction") ||
-          !actionCatalog.includes("shared styles only for the phase-owned screen selectors; IA27 foundation/theme/structural selectors remain IA27-owned")
-        ) {
-          violations.push(
-            "PLAN must retain resumed/fresh screen ownership and shared-stylesheet boundary",
-          );
+        for (const required of [
+          "### Exact IA27-IA34 rendered face ownership",
+          "No prior phase PASS is inherited",
+          "IA27 does not derive either",
+          "Do not add compatibility props or temporary old/new paths",
+          "DocumentChangeView.tsx",
+          "No prior RZ16 PASS is inherited",
+          "Remove all `order-review-*` local structural/card/grid systems",
+          "WorkbenchResult",
+        ]) {
+          if (!actionCatalog.includes(required)) {
+            violations.push("PLAN canonical UI action catalog missing " + required);
+          }
         }
 
         for (const required of [
@@ -3002,94 +3021,63 @@ describe("architecture fitness", () => {
           "-> WorkbenchDialogue(transcript, activity?, composer?, state?)",
           "no outer WorkbenchSurface / WorkbenchAttention wrapper",
           "no generic header/technical-detail slots",
+          "WorkbenchReviewVerdict",
+          "WorkbenchReviewSection",
+          "WorkbenchResourceList",
+          "WorkbenchDocument",
+          "WorkbenchResult",
+          "No structural escape hatch",
         ]) {
           if (!p4Workbench.includes(required)) {
-            violations.push("P4 Dialogue closure missing " + required);
+            violations.push("P4 Workbench corrected component contract missing " + required);
           }
         }
 
-        const ia27Classifications = [
-          ...actionCatalog.matchAll(
-            /^\| `([^`]+)`(?: [^|]*)? \| `(CONFORMING_NO_EDIT|BOUNDED_RESIDUAL|DESTRUCTIVE_REPLACEMENT|REQUIRED_ABSENT)` \|/gm,
-          ),
-        ].map((match) => ({ path: match[1] ?? "", disposition: match[2] ?? "" }));
-        exactSet(
-          "PLAN IA27 destructive replacement owners",
-          ia27Classifications
-            .filter((row) => row.disposition === "DESTRUCTIVE_REPLACEMENT")
-            .map((row) => row.path),
-          [
-            "ui/src/primitives/WorkbenchToolbar.tsx",
-            "ui/src/primitives/WorkbenchAppShell.tsx",
-            "ui/src/app.tsx",
-            "ui/src/theme.css",
-          ],
-        );
-        for (const requiredNoEdit of [
-          "ui/src/primitives/WorkbenchAttention.tsx",
-          "ui/src/primitives/WorkbenchConfirmation.tsx",
-          "ui/src/primitives/WorkbenchDialogue.tsx",
-          "ui/src/primitives/WorkbenchReview.tsx",
-          "ui/src/primitives/WorkbenchSurface.tsx",
-          "ui/src/primitives/WorkbenchTaskPanel.tsx",
-        ]) {
-          if (!ia27Classifications.some((row) =>
-            row.path === requiredNoEdit && row.disposition === "CONFORMING_NO_EDIT"
-          )) {
-            violations.push(
-              "PLAN IA27 exact-current foundation owner must be CONFORMING_NO_EDIT: " +
-                requiredNoEdit,
-            );
+        const requiredDispositionRows = [
+          "| new `WorkbenchSection.tsx` | `REQUIRED_NEW` |",
+          "| new `WorkbenchFacts.tsx` | `REQUIRED_NEW` |",
+          "| new `WorkbenchResourceList.tsx` | `REQUIRED_NEW` |",
+          "| new `WorkbenchReviewVerdict.tsx` | `REQUIRED_NEW` |",
+          "| new `WorkbenchReviewSection.tsx` | `REQUIRED_NEW` |",
+          "| new `WorkbenchDocument.tsx` | `REQUIRED_NEW` |",
+          "| new `WorkbenchResult.tsx` | `REQUIRED_NEW` |",
+          "| `WorkbenchReview.tsx` | `DESTRUCTIVE_REPLACEMENT` |",
+          "| `WorkbenchResourceRow.tsx` | `DECOMPOSE_REFACTOR` |",
+          "| `WorkbenchContextPanel.tsx` | `DESTRUCTIVE_REPLACEMENT` |",
+          "| `WorkItemContext.tsx` | `DECOMPOSE_REFACTOR` |",
+          "| `theme.css` semantic-component selectors | `DECOMPOSE_REFACTOR` |",
+        ];
+        for (const row of requiredDispositionRows) {
+          if (!actionCatalog.includes(row)) {
+            violations.push("PLAN IA27 disposition contract missing " + row);
           }
         }
-        exactSet(
-          "PLAN IA27 required-absent owners",
-          ia27Classifications
-            .filter((row) => row.disposition === "REQUIRED_ABSENT")
-            .map((row) => row.path),
-          [
-            "ui/src/primitives/WorkbenchLayout.tsx",
-            "ui/src/primitives/WorkbenchSelector.tsx",
-            "ui/src/WorkflowStepFrame.tsx",
-            "ui/src/WorkflowMaterialSelector.tsx",
-          ],
-        );
-        for (const required of [
-          "IA27 current-baseline authority classification ledger",
-          "every remaining design-bearing primitive consumer is allowlisted",
-          "no renamed `WorkflowStepFrame`/`WorkflowMaterialSelector`",
-          "zero compatibility/adapter paths",
-          "only genuine attention owners render `WorkbenchAttention`",
-          "current authority-first no-edit classification evidence",
-          "Post-RZ14 application-header correction",
-          "Pre-remediation current-state diagnostic rendered sweep",
-          "all **37 governed `SURF-*` rows**",
-          "does not transfer IA29-IA34 production ownership",
-          "application-header reconstruction proof across Queue/selected-WorkItem/Settings destinations",
-        ]) {
-          if (!actionCatalog.includes(required)) {
-            violations.push(
-              "PLAN IA27 foundation execution contract missing " + required,
-            );
-          }
+        if (
+          actionCatalog.includes(
+            "| `WorkbenchReview.tsx` | `CONFORMING_NO_EDIT` |",
+          )
+        ) {
+          violations.push(
+            "PLAN must not retain the superseded WorkbenchReview CONFORMING_NO_EDIT disposition",
+          );
         }
-
-        for (const required of [
-          "Historical reconstruction primitive inputs (20)",
-          "Historical shell/shared-composition cutover inputs (6)",
-          "Foundation owners established by the historical reconstruction (3)",
-          "Positively retained atomic adapters (6",
-          "WorkbenchDisclosure.tsx",
-          "specifically named same-task semantic expansion",
-          "no refactor-through-superseded structure",
-          "SURF-WI-001",
-          "historical purge-before-fresh-authorship record as provenance only",
-          "do not claim a new transient purge checkpoint",
-          "bounded procedural purge checkpoint",
-        ]) {
-          if (!actionCatalog.includes(required)) {
-            violations.push("PLAN resumed foundation/screen contract missing: " + required);
-          }
+        const requiredAbsentRow = actionCatalog.split(/\r?\n/).find((line) =>
+          line.includes("`WorkbenchLayout.tsx`") &&
+          line.includes("`WorkbenchSelector.tsx`") &&
+          line.includes("`WorkflowStepFrame.tsx`") &&
+          line.includes("`WorkflowMaterialSelector.tsx`") &&
+          line.includes("`REQUIRED_ABSENT`")
+        );
+        if (requiredAbsentRow === undefined) {
+          violations.push("PLAN IA27 required-absent component owner row is incomplete");
+        }
+        const destructiveHeaderRow = actionCatalog.split(/\r?\n/).find((line) =>
+          line.includes("`WorkbenchToolbar.tsx`") &&
+          line.includes("`WorkbenchAppShell.tsx`") &&
+          line.includes("`DESTRUCTIVE_REPLACEMENT`")
+        );
+        if (destructiveHeaderRow === undefined) {
+          violations.push("PLAN IA27 application-header destructive replacement row is incomplete");
         }
 
         for (const [label, textValue] of [
