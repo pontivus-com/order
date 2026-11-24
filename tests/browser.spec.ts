@@ -1860,7 +1860,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   await page.setViewportSize({ width: 700, height: 800 });
   await expect(queue).toBeVisible();
   await expect(
-    page.getByLabel("Current application destination").getByText("Work queue", { exact: true }),
+    page.getByLabel("Current application destination").getByText("Governed work queue", { exact: true }),
   ).toBeVisible();
   await expect(queue.locator(".order-workbench-surface-attention")).toHaveCount(0);
   const narrowQueueTable = page.getByRole("table", { name: "Work items" });
