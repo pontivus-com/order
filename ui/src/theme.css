@@ -1085,7 +1085,7 @@
   padding-inline-start: var(--spacing-5);
 }
 .order-implementation-contract-supporting {
-  grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--order-master-width)), 1fr));
 }
 .order-implementation-contract-supporting > section {
   min-width: 0;
