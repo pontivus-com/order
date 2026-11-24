@@ -133,6 +133,14 @@ describe("Order cross-boundary certification", () => {
     const queue = read("ui/src/WorkItemQueue.tsx");
     expect(queue).not.toContain("Copy work item id");
     expect(queue).not.toContain("navigator.clipboard");
+    expect(queue).toContain('label="New work item"');
+    expect(queue).toContain('label={refreshPending ? "Refreshing…" : "Refresh sources"}');
+    expect(queue).toContain("<WorkbenchToolbarSearch");
+    expect(queue).toContain('data-testid="source-diagnostics"');
+    expect(queue).toContain("<WorkbenchSurface");
+    const applicationShell = read("ui/src/app.tsx");
+    expect(applicationShell).not.toContain('data-testid="source-diagnostics"');
+    expect(applicationShell).not.toContain('className="order-queue-commandbar"');
     const context = read("ui/src/WorkItemContext.tsx");
     expect(context).toContain('label="WorkItem id"');
     expect(context).toContain("{workItem.id}");
@@ -809,6 +817,7 @@ describe("Order cross-boundary certification", () => {
     ]);
     expect(consumersOf("WorkbenchToolbar")).toEqual([
       "MarkdownEditor.tsx",
+      "WorkItemQueue.tsx",
       "app.tsx",
     ]);
     expect(consumersOf("WorkbenchUtilityLink")).toEqual([
