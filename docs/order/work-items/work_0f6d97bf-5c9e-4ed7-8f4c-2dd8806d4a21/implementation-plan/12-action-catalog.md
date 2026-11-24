@@ -257,6 +257,23 @@ Before any Wave 2+ UI mutation, the exact corrected P4/DESIGN/PLAN package must 
 
 **Proof:** type/API closure; consumer allowlists; required-new modules present; required-absent modules/responsibilities absent; no arbitrary Review body/Context children hierarchy escape; no feature-local recurring foundation grammar in IA27-owned consumers; single AppShell/WorkItemShell/responsive/Context owners; accessibility/focus/theme proof; IA27-owned SURF rows PASS as foundation-readiness evidence. IA27 does not freeze the foundation.
 
+### Exact IA27-IA34 rendered face ownership
+
+The 37 audited `SURF-*` rows in `docs/references/workbench-ui/README.md` remain partitioned exactly once across IA27-IA34. C19-F09/C20-F11 invalidate prior phase acceptance but do not change this surface universe or ownership allocation. This table is the PLAN owner of phase-local rendered acceptance allocation; IA26 independently rechecks the union plus component-architecture/SoC invariants.
+
+| Phase | Exact owned SURF rows | Required state/reference sheets before phase advance |
+|---|---|---|
+| IA27 | `SURF-WI-001`, `SURF-WI-CONTEXT-001` | WorkItem shell controls; singular technical Context; semantic-component foundation, current-attention/chrome and responsive **readiness** proof only — not foundation acceptance/freeze |
+| IA28 | `SURF-APP-001`, `SURF-QUEUE-001`, `SURF-CREATE-001` | fresh first rendered foundation acceptance through application-shell/Queue/Create; Queue states; application notices; installation readiness; linked-remediation Create; active-account visibility |
+| IA29 | `SURF-STEP-WR-001`, `SURF-MAT-SOURCE-001`, `SURF-MAT-DOC-001`, `SURF-MAT-DOC-RO-001`, `SURF-CONF-DIRTY-DEST-001`, `SURF-CONF-DIRTY-MATERIAL-001`, `SURF-CONF-ARCHIVE-001`, `SURF-CONF-DOC-GIT-001` | Work request/WorkbenchDocument/Facts/editor states and owned confirmations |
+| IA30 | `SURF-STEP-R1-001`, `SURF-STEP-R2-001`, `SURF-STEP-DESIGN-001`, `SURF-STEP-PLAN-001`, `SURF-MAT-ACTIVITY-001`, `SURF-MAT-PROPOSAL-001` | productive-stage direct interaction classes; Dialogue; Proposal Review + DocumentChangeView; four-kind Research differences |
+| IA31 | `SURF-STEP-R3-001`, `SURF-STEP-APPROVAL-001`, `SURF-MAT-APPROVAL-TASK-001` | Readiness/Approval canonical ReviewVerdict/ReviewSections/Facts/ResourceList; required-input; current/stale/task detail |
+| IA32 | `SURF-STEP-EXEC-001`, `SURF-MAT-EXEC-TASK-001` | Implementation MasterDetail/Section/Facts/ResourceList; current-vs-historical selection; blocker/action/validation |
+| IA33 | `SURF-STEP-COMPLETE-001`, `SURF-MAT-EVIDENCE-001` | Complete WorkbenchResult/Section/ResourceList; linked remediation; candidate/non-candidate terminal states; Evidence |
+| IA34 | `SURF-SET-001`, `SURF-SET-REPO-001`, `SURF-SET-REPO-ADD-001`, `SURF-SET-REPO-MOVE-001`, `SURF-SET-OC-001`, `SURF-SET-OC-RENAME-001`, `SURF-SET-OC-ADD-001`, `SURF-SET-OC-LOGIN-001`, `SURF-SET-MODEL-001`, `SURF-CONF-REPO-DISCONNECT-001`, `SURF-CONF-OC-REMOVE-001` | Settings repository/account/model readiness and active tasks; login terminal states; destructive confirmations |
+
+The IA27-IA34 union is exactly **37 unique SURF rows** with no duplicate or unowned row. Each phase records independent `schema_information`, `ux_interaction`, and `visual_ui` verdicts; component ownership/SoC is additionally proven by the phase where it is exercised and globally by IA20/IA26. IA27 rows are foundation-readiness evidence; IA28 additionally records the first foundation-realization verdict. No prior phase PASS is inherited.
+
 ## IA28 — freshly revalidate Queue and Create and accept the foundation in real consumers
 
 **Solution:** SD22.  
