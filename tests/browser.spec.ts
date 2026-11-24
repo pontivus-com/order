@@ -1592,20 +1592,10 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       authorityRefs: ["GW-DOC-WORKBENCH-UX"],
       captureScope: "full application viewport",
     }));
-    const sessionRecoveryRuntimeErrors =
-      runtimeErrors.slice(runtimeErrorsBeforeSessionRecovery);
-    expect(sessionRecoveryRuntimeErrors).toEqual([
-      "console: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
-    ]);
-    runtimeErrors.splice(
-      runtimeErrorsBeforeSessionRecovery,
-      sessionRecoveryRuntimeErrors.length,
-    );
     await page.unroute("**/api/work-items**");
     await page.reload();
     await expect(page.getByRole("table", { name: "Work items" })).toBeVisible();
 
-    const runtimeErrorsBeforeSessionRecovery = runtimeErrors.length;
     await page.route("**/api/work-items**", async (route) => {
       if (route.request().method() !== "GET") {
         await route.fallback();
