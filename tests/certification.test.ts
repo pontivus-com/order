@@ -565,10 +565,13 @@ describe("Order cross-boundary certification", () => {
     }
 
     const context = read("ui/src/WorkItemContext.tsx");
-    expect(context).toContain('aria-label="WorkItem identity"');
-    expect(context).toContain('aria-label="Selected proposal identity"');
-    expect(context).toContain('aria-label="Selected approval package identity"');
-    expect(context).toContain('aria-label="Selected execution identity"');
+    expect(context).toContain("<WorkbenchSection");
+    expect(context).toContain("<WorkbenchFacts");
+    expect(context).toContain('title="WorkItem identity"');
+    expect(context).toContain('title="Selected proposal identity"');
+    expect(context).toContain('title="Selected approval package identity"');
+    expect(context).toContain('title="Selected execution identity"');
+    expect(context).not.toContain('aria-label="WorkItem identity"');
     expect(context).toContain('data-testid="context-signoff-package-hash"');
     expect(context).not.toContain("WorkbenchDisclosure");
     expect(context).not.toContain("WorkItem technical details");
