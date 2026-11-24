@@ -371,56 +371,61 @@ export const App = () => {
     }
   };
 
+  const applicationDestination =
+    settingsSection !== null
+      ? "Settings"
+      : selectedWorkItem
+        ? "Work item"
+        : "Work queue";
+
   const toolbar = (
     <WorkbenchToolbar
       start={
         <WorkbenchToolbarGroup>
-          <div className="order-brand">
-            <strong>Order</strong>
-            <span>
-              {settingsSection !== null
-                ? "Settings"
-                : selectedWorkItem
-                  ? "Governed work item"
-                  : "Governed work queue"}
-            </span>
-          </div>
           {settingsSection !== null ? (
             <WorkbenchUtilityLink
-              label="Back to work queue"
+              label="Work queue"
+              icon={<WorkbenchIcon name="back" />}
               href="/"
-              onNavigate={(event) => { event.preventDefault(); requestSelection(null); }}
+              onNavigate={(event) => {
+                event.preventDefault();
+                requestSelection(null);
+              }}
             />
           ) : null}
+          <div
+            className="order-application-orientation"
+            aria-label="Current application destination"
+          >
+            <strong>Order</strong>
+            <span>{applicationDestination}</span>
+          </div>
         </WorkbenchToolbarGroup>
       }
       end={
-        <>
-          <WorkbenchToolbarUtilities>
-            <OpenCodeAccountControl onOpenSettings={() => navigateSettings("opencode")} />
+        <WorkbenchToolbarUtilities>
+          <OpenCodeAccountControl onOpenSettings={() => navigateSettings("opencode")} />
+          {settingsSection === null ? (
             <WorkbenchUtilityLink
               label="Settings"
-              href={"/settings/" + (settingsSection ?? "repositories")}
+              href="/settings/repositories"
               onNavigate={(event) => {
                 event.preventDefault();
-                navigateSettings(settingsSection ?? "repositories");
+                navigateSettings("repositories");
               }}
             />
-            <div className="order-theme-control">
-              <WorkbenchIcon name={themePreference} />
-              <SegmentedControl
-                label="Theme"
-                value={themePreference}
-                onChange={selectTheme}
-                size="sm"
-              >
-                <SegmentedControlItem value="system" label="System" />
-                <SegmentedControlItem value="light" label="Light" />
-                <SegmentedControlItem value="dark" label="Dark" />
-              </SegmentedControl>
-            </div>
-          </WorkbenchToolbarUtilities>
-        </>
+          ) : null}
+          <SegmentedControl
+            label="Theme"
+            value={themePreference}
+            onChange={selectTheme}
+            size="sm"
+          >
+            <SegmentedControlItem value="system" label="System" />
+            <SegmentedControlItem value="light" label="Light" />
+            <SegmentedControlItem value="dark" label="Dark" />
+          </SegmentedControl>
+        </WorkbenchToolbarUtilities>
       }
     />
   );
