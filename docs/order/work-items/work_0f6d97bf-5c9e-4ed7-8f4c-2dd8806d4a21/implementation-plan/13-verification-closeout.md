@@ -4,7 +4,7 @@ This component allocates proof across the one canonical T1 candidate and its ord
 
 ## In-task architecture and reconstruction checkpoints
 
-This verification component declares no campaign gate or authorization state. Eligibility for signed execution or any bounded IA27/IA28 grant is governed only by the campaign register; this file owns only the evidence/checkpoint requirements.
+This verification component declares no campaign gate or authorization state. Eligibility for signed execution or any bounded IA27/IA28 grant is governed only by the campaign register and the P0 bounded acceptance-evidence rule. A bounded grant is eligible only after current R3/G6 has returned `READY_FOR_SIGNOFF`; this file owns only the evidence/checkpoint requirements.
 
 
 Preflight IA07 re-proves the existing coordinator-owned signed-checkpoint capability; no candidate byte is relied upon to create it.
@@ -17,7 +17,7 @@ T1 carries the same six logical gate IDs through final validation. During the li
 |---|---|---|
 | applicable IA01-IA25 non-UI work | IA27 | non-UI baseline proof; no protected execution-foundation mutation |
 | IA27 | IA28 | SD21/F6B foundation realization proof is complete: all seven required-new semantic primitives exist, Review/Context destructive API replacements are closed, ResourceRow→ResourceList decomposition is proven, required-absent generic owners remain zero, semantic-component consumer allowlists/SoC/theme/accessibility checks pass, and IA27 SURF foundation-readiness rows PASS. This authorizes IA28 consumption but is not acceptance/freeze. |
-| IA28 | **R3/G6 REVIEW → HUMAN SIGN-OFF; IA29 only after sign-off** | Fresh Queue/Create/application-shell consumer proof against the corrected IA27 candidate + actual production-browser captures + owned rows independently PASS `schema_information`, `ux_interaction`, `visual_ui`, `component_ownership` and explicit foundation-realization. No former RZ16 verdict is inherited. |
+| IA28 | **HUMAN EVIDENCE ACCEPTANCE → HUMAN SIGN-OFF; IA29 only after sign-off** | Fresh Queue/Create/application-shell consumer proof against the corrected IA27 candidate + actual production-browser captures + owned rows independently PASS `schema_information`, `ux_interaction`, `visual_ui`, `component_ownership` and explicit foundation-realization. Current R3/G6 `READY_FOR_SIGNOFF` is the prerequisite for the bounded tranche, not a downstream consequence of it. No former RZ16 verdict is inherited. |
 | IA29 | IA30 | WorkbenchDocument/Facts/Section composition proof; required repository/document/Git supporting facts visible; no screen-local document-facts/aside grammar, generic workflow chrome, duplicate heading or technical leakage; all IA29 rows PASS. |
 | IA30 | IA31 | direct Document/Dialogue/Review/Evidence resolution; Proposal Review uses ReviewVerdict/ReviewSection + DocumentChangeView with raw diff secondary; no local review/resource grammar; continuous Dialogue semantics; all IA30 rows PASS. |
 | IA31 | IA32 | Readiness/Approval use one canonical ReviewVerdict + ReviewSections/Facts/ResourceList; no local `order-review-*` structural grammar, whole-R3-under-Findings duplication, raw enum or selector; all IA31 rows PASS. |
@@ -91,7 +91,7 @@ The six logical gates remain the canonical signed task gate union. IA26 is an ad
 
 ## Bounded pre-sign-off IA27/IA28 evidence lane
 
-The pre-sign-off IA27/IA28 lane is conditional evidence machinery only. Whether a grant is active is owned exclusively by campaign §17A/§18; without exact-package authorization from that owner, this lane confers no mutation authority. When authorized, it must remain capable of producing IA27/IA28 evidence while later-phase UI obligations are open:
+The pre-sign-off IA27/IA28 lane is conditional evidence machinery only. It is eligible only after the exact current package has passed R3/G6 as `READY_FOR_SIGNOFF`. Whether a grant is active is then owned exclusively by campaign §17A/§18; without exact-package authorization from that owner, this lane confers no mutation authority. When authorized, it must remain capable of producing IA27/IA28 evidence while later-phase UI obligations are open:
 
 1. PR verification first runs dependency-lock, typecheck, architecture, the complete non-browser test gate and build on the exact merge candidate;
 2. before the ordinary full browser step, a dedicated Playwright scenario/capture lane runs only the IA27/IA28 proof set: `SURF-WI-001`, `SURF-WI-CONTEXT-001`, `SURF-APP-001`, `SURF-QUEUE-001` and `SURF-CREATE-001`, plus the exact semantic/browser states declared by IA27/IA28;
@@ -105,7 +105,7 @@ The bounded lane is not a waiver, test skip or alternate browser gate. It exists
 
 SD21/F6B's closed ledger plus IA27 implementation/disposition evidence, semantic checks, browser proof and `SURF-WI-001` render establish **foundation readiness**, not product acceptance. Foundation correctness must be demonstrated through a real consumer screen family.
 
-IA28 is therefore the first acceptance test for the Workbench foundation. Before IA29 may begin, the exact IA28 candidate must produce actual browser-rendered evidence for `SURF-APP-001`, `SURF-QUEUE-001` and `SURF-CREATE-001`, covering the Queue/application shell, Queue states, application notices/readiness, Create WorkItem, linked remediation and active-account utility states required by the IA28 face ledger. This evidence is produced by the bounded phase-local lane above and is valid for R3 review even when the ordinary browser suite remains red solely on explicitly later-phase obligations; such red results remain recorded blockers and cannot be reclassified as pass. The review uses current P3/P4/DESIGN/theme authority as normative truth and the paired `docs/references/workbench-ui/*.svg` files as derived visual comparison material.
+IA28 is therefore the first acceptance test for the Workbench foundation. Before IA29 may begin, the exact IA28 candidate must produce actual browser-rendered evidence for `SURF-APP-001`, `SURF-QUEUE-001` and `SURF-CREATE-001`, covering the Queue/application shell, Queue states, application notices/readiness, Create WorkItem, linked remediation and active-account utility states required by the IA28 face ledger. This evidence is produced only after R3/G6 `READY_FOR_SIGNOFF` by the bounded phase-local lane above and is reviewed for the subsequent human evidence-acceptance/sign-off decision even when the ordinary browser suite remains red solely on explicitly later-phase obligations; such red results remain recorded blockers and cannot be reclassified as pass. The review uses current P3/P4/DESIGN/theme authority as normative truth and the paired `docs/references/workbench-ui/*.svg` files as derived visual comparison material.
 
 The reviewer must record for every IA28 SURF row:
 
