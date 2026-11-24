@@ -116,9 +116,15 @@ jobs:
           PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA: ${{ steps.diagnostic_candidate.outputs.sha }}
           PONTIVUS_ORDER_RENDERED_ACCEPTANCE_LABEL: "pre-remediation current-state diagnostic"
           PONTIVUS_ORDER_RENDERED_EVIDENCE_KIND: "diagnostic_current_state"
-        run: >-
-          node node_modules/@playwright/test/cli.js test
-          --grep "rendered acceptance"
+        shell: bash
+        run: |
+          set +e
+          failures=0
+          node node_modules/@playwright/test/cli.js test             --grep "^rendered acceptance phase 1" || failures=1
+          for phase in IA34 IA29 IA30 IA31 IA32 IA33; do
+            PONTIVUS_ORDER_DIAGNOSTIC_PHASE="$phase"               node node_modules/@playwright/test/cli.js test               --grep "^rendered acceptance IA26" || failures=1
+          done
+          exit "$failures"
 
       - name: Upload current-state diagnostic evidence
         if: ${{ !cancelled() && steps.diagnostic_candidate.outcome == 'success' }}
@@ -135,10 +141,8 @@ jobs:
         env:
           DIAGNOSTIC_DIR: ${{ runner.temp }}/order-rendered-diagnostic-current-state
           DIAGNOSTIC_SHA: ${{ steps.diagnostic_candidate.outputs.sha }}
-          DIAGNOSTIC_CAPTURE_OUTCOME: ${{ steps.diagnostic_capture.outcome }}
         run: |
           set -euo pipefail
-          test "$DIAGNOSTIC_CAPTURE_OUTCOME" = "success"
           DIAGNOSTIC_DIR="$DIAGNOSTIC_DIR" DIAGNOSTIC_SHA="$DIAGNOSTIC_SHA" node <<'NODE'
           const fs = require("node:fs");
           const path = require("node:path");
@@ -153,6 +157,45 @@ jobs:
           const surfaces = new Set(manifest.entries.map((entry) => entry.surface));
           if (surfaces.size !== 37) {
             throw new Error("diagnostic surface coverage must be 37, found " + surfaces.size);
+          }
+          const ids = new Set(manifest.entries.map((entry) => entry.id));
+          for (const id of [
+            "application-wide-light-active-account",
+            "diagnostic-application-wide-light-account-required",
+            "application-wide-light-installation-readiness",
+            "diagnostic-application-wide-light-readiness-all-blockers",
+            "diagnostic-queue-wide-light-loading",
+            "diagnostic-queue-wide-light-true-empty",
+            "diagnostic-application-wide-light-browser-session-required",
+            "queue-wide-light-source-diagnostic",
+            "create-work-item-wide-light-change",
+            "create-linked-remediation-wide-light",
+            "workitem-shell-wide-light-current-attention",
+            "diagnostic-application-settings-wide-light",
+            "diagnostic-application-settings-narrow-light",
+            "diagnostic-application-workitem-wide-light",
+            "diagnostic-application-workitem-medium-light",
+            "diagnostic-application-workitem-narrow-light",
+            "ia26-source-document-editor-wide-light",
+            "ia26-source-document-editor-narrow-light",
+            "ia26-lifecycle-document-editor-wide-light",
+            "ia26-stage-dialogue-open-wide-light",
+            "ia26-stage-dialogue-required-input-wide-light",
+            "ia26-stage-dialogue-processing-wide-light",
+            "ia26-proposal-review-wide-light",
+            "ia26-readiness-review-wide-light",
+            "ia26-readiness-required-input-wide-light",
+            "ia26-approval-wide-light",
+            "ia26-approval-task-wide-light",
+            "ia26-implementation-wide-light",
+            "ia26-implementation-processing-wide-light",
+            "ia26-implementation-blocked-wide-light",
+            "ia26-complete-candidate-wide-light",
+            "ia26-evidence-wide-light",
+            "ia26-settings-frame-wide-light",
+            "ia26-settings-opencode-login-pending-wide-light",
+          ]) {
+            if (!ids.has(id)) throw new Error("diagnostic required active-state capture missing: " + id);
           }
           for (const entry of manifest.entries) {
             if (typeof entry.captureScope !== "string" || entry.captureScope.length === 0) {
