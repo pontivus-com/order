@@ -3,7 +3,7 @@ import { WorkbenchSectionHeader } from "./WorkbenchSectionHeader.tsx";
 
 export type WorkbenchSectionProps = Readonly<{
   title?: string;
-  description?: ReactNode;
+  description?: string;
   action?: ReactNode;
   content: ReactNode;
 }>;
@@ -19,7 +19,7 @@ export const WorkbenchSection = ({
       description === undefined && action === undefined ? null : (
         <div className="order-workbench-section-meta">
           {description === undefined ? null : (
-            <div className="order-workbench-section-description">{description}</div>
+            <p className="order-workbench-section-description">{description}</p>
           )}
           {action === undefined ? null : (
             <div className="order-workbench-section-action">{action}</div>
