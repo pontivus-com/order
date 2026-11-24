@@ -2956,8 +2956,11 @@ describe("architecture fitness", () => {
           actionCatalog.match(/## IA30 —[\s\S]*?(?=\n## IA31 —)/)?.[0] ?? "";
         const ia31Section =
           actionCatalog.match(/## IA31 —[\s\S]*?(?=\n## IA32 —)/)?.[0] ?? "";
-        if (/ProposalReview\.tsx|DocumentChangeView\.tsx/.test(ia30Section)) {
-          violations.push("IA30 must exclude ProposalReview/DocumentChangeView breaking cutover");
+        if (!ia30Section.includes("do not change `ProposalReview.tsx`")) {
+          violations.push("IA30 must explicitly keep ProposalReview unchanged until the IA31 atomic Review cutover");
+        }
+        if (/ProposalReview\.tsx`\s*=|DocumentChangeView\.tsx`\s*=/.test(ia30Section)) {
+          violations.push("IA30 must not own ProposalReview/DocumentChangeView breaking cutover");
         }
         for (const required of [
           "ProposalReview.tsx",
