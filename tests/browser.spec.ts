@@ -3016,6 +3016,8 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   }, page.locator("form.order-markdown-editor"));
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
   await selectWorkflowStep(page, "Readiness review");
+  await expect(page.getByTestId("readiness-verdict")).toBeVisible();
+  await page.getByRole("button", { name: "Open Implementation plan", exact: true }).click();
   const readOnlyMaterial = page.getByTestId("markdown-readonly").first();
   await expect(readOnlyMaterial).toBeVisible();
   await capture({
@@ -3023,8 +3025,8 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     workItemKind: "CHANGE",
     workflowStep: "Readiness review",
     surface: "SURF-MAT-DOC-RO-001",
-    state: "read-only-governed-document",
-    fixture: "Lifecycle editing workbench R3 material",
+    state: "read-only-supporting-governed-document",
+    fixture: "Lifecycle editing workbench Readiness supporting Implementation plan",
     viewport: light,
     theme: "Light",
     route: routeValue(),
@@ -5846,7 +5848,9 @@ test("dirty Markdown navigation is explicit, preserves the buffer when cancelled
 
   await openWorkItem(page, "Lifecycle editing workbench");
   await selectWorkflowStep(page, "Readiness review");
-  await expect(page.getByTestId("markdown-readonly")).toBeVisible();
+  await expect(page.getByTestId("review-workspace")).toBeVisible();
+  await expect(page.getByTestId("readiness-verdict")).toBeVisible();
+  await expect(page.getByTestId("markdown-readonly")).toHaveCount(0);
   await expect(page.getByLabel("Readiness review document Markdown source")).toHaveCount(0);
 
   await selectWorkflowStep(page, "Implementation plan");
