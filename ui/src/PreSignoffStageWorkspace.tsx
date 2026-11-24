@@ -15,7 +15,6 @@ import {
 } from "./workbench-presentation.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchResourceRow } from "./primitives/WorkbenchResourceRow.tsx";
-import { WorkbenchSurface } from "./primitives/WorkbenchSurface.tsx";
 import { WorkbenchState } from "./primitives/WorkbenchState.tsx";
 
 export type SharedPreSignoffStage = "R1" | "R2" | "DESIGN" | "PLAN";
@@ -165,13 +164,9 @@ export const PreSignoffStageWorkspace = ({
 
   if (material.kind === "PROPOSAL") return primary;
 
-  return <WorkbenchSurface
-    attention={attention}
-    material={
-      <section className="order-productive-stage" data-stage={stage}>
-        <div className="order-productive-primary">{primary}</div>
-        {related}
-      </section>
-    }
-  />;
+  return <section className="order-productive-stage" data-stage={stage}>
+    {attention}
+    <div className="order-productive-primary">{primary}</div>
+    {related}
+  </section>;
 };
