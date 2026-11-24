@@ -74,7 +74,7 @@
 .order-workbench-toolbar {
   padding: var(--spacing-2) var(--spacing-4);
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) max-content;
   align-items: center;
   gap: var(--spacing-4);
   border-bottom: 1px solid var(--color-border-emphasized);
@@ -1210,11 +1210,6 @@
   flex: 0 0 auto;
 }
 
-/* Keep explicit document Save/Cancel actions fully visible while formatting commands absorb constrained-width overflow. */
-.order-markdown-editor > .order-workbench-toolbar {
-  grid-template-columns: minmax(0, 1fr) max-content;
-}
-
 .order-markdown-editor {
   height: 100%;
   min-height: 0;
@@ -1346,7 +1341,7 @@
     max-width: 100%;
   }
   .order-workbench-toolbar {
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) max-content;
     gap: var(--spacing-2);
     padding-inline: var(--spacing-2);
   }
