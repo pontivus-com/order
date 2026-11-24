@@ -1470,6 +1470,141 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   renderedReadinessBlockers = [];
   await page.reload();
 
+  if (diagnosticCurrentState) {
+    renderedReadinessBlockers = [
+      "REPOSITORY_REQUIRED",
+      "REPOSITORY_CONFIGURATION_REQUIRES_ATTENTION",
+      "MODEL_INVALID",
+      "REFERENCE_ROOT_CONFIGURATION_REQUIRES_ATTENTION",
+      "OPENCODE_ACCOUNT_REQUIRED",
+    ];
+    await page.reload();
+    const readiness = page.getByTestId("installation-readiness");
+    for (const label of [
+      "Target repository required",
+      "Repository configuration needs attention",
+      "Model unavailable / invalid",
+      "Reference-root configuration needs attention",
+      "OpenCode account required",
+    ]) {
+      await expect(readiness.getByText(label, { exact: true })).toBeVisible();
+    }
+    entries.push(await captureRenderedAcceptance(page, {
+      id: "diagnostic-application-wide-light-readiness-all-blockers",
+      workItemKind: "QUEUE",
+      workflowStep: null,
+      surface: "SURF-APP-001",
+      state: "installation-readiness-all-blockers",
+      fixture: "application shell with all canonical readiness blockers",
+      viewport: { width: 1440, height: 900 },
+      theme: "Light",
+      route: "/",
+      references: [
+        "docs/references/workbench-ui/installation-readiness.svg",
+        "docs/references/workbench-ui/application-notices-states.svg",
+      ],
+      authorityRefs: [
+        "GW-DOC-INSTALLATION-READINESS",
+        "GW-DOC-WORKBENCH-UX",
+      ],
+      captureScope: "full application viewport",
+    }));
+    renderedReadinessBlockers = [];
+    await page.reload();
+
+    let releaseLoading: (() => void) | null = null;
+    const loadingGate = new Promise<void>((resolve) => {
+      releaseLoading = resolve;
+    });
+    await page.route("**/api/work-items**", async (route) => {
+      if (route.request().method() !== "GET") {
+        await route.fallback();
+        return;
+      }
+      await loadingGate;
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: "[]",
+      });
+    });
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await expect(page.getByText("Loading work items…", { exact: true })).toBeVisible();
+    entries.push(await captureRenderedAcceptance(page, {
+      id: "diagnostic-queue-wide-light-loading",
+      workItemKind: "QUEUE",
+      workflowStep: null,
+      surface: "SURF-QUEUE-001",
+      state: "loading",
+      fixture: "deterministic pending WorkItem query",
+      viewport: { width: 1440, height: 900 },
+      theme: "Light",
+      route: "/",
+      references: ["docs/references/workbench-ui/application-notices-states.svg"],
+      authorityRefs: ["GW-DOC-WORKBENCH-UX"],
+      captureScope: "full application viewport",
+    }));
+    releaseLoading?.();
+    await expect(page.getByText("No work items", { exact: true })).toBeVisible();
+    entries.push(await captureRenderedAcceptance(page, {
+      id: "diagnostic-queue-wide-light-true-empty",
+      workItemKind: "QUEUE",
+      workflowStep: null,
+      surface: "SURF-QUEUE-001",
+      state: "true-empty",
+      fixture: "deterministic empty WorkItem list",
+      viewport: { width: 1440, height: 900 },
+      theme: "Light",
+      route: "/",
+      references: [
+        "docs/references/workbench-ui/queue-states.svg",
+        "docs/references/workbench-ui/application-notices-states.svg",
+      ],
+      authorityRefs: ["GW-DOC-WORKBENCH-UX"],
+      captureScope: "full application viewport",
+    }));
+    await page.unroute("**/api/work-items**");
+    await page.reload();
+    await expect(page.getByRole("table", { name: "Work items" })).toBeVisible();
+
+    await page.route("**/api/work-items**", async (route) => {
+      if (route.request().method() !== "GET") {
+        await route.fallback();
+        return;
+      }
+      await route.fulfill({
+        status: 401,
+        contentType: "application/json",
+        body: JSON.stringify({
+          code: "BROWSER_SESSION_REQUIRED",
+          message: "browser session required",
+          sourceDiagnostic: null,
+          staleAuthorityOwner: null,
+        }),
+      });
+    });
+    await page.reload();
+    await expect(page.getByText("Local browser session required", { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Retry", exact: true })).toBeVisible();
+    entries.push(await captureRenderedAcceptance(page, {
+      id: "diagnostic-application-wide-light-browser-session-required",
+      workItemKind: "QUEUE",
+      workflowStep: null,
+      surface: "SURF-APP-001",
+      state: "browser-session-required-recovery",
+      fixture: "deterministic local browser session failure",
+      viewport: { width: 1440, height: 900 },
+      theme: "Light",
+      route: "/",
+      references: ["docs/references/workbench-ui/application-notices-states.svg"],
+      authorityRefs: ["GW-DOC-WORKBENCH-UX"],
+      captureScope: "full application viewport",
+    }));
+    await page.unroute("**/api/work-items**");
+    await page.reload();
+    await expect(page.getByRole("table", { name: "Work items" })).toBeVisible();
+  }
+
   await page.unroute("**/api/work-item-sources/diagnostics");
   await page.route("**/api/work-item-sources/diagnostics", async (route) => {
     if (route.request().method() !== "GET") {
