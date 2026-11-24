@@ -2320,12 +2320,54 @@ describe("architecture fitness", () => {
     const p4Workbench = sourceText("docs/architecture/workbench.md");
     const plan = sourceText(planPath);
     const campaign = sourceText(campaignPath);
+    const ciWorkflow = sourceText(".github/workflows/ci.yml");
+    const browserSpec = sourceText("tests/browser.spec.ts");
     const g5Status = campaign.match(
       /^\| G5 \|[^\n]*\| (PASS|IN_PROGRESS|BLOCKED|REVALIDATION|NOT_STARTED) \|/m,
     )?.[1] ?? null;
     const violations: string[] = [];
     if (g5Status === null) {
       violations.push("campaign G5 status is not structurally readable");
+    }
+
+    const diagnosticWorkflowTokens = [
+      "Record current-state diagnostic candidate",
+      "diagnostic current-state rendered evidence",
+      'PONTIVUS_ORDER_RENDERED_EVIDENCE_KIND: "diagnostic_current_state"',
+      'rendered-diagnostic-current-state-${{ steps.diagnostic_candidate.outputs.sha }}',
+      "Validate current-state diagnostic completeness",
+      "diagnostic surface coverage must be 37",
+      "Resolve bounded evidence authorization",
+      "Current bounded authorization:",
+      "steps.bounded_authorization.outputs.active == 'true'",
+      'PONTIVUS_ORDER_RENDERED_EVIDENCE_KIND: "bounded_phase_acceptance"',
+      'PONTIVUS_ORDER_RENDERED_EVIDENCE_KIND: "ia26_acceptance"',
+    ] as const;
+    for (const token of diagnosticWorkflowTokens) {
+      if (!ciWorkflow.includes(token)) {
+        violations.push("CI rendered-evidence control missing: " + token);
+      }
+    }
+    const diagnosticIndex = ciWorkflow.indexOf("- name: diagnostic current-state rendered evidence");
+    const browserIndex = ciWorkflow.indexOf("- name: browser");
+    if (diagnosticIndex < 0 || browserIndex < 0 || diagnosticIndex >= browserIndex) {
+      violations.push("current-state diagnostic evidence must run before the ordinary browser gate");
+    }
+    for (const token of [
+      "diagnostic_current_state",
+      "evidenceKind: renderedEvidenceKind",
+      "rendered evidence kind changed within one evidence run",
+      "full application viewport",
+      "diagnostic-application-wide-light-account-required",
+      "diagnostic-application-settings-wide-light",
+      "diagnostic-application-settings-narrow-light",
+      "diagnostic-application-workitem-wide-light",
+      "diagnostic-application-workitem-medium-light",
+      "diagnostic-application-workitem-narrow-light",
+    ]) {
+      if (!browserSpec.includes(token)) {
+        violations.push("browser diagnostic corpus contract missing: " + token);
+      }
     }
 
     const duplicates = (values: readonly string[]): readonly string[] => {
