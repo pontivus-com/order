@@ -180,7 +180,7 @@ const ValidationSummary = ({
           title={active ? "Validation in progress" : "Validation not started"}
           description={
             active
-              ? "Recorded validation stages will appear as this attempt advances."
+              ? "Recorded validation stages will appear while this attempt advances."
               : "No durable validation result has been recorded for this attempt."
           }
         />
