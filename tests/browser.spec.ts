@@ -3973,13 +3973,13 @@ test("historical inspection preserves current attention reason, return and curre
     await openWorkItem(page, title);
     await selectWorkflowStep(page, "Work request");
     await expect(page.locator(".order-workbench-attention")).toHaveCount(0);
-    await expect(page.getByText(attentionText, { exact: false })).toBeVisible();
     await expect(page.getByTestId("workflow-step-summary")).toHaveCount(0);
     const returnToCurrent = page.getByRole("button", {
       name: "Return to Implementation plan",
       exact: true,
     });
     await expect(returnToCurrent).toBeVisible();
+    await expect(returnToCurrent.locator("..")).toContainText(attentionText);
     if (currentAction !== null) {
       await expect(page.getByRole("button", {
         name: currentAction,
@@ -3999,10 +3999,10 @@ test("historical inspection preserves current attention reason, return and curre
   await expect(page.getByTestId("review-workspace")).toContainText("Package stale");
   await selectWorkflowStep(page, "Work request");
   await expect(page.locator(".order-workbench-attention")).toHaveCount(0);
-  await expect(page.getByText("Approval authority is stale", { exact: true })).toBeVisible();
   await expect(page.getByTestId("workflow-step-summary")).toHaveCount(0);
   const returnToApproval = page.getByRole("button", { name: "Return to Approval", exact: true });
   await expect(returnToApproval).toBeVisible();
+  await expect(returnToApproval.locator("..")).toContainText("Approval authority is stale");
   await expect(page.getByRole("button", {
     name: "Return to Implementation plan",
     exact: true,
@@ -4067,8 +4067,9 @@ test("canonical Run feedback remains visible in the owning workflow context with
   await expect(page.getByText("Agent setup blocked", { exact: true })).toBeVisible();
   await expect(page.getByTestId("workflow-step-summary")).toHaveCount(0);
   await expect(page.locator(".order-workbench-attention")).toHaveCount(0);
-  await expect(page.getByText("Implementation plan is blocked", { exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Return to Implementation plan", exact: true })).toBeVisible();
+  const returnToPlan = page.getByRole("button", { name: "Return to Implementation plan", exact: true });
+  await expect(returnToPlan).toBeVisible();
+  await expect(returnToPlan.locator("..")).toContainText("Implementation plan is blocked");
   await expect(
     page.getByText("Technical diagnostics available", { exact: true }),
   ).toBeVisible();
@@ -4617,8 +4618,9 @@ test("all nine workflow steps keep their canonical summary/material grammar and 
       }
     } else {
       await expect(page.locator(".order-workbench-attention")).toHaveCount(0);
-      await expect(page.getByText("Approval is ready for your action", { exact: true })).toBeVisible();
-      await expect(page.getByRole("button", { name: "Return to Approval" })).toBeVisible();
+      const returnToApproval = page.getByRole("button", { name: "Return to Approval" });
+      await expect(returnToApproval).toBeVisible();
+      await expect(returnToApproval.locator("..")).toContainText("Approval is ready for your action");
       await expect(page.getByTestId("workflow-step-summary")).toHaveCount(0);
       await expect(page.getByTestId("primary-material-frame")).toHaveCount(0);
       await expect(page.getByTestId("workflow-step-workspace")).toBeVisible();
@@ -5136,9 +5138,10 @@ test("historical pre-signoff inspection returns to the current owner before offe
 
   await selectWorkflowStep(page, "Research");
   await expect(page.locator(".order-workbench-attention")).toHaveCount(0);
-  await expect(page.getByText("Requirements is ready for your action", { exact: true })).toBeVisible();
   await expect(page.getByTestId("workflow-step-summary")).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Return to Requirements", exact: true })).toBeVisible();
+  const returnToRequirements = page.getByRole("button", { name: "Return to Requirements", exact: true });
+  await expect(returnToRequirements).toBeVisible();
+  await expect(returnToRequirements.locator("..")).toContainText("Requirements is ready for your action");
   await expect(page.getByRole("button", { name: "Start Requirements", exact: true })).toHaveCount(0);
 });
 
