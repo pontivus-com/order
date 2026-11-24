@@ -2423,7 +2423,10 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   const repositoryTable = repositories.getByRole("table", { name: "Connected repositories" });
   const repositoryRow = repositoryTable.getByRole("row").nth(1);
   await repositoryRow.getByRole("button", { name: /^Move WorkItem documents for / }).click();
-  const moveDocuments = repositories.getByTestId("move-workitem-documents");
+  const moveDocuments = page.getByTestId("settings-repositories");
+  await expect(
+    moveDocuments.getByRole("heading", { name: "Move WorkItem documents" }),
+  ).toBeVisible();
   await capture({
     id: "ia26-settings-repository-move-wide-light",
     workItemKind: "QUEUE",
@@ -3025,7 +3028,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     workItemKind: "CHANGE",
     workflowStep: "Readiness review",
     surface: "SURF-MAT-DOC-RO-001",
-    state: "read-only-supporting-governed-document",
+    state: "read-only-governed-document",
     fixture: "Lifecycle editing workbench Readiness supporting Implementation plan",
     viewport: light,
     theme: "Light",
