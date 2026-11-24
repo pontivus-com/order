@@ -838,10 +838,13 @@ Permanent architecture fitness treats duplicate base structural selectors and pr
 
 The Workbench vocabulary is closed for **Order-owned screen structure, recurring interaction mechanics and visual semantics**. Feature/service modules map canonical state and domain content into this vocabulary; they do not create competing shell, navigation, selection, form, dialogue, review, master/detail, Context, notice, timeline, overlay or confirmation mechanics directly from Astryx, raw HTML/CSS or feature-local styling.
 
-This closure is intentionally not a wrapper around every leaf widget. Complete coverage has two layers:
+This closure is intentionally not a wrapper around every leaf widget. Complete coverage has three layers:
 
-1. **Order Workbench primitives** own every recurring structure, interaction mechanic and semantic visual role that must remain consistent.
-2. **Approved foundation leaves / specialized renderers** may render content inside those primitive slots only under §8.19. They cannot establish another Workbench grammar.
+1. **Structural/interaction primitives** own application/work-item topology, interaction-class mechanics, responsive ownership, overlays and action/state behavior.
+2. **Semantic composition components** own recurring information anatomy inside those interaction classes: bounded sections, facts, review verdict/sections, document composition, resource collections and terminal-result composition. These components are deliberately smaller than a screen and deliberately more semantic than raw layout.
+3. **Approved foundation leaves / specialized renderers** render content inside those owned compositions only under §8.19. They cannot establish another Workbench grammar.
+
+A feature renderer may project domain data into these layers, but it may not invent a recurring information grouping, section anatomy, collection grammar, review hierarchy or responsive composition in feature-local JSX/CSS. A structural slot typed as arbitrary content is legal only at an explicitly leaf-level content boundary; it is not a license to delegate the component hierarchy back to the feature.
 
 The canonical Workbench primitive-responsibility vocabulary is:
 
@@ -857,10 +860,16 @@ The table defines **canonical target responsibilities and semantic APIs**, indep
 | `WorkbenchRail` | stable equal-cell workflow navigation with constrained-width scrolling | no content/status-derived widths; no wrapping/multi-row lifecycle navigation |
 | `WorkbenchSurface` | one primary material region plus an optional genuine current-attention region | no selector/material-navigation slot; no persistent side/master slot; no generic heading/top-content slot; no caller responsive topology choice |
 | `WorkbenchAttention` | one human-facing condition that presently requires operator awareness/action: headline, optional explanation/feedback, and at most one current action region | no `Current attention:` taxonomy prefix; no generic stage purpose; no workflow/material status tuple or badge stack; no lifecycle/current-attention derivation; no competing action owner |
-| `WorkbenchSectionHeader` | consistent material/subsection heading, description and local action alignment | no independent page/surface topology |
+| `WorkbenchSectionHeader` | heading/description/local-action atom used by an owning semantic section or specialist renderer | no independent section boundary, page/surface topology or feature-local spacing system |
+| `WorkbenchSection` | one bounded semantic content section: optional heading/description/local action plus one leaf-content region, with canonical section spacing/boundary behavior | no arbitrary panel variants, caller geometry, nested section system or competing primary-action owner |
+| `WorkbenchFacts` | compact structured label/value facts whose visibility/classification has already been decided by P3/DESIGN; owns shared fact rhythm, wrapping and emphasis rules | no domain derivation, no technical-detail promotion, no arbitrary card chrome, no use as a substitute for Context/Evidence |
+| `WorkbenchDocument` | complete Document-class composition: document identity/currentness/action, optional DESIGN-authorized supporting facts, and exactly one governed document/editor content owner | no generic workflow summary/material selector; no second outer document heading; no technical-inspection lane; no caller-defined side layout; editor controls remain owned by the specialist editor |
+| `WorkbenchResult` | complete Terminal-result composition: product-facing outcome/status, optional summary, ordered semantic sections/resources and permitted result action | no synthetic attention wrapper, generic container-taxonomy headings, internal enum/event identity or caller-defined result topology |
 | `WorkbenchSelector` | bounded subordinate single-selection only where the owning interaction DESIGN explicitly requires peer selection; uses Astryx `Selector` with the declared secondary/adaptive treatment | no generic workflow-material/history role; no Review currentness/navigation role; no stage-orientation role; no speculative consumer; item count never changes surrounding topology; every production consumer is allowlisted by the renderer matrix |
 | `WorkbenchDialogue` | transcript scrolling, one bounded supporting-activity region, anchored composer region, focus/keyboard continuity and empty/pending slots | no generic header/technical-detail slots; no Run/RunEvent/query ownership; no input-admission policy |
-| `WorkbenchReview` | the complete Review-class hierarchy: currentness/verdict, summary, substantive body and decision actions | no selector/material-navigation slot; no attention slot; no technical-details slot; no generic persistent navigation column; exact technical identity is inspected through selected WorkItem Context |
+| `WorkbenchReview` | Review-class outer composition over one `WorkbenchReviewVerdict`, optional concise summary, an ordered set of `WorkbenchReviewSection` children and one decision region | no arbitrary `body` escape slot; no selector/material-navigation slot; no attention slot; no technical-details slot; no generic persistent navigation column |
+| `WorkbenchReviewVerdict` | dominant human review verdict/currentness presentation with one semantic tone, label and optional explanation/currentness detail | no raw lifecycle/result enum rendering, no document body, no package/history collection and no decision action |
+| `WorkbenchReviewSection` | one named Review-body responsibility such as findings, rationale, governed proposal content, supporting package or evidence access; owns section hierarchy and spacing | no whole-review topology, no duplicate verdict/summary, no generic technical-inspection content, no feature-local card grammar |
 | `WorkbenchMasterDetail` | the one legal operational master/detail topology: fixed docked master on wide; medium/narrow master uses Astryx `Drawer side="start" hasScrim={false}` with visible close/focus return while detail remains primary | no caller master width/presentation choice; no collection-count activation; no stacked alternative |
 | `WorkbenchContextPanel` | the one selected-WorkItem technical-inspection/secondary-context region: selected document/Run/proposal/approval/task/execution identity is projected here with explicit close; wide mode is a docked `LayoutPanel`-class region, constrained mode is an Astryx `Drawer` with caller-owned open state/focus return | no current-action/blocker ownership; no auto-open; no feature-local technical accordion substitute; no Drawer when content is meant to reflow wide layout; no independent responsive/sidebar behavior |
 | `WorkbenchTaskPanel` | one bounded operator Form/configuration task over Astryx `Dialog` with fixed `purpose="form"` and mandatory **header → scrollable body → footer** anatomy. Header owns title/purpose/dismissal, body owns fields/supporting task content/feedback, footer owns Cancel + the one primary task command. Foundation owns focus/dismissal/elevation mechanics | no Drawer fallback; no caller-selected Dialog purpose; no action buttons rendered as arbitrary body children; no generic Technical-details disclosure in the body; no persistent navigation/arbitrary width/breakpoint/Context substitution/nested modal stack; a future full-height side task requires DESIGN |
@@ -875,10 +884,11 @@ The table defines **canonical target responsibilities and semantic APIs**, indep
 | `WorkbenchDisclosure` | bounded semantic expansion of the **same operator task** when the expanded content has a specific product meaning (for example a complete validation matrix) and persistent display would compete with that task | not a Technical-details, Supporting-material/history or generic metadata owner; no primary action ownership; no nested/adjacent disclosure stack; no substitute for Context, material selection or Evidence |
 | `WorkbenchConfirmation` | the one modal Safety/exception confirmation owner. `kind="destructive"` uses Astryx `AlertDialog` for destructive/irreversible consent; `kind="safety"` uses Astryx `Dialog` for an explicitly DESIGN-authorized non-destructive mutation that requires exact facts for informed consent. Both own specific action/consequence copy, pending-state containment and explicit close | caller cannot choose Dialog versus AlertDialog or an arbitrary action variant; `kind` comes only from the P3/DESIGN interaction classification; no ordinary decision modal, early close while pending, mutation/admission policy or domain-specific decision semantics |
 | `WorkbenchAction` | **command-only** semantic wrapper over Astryx `Button`; `IconButton` is used for dedicated icon-only commands; one primary command per view, specific action labels, foundation loading/disabled/focus behavior | no pure navigation; no multiple primary commands in one view; no destructive irreversible action without Confirmation; no authorization/admission/current-action policy |
-| `WorkbenchResourceRow` | scan-efficient resource identity/detail/open-action row; repeated heterogeneous-but-related resources use Astryx `List`/`ListItem` semantics where they fit, without nested interactive targets | no resource query/mutation ownership; no interactive child inside an interactive row; no single-item pseudo-list or nested card system |
+| `WorkbenchResourceRow` | one scan-efficient resource item with identity, optional detail/meta and at most one explicit resource action; it is the item primitive consumed by `WorkbenchResourceList` | no collection heading/layout ownership; no resource query/mutation ownership; no interactive child inside an interactive row; no caller-selected card/button chrome |
+| `WorkbenchResourceList` | one repeated related-resource collection over Astryx `List`/`ListItem` semantics, including collection label/empty treatment and consistent item/action affordance | no single-item pseudo-list, no heterogeneous workflow-material selector, no query/mutation ownership, no nested card system |
 | `WorkbenchIcon` | canonical icon mapping, size and decorative/accessibility handling | no action/domain semantics |
 
-The vocabulary is complete at the level that must be shared to prevent UI drift. Cohesive content owners such as `MarkdownEditor`, `MarkdownSourceEditor`, Markdown/CodeBlock rendering, proposal diff content and domain-specific data projection remain feature/content mechanisms only. They are still fully governed by the primitive composition and visual language below.
+The vocabulary is complete only when the structural/interaction primitives and the semantic composition components above are both present. This intermediate composition layer is mandatory: a screen may not replace `WorkbenchSection`, `WorkbenchFacts`, Review verdict/section anatomy, `WorkbenchResourceList`, `WorkbenchDocument` or `WorkbenchResult` with feature-local recurring JSX/CSS. Cohesive content owners such as `MarkdownEditor`, `MarkdownSourceEditor`, Markdown/CodeBlock rendering, the approved document-change specialist and domain-specific data projection remain content mechanisms only. They are fully governed by the composition and visual language below.
 
 The exact filenames may be combined only when two rows remain one independently testable responsibility. Their semantic APIs/invariants may not be collapsed into a generic "panel/layout/slots" mega-primitive.
 
@@ -891,7 +901,7 @@ This section technically realizes `GW-DOC-WORKBENCH-UX-V2 §11.4A/§12`. It does
 | P3 class / decision | Canonical technical owner | Technical constraint |
 |---|---|---|
 | Primary task information | owning primary interaction composition: `WorkbenchSurface`, `WorkbenchDialogue`, `WorkbenchReview`, `WorkbenchMasterDetail`, `WorkbenchSettingsLayout`, `WorkbenchTaskPanel`, Evidence or Terminal result as applicable | reachable without technical inspection; no inspector is the only owner of a current blocker/action |
-| Supporting operator information | `WorkbenchSelector`, `WorkbenchResourceRow`, `WorkbenchTimeline` or another specifically named bounded supporting region inside the owning primary composition | one semantic owner only; attempts/upstream material do not also produce a generic Supporting-material/history bar |
+| Supporting operator information | `WorkbenchFacts`, `WorkbenchResourceList`, `WorkbenchTimeline`, `WorkbenchReviewSection` or another specifically named bounded supporting region inside the owning primary composition | one semantic owner only; attempts/upstream material do not also produce a generic Supporting-material/history bar; repeated resources use the collection owner rather than screen-local row stacks |
 | Operational detail | same semantic supporting owners, selected/expanded only when persistent display would compete with the task | may use `WorkbenchDisclosure` only for a specifically named expansion of the same task; never as generic technical/supporting storage |
 | WorkItem-scoped Technical detail | the explicitly opened `WorkbenchContextPanel` populated by selection-aware `WorkItemContext` | absent from productive screen composition; grouped by the currently selected document/Run/proposal/approval/task/execution object; no local Technical-details accordion |
 | Application/Settings Technical detail | one explicit Settings diagnostics/technical-inspection section under `WorkbenchSettingsLayout` | no per-Settings-section Technical-details accordions; exact values are Primary only while an explicit configuration task requires them |
@@ -908,6 +918,7 @@ When a technical/diagnostic condition owns attention, domain/presentation policy
 - material/history selection has one selector/resource owner;
 - WorkItem technical identity has one Context owner;
 - editor controls remain adjacent to the source/preview canvas they control;
+- repeated semantic facts/resources/Review sections use their canonical composition owner rather than feature-local section/list/card systems;
 - `WorkbenchTaskPanel` actions live in its footer, not in arbitrary body flow;
 - responsive recomposition may move Context or selectors, but cannot change classification, auto-open technical inspection or insert new disclosure bands.
 
@@ -1010,6 +1021,27 @@ Toolbar/identity/rail geometry is primitive-owned. `WorkbenchUtilityLink` is nav
 WorkbenchSurface({ attention?, material })
 WorkbenchAttention({ title, description?, feedback?, action? })
 WorkbenchSectionHeader({ title, description?, action? })
+WorkbenchSection({ title?, description?, action?, content })
+WorkbenchFacts({
+  label?,
+  items: [{ id, label, value, emphasis?: "normal" | "strong" }],
+})
+WorkbenchDocument({
+  title,
+  description?,
+  status?,
+  action?,
+  facts?,
+  content,
+})
+WorkbenchResult({
+  title,
+  status,
+  summary?,
+  sections?,
+  resources?,
+  action?,
+})
 WorkbenchSelector({
   label,
   groups: [{ label?, items: [{ id, label, detail?, selected, onSelect }] }],
@@ -1020,19 +1052,22 @@ WorkbenchSelector({
 
 ```ts
 WorkbenchDialogue({ transcript, activity?, composer?, state? })
+WorkbenchReviewVerdict({ label, description?, tone, currentness? })
+WorkbenchReviewSection({ title, description?, content })
 WorkbenchReview({
-  currentness,
-  summary,
-  body,
+  title,
+  description?,
+  verdict,
+  sections,
   decisions,
 })
 WorkbenchMasterDetail({ master, detail, masterLabel })
 ```
 
-Dialogue owns transcript/supporting-activity/composer mechanics but not send eligibility. Its narrow API has no generic header, workflow-state summary or technical-detail slot. OPEN/REQUIRED_INPUT/PROCESSING are interaction classifications used to select transcript/composer/state behavior, not ordinary taxonomy labels to print as primary copy. Raw technical identity routes to explicit WorkItem Context/Evidence. Review has no selector, attention or technical-detail escape slot. Master/detail exposes no master width/collapse/count configuration.
+Dialogue owns transcript/supporting-activity/composer mechanics but not send eligibility. Its narrow API has no generic header, workflow-state summary or technical-detail slot. OPEN/REQUIRED_INPUT/PROCESSING are interaction classifications used to select transcript/composer/state behavior, not ordinary taxonomy labels to print as primary copy. Raw technical identity routes to explicit WorkItem Context/Evidence. Review owns the outer hierarchy and accepts only its named verdict/section/decision responsibilities; it has no arbitrary `body` slot, selector, attention or technical-detail escape. A Review section may contain approved leaf content or a canonical supporting composition such as `WorkbenchFacts`/`WorkbenchResourceList`, but cannot create another Review hierarchy. Master/detail exposes no master width/collapse/count configuration.
 
 ```ts
-WorkbenchContextPanel({ title, onClose, children })
+WorkbenchContextPanel({ title, onClose, sections })
 WorkbenchTaskPanel({ open, title, description?, onOpenChange, body, feedback?, footer, onSubmit? })
 WorkbenchSettingsLayout({ navigation, content })
 ```
@@ -1052,6 +1087,8 @@ WorkbenchState({ kind, title, description?, action? })
 ```ts
 WorkbenchTable({ label, columns, rows, selection? })
 WorkbenchTimeline({ label, items })
+WorkbenchResourceRow({ id, label, detail?, meta?, action? })
+WorkbenchResourceList({ label?, items, empty? })
 WorkbenchDisclosure({ label, content })
 WorkbenchConfirmation({
   kind,
@@ -1067,7 +1104,7 @@ WorkbenchConfirmation({
 
 Table/timeline data remains feature-owned; the primitives own visual rhythm and interaction mechanics. Confirmation owns modal accessibility and the fixed substrate/action role implied by the P3/DESIGN `kind`, not the decision to open or mutation executed. `kind="safety"` is primary-action Dialog consent; `kind="destructive"` is destructive-action AlertDialog consent. Callers never pass an arbitrary visual action tone.
 
-The existing `WorkbenchAction`, `WorkbenchResourceRow`, `WorkbenchIcon` and toolbar groups remain narrow atoms under these contracts.
+`WorkbenchAction`, `WorkbenchResourceRow`, `WorkbenchIcon`, `WorkbenchSectionHeader` and toolbar groups remain narrow atoms under these contracts. `WorkbenchResourceRow` is not a feature-level collection owner: repeated resources are supplied through `WorkbenchResourceList`.
 
 ### 8.14 Primitive API laws
 
@@ -1089,6 +1126,8 @@ All Order-owned Workbench primitives obey the applicable laws:
 14. **Foundation-leaf containment:** approved leaves from §8.19 may render only inside the primitive slot that gives them context; they cannot create outer topology or a parallel visual grammar.
 15. **Specialized renderer containment:** CodeMirror/Markdown/raw evidence renderers own content mechanics only and consume the same design tokens/theme.
 16. **Closed extension:** a new reusable primitive, visual role or semantic tone requires DESIGN authority and permanent fitness coverage.
+17. **No structural escape hatch:** generic `ReactNode`/children content is permitted only at explicitly leaf-level content boundaries. A component that owns a hierarchy may not expose an unconstrained slot that lets a feature recreate that hierarchy, section system, collection grammar or responsive topology locally.
+18. **Physical cohesion:** when one production renderer owns multiple independently testable semantic presentation responsibilities, P7 decomposes it into the minimum same-layer component modules authorized by this P4 vocabulary instead of preserving a route-sized catch-all.
 
 ### 8.15 Canonical screen-construction grammar
 
@@ -1109,9 +1148,12 @@ Form / configuration
      + WorkbenchNotice / WorkbenchStatus / WorkbenchAction
 
 Document
-  -> specialized document/editor renderer as the one primary material
+  -> WorkbenchDocument as the one primary material
+     + document identity/currentness/action owned by WorkbenchDocument
+     + DESIGN-authorized supporting facts use WorkbenchFacts
+     + specialized document/editor renderer is the one content leaf
      + optional genuine WorkbenchAttention only when the exact Document interaction owns current human attention
-     + interaction-specific WorkbenchResourceRow / Action access for subordinate material where DESIGN requires it
+     + repeated subordinate resources use WorkbenchResourceList; a single resource uses an explicit Action/link treatment rather than a one-item pseudo-list
      + exact technical identity routes to WorkItem Context / Evidence
      + no generic WorkbenchSelector / WorkbenchDisclosure / outer workflow wrapper
 
@@ -1124,11 +1166,13 @@ Dialogue
 Review
   -> WorkbenchReview
      outer WorkbenchSurface / WorkbenchAttention = absent
+     + one WorkbenchReviewVerdict
+     + ordered WorkbenchReviewSection children for the DESIGN-declared review responsibilities
+     + WorkbenchFacts / WorkbenchResourceList / approved specialist leaves only inside the section that owns them
      + WorkbenchStatus / WorkbenchNotice as semantic content inside the declared Review regions
-     + interaction-specific WorkbenchResourceRow / Action access for supporting package/history where required
      + WorkbenchAction for already-derived decisions
      + exact technical identity routes to WorkItem Context / Evidence
-     + no selector/material-navigation or generic WorkbenchDisclosure slot
+     + no arbitrary review-body hierarchy, selector/material-navigation or generic WorkbenchDisclosure slot
 
 Operational master/detail
   -> WorkbenchMasterDetail
@@ -1145,9 +1189,11 @@ Evidence
 Terminal result
   -> WorkbenchSurface
      attention = absent
-     material = product-facing result header/status
-              + result content/evidence/resources
-              + permitted result action
+     material = WorkbenchResult
+                + product-facing result status/outcome
+                + ordered WorkbenchSection content
+                + WorkbenchResourceList where repeated resources exist
+                + permitted result action
 
 Compact context
   -> WorkbenchContextPanel hosted only by WorkbenchWorkItemShell
@@ -1169,13 +1215,13 @@ Canonical application services resolve as:
 | Create WorkItem/remediation | `WorkbenchAppShell` hosts the current destination and `WorkbenchTaskPanel -> WorkbenchForm` contains the transient creation/configuration task; Astryx field-owning controls are leaves and `WorkbenchField` is only for a control without its own field shell |
 | Settings | `WorkbenchAppShell -> WorkbenchSettingsLayout -> WorkbenchForm` + Astryx field-owning controls / `WorkbenchField` fallback + Status/Notice/Confirmation |
 | WorkItem shell | `WorkbenchAppShell -> WorkbenchWorkItemShell -> WorkbenchIdentity + WorkbenchRail + one primary composition + optional WorkbenchContextPanel` |
-| Work request/lifecycle document | direct Document composition; where the selected/current Document interaction has genuine human attention, the Document owner may compose the one optional `WorkbenchAttention` region defined by its exact interaction contract; no generic `WorkbenchSelector` or outer workflow wrapper |
+| Work request/lifecycle document | direct `WorkbenchDocument` composition with DESIGN-authorized `WorkbenchFacts` and one specialized document/editor content leaf; where the selected/current Document interaction has genuine human attention, the Document owner may compose the one optional `WorkbenchAttention` region defined by its exact interaction contract; no generic `WorkbenchSelector` or outer workflow wrapper |
 | Active/historical STAGE Run | direct `WorkbenchDialogue`; current human-action feedback/composer/state remains Dialogue-owned, while historical current-owner return uses the one explicitly authorized attention/action treatment outside the transcript only when that return is genuinely current |
-| Proposal / Readiness / Approval | one direct `WorkbenchReview` primary composition; supporting package/history uses interaction-specific `WorkbenchResourceRow`/Action treatment, exact technical identity routes to WorkItem Context/Evidence, and REQUIRED_INPUT in Readiness replaces Review with Dialogue for that turn; no selector/disclosure/outer `WorkbenchSurface`/`WorkbenchAttention` wrapper |
+| Proposal / Readiness / Approval | one direct `WorkbenchReview` primary composition built from one `WorkbenchReviewVerdict` plus DESIGN-declared `WorkbenchReviewSection` children; structured facts use `WorkbenchFacts`, repeated package/history/evidence access uses `WorkbenchResourceList`, Proposal mutation content uses the approved document-change specialist, exact technical identity routes to WorkItem Context/Evidence, and REQUIRED_INPUT in Readiness replaces Review with Dialogue for that turn; no arbitrary body hierarchy, selector/disclosure/outer `WorkbenchSurface`/`WorkbenchAttention` wrapper |
 | Implementation | `WorkbenchMasterDetail(master scan, detail WorkbenchSurface)` |
 | Run chronology | `WorkbenchTimeline` |
 | Evidence/raw material | one `WorkbenchSurface` with attention absent and `WorkbenchSectionHeader + approved raw-content leaf` in material; it replaces rather than nests inside the owning primary composition |
-| Complete/result | one `WorkbenchSurface` with attention absent and product-facing `WorkbenchStatus/result header + result content/resources/action` in material |
+| Complete/result | one `WorkbenchSurface` with attention absent and one `WorkbenchResult` in material; repeated resources use `WorkbenchResourceList` and semantic subsections use `WorkbenchSection` |
 | Context | `WorkbenchContextPanel` only through `WorkbenchWorkItemShell` |
 | Safety/confirmation | `WorkbenchConfirmation` with P3/DESIGN-derived `kind="safety" | "destructive"` |
 
@@ -1234,16 +1280,16 @@ The following matrix is exhaustive for the production TSX renderers present on t
 | `ActivityWorkspace.tsx` | Dialogue + Status/Notice + Timeline + Action; selected technical identity routes to Context | bespoke dialogue heading/composer geometry; local Technical-details disclosure |
 | `ActivityComposer.tsx` | Dialogue composer slot + approved Chat leaf + Notice/State | feature-level composer layout |
 | `RunEventTimeline.tsx` | Timeline + Status + ResourceRow/Action; raw event identity routes to Context/Evidence | bespoke ordered-list/event layout; Timeline technical-details disclosure |
-| `DocumentWorkspace.tsx` | Surface + SectionHeader + Notice/State + Confirmation + MarkdownEditor; technical identity routes to Context | direct AlertDialog; bespoke local technical disclosure/state layout |
-| `MarkdownEditor.tsx` | specialized renderer inside Document composition; SectionHeader + one compact editor-control region + Status/Notice + approved Markdown/segmented leaves; overflow-before-wrap formatting composition and direct control→canvas adjacency | bespoke multi-row toolbar; local Technical-details strip; unrelated band between editor controls and canvas |
+| `DocumentWorkspace.tsx` | WorkbenchDocument + Facts + Notice/State + Confirmation + MarkdownEditor; technical identity routes to Context; no feature-local document-facts/aside composition | direct AlertDialog; bespoke local technical disclosure/state layout; screen-local fact/aside grammar |
+| `MarkdownEditor.tsx` | specialized renderer inside WorkbenchDocument content; one compact editor-control region + Status/Notice + approved Markdown/segmented leaves; overflow-before-wrap formatting composition and direct control→canvas adjacency | bespoke multi-row toolbar; local Technical-details strip; unrelated band between editor controls and canvas |
 | `MarkdownSourceEditor.tsx` | specialized CodeMirror renderer consuming canonical tokens | editor-local colors/geometry outside token contract prohibited |
-| `ProposalReview.tsx` | Review + Status/Notice + Action + approved CodeBlock leaf | bespoke review headings/state blocks |
-| `ReadinessWorkspace.tsx` | direct Review + Status/Notice + interaction-specific ResourceRow/Action access to supporting package/evidence/history; REQUIRED_INPUT replaces Review with Dialogue for that turn | generic WorkflowStepFrame composition; generic Readiness material selector |
-| `SignoffReview.tsx` | Review + Astryx field-owning approver control / Field fallback only if required + Status/Notice + Action + approved MetadataList leaf; technical identity routes to Context | generic side index; local/package/task Technical-details disclosures; bespoke approval action/form layout |
+| `ProposalReview.tsx` | Review + ReviewVerdict + ReviewSection + approved DocumentChangeView + Facts/Status/Notice + Action; raw unified diff is not the primary human review surface | bespoke review headings/state blocks; raw CodeBlock diff as the Review body |
+| `ReadinessWorkspace.tsx` | direct Review + ReviewVerdict + ReviewSection + Facts/ResourceList/Status/Notice; REQUIRED_INPUT replaces Review with Dialogue for that turn | generic WorkflowStepFrame composition; generic Readiness material selector; screen-local readiness section/grid grammar |
+| `SignoffReview.tsx` | direct Review + ReviewVerdict + ReviewSection + Facts/ResourceList + approver control + Status/Notice + Action; technical identity routes to Context | generic side index; local/package/task Technical-details disclosures; bespoke approval section/card/action layout |
 | `ExecutionWorkspace.tsx` | MasterDetail + Surface/Attention + Table + Timeline + Status/Notice + ResourceRow/Action; same-task validation expansion may use Disclosure; technical identity routes to Context/Evidence | generic side index; generic Technical-details disclosure; bespoke validation matrix/task detail layout |
 | `EvidenceViewer.tsx` | Surface + SectionHeader + State + approved CodeBlock leaf | bespoke section heading |
-| `TerminalResult.tsx` | Surface + Status + SectionHeader + ResourceRow + approved Markdown/CodeBlock/peer-view leaves | bespoke result status/heading grammar |
-| `WorkItemContext.tsx` | ContextPanel + Status/Notice + approved MetadataList leaf; selection-aware technical projection for document/Run/proposal/approval/task/execution identities | nested WorkItem Technical-details disclosure; feature-local technical inspector outside Context |
+| `TerminalResult.tsx` | Surface + WorkbenchResult + Section + ResourceList + Status + approved Markdown/CodeBlock/peer-view leaves | bespoke result status/heading/section/resource grammar |
+| `WorkItemContext.tsx` | ContextPanel + Section + Facts + Status/Notice + approved MetadataList leaf; selection-aware technical projection for document/Run/proposal/approval/task/execution identities | nested WorkItem Technical-details disclosure; feature-local technical inspector outside Context |
 | existing `ui/src/primitives/*.tsx` | implementation evidence only. The §8.12 responsibility vocabulary and closed APIs are authority; production modules exist only for responsibilities with authorized current consumers. | current primitive implementation may reveal useful capability or defects but may not define topology, geometry, responsive behavior, component API shape or preservation targets |
 
 Every production renderer added later must be added to this matrix (or its canonical successor) in the same DESIGN/P7 authority that introduces it. An unclassified production renderer is an architecture failure.
@@ -1276,10 +1322,11 @@ The closed primitive system does not require pointless one-line wrappers. The fo
 | Astryx `Field` via `WorkbenchField` | label/help/status shell around a native/custom/third-party control that has no field shell | exact label/description/status accessibility wiring remains foundation-owned |
 | native control where no suitable Astryx control exists | control slot inside `WorkbenchField` only | use only when native semantics are required or the catalog has no fit; no feature-owned styling |
 | Astryx `Markdown` | document/result rendering | readable measure/theme inherited from content owner |
-| Astryx `CodeBlock` | evidence/diff/raw code | bounded scrolling/theme inherited |
+| Astryx `CodeBlock` | evidence/raw code and optional secondary exact-diff inspection | bounded scrolling/theme inherited; raw diff is not the primary Proposal Review information design |
 | Astryx `MetadataList` | secondary/technical structured metadata | not primary workflow hierarchy |
 | Astryx `ChatLayout`, `ChatMessage`, `ChatMessageMetadata` and `ChatComposer` leaves | only inside `WorkbenchDialogue` | dialogue geometry/input policy remain Workbench-owned; provider-native/raw tool records are not rendered as Chat tool-call content |
 | CodeMirror via `MarkdownSourceEditor` | exact Markdown source editing | consumes canonical editor/color/type/focus tokens; no independent palette |
+| `DocumentChangeView` specialist | Proposal Review mutation content: render the proposed governed document in document context with changed regions visibly marked and enough unchanged context to understand the mutation; may expose the exact unified diff only as secondary inspection | consumes canonical Markdown/content tokens; derives no proposal authority/acceptance policy; does not create another Review shell or persistent document model |
 | semantic HTML (`section`, `p`, `dl`, `code`, lists, `a`) | content semantics and true external/document links inside primitive slots | no independent layout/color/type system; links use accent/link token + underline/focus grammar |
 
 Direct feature/service use of Astryx `Button/IconButton`, reusable status `Badge/Banner`, structural `AppShell/Layout/Drawer/Dialog`, material-selection `Selector`, or `AlertDialog` is not approved when the corresponding mechanic is owned by a Workbench primitive. Those Astryx components are the preferred **substrates inside the owning primitive**, not an alternate feature-level UI language. Field-owning controls and other §8.19 leaves remain direct leaves only within their authorized composition.
