@@ -461,36 +461,86 @@ export const ExecutionWorkspace = ({
     tasks.length === 0 ? (
       <WorkbenchState kind="empty" title="No approved tasks" />
     ) : (
-      <WorkbenchTable
-        label="Approved tasks"
-        selection="single"
-        columns={[{ key: "task", label: "Approved task" }]}
-        rows={tasks.map((task) => ({
-          id: task.id,
-          selected: task.id === selectedTask?.id,
-          onSelect: () =>
-            onSelectMaterial({
-              kind: "EXECUTION_TASK",
-              taskId: task.id,
-              runId:
-                [...runs]
-                  .filter((run) => run.executionTaskId === task.id)
-                  .sort((left, right) => left.attempt - right.attempt)
-                  .at(-1)?.id ?? null,
-            }),
-          cells: {
-            task: (
-              <div className="order-implementation-master-task">
-                <strong>{task.objective}</strong>
-                <WorkbenchStatus
-                  tone={taskTone(task)}
-                  label={taskStateLabel(task)}
-                />
+      <div className="order-implementation-master">
+        <WorkbenchTable
+          label="Approved tasks"
+          selection="single"
+          columns={[{ key: "task", label: "Approved task" }]}
+          rows={tasks.map((task) => ({
+            id: task.id,
+            selected: task.id === selectedTask?.id,
+            onSelect: () =>
+              onSelectMaterial({
+                kind: "EXECUTION_TASK",
+                taskId: task.id,
+                runId:
+                  [...runs]
+                    .filter((run) => run.executionTaskId === task.id)
+                    .sort(
+                      (left, right) =>
+                        left.attempt - right.attempt ||
+                        left.startedAt.localeCompare(right.startedAt) ||
+                        left.id.localeCompare(right.id),
+                    )
+                    .at(-1)?.id ?? null,
+              }),
+            cells: {
+              task: (
+                <div className="order-implementation-master-task">
+                  <strong>{task.objective}</strong>
+                  <WorkbenchStatus
+                    tone={taskTone(task)}
+                    label={taskStateLabel(task)}
+                  />
+                </div>
+              ),
+            },
+          }))}
+        />
+        {selectedTask === null ? null : (
+          <section
+            className="order-implementation-master-attempts"
+            aria-label="Implementation attempts"
+          >
+            <WorkbenchSectionHeader title="Attempts" />
+            {taskRuns.length === 0 ? (
+              <WorkbenchState kind="empty" title="No attempts yet" />
+            ) : (
+              <div className="order-resource-list">
+                {taskRuns.map((run) => (
+                  <WorkbenchResourceRow
+                    key={run.id}
+                    label={runRoleLabel(run.role) + " · Attempt " + run.attempt}
+                    detail={
+                      new Date(run.startedAt).toLocaleString() +
+                      " · " +
+                      runStatusLabel(run.status)
+                    }
+                    actionLabel={
+                      "Open " +
+                      runRoleLabel(run.role) +
+                      " · Attempt " +
+                      run.attempt
+                    }
+                    leading={
+                      <WorkbenchStatus
+                        tone={runTone(run)}
+                        label={runStatusLabel(run.status)}
+                      />
+                    }
+                    onOpen={() =>
+                      onSelectMaterial({
+                        kind: "EXECUTION_TASK",
+                        taskId: selectedTask.id,
+                        runId: run.id,
+                      })}
+                  />
+                ))}
               </div>
-            ),
-          },
-        }))}
-      />
+            )}
+          </section>
+        )}
+      </div>
     );
 
   const selectedBoundary: ValidationBoundary | null =
@@ -530,45 +580,6 @@ export const ExecutionWorkspace = ({
         </header>
 
         <TaskContract task={selectedTask} />
-
-        <section
-          className="order-implementation-attempts"
-          aria-label="Implementation attempts"
-        >
-          <WorkbenchSectionHeader title="Attempts" />
-          {taskRuns.length === 0 ? (
-            <WorkbenchState kind="empty" title="No attempts yet" />
-          ) : (
-            <div className="order-resource-list">
-              {taskRuns.map((run) => (
-                <WorkbenchResourceRow
-                  key={run.id}
-                  label={runRoleLabel(run.role) + " · Attempt " + run.attempt}
-                  detail={
-                    new Date(run.startedAt).toLocaleString() +
-                    " · " +
-                    runStatusLabel(run.status)
-                  }
-                  actionLabel={
-                    "Open " + runRoleLabel(run.role) + " · Attempt " + run.attempt
-                  }
-                  leading={
-                    <WorkbenchStatus
-                      tone={runTone(run)}
-                      label={runStatusLabel(run.status)}
-                    />
-                  }
-                  onOpen={() =>
-                    onSelectMaterial({
-                      kind: "EXECUTION_TASK",
-                      taskId: selectedTask.id,
-                      runId: run.id,
-                    })}
-                />
-              ))}
-            </div>
-          )}
-        </section>
 
         {selectedRun === null ? null : (
           <section className="order-implementation-attempt" aria-label="Selected implementation attempt">
