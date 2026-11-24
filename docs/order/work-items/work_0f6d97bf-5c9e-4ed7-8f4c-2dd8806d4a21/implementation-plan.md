@@ -483,6 +483,7 @@ Package atoms in phase: **3**.
 4. every package atom is satisfied by its one execution owner;
 5. action-specific tests plus `13-verification-closeout.md` pass;
 6. any evidence contradiction returns upstream rather than broadening scope.
+
 ### Compiled component: `implementation-plan/04-a04-workbench-research.md`
 #### A04 — Workbench current attention and Research input
 
@@ -549,6 +550,7 @@ Package atoms in phase: **2**.
 4. every package atom is satisfied by its one execution owner;
 5. action-specific tests plus `13-verification-closeout.md` pass;
 6. any evidence contradiction returns upstream rather than broadening scope.
+
 ### Compiled component: `implementation-plan/05-a05-requirements-design.md`
 #### A05 — Requirements and DESIGN authority mutation
 
@@ -590,6 +592,7 @@ Requirements and Solution design retain their authority/proposal semantics. IA30
 4. every package atom is satisfied by its one execution owner;
 5. action-specific tests plus `13-verification-closeout.md` pass;
 6. any evidence contradiction returns upstream rather than broadening scope.
+
 ### Compiled component: `implementation-plan/06-a06-plan-readiness.md`
 #### A06 — PLAN contract and R3 readiness
 
