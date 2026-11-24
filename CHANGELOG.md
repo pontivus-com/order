@@ -8,6 +8,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Changed
 
+- Remove the structural causes of repeated 0.6.0 Workbench regressions: keep permanent P4 free of campaign/migration state, make PLAN reference rather than redefine closed component contracts, invalidate stale G4/G5/G5A/IA27-IA28 grants, compact live campaign control to current state plus current evidence, and strengthen package sensors against stale API/source-string preservation.
+
 - Tighten IA27 foundation execution so structurally divergent resumed UI bytes are removed rather than refactored into compliance: classify every design-bearing foundation owner as conforming, bounded residual or destructive replacement; remove the noncanonical Workbench current-attention primitive and its caller-selected whole-surface status-color selectors; and require fresh P4/SD21/theme authorship plus renewed PLAN/alignment/R3 validation before downstream screen work resumes.
 
 - Correct the governed 0.6.0 Workbench reconstruction package down to the shared foundation: treat the old design-bearing primitive/layout implementation as defect evidence rather than a retained baseline, destructively rebuild the application and selected-WorkItem shell on separate canonical owners with one responsive owner, retain only the audited atomic adapters, phase that foundation/shell cutover before all material-screen replacement, keep Queue/Create/account, document, workflow, review, Implementation, terminal/context and Settings owners non-overlapping, and bind T2-T9 to the exact 37/37 rendered-surface allocation without compatibility with the discarded primitive or screen grammar.

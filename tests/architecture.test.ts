@@ -2992,6 +2992,7 @@ describe("architecture fitness", () => {
             .map((row) => row.path),
           [
             "ui/src/primitives/WorkbenchLayout.tsx",
+            "ui/src/primitives/WorkbenchSelector.tsx",
             "ui/src/WorkflowStepFrame.tsx",
             "ui/src/WorkflowMaterialSelector.tsx",
           ],
@@ -3068,7 +3069,8 @@ describe("architecture fitness", () => {
           }
         }
         for (const required of [
-          "WorkbenchTaskPanel",
+          "WorkbenchTaskPanel({ open, title, description?, onOpenChange, body, feedback?, footer, onSubmit? })",
+          "WorkbenchAttention({ title, description?, feedback?, action? })",
           "header → scrollable body → footer",
           "WorkbenchReview",
           "no technical-details slot",
@@ -3078,10 +3080,30 @@ describe("architecture fitness", () => {
           "technical-inspection",
           "WorkbenchSurface({ attention?, material })",
           "outer WorkbenchSurface / WorkbenchAttention = absent",
+          "A responsibility is instantiated as a production module only when an authorized current DESIGN has a consumer for it",
+          "Release/campaign migration state, current-file dispositions and execution sequencing belong to the governed WorkItem DESIGN/PLAN/campaign artifacts",
         ]) {
           if (!p4Workbench.includes(required)) {
             violations.push("P4 Workbench corrected foundation contract missing " + required);
           }
+        }
+        for (const forbidden of [
+          "WorkbenchTaskPanel({ open, title, onOpenChange, content })",
+          "WorkbenchAttention({ title, purpose?, status?, blocker?, action? })",
+          "### 16.6 Current destructive-reconstruction ownership boundary",
+          "Current foundation remediation",
+          "Foundation phasing is mandatory",
+          "0.6.0 campaign",
+          "current 0.6.0",
+          "IA27",
+          "IA28",
+        ]) {
+          if (p4Workbench.includes(forbidden)) {
+            violations.push("P4 Workbench must not contain campaign/migration or stale API contract: " + forbidden);
+          }
+        }
+        if (plan.includes("purpose?, status?, blocker?")) {
+          violations.push("PLAN must not redefine the canonical Attention API with generic purpose/status/blocker slots");
         }
         for (const required of [
           "no adjacent/nested generic `Technical details`",

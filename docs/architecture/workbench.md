@@ -843,9 +843,9 @@ This closure is intentionally not a wrapper around every leaf widget. Complete c
 1. **Order Workbench primitives** own every recurring structure, interaction mechanic and semantic visual role that must remain consistent.
 2. **Approved foundation leaves / specialized renderers** may render content inside those primitive slots only under §8.19. They cannot establish another Workbench grammar.
 
-The target Order-local primitive vocabulary under `ui/src/primitives/` is:
+The canonical Workbench primitive-responsibility vocabulary is:
 
-The table defines **target responsibilities, not preservation of current component bytes or APIs**. The current 0.6.0 reconstruction rule is §16.6: design-bearing composition primitives are deleted/recreated from these responsibilities and current P3/reference design; only the exact audited atomic subset may be retained.
+The table defines **canonical target responsibilities and semantic APIs**, independent of release/campaign migration state or current implementation bytes. A responsibility is instantiated as a production module only when an authorized current DESIGN has a consumer for it; no speculative component file is required merely because the responsibility is part of the closed vocabulary. Current implementation remains evidence only.
 
 | Primitive | Sole Order-owned responsibility | Deliberately absent flexibility |
 |---|---|---|
@@ -983,7 +983,7 @@ A library recommendation cannot silently change P3 information hierarchy, lifecy
 
 ### 8.13 Target primitive API shapes
 
-The primitive APIs are intentionally narrow. P7 may adjust React typing syntax without adding another structural or interaction degree of freedom.
+The primitive APIs are intentionally narrow. These shapes define semantic slots and structural degrees of freedom; implementation may adjust React typing syntax only where that does not add, remove or reinterpret a semantic slot. A vocabulary responsibility with no authorized consumer need not have a production module.
 
 ```ts
 WorkbenchAppShell({ toolbar, destination })
@@ -1008,7 +1008,7 @@ Toolbar/identity/rail geometry is primitive-owned. `WorkbenchUtilityLink` is nav
 
 ```ts
 WorkbenchSurface({ attention?, material })
-WorkbenchAttention({ headline, description?, feedback?, action? })
+WorkbenchAttention({ title, description?, feedback?, action? })
 WorkbenchSectionHeader({ title, description?, action? })
 WorkbenchSelector({
   label,
@@ -1033,7 +1033,7 @@ Dialogue owns transcript/supporting-activity/composer mechanics but not send eli
 
 ```ts
 WorkbenchContextPanel({ title, onClose, children })
-WorkbenchTaskPanel({ open, title, onOpenChange, content })
+WorkbenchTaskPanel({ open, title, description?, onOpenChange, body, feedback?, footer, onSubmit? })
 WorkbenchSettingsLayout({ navigation, content })
 ```
 
@@ -1244,7 +1244,7 @@ The following matrix is exhaustive for the production TSX renderers present on t
 | `EvidenceViewer.tsx` | Surface + SectionHeader + State + approved CodeBlock leaf | bespoke section heading |
 | `TerminalResult.tsx` | Surface + Status + SectionHeader + ResourceRow + approved Markdown/CodeBlock/peer-view leaves | bespoke result status/heading grammar |
 | `WorkItemContext.tsx` | ContextPanel + Status/Notice + approved MetadataList leaf; selection-aware technical projection for document/Run/proposal/approval/task/execution identities | nested WorkItem Technical-details disclosure; feature-local technical inspector outside Context |
-| existing `ui/src/primitives/*.tsx` | implementation evidence only. The §8.12 responsibility vocabulary is authority; current primitive bytes are not. For 0.6.0, the exact design-bearing composition subset is destructively reconstructed under §16.6 while the exact atomic retained subset is positively revalidated there. | PR #59/current primitive implementation may reveal useful capability or defects but may not define topology, geometry, responsive behavior, component API shape or preservation targets |
+| existing `ui/src/primitives/*.tsx` | implementation evidence only. The §8.12 responsibility vocabulary and closed APIs are authority; production modules exist only for responsibilities with authorized current consumers. | current primitive implementation may reveal useful capability or defects but may not define topology, geometry, responsive behavior, component API shape or preservation targets |
 
 Every production renderer added later must be added to this matrix (or its canonical successor) in the same DESIGN/P7 authority that introduces it. An unclassified production renderer is an architecture failure.
 
@@ -1825,7 +1825,7 @@ Browser tests prove all `GW-DOC-WORKBENCH-UX-V2 §23` certification scenarios, i
 
 ### 14.6 Architecture fitness
 
-For the Workbench V2 P7 transition, `tests/architecture.test.ts` is `VERIFICATION_MATERIAL` because `pontivus-order.toml [verification.architecture].materialRefs` includes that exact path. That protection applies to the **signed post-Approval candidate**: T1 must not mutate the architecture sensor it is judged by. Before R3/sign-off, however, the bounded IA27 foundation-realization prerequisite must correct any architecture assertion that positively requires a responsibility P4 now declares required-absent; otherwise the future Approval baseline would contain a self-contradictory gate. Such pre-sign-off sensor correction is authority/evidence-package work, not T1 candidate mutation, and the corrected sensor bytes become part of the exact baseline R3 and Approval later bind. Workbench-specific dependency-map registration, primitive/renderer completeness and forbidden-mechanic assertions may additionally live in the existing `tests/certification.test.ts` under the ordinary `test` gate. After Approval, neither verification source may be weakened or changed by T1. Neither gate may be removed, waived or weakened; tests must reject omissions/bypasses rather than merely assert that new files exist.
+`tests/architecture.test.ts` is `VERIFICATION_MATERIAL` because `pontivus-order.toml [verification.architecture].materialRefs` includes that exact path. When Approval binds those exact bytes, implementation under that Approval must not mutate the sensor it is judged by. Before sign-off, package-fitness correction may update a self-contradictory sensor only to conform it to current canonical authority; the corrected bytes then become part of the exact package later reviewed and signed. Workbench-specific dependency-map registration, primitive/renderer completeness and forbidden-mechanic assertions may additionally live in the existing `tests/certification.test.ts` under the ordinary `test` gate. Bound verification material may not be weakened merely to make a candidate pass. Neither gate may be removed, waived or weakened; tests must reject omissions/bypasses rather than merely assert that new files exist.
 
 Permanent sensors prove:
 
@@ -1872,9 +1872,9 @@ This design does not authorize:
 The minimum implementation is to make the existing canonical state and event stream actually obey the P3 state machine and to make the Workbench derive from that state consistently.
 
 
-## 16. Authority-driven 0.6.0 Workbench closure
+## 16. Permanent Workbench closure constraints
 
-This section records the P4 consequences of the fresh 0.6.0 functional package without replacing the closed Workbench architecture above.
+This section records binding P4 consequences that remain invariant across releases. Release/campaign migration state, current-file dispositions and execution sequencing belong to the governed WorkItem DESIGN/PLAN/campaign artifacts and must not be projected into this canonical architecture owner.
 
 ### 16.1 Current attention survives historical/supporting selection
 
@@ -1912,7 +1912,7 @@ A new exact required-input request receives one focus transition keyed by its `R
 
 The canonical renderer-to-primitive matrix in §8 remains the sole renderer classification.
 
-Because `tests/architecture.test.ts` is itself the `architecture` gate's signed verification material, 0.6.0 does not authorize an implementation task to mutate that file. Permanent exhaustive renderer coverage is added to the ordinary `test` gate through `tests/certification.test.ts`: it enumerates production Workbench renderers and proves bidirectional coverage against the canonical matrix/successor, including `ActivityComposer.tsx`.
+Because `tests/architecture.test.ts` is itself the `architecture` gate's verification material, a signed implementation package that binds those bytes must not mutate that sensor while being judged by it. Before sign-off, package-fitness correction may update a self-contradictory sensor only to conform it to current canonical authority; the corrected bytes then become part of the exact package later reviewed and signed. Permanent exhaustive renderer coverage additionally lives in the ordinary `test` gate through `tests/certification.test.ts`, which proves bidirectional production-renderer coverage against the canonical matrix/successor, including `ActivityComposer.tsx`.
 
 Browser certification extends the existing scenario matrix rather than creating a second UX test system:
 - scenario 41 proves kind-specific Research information for CHANGE/DEFECT/INVESTIGATION/AUDIT and preserved Change-vs-Defect downstream obligations;
@@ -1920,52 +1920,28 @@ Browser certification extends the existing scenario matrix rather than creating 
 
 No feature-local visual baseline or screenshot-as-authority mechanism is introduced.
 
-### 16.6 Current destructive-reconstruction ownership boundary
+### 16.6 Canonical foundation ownership boundary
 
-The §8.12 **responsibility vocabulary** is canonical authority; the current files under `ui/src/primitives/**` are implementation evidence only. The 0.6.0 campaign therefore classifies primitives by responsibility instead of preserving the directory wholesale.
+The §8.12 responsibility vocabulary, §8.13 closed semantic APIs and the renderer matrix are canonical authority. Files under `ui/src/primitives/**`, shared stylesheet declarations and consuming JSX are implementation evidence only; they never become preservation targets by existence.
 
-The following current primitive implementations are **design-bearing composition surfaces** and are destructive-reconstruction scope because their APIs/markup select topology, hierarchy, density, responsive form or recurring alignment:
+The foundation has three invariant ownership classes:
 
-- `WorkbenchAttention.tsx`;
-- `WorkbenchContextPanel.tsx`;
-- `WorkbenchDialogue.tsx`;
-- `WorkbenchForm.tsx`;
-- `WorkbenchIdentity.tsx`;
-- `WorkbenchLayout.tsx` — deleted, not recreated under that API;
-- `WorkbenchMasterDetail.tsx`;
-- `WorkbenchRail.tsx`;
-- `WorkbenchResourceRow.tsx`;
-- `WorkbenchReview.tsx`;
-- `WorkbenchSectionHeader.tsx`;
-- `WorkbenchSelector.tsx`;
-- `WorkbenchSettingsLayout.tsx`;
-- `WorkbenchSurface.tsx`;
-- `WorkbenchTable.tsx`;
-- `WorkbenchTaskPanel.tsx`;
-- `WorkbenchTimeline.tsx`;
-- `WorkbenchToolbar.tsx`;
-- `WorkbenchState.tsx` — whole-region/compact state composition is design-bearing;
-- `WorkbenchUtilityLink.tsx` — custom application-toolbar utility structure is design-bearing.
+- **design-bearing composition responsibilities** — primitives whose APIs/markup choose topology, hierarchy, density, responsive form, recurring alignment, interaction mechanics or whole-region state. Their consumers are explicitly allowlisted and their semantic slots remain closed;
+- **narrow semantic adapters** — Action, Disclosure, Field, Icon, Notice and Status remain narrow adapters over the pinned foundation and may not acquire screen, workflow, technical-inspection or responsive ownership;
+- **specialized content leaves** — Markdown, code/evidence and other §8.19 leaves render content only inside the owning composition and cannot establish another Workbench grammar.
 
-The replacement foundation introduces `WorkbenchAppShell.tsx` and `WorkbenchWorkItemShell.tsx` so application-global chrome and selected-WorkItem chrome have separate cohesive owners. It also introduces one internal responsive-class owner `workbench-responsive.ts`; structural primitives consume that owner rather than duplicating `matchMedia`/breakpoint decisions. The old `WorkbenchLayout.tsx` API and its conditional application-vs-WorkItem topology are not a compatibility target.
+No responsibility is instantiated speculatively. When no current authorized consumer exists, the corresponding production module may be absent. Reintroducing a module for a responsibility with no authorized consumer, adding a new semantic slot, or creating another recurring responsibility requires upstream DESIGN/P4 authority rather than a compatibility or convenience implementation.
 
-The following current primitives are **positively retained atomic adapters** because their audited bytes are narrow public-Astryx/semantic adapters and do not establish screen, region or toolbar composition: `WorkbenchAction.tsx`, `WorkbenchDisclosure.tsx`, `WorkbenchField.tsx`, `WorkbenchIcon.tsx`, `WorkbenchNotice.tsx`, and `WorkbenchStatus.tsx`. `WorkbenchDisclosure.tsx` is retained only under its corrected §8.12 responsibility: a low-level Collapsible for specifically named same-task semantic expansion. Its former use as a generic technical/supporting inspection lane is revoked and permanent renderer/architecture fitness must reject those consumer usages. `WorkbenchConfirmation.tsx` remains design-bearing under the Safety/confirmation contract.
+The application foundation has exactly one `WorkbenchAppShell`, one selected-WorkItem `WorkbenchWorkItemShell` and one structural responsive-class owner. Generic workflow frame/summary/index/material-selector responsibilities remain absent. A consuming screen composes directly into its authorized Document / Dialogue / Review / Evidence / State / MasterDetail / Terminal interaction class and may not recreate deleted generic ownership under another name.
 
-Current foundation remediation is authority-first, not a replay of the historical whole-foundation purge. `GW-DOC-WORKBENCH-THEME-V1` remains the token/stylesheet owner, but current `theme.css` declarations and current primitive bytes are evidence only. No browser/certification assertion that encodes a superseded implementation shape may survive as compatibility authority.
+Conformance is permanent rather than migration-specific:
 
-Foundation phasing is mandatory:
-
-1. derive and close the visual-language → foundation realization ledger from current P3/P4/theme authority and reviewed references **before** judging current JSX/CSS;
-2. classify every current design-bearing owner exactly once as `CONFORMING_NO_EDIT`, `BOUNDED_RESIDUAL`, `DESTRUCTIVE_REPLACEMENT` or `REQUIRED_ABSENT`;
-3. delete required-absent generic owners/responsibilities first, including `WorkflowStepFrame` / summary / index / generic `PrimaryMaterialFrame` and `WorkflowMaterialSelector`, and remove their obsolete selectors/assertions;
-4. destructively recreate only owners whose topology, semantic slots or public API contradict current authority; retain independently conforming owners unchanged and apply only strictly local bounded residual corrections;
-5. migrate consumers directly to the already-authorized interaction class. Compile/type breakage caused by removed APIs is a compliance signal and may not be hidden by aliases, wrappers, prop translators, hidden DOM, dual paths, feature flags or CSS shims;
-6. enforce exact primitive consumer allowlists and absence/singularity sensors, then pass IA27 foundation-readiness proof;
-7. run IA28 application-shell/Queue/Create as the first real consumer acceptance. Any recurring foundation defect returns to IA27/DESIGN rather than being patched locally.
-
-Every later consuming screen task is downstream of IA28 foundation acceptance. A screen may not patch around a foundation defect, resurrect the deleted `WorkbenchLayout`, recreate generic workflow frame/material-selection responsibilities, recreate application/WorkItem chrome locally, or add feature-owned structural CSS/responsive branches.
+1. architecture fitness proves the closed primitive API shape, required-absent generic responsibilities, exact production-consumer allowlists and singular shell/responsive/technical-inspection owners;
+2. compile/type failures caused by a removed invalid API are compliance signals and must be corrected in the consumer rather than hidden by aliases, wrappers, prop translators, hidden DOM, dual paths, feature flags or CSS shims;
+3. recurring primitive/token/shell/hierarchy/disclosure/theme/responsive defects are corrected at the canonical foundation owner rather than patched locally in one screen;
+4. browser/certification assertions encode authority-defined semantics and negative invariants, not historical implementation copy or source-string literals;
+5. rendered evidence is acceptance evidence only and never becomes screenshot-as-authority or a preservation baseline.
 
 The application-global shell owns the globally visible active saved OpenCode-account status/quick-access affordance required by `GW-FR-073-OPENCODE-ACCOUNT-VISIBILITY`. That affordance routes management to the one Settings owner; it is not itself account-management UI. Full repository/account/model configuration remains in Settings.
 
-`RunEventTimeline.tsx` is the one shared chronology presentation adapter over the reconstructed `WorkbenchTimeline`. Productive-stage reconstruction establishes that adapter once; the Implementation renderer consumes it and does not create or claim a second chronology implementation owner.
-
+`RunEventTimeline.tsx` is the one shared chronology presentation adapter over `WorkbenchTimeline`; consuming workflow surfaces do not create or claim a second chronology implementation owner.

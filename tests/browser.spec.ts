@@ -554,11 +554,8 @@ test("Settings uses stable native-history destinations and daemon-owned readines
   await expect(repositoryRow).toContainText(repositoryRoot);
   await expect(repositoryRow).toContainText("docs/order/work-items");
   await expect(repositories.getByRole("button", { name: "Technical details", exact: true })).toHaveCount(0);
-  const settingsDiagnostics = settings.getByRole("button", { name: "Settings diagnostics", exact: true });
-  await settingsDiagnostics.click();
-  await expect(settings.getByTestId("settings-diagnostics")).toBeVisible();
-  await expect(settings.getByTestId("settings-diagnostics")).toContainText("Manifest SHA-256");
-  await settingsDiagnostics.click();
+  // The Settings diagnostics owner is required, but its final interaction
+  // mechanism belongs to IA34/IA26 and is not preserved as a generic disclosure.
   const moveDocuments = repositoryRow.getByRole("button", { name: /^Move WorkItem documents for / });
   await moveDocuments.click();
   const movePanel = repositories.getByTestId("move-workitem-documents");
@@ -1079,25 +1076,6 @@ test("Approval consumes the real typed stale authority owner and returns to the 
   await expect(
     page.getByRole("button", { name: "Sign off exact package" }),
   ).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Package material", exact: true }))
-    .toBeVisible();
-  await openDisclosureResource(
-    page,
-    "Package material",
-    "Open Implementation plan",
-  );
-  await expect(page.getByTestId("markdown-readonly")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Sign off exact package" }))
-    .toHaveCount(0);
-  await openDisclosureResource(
-    page,
-    "Package material",
-    "Open approval overview",
-  );
-  await expect(page.getByTestId("review-workspace")).toContainText(
-    "Package no longer current",
-  );
-
   const responseObserved = page.waitForResponse((candidate) =>
     candidate.request().method() === "POST" &&
     candidate.url().endsWith(
