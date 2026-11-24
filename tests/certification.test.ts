@@ -2482,6 +2482,11 @@ describe("public release delivery certification", () => {
     expect(ci).toContain("pull_request:");
     expect(ci).toContain("name: verify");
     expect(ci).toContain("scripts/verify-release.ts --mode pr");
+    expect(ci).toContain("name: diagnostic current-state rendered evidence");
+    expect(ci).toContain("rendered-diagnostic-current-state-${{ steps.diagnostic_candidate.outputs.sha }}");
+    expect(ci).toContain('PONTIVUS_ORDER_RENDERED_EVIDENCE_KIND: "diagnostic_current_state"');
+    expect(ci.indexOf("name: diagnostic current-state rendered evidence"))
+      .toBeLessThan(ci.indexOf("name: browser"));
     expect(ci).toContain("name: bounded IA27/IA28 rendered evidence");
     expect(ci).toContain("rendered-evidence-ia27-ia28-${{ steps.bounded_candidate.outputs.sha }}");
     expect(ci).toContain('--grep "rendered acceptance phase 1"');
@@ -2496,6 +2501,7 @@ describe("public release delivery certification", () => {
     expect(
       [...ci.matchAll(/^\s*uses:\s*(\S+)\s*$/gm)].map((match) => match[1]),
     ).toEqual([
+      "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
       "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
       "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
     ]);
