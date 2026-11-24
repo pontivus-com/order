@@ -307,7 +307,9 @@ Presence-only browser assertions are nonconforming when they force technical/dia
 
 Return to DESIGN/PLAN before editing when execution requires a new semantic owner, public contract, state meaning, persistence/transport/effect boundary, dependency direction or external dependency, validation contract, provider capability, verification authority, authorized behavior, or any path outside signed scope/exclusions.
 
-Because this exact T1 deliberately sets signed `scope` equal to the same exact 68-path `changeSurface`, any newly required physical path absent from `changeSurface` is also outside signed scope and returns upstream for DESIGN/PLAN correction. The general V4/V5/V6 in-scope-unforecast mechanism remains canonical execution capability but has no admissible physical-path case inside this exact package.### Compiled component: `implementation-plan/01-a01-lifecycle-product.md`
+Because this exact T1 deliberately sets signed `scope` equal to the same exact 68-path `changeSurface`, any newly required physical path absent from `changeSurface` is also outside signed scope and returns upstream for DESIGN/PLAN correction. The general V4/V5/V6 in-scope-unforecast mechanism remains canonical execution capability but has no admissible physical-path case inside this exact package.
+
+### Compiled component: `implementation-plan/01-a01-lifecycle-product.md`
 #### A01 — Lifecycle and product identity
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
@@ -362,6 +364,7 @@ Package atoms in phase: **1**.
 5. every package atom is satisfied by its one execution owner;
 6. action-specific exact proof propositions plus `13-verification-closeout.md` pass;
 7. any evidence contradiction returns upstream rather than broadening scope.
+
 ### Compiled component: `implementation-plan/02-a02-governance-intake.md`
 #### A02 — Project governance and WorkItem intake
 
@@ -413,6 +416,7 @@ Package atoms in phase: **4**.
 5. SD02 certification is owned by IA02 and proves the productive production path, including stable-current versus explicit-versioned materiality with both retained and current sources selected/reachable, not only the pure helper/daemon unit boundary;
 6. action-specific tests plus `13-verification-closeout.md` pass;
 7. any evidence contradiction returns upstream rather than broadening scope.
+
 ### Compiled component: `implementation-plan/03-a03-queue-source.md`
 #### A03 — Queue, source admission and documentation Git
 
