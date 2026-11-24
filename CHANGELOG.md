@@ -8,6 +8,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Changed
 
+- Regovern the 0.6.0 Workbench after the semantic-component audit: make P4 the sole component/API owner, add the missing Section/Facts/ResourceList/ReviewVerdict/ReviewSection/Document/Result composition layer and contextual Proposal change view, regenerate DESIGN/PLAN to a 76-path candidate with one IA-definition owner, and invalidate stale G4-G6/ALIGN/RZ16/sign-off conclusions until fresh revalidation.
+
 - Add the authorized pre-sign-off IA27/IA28 evidence lane before the ordinary browser gate: run the existing five-surface phase-local Playwright capture against the exact candidate, publish it as a separately labeled bounded-evidence artifact, and keep later-phase browser failures visible without mislabeling the bounded artifact as IA26.
 
 - Remove the structural causes of repeated 0.6.0 Workbench regressions: keep permanent P4 free of campaign/migration state, make PLAN reference rather than redefine closed component contracts, invalidate stale G4/G5/G5A/IA27-IA28 grants, compact live campaign control to current state plus current evidence, and strengthen package sensors against stale API/source-string preservation.
