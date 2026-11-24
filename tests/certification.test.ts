@@ -399,7 +399,6 @@ describe("Order cross-boundary certification", () => {
       "WorkbenchResourceRow.tsx",
       "WorkbenchReview.tsx",
       "WorkbenchSectionHeader.tsx",
-      "WorkbenchSelector.tsx",
       "WorkbenchSettingsLayout.tsx",
       "WorkbenchState.tsx",
       "WorkbenchStatus.tsx",
@@ -693,6 +692,9 @@ describe("Order cross-boundary certification", () => {
       "SignoffReview.tsx",
     ]);
     expect(consumersOf("WorkbenchSelector")).toEqual([]);
+    expect(
+      existsSync(join(root, "ui", "src", "primitives", "WorkbenchSelector.tsx")),
+    ).toBe(false);
     expect(consumersOf("WorkbenchDialogue")).toEqual([
       "ActivityWorkspace.tsx",
     ]);
