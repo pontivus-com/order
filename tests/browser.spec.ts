@@ -40,6 +40,12 @@ if (![
 }
 const diagnosticCurrentState = renderedEvidenceKind === "diagnostic_current_state";
 
+const diagnosticPhase = process.env.PONTIVUS_ORDER_DIAGNOSTIC_PHASE ?? null;
+const renderedDiagnosticPhases = ["IA34", "IA29", "IA30", "IA31", "IA32", "IA33"] as const;
+type RenderedDiagnosticPhase = typeof renderedDiagnosticPhases[number];
+const runRenderedPhase = (phase: RenderedDiagnosticPhase): boolean =>
+  !diagnosticCurrentState || diagnosticPhase === phase;
+
 type RenderedAcceptanceEntry = Readonly<{
   id: string;
   workItemKind: "QUEUE" | "CHANGE" | "DEFECT" | "INVESTIGATION" | "AUDIT";
@@ -220,12 +226,16 @@ const captureRenderedAcceptance = async (
       animations: "disabled",
     });
   }
-  return {
+  const captured = {
     ...entry,
     captureScope: entry.captureScope ??
       (target === undefined ? "full application viewport" : "explicit locator crop"),
     screenshot,
   };
+  if (diagnosticCurrentState) {
+    writeRenderedAcceptanceEvidence([captured]);
+  }
+  return captured;
 };
 
 const fixtureMutation = async (
@@ -1319,9 +1329,19 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   test.setTimeout(300_000);
 
   const runtimeErrors: string[] = [];
+  let expectedDiagnosticConsoleErrors = 0;
   page.on("pageerror", (error) => runtimeErrors.push("pageerror: " + error.message));
   page.on("console", (message) => {
-    if (message.type() === "error") runtimeErrors.push("console: " + message.text());
+    if (message.type() !== "error") return;
+    if (
+      diagnosticCurrentState &&
+      expectedDiagnosticConsoleErrors > 0 &&
+      message.text().includes("status of 401 (Unauthorized)")
+    ) {
+      expectedDiagnosticConsoleErrors -= 1;
+      return;
+    }
+    runtimeErrors.push("console: " + message.text());
   });
 
   let renderedAccountState = OpenCodeAccountStateSchema.parse({
@@ -1593,6 +1613,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
         }),
       });
     });
+    expectedDiagnosticConsoleErrors += 1;
     await page.reload();
     await expect(page.getByText("Local browser session required", { exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Retry", exact: true })).toBeVisible();
@@ -2024,7 +2045,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     ],
   }, currentAttention));
 
-  writeRenderedAcceptanceEvidence(entries);
+  if (!diagnosticCurrentState) writeRenderedAcceptanceEvidence(entries);
   expect([...new Set(entries.map((entry) => entry.surface))].sort()).toEqual([
     "SURF-APP-001",
     "SURF-CREATE-001",
@@ -2032,6 +2053,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     "SURF-WI-001",
     "SURF-WI-CONTEXT-001",
   ]);
+  expect(expectedDiagnosticConsoleErrors).toBe(0);
   expect(runtimeErrors).toEqual([]);
 });
 
