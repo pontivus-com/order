@@ -26,6 +26,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Fixed
 
+- Reopen the bounded IA27/IA28 grant when exact-head browser evidence disproves a no-edit shell assumption: reclassify WorkItem edit-mode action precedence as a bounded residual, correct stale/racy browser verification without weakening later-phase failures, and require fresh G5/G5A plus a new exact-package authorization before production mutation.
+
 - Correct stale 0.6.0 readiness/campaign sequencing after the post-IA26 Workbench authority correction: invalidate the superseded READY_FOR_SIGNOFF package, return current R3 to R2/G3, preserve G3→G5A revalidation before any new realization, and make the sole pre-sign-off exception the exact-package bounded IA27 foundation reconstruction → IA28 first-consumer acceptance tranche that stops before IA29 and feeds fresh R3/G6.
 
 - Complete the 0.6.0 implementation remediation against canonical authority: project only schema/stage-applicable authority into productive context and freshness while retaining the full reachable governance graph for proposal admission, make fresh-workspace verification executable through dependency-lock bootstrap plus pinned Chromium preparation, and permanently certify Order's production OpenCode admission/session/turn boundary against real OpenCode 2.2.6 with isolated `opencode-drive@2.4.1` deterministic simulation.

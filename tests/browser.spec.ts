@@ -1690,6 +1690,12 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   await expect(currentAttention).toBeVisible();
   await expect(currentAttention).not.toContainText("Current attention:");
 
+  await page.getByRole("button", { name: "Edit title", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Save title", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Start Research", exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "Cancel title edit", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Start Research", exact: true })).toBeVisible();
+
   entries.push(await captureRenderedAcceptance(page, {
     id: "workitem-shell-wide-light-chrome",
     workItemKind: "CHANGE",
@@ -3845,7 +3851,7 @@ test("workflow step owns Run history, dialogue, responsive detail, and technical
     .toHaveAttribute("aria-current", "step");
   await expect(page.getByTestId("proposal-review-workspace")).toBeVisible();
   await expect(page.getByRole("button", { name: "Supporting material and history", exact: true })).toHaveCount(0);
-  await selectCurrentWorkflowMaterial(page, "Attempt 2");
+  await page.getByRole("button", { name: "Back to workflow attempt", exact: true }).click();
   await expect(page.getByTestId("stage-run-material")).toBeVisible();
   await expect(page.getByRole("radio", { name: "Activity" })).toHaveCount(0);
   await expect(page.getByTestId("selected-run-header")).toHaveCount(1);
@@ -4051,7 +4057,7 @@ test("canonical Run feedback remains visible in the owning workflow context with
   await expect(page.locator(".order-workbench-attention")).toHaveCount(0);
   const returnToPlan = page.getByRole("button", { name: "Return to Implementation plan", exact: true });
   await expect(returnToPlan).toBeVisible();
-  await expect(returnToPlan.locator("..")).toContainText("Implementation plan is blocked");
+  await expect(returnToPlan.locator("..")).toContainText("Implementation plan requires recovery");
   await expect(
     page.getByText("Technical diagnostics available", { exact: true }),
   ).toBeVisible();
@@ -4120,6 +4126,10 @@ test("workflow mutations lock their owning controls while pending and keep failu
       markHandled = resolve;
     });
     await page.route(pattern, async (route) => {
+      if (route.request().method() === "GET") {
+        await route.fallback();
+        return;
+      }
       await barrier;
       await route.abort("failed");
       markHandled();
@@ -4163,6 +4173,7 @@ test("workflow mutations lock their owning controls while pending and keep failu
 
   await openWorkItem(page, "Workflow retry action");
   const retry = page.getByRole("button", { name: "Retry Implementation plan" });
+  await expect(retry).toBeEnabled();
   await failNext(
     "**/api/work-items/*/runs",
     async () => retry.click(),
@@ -4173,6 +4184,7 @@ test("workflow mutations lock their owning controls while pending and keep failu
 
   await openWorkItem(page, "Workflow resume action");
   const resume = page.getByRole("button", { name: "Resume resolved blocker" });
+  await expect(resume).toBeEnabled();
   await failNext(
     "**/api/work-items/*/resume",
     async () => resume.click(),
@@ -4487,13 +4499,17 @@ test("successful workflow mutations reconcile to refreshed canonical state witho
 
   await openWorkItem(page, "Workflow retry action");
   const retryItem = await workItemForTitle(page, "Workflow retry action");
-  const retryRun = RunSchema.parse(await fixtureMutation(
-    page.context().request,
-    "/start-stage",
-    { workItemId: retryItem.id },
-  ));
   const retryPattern = "**/api/work-items/" + retryItem.id + "/runs";
   await page.route(retryPattern, async (route) => {
+    if (route.request().method() !== "POST") {
+      await route.fallback();
+      return;
+    }
+    const retryRun = RunSchema.parse(await fixtureMutation(
+      page.context().request,
+      "/start-stage",
+      { workItemId: retryItem.id },
+    ));
     await route.fulfill({
       status: 201,
       contentType: "application/json",
