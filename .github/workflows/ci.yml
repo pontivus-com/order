@@ -101,6 +101,90 @@ jobs:
       - name: build
         run: node node_modules/vite/bin/vite.js build
 
+      - name: Record current-state diagnostic candidate
+        id: diagnostic_candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: diagnostic current-state rendered evidence
+        id: diagnostic_capture
+        continue-on-error: true
+        env:
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR: ${{ runner.temp }}/order-rendered-diagnostic-current-state
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA: ${{ steps.diagnostic_candidate.outputs.sha }}
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_LABEL: "pre-remediation current-state diagnostic"
+          PONTIVUS_ORDER_RENDERED_EVIDENCE_KIND: "diagnostic_current_state"
+        run: >-
+          node node_modules/@playwright/test/cli.js test
+          --grep "rendered acceptance"
+
+      - name: Upload current-state diagnostic evidence
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: rendered-diagnostic-current-state-${{ steps.diagnostic_candidate.outputs.sha }}
+          path: ${{ runner.temp }}/order-rendered-diagnostic-current-state
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Validate current-state diagnostic completeness
+        if: ${{ !cancelled() }}
+        shell: bash
+        env:
+          DIAGNOSTIC_DIR: ${{ runner.temp }}/order-rendered-diagnostic-current-state
+          DIAGNOSTIC_SHA: ${{ steps.diagnostic_candidate.outputs.sha }}
+          DIAGNOSTIC_CAPTURE_OUTCOME: ${{ steps.diagnostic_capture.outcome }}
+        run: |
+          set -euo pipefail
+          test "$DIAGNOSTIC_CAPTURE_OUTCOME" = "success"
+          DIAGNOSTIC_DIR="$DIAGNOSTIC_DIR" DIAGNOSTIC_SHA="$DIAGNOSTIC_SHA" node <<'NODE'
+          const fs = require("node:fs");
+          const path = require("node:path");
+          const manifestPath = path.join(process.env.DIAGNOSTIC_DIR, "manifest.json");
+          const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+          if (manifest.candidateSha !== process.env.DIAGNOSTIC_SHA) {
+            throw new Error("diagnostic candidate SHA mismatch");
+          }
+          if (manifest.evidenceKind !== "diagnostic_current_state") {
+            throw new Error("diagnostic evidence kind mismatch");
+          }
+          const surfaces = new Set(manifest.entries.map((entry) => entry.surface));
+          if (surfaces.size !== 37) {
+            throw new Error("diagnostic surface coverage must be 37, found " + surfaces.size);
+          }
+          for (const entry of manifest.entries) {
+            if (typeof entry.captureScope !== "string" || entry.captureScope.length === 0) {
+              throw new Error("diagnostic capture missing captureScope: " + entry.id);
+            }
+            const screenshot = path.join(process.env.DIAGNOSTIC_DIR, entry.screenshot);
+            if (!fs.existsSync(screenshot) || fs.statSync(screenshot).size === 0) {
+              throw new Error("diagnostic capture missing/empty: " + entry.id);
+            }
+          }
+          NODE
+
+      - name: Resolve bounded evidence authorization
+        id: bounded_authorization
+        shell: bash
+        run: |
+          set -euo pipefail
+          campaign="docs/order/work-items/work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21/0.6.0-design-campaign-plan.md"
+          line="$(grep -F 'Current bounded authorization:' "$campaign" | tail -n 1)"
+          case "$line" in
+            *"Current bounded authorization: NONE."*)
+              echo "active=false" >> "$GITHUB_OUTPUT"
+              ;;
+            *"Current bounded authorization:"*" only."*)
+              echo "active=true" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "Unreadable current bounded authorization register: $line" >&2
+              exit 1
+              ;;
+          esac
+
       - name: Verify release packager
         shell: bash
         run: |
@@ -113,6 +197,7 @@ jobs:
           RELEASE_MANIFEST="${RUNNER_TEMP}/release.json" bun -e 'const v=JSON.parse(await Bun.file("package.json").text()).version; const r=JSON.parse(await Bun.file(process.env.RELEASE_MANIFEST).text()); if(r.version!==v) process.exit(1);'
 
       - name: Record bounded IA27/IA28 evidence candidate
+        if: ${{ steps.bounded_authorization.outputs.active == 'true' }}
         id: bounded_candidate
         shell: bash
         run: |
@@ -120,16 +205,18 @@ jobs:
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: bounded IA27/IA28 rendered evidence
+        if: ${{ steps.bounded_authorization.outputs.active == 'true' }}
         env:
           PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR: ${{ runner.temp }}/order-rendered-ia27-ia28
           PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA: ${{ steps.bounded_candidate.outputs.sha }}
           PONTIVUS_ORDER_RENDERED_ACCEPTANCE_LABEL: "IA27/IA28 bounded evidence"
+          PONTIVUS_ORDER_RENDERED_EVIDENCE_KIND: "bounded_phase_acceptance"
         run: >-
           node node_modules/@playwright/test/cli.js test
           --grep "rendered acceptance phase 1"
 
       - name: Upload bounded IA27/IA28 evidence
-        if: ${{ !cancelled() && steps.bounded_candidate.outcome == 'success' }}
+        if: ${{ !cancelled() && steps.bounded_authorization.outputs.active == 'true' && steps.bounded_candidate.outcome == 'success' }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: rendered-evidence-ia27-ia28-${{ steps.bounded_candidate.outputs.sha }}
@@ -151,6 +238,8 @@ jobs:
         env:
           PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR: ${{ runner.temp }}/order-rendered-acceptance
           PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA: ${{ steps.rendered_candidate.outputs.sha }}
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_LABEL: "IA26 final acceptance"
+          PONTIVUS_ORDER_RENDERED_EVIDENCE_KIND: "ia26_acceptance"
         run: >-
           node node_modules/@playwright/test/cli.js test
           --grep "rendered acceptance"
