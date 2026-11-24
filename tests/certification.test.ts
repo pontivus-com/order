@@ -72,7 +72,7 @@ describe("Order cross-boundary certification", () => {
     expect(http).not.toContain("export const tick");
 
     const executionUi = read("ui/src/ExecutionWorkspace.tsx");
-    expect(executionUi).toContain("api.startExecutionTask(workItem.id,currentOwnerTask.id)");
+    expect(executionUi).toMatch(/api\.startExecutionTask\(\s*workItem\.id,\s*currentOwnerTask\.id\s*\)/);
     expect(executionUi).toContain('label="Start current task"');
     expect(executionUi).not.toContain("Run next implementation step");
     expect(executionUi).not.toContain("api.tick");
@@ -1304,7 +1304,7 @@ describe("Order cross-boundary certification", () => {
 
     const execution = read("ui/src/ExecutionWorkspace.tsx");
     expect(execution).toContain("onMutationError?.(error)");
-    expect(execution).toMatch(/onError:\\s*reportError/);
+    expect(execution).toMatch(/onError:\s*reportError/);
     expect(execution).toContain("executionOwner: ExecutionOwner");
     expect(execution).toContain("tasks: readonly ExecutionTask[]");
     expect(execution).toContain("runs: readonly Run[]");
