@@ -44,10 +44,12 @@ Package atoms in phase: **3**.
 
 ## Referenced actions
 
+Action mutation/disposition semantics are owned only by `12-action-catalog.md`; the bullets below are dependency/traceability references, not alternate IA definitions.
+
 - **IA25** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA18** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
-- **IA28** — consume the application-shell resumed-baseline revalidation/remediation for the globally visible active OpenCode-account quick-access affordance; full account management remains IA34-owned.
-- **IA34** — consume the single Settings/OpenCode/account-management/configuration destructive replacement definition; provider/configuration semantics remain with existing owners.
+- **IA28** — consume the single IA28 definition in `12-action-catalog.md`.
+- **IA34** — consume the single IA34 definition in `12-action-catalog.md`.
 
 ## Completion proof
 
