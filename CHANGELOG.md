@@ -26,6 +26,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Fixed
 
+- Complete the final 0.6.0 Workbench interaction and responsive remediation: keep Retry/Resume recovery actions inside the owning Dialogue state, return proposal review to its owning attempt, remove duplicate Research-document actions, and keep Markdown Save/Cancel fully visible at narrow widths while formatting controls absorb horizontal overflow.
+
 - Reopen IA27/IA28 after bounded rendered evidence proves the application-global header still uses the superseded UX/UI renderer: require destructive re-authorship of the AppShell/Toolbar/header selector realization from current authority, add a read-only 37-surface plus active-state diagnostic corpus before fresh production authorization, invalidate the superseded RZ14 grant, and keep IA29+ blocked until renewed PLAN/alignment closure and exact-package authorization.
 
 - Reopen the bounded IA27/IA28 grant when exact-head browser evidence disproves a no-edit shell assumption: reclassify WorkItem edit-mode action precedence as a bounded residual, correct stale/racy browser verification without weakening later-phase failures, and require fresh G5/G5A plus a new exact-package authorization before production mutation.
