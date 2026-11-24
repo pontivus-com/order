@@ -39,7 +39,7 @@ Each resumed phase retains:
 
 - historical purge/reconstruction provenance only as evidence that the old implementation was previously displaced;
 - IA27 derives/revalidates the closed SD21 visual-language → foundation realization ledger from current P3/DESIGN, P4, theme authority and reviewed derived references before current foundation bytes are judged; IA28 then loads its exact already-closed surface rows through the foundation candidate and provides the first consumer realization/acceptance; only after IA28 PASS do IA29-IA31 load their rows through the accepted/frozen foundation before current screen bytes are judged;
-- IA27: the exact three-way authority-classification ledger plus purge/fresh-authorship evidence for every `DESTRUCTIVE_REPLACEMENT` and local correction evidence for every `BOUNDED_RESIDUAL`; IA28-IA31: exact residual-delta/no-edit ledgers;
+- IA27: the exact four-way authority-classification ledger (`CONFORMING_NO_EDIT` / `BOUNDED_RESIDUAL` / `DESTRUCTIVE_REPLACEMENT` / `REQUIRED_ABSENT`) plus purge/fresh-authorship evidence for every `DESTRUCTIVE_REPLACEMENT` and local correction evidence for every `BOUNDED_RESIDUAL`; IA28-IA31: exact residual-delta/no-edit ledgers;
 - final current-state absence/singularity proof for obsolete/duplicate ownership;
 - semantic/browser/rendered proof is phase-local: each IA27-IA34 phase proves its owned SURF rows plus shared invariants exercised there. IA27/IA28 prove optional semantic Surface attention, accepted shell/Context, Evidence bypass and attention-free Queue without requiring IA30/IA31/IA33 consumer repair. IA30 proves direct Proposal Review, IA31 proves direct Readiness/Approval Review, IA33 proves Terminal/Evidence composition. After all owning phases, IA20/IA26 proves the complete no-nested/no-synthetic-attention/global renderer matrix;
 - applicable signed gate feedback.
@@ -104,11 +104,23 @@ The signed task's `gateIds` order is executable order for each fresh REVIEWER wo
 
 The six logical gates remain the canonical signed task gate union. IA26 is an additional terminal PR acceptance obligation executed by GitHub Actions after those gates; it does not introduce a seventh P6 gate or replace any V0-V7 proposition.
 
+## Bounded pre-sign-off IA27/IA28 evidence lane
+
+The pre-sign-off IA27/IA28 tranche is not final T1 validation and must remain executable while known later-phase UI obligations are still open. During an active exact-package bounded authorization:
+
+1. PR verification first runs dependency-lock, typecheck, architecture, the complete non-browser test gate and build on the exact merge candidate;
+2. before the ordinary full browser step, a dedicated Playwright scenario/capture lane runs only the IA27/IA28 proof set: `SURF-WI-001`, `SURF-WI-CONTEXT-001`, `SURF-APP-001`, `SURF-QUEUE-001` and `SURF-CREATE-001`, plus the exact semantic/browser states declared by IA27/IA28;
+3. that lane uploads a separately named artifact bound to the exact candidate SHA and records only phase-local evidence; it does not emit or imply `GATE_PASSED(browser)`;
+4. the ordinary full browser suite then runs unchanged. Failures owned by IA29-IA34 remain visible and blocking for their owning phases/final validation, but they do not retroactively suppress the already-generated IA27/IA28 artifact;
+5. final IA26 remains after a green ordinary browser gate and still captures/reviews the complete 37-SURF exact-candidate union.
+
+The bounded lane is not a waiver, test skip or alternate browser gate. It exists solely to make the campaign's phase-local pre-sign-off evidence boundary executable without authorizing downstream implementation.
+
 ## First rendered foundation acceptance — IA28
 
 IA27's ledger/owner classification, semantic checks, browser proof and `SURF-WI-001` render establish **foundation readiness**, not product acceptance. Foundation correctness must be demonstrated through a real consumer screen family.
 
-IA28 is therefore the first acceptance test for the Workbench foundation. Before IA29 may begin, the exact IA28 candidate must produce actual browser-rendered evidence for `SURF-APP-001`, `SURF-QUEUE-001` and `SURF-CREATE-001`, covering the Queue/application shell, Queue states, application notices/readiness, Create WorkItem, linked remediation and active-account utility states required by the IA28 face ledger. The review uses current P3/P4/DESIGN/theme authority as normative truth and the paired `docs/references/workbench-ui/*.svg` files as derived visual comparison material.
+IA28 is therefore the first acceptance test for the Workbench foundation. Before IA29 may begin, the exact IA28 candidate must produce actual browser-rendered evidence for `SURF-APP-001`, `SURF-QUEUE-001` and `SURF-CREATE-001`, covering the Queue/application shell, Queue states, application notices/readiness, Create WorkItem, linked remediation and active-account utility states required by the IA28 face ledger. This evidence is produced by the bounded phase-local lane above and is valid for R3 review even when the ordinary browser suite remains red solely on explicitly later-phase obligations; such red results remain recorded blockers and cannot be reclassified as pass. The review uses current P3/P4/DESIGN/theme authority as normative truth and the paired `docs/references/workbench-ui/*.svg` files as derived visual comparison material.
 
 The reviewer must record for every IA28 SURF row:
 
