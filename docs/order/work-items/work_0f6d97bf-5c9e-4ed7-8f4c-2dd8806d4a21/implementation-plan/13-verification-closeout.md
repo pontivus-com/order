@@ -16,11 +16,12 @@ T1 carries the same six logical gate IDs through final validation. During the li
 | Completed phase | Before next phase | Required retained evidence |
 |---|---|---|
 | applicable IA01-IA25 non-UI work | IA27 | non-UI baseline proof; no protected execution-foundation mutation |
-| IA27 | IA28 | SD21/F6B foundation realization proof is complete: all seven required-new semantic primitives exist, Review/Context destructive API replacements are closed, ResourceRow→ResourceList decomposition is proven, required-absent generic owners remain zero, semantic-component consumer allowlists/SoC/theme/accessibility checks pass, and IA27 SURF foundation-readiness rows PASS. This authorizes IA28 consumption but is not acceptance/freeze. |
-| IA28 | **HUMAN EVIDENCE ACCEPTANCE → HUMAN SIGN-OFF; IA29 only after sign-off** | Fresh Queue/Create/application-shell consumer proof against the corrected IA27 candidate + actual production-browser captures + owned rows independently PASS `schema_information`, `ux_interaction`, `visual_ui`, `component_ownership` and explicit foundation-realization. Current R3/G6 `READY_FOR_SIGNOFF` is the prerequisite for the bounded tranche, not a downstream consequence of it. No former RZ16 verdict is inherited. |
+| bounded IA27 | IA28 | Compile-closed shell/Context proof is complete: Section/Facts exist, ContextPanel + WorkItemContext are atomically cut over, required-absent generic owners remain zero, shell/header/responsive/theme consumer allowlists pass, and IA27 SURF rows PASS. Review/Resource/Document/Result breaking APIs remain untouched. |
+| IA28 | **HUMAN EVIDENCE ACCEPTANCE → HUMAN SIGN-OFF; then post-signoff IA27 completion** | Fresh Queue/Create/application-shell proof against the bounded IA27 candidate + actual production-browser captures independently PASS `schema_information`, `ux_interaction`, `visual_ui`, `component_ownership` and bounded-foundation realization. Current R3/G6 `READY_FOR_SIGNOFF` is the prerequisite for this tranche. The bounded grant terminates here. |
+| post-signoff IA27 completion | IA29 | ResourceList is created, every current ResourceRow caller is migrated, ResourceRow is narrowed in the same typecheck-clean checkpoint, and no superseded Row API consumer remains. |
 | IA29 | IA30 | WorkbenchDocument/Facts/Section composition proof; required repository/document/Git supporting facts visible; no screen-local document-facts/aside grammar, generic workflow chrome, duplicate heading or technical leakage; all IA29 rows PASS. |
-| IA30 | IA31 | direct Document/Dialogue/Review/Evidence resolution; Proposal Review uses ReviewVerdict/ReviewSection + DocumentChangeView with raw diff secondary; no local review/resource grammar; continuous Dialogue semantics; all IA30 rows PASS. |
-| IA31 | IA32 | Readiness/Approval use one canonical ReviewVerdict + ReviewSections/Facts/ResourceList; no local `order-review-*` structural grammar, whole-R3-under-Findings duplication, raw enum or selector; all IA31 rows PASS. |
+| IA30 | IA31 | direct Document/Dialogue/Evidence/State resolution for productive stages excluding Proposal Review; continuous Dialogue semantics; all IA30-owned rows PASS; Proposal Review remains unchanged/unaccepted. |
+| IA31 | IA32 | Proposal/Readiness/Approval atomically cut over the single WorkbenchReview API with ReviewVerdict + ReviewSections/Facts/ResourceList; Proposal uses DocumentChangeView with raw diff secondary; no local `order-review-*` structural grammar, whole-R3-under-Findings duplication, raw enum or selector; all IA31 rows PASS. |
 | IA32 | IA33 | Implementation purge/rebuild proof + canonical MasterDetail/Section/Facts/ResourceList ownership + both IA32 rows PASS; no local recurring card/section/resource grammar. |
 | IA33 | IA34 | Complete uses WorkbenchResult/Section/ResourceList and Evidence remains exact-byte owner; no local terminal/resource grammar; all IA33 rows PASS. |
 | IA34 | IA20-IA23 integrated certification | Settings uses Section/Facts/ResourceList with one diagnostics owner; all eleven IA34 rows PASS; 37/37 IA27-IA34 SURF union complete. |
@@ -37,7 +38,7 @@ A failed in-task checkpoint permits only correction inside T1's signed semantic 
 
 For every affected physical owner, retained evidence records: canonical P4/SD/F6B authority; catalogued disposition; pre-mutation evidence where destructive/decompose work is required; exact resulting API/consumer set; removed obsolete selectors/owners; and the phase-local semantic/browser/rendered result. A final-looking screen is insufficient if a forbidden owner, compatibility API, duplicate semantic component responsibility or feature-local substitute grammar remains.
 
-IA27 proof specifically demonstrates `REQUIRED_NEW`, `DECOMPOSE_REFACTOR`, `DESTRUCTIVE_REPLACEMENT`, fresh `CONFORMING_NO_EDIT`/`BOUNDED_RESIDUAL`, and `REQUIRED_ABSENT` outcomes exactly as catalogued. IA28-IA34 prove the catalogued renderer dispositions and their owned SURF rows. Historical purge/RZ16 evidence may explain the defect but never satisfies the new proof.
+Bounded IA27 proof demonstrates only the catalogued compile-closed shell/Context dispositions. Post-signoff IA27 completion proves the all-caller ResourceRow/ResourceList cutover. IA29/IA31/IA33 prove Document/Review/Result breaking semantic-component cutovers with their complete consumer sets; IA28-IA34 prove the remaining catalogued renderer dispositions and owned SURF rows. Historical purge/RZ16 evidence may explain the defect but never satisfies the new proof.
 
 Phase-local rendered proof remains bounded to each IA's owned SURF rows plus shared invariants exercised there. After all owning phases, IA20/IA26 prove the global component API/consumer/SoC matrix, no local substitute semantic grammar, no nested/synthetic primary composition, and the complete 37-SURF union.
 
@@ -122,7 +123,7 @@ Failure routing is exact:
 - missing, ambiguous or contradictory product/information/interaction classification → DESIGN;
 - no IA29 advance while any IA28 row or foundation-realization verdict is FAIL/unreviewed.
 
-Only this checkpoint accepts/freezes IA27 for later screen families. IA26 remains the separate final exhaustive 37-SURF exact-candidate acceptance and can still reopen any defective owner.
+Only this checkpoint accepts the bounded shell/Context foundation slice. It does not freeze Review/Resource/Document/Result APIs that have not yet cut over; each is frozen only after its consumer-atomic checkpoint. IA26 remains the separate final exhaustive 37-SURF exact-candidate acceptance and can still reopen any defective owner.
 
 ## Final exhaustive rendered 0.6.0 UX/UI acceptance — IA26
 
