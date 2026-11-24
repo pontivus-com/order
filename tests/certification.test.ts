@@ -1000,6 +1000,16 @@ describe("Order cross-boundary certification", () => {
       ".order-evidence-code-bytes",
       ".order-markdown-document-view-header",
       ".order-markdown-document-view-actions",
+      ".order-settings-workspace",
+      ".order-settings-page-heading",
+      ".order-settings-content",
+      ".order-settings-section",
+      ".order-settings-navigation",
+      ".order-settings-supporting-info",
+      ".order-settings-task-surface",
+      ".order-settings-repository-identity",
+      ".order-settings-add-repository",
+      ".order-opencode-account-footnote",
       "border-radius: 999px",
       "border-radius: 50%",
       "font-size: 0.75rem",
@@ -2380,8 +2390,23 @@ describe("0.6.0 Wave 4 Workbench and product-language certification", () => {
     expect(readiness).not.toContain("READY_FOR_SIGNOFF");
 
     expect(settings).toContain('data-testid="settings-diagnostics"');
+    expect(settings).toContain('label="Inspect settings diagnostics"');
+    expect(settings).toContain('aria-label="Settings diagnostics"');
+    expect(settings).not.toContain("WorkbenchDisclosure");
     expect(settings).not.toContain('label="Technical details"');
     expect(settings).not.toContain('data-testid="repository-technical-details"');
+    expect(settings).not.toContain("order-settings-workspace");
+    expect(settings).not.toContain("order-settings-page-heading");
+    expect(settings).not.toContain("order-settings-navigation");
+    expect(settings).not.toContain("order-settings-task-surface");
+    expect(settings).not.toContain("order-settings-supporting-info");
+
+    const accountSettings = read("ui/src/OpenCodeAccountSettings.tsx");
+    expect(accountSettings).not.toContain("order-opencode-account-footnote");
+    expect(accountSettings).not.toContain("order-settings-task-surface");
+    expect(accountSettings).not.toContain("<code>{account.id}</code>");
+    expect(accountSettings).toContain("removing.label");
+    expect(accountSettings).toContain("Repository selection and model configuration are unchanged.");
 
     expect(presentation).toContain("export const workOutcomeProductLabel");
     expect(presentation).toContain('case "CANDIDATE_DONE": return "Verified candidate"');
