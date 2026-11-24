@@ -273,6 +273,8 @@ The 37 audited `SURF-*` rows in `docs/references/workbench-ui/README.md` remain 
 
 The IA27-IA34 union remains exactly **37 unique SURF rows** with no duplicate or unowned row. Each phase records independent `schema_information`, `ux_interaction`, and `visual_ui` verdicts. The bounded IA27/IA28 evidence accepts only the shell/Context foundation slice it exercises. Later component cutovers are independently accepted at their owning phase and globally rechecked by IA20/IA26.
 
+**Audit invariants:** No prior phase PASS is inherited. IA27 does not derive either P4 component contracts or SD21/F6B consumer mapping. Do not add compatibility props or temporary old/new paths. A breaking API cutover must include its complete current compile-time consumer set.
+
 ## IA28 — freshly revalidate Queue and Create and accept the bounded shell/Context foundation slice
 
 **Solution:** SD22.  
