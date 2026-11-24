@@ -1137,38 +1137,30 @@ export const WorkItemWorkspace = ({
 
   const historicalAttentionReason =
     currentAttention === "REQUIRED_INPUT"
-      ? {
-          title: "Waiting for you",
-          description:
-            workflow.label + " has a current required question. Return to current work to answer it.",
-        }
+      ? "Waiting for you"
       : currentAttention === "PROPOSAL_DECISION"
-        ? {
-            title: "Proposal review required",
-            description:
-              workflow.label + " has a current proposal decision. Return to current work to review it.",
-          }
+        ? "Proposal review required"
         : currentAttention === "ACTIONABLE"
-          ? {
-              title: workflow.label + " is ready for your action",
-              description:
-                "Return to current work to continue the active workflow.",
-            }
+          ? workflow.label + " is ready for your action"
           : null;
 
-  const stepAttention =
-    summaryBlocker !== null ? (
+  const historicalReturn =
+    inspectedHistorical && currentMaterialAction !== undefined ? (
+      <>
+        {summaryBlocker === null && historicalAttentionReason === null ? null : (
+          <span>
+            {summaryBlocker?.title ?? historicalAttentionReason}
+          </span>
+        )}
+        {currentMaterialAction}
+      </>
+    ) : undefined;
+
+  const currentInteractionAttention =
+    !inspectedHistorical && summaryBlocker !== null ? (
       <WorkbenchAttention
         title={summaryBlocker.title}
         description={summaryBlocker.description}
-        action={currentMaterialAction}
-      />
-    ) : inspectedHistorical &&
-        historicalAttentionReason !== null &&
-        currentMaterialAction !== undefined ? (
-      <WorkbenchAttention
-        title={historicalAttentionReason.title}
-        description={historicalAttentionReason.description}
         action={currentMaterialAction}
       />
     ) : !inspectedHistorical && currentOwnerAction !== null ? (
@@ -1266,7 +1258,10 @@ export const WorkItemWorkspace = ({
             artifacts={artifacts}
             material={material}
             materialState={selectedStageMaterialState}
-            attention={stepAttention}
+            documentAttention={currentInteractionAttention}
+            historicalReturn={historicalReturn}
+            stateNotice={inspectedHistorical ? undefined : currentReviewNotice}
+            stateAction={inspectedHistorical ? undefined : currentOwnerAction ?? undefined}
             currentRunId={currentStageRun?.id ?? null}
             currentInteraction={currentStageInteraction}
             currentAttention={currentAttention}
@@ -1391,9 +1386,13 @@ export const WorkItemWorkspace = ({
         </Suspense>
       ) : (
         <WorkbenchSurface
-          attention={stepAttention}
+          attention={currentInteractionAttention}
           material={
-            <Suspense fallback={<WorkbenchState kind="loading" title="Loading workspace…" />}>
+            <>
+              {historicalReturn === undefined ? null : (
+                <div className="order-inline-actions">{historicalReturn}</div>
+              )}
+              <Suspense fallback={<WorkbenchState kind="loading" title="Loading workspace…" />}>
               {material.kind === "SOURCE_DOCUMENT" ? (
                 <SourceDocumentMaterial
                   workItem={workItem}
@@ -1436,7 +1435,8 @@ export const WorkItemWorkspace = ({
                   description="Workflow inspection does not create or promote lifecycle state."
                 />
               ) : null}
-            </Suspense>
+              </Suspense>
+            </>
           }
         />
       )}
