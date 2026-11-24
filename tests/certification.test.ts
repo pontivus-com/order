@@ -902,23 +902,29 @@ describe("Order cross-boundary certification", () => {
 
     const execution = read("ui/src/ExecutionWorkspace.tsx");
     expect(execution).toContain("WorkbenchMasterDetail");
-    expect(execution).toContain("api.startExecutionTask(workItem.id,currentOwnerTask.id)");
+    expect(execution).toContain("api.startExecutionTask(workItem.id, currentOwnerTask.id)");
     expect(execution).not.toContain("api.tick");
     expect(execution).toContain('masterLabel="Approved tasks"');
     expect(execution).toContain('label="Approved tasks"');
     expect(execution).toContain('selection="single"');
-    expect(execution).toContain('description="Approved task"');
-    expect(execution).not.toContain('description:"Approved task · "');
-    expect(execution).toContain(
-      'selectedRun===null?<WorkbenchState kind="empty" title="No persisted attempt events"/>',
-    );
+    expect(execution).toContain('className="order-implementation-detail"');
+    expect(execution).toContain('className="order-implementation-scope"');
+    expect(execution).toContain('label="Signed task details"');
+    expect(execution).toContain('data-testid="validation-matrix"');
     expect(execution).toContain("lifecycleArtifactLabel(artifact.role)");
     expect(execution).toContain('label="Agent activity"');
     expect(execution).toContain("<RunEventTimeline");
-    expect(execution).toContain('title="Approved task contract"');
+    expect(execution).not.toContain("MetadataList");
+    expect(execution).not.toContain("order-execution-task-material");
+    expect(execution).not.toContain("order-execution-task-contract");
     expect(execution).not.toContain('label="Technical details"');
     expect(execution).not.toContain("<dt>Task id</dt>");
     expect(execution).not.toContain("<dt>Provider session</dt>");
+    expect(execution).not.toContain("providerSessionId");
+    expect(execution).not.toContain("baselineCommit");
+    expect(execution).not.toContain("contextHash");
+    expect(execution).not.toContain("approvalId");
+    expect(execution).not.toContain("planTaskId");
     expect(execution).not.toContain("MarkdownEditor");
     expect(execution).not.toContain("updateArtifactContent");
 
@@ -1294,7 +1300,7 @@ describe("Order cross-boundary certification", () => {
     expect(execution).not.toContain("workbenchQueryKeys.artifacts(");
     expect(execution).toContain('scope: "Current" | "Recorded"');
     expect(execution).toContain('scope + " boundary: updating"');
-    expect(execution).toContain('boundaryScope={currentOwnerTask?.id === selectedTask.id ? "Current" : "Recorded"}');
+    expect(execution).toContain('currentOwnerTask?.id === selectedTask.id');
     expect(execution).toContain('selectedTask.state === "CANDIDATE_DONE" || selectedTask.state === "ALREADY_SATISFIED"');
     expect(execution).toContain("validationBoundaryStatus(boundary, boundaryScope)");
     expect(execution).not.toContain("deriveValidationBoundary");
