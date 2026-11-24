@@ -4,12 +4,13 @@ import { TextInput } from "@astryxdesign/core/TextInput";
 import { WorkbenchIcon } from "./WorkbenchIcon.tsx";
 
 export const WorkbenchToolbar = ({
-  start, end,
+  start,
+  end,
 }: Readonly<{ start?: ReactNode; end?: ReactNode }>) => (
-  <div className="order-toolbar" data-testid="workbench-toolbar">
-    <div className="order-toolbar-start">{start}</div>
-    <div className="order-toolbar-end">{end}</div>
-  </div>
+  <header className="order-workbench-toolbar" data-testid="workbench-toolbar">
+    <div className="order-workbench-toolbar-primary">{start}</div>
+    <div className="order-workbench-toolbar-secondary">{end}</div>
+  </header>
 );
 
 export const WorkbenchToolbarGroup = ({ children }: Readonly<{ children: ReactNode }>) => (
@@ -21,9 +22,15 @@ export const WorkbenchToolbarUtilities = ({ children }: Readonly<{ children: Rea
 );
 
 export const WorkbenchToolbarSearch = ({
-  value, onChange, placeholder = "Search work items",
-}: Readonly<{ value: string; onChange: (value: string) => void; placeholder?: string }>) => (
-  <div className="order-toolbar-search-wrap" data-testid="workbench-search">
+  value,
+  onChange,
+  placeholder = "Search work items",
+}: Readonly<{
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+}>) => (
+  <div className="order-workbench-toolbar-search" data-testid="workbench-search">
     <TextInput
       label="Search work items"
       isLabelHidden
