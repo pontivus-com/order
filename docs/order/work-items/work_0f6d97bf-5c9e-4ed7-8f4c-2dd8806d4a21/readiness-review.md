@@ -19,7 +19,7 @@ The current corrected package is:
 - R2 `requirements.md`: `e1e53c493f405610f6f73d3e8b83084b91e7db9e`;
 - canonical P4 Workbench: `372c7a3380dc200d5ec0b425f2d6cac781f2e6bc`;
 - DESIGN `solution-design.md`: `a6dc89a0ce2fcdcb986d6c3fdb3414766562c95f`;
-- PLAN `implementation-plan.md`: `9009f2f9c3f938d34f3263dbfa1ed88fbe2973c2`;
+- PLAN `implementation-plan.md`: `3601e08f08300173cef7895ab3bdb60d8f35b204`;
 - reference-pack README: `6aff4233f4f0c9c2a09c6aa2504b7e2cef1708fb`.
 
 The sole current campaign/gate authority remains `0.6.0-design-campaign-plan.md §7/§18`. Current campaign state is not projected from this R3 artifact.
@@ -44,7 +44,7 @@ The current authority package now requires:
 
 ## Current bounded realization boundary
 
-Campaign §17A currently owns authorization `IA28-RZ11`.
+Campaign §17A currently owns authorization `IA28-RZ12`.
 
 That grant permits only:
 
@@ -57,7 +57,7 @@ The grant stops before IA29. Any IA28-discovered shared-foundation defect return
 
 After IA27/IA28 evidence is complete:
 
-1. terminate RZ11;
+1. terminate RZ12;
 2. run a fresh adversarial R3 against the exact current authority package and exact bounded foundation evidence;
 3. only a new `READY_FOR_SIGNOFF` may advance G6;
 4. normal human Approval must bind that same exact package;
@@ -67,4 +67,4 @@ After IA27/IA28 evidence is complete:
 
 **Recorded return:** `RETURN_TO_DESIGN` for the now-corrected P4 consumer-permission defect.
 
-**Current next permitted action:** continue the active bounded `IA28-RZ11` IA27 → IA28 realization/evidence sequence. No current `READY_FOR_SIGNOFF` or Approval authority exists, and IA29+ remains forbidden until fresh R3/G6 and human Approval.
+**Current next permitted action:** continue the active bounded `IA28-RZ12` IA27 → IA28 realization/evidence sequence. No current `READY_FOR_SIGNOFF` or Approval authority exists, and IA29+ remains forbidden until fresh R3/G6 and human Approval.
