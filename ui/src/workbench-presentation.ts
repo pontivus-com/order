@@ -51,25 +51,6 @@ export const readinessOutcomeLabel = (
   }
 };
 
-export const readinessOutcomeTone = (
-  outcome: ReadinessOutcome | null,
-  runStatus: Run["status"] | null,
-): "success" | "warning" | "danger" | "info" => {
-  if (outcome === "READY_FOR_SIGNOFF") return "success";
-  if (outcome !== null) return "warning";
-  if (runStatus === "BLOCKED" || runStatus === "FAILED") return "danger";
-  return "info";
-};
-
-export const readinessOutcomeDescription = (
-  outcome: ReadinessOutcome | null,
-): string =>
-  outcome === "READY_FOR_SIGNOFF"
-    ? "The typed R3 result admits the exact package to Approval."
-    : outcome === null
-      ? "Verdict is derived only from the current canonical R3 result."
-      : "The typed R3 result returns workflow ownership to the named upstream stage.";
-
 export type SettingsDestination = "repositories" | "opencode" | "model";
 
 export const settingsDestinationForReadinessBlocker = (
