@@ -183,8 +183,9 @@ export const ReadinessWorkspace = ({
         : latestRun?.status === "FAILED"
           ? "Review failed"
           : "Review in progress";
+  const readyForSignoff = outcome !== null && verdict === "Ready for sign-off";
   const verdictTone =
-    outcome === "READY_FOR_SIGNOFF"
+    readyForSignoff
       ? "success"
       : outcome !== null
         ? "warning"
@@ -192,7 +193,7 @@ export const ReadinessWorkspace = ({
           ? "danger"
           : "info";
   const verdictDescription =
-    outcome === "READY_FOR_SIGNOFF"
+    readyForSignoff
       ? "The typed R3 result admits the exact package to Approval."
       : outcome === null
         ? "Verdict is derived only from the current canonical R3 result."
