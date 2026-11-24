@@ -14,7 +14,7 @@ This is a trace/readability view of the one canonical `order-tasks` block in the
 
 ## Execution waves
 
-**Pre-sign-off realization boundary:** this catalog confers no bounded or signed implementation authority. Current eligibility, gate state and any bounded grant are owned exclusively by `0.6.0-design-campaign-plan.md §17A/§18` and must bind the exact corrected P4/DESIGN/PLAN package. The catalog is only the candidate execution definition.
+**Pre-sign-off realization boundary:** this catalog confers no bounded or signed implementation authority. Under `GW-DOC-SYSTEMS-GOVERNANCE-PYRAMID-V1` bounded acceptance-evidence realization may begin only after current R3 has closed the tranche and returned `READY_FOR_SIGNOFF`; current eligibility, G6 state and any exact-package bounded grant are then owned by `0.6.0-design-campaign-plan.md §17A/§18`. The catalog is only the candidate execution definition.
 
 
 0. **Preflight 0 — DESIGN-positive reuse proof:** IA07-IA08. No production mutation.
@@ -32,7 +32,7 @@ This is a trace/readability view of the one canonical `order-tasks` block in the
 12. **Wave 12 — rendered product acceptance:** IA26.
 13. **Wave 13 — candidate closeout:** IA24.
 
-Before any Wave 2+ UI mutation, the exact corrected P4/DESIGN/PLAN package must have current campaign authority. IA27 consumes the SD21/F6B ledger and executes its already-decided physical dispositions; it may not invent component roles or use current JSX/CSS to choose them. IA28 then performs the first real-consumer acceptance. IA29-IA34 each revalidate their complete owned renderer set against the new semantic component architecture before editing and execute the catalogued disposition: `DECOMPOSE_REFACTOR` when semantic responsibility is valid but physically overloaded, `DESTRUCTIVE_REPLACEMENT` when hierarchy/API ownership is materially wrong, `BOUNDED_RESIDUAL` only for a strictly local defect, `CONFORMING_NO_EDIT` only after fresh proof, `REQUIRED_NEW` for missing canonical owners and `REQUIRED_ABSENT` for forbidden owners. The 37 SURF rows remain partitioned once across IA27-IA34 and IA26 rechecks the exact-candidate union plus the component-ownership/SoC invariants.
+Before any bounded Wave 2/3 UI mutation, the exact corrected P4/DESIGN/PLAN package must have current R3/G6 `READY_FOR_SIGNOFF` and an explicit exact-package §17A operator grant. Normal Wave 4+ execution additionally requires ordinary human sign-off. IA27 consumes the SD21/F6B ledger and executes its already-decided physical dispositions; it may not invent component roles or use current JSX/CSS to choose them. IA28 then performs the first real-consumer acceptance. IA29-IA34 each revalidate their complete owned renderer set against the new semantic component architecture before editing and execute the catalogued disposition: `DECOMPOSE_REFACTOR` when semantic responsibility is valid but physically overloaded, `DESTRUCTIVE_REPLACEMENT` when hierarchy/API ownership is materially wrong, `BOUNDED_RESIDUAL` only for a strictly local defect, `CONFORMING_NO_EDIT` only after fresh proof, `REQUIRED_NEW` for missing canonical owners and `REQUIRED_ABSENT` for forbidden owners. The 37 SURF rows remain partitioned once across IA27-IA34 and IA26 rechecks the exact-candidate union plus the component-ownership/SoC invariants.
 ## IA01 — pure project-authority resolution
 
 **Solution:** SD02.  
