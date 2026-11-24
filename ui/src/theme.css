@@ -1236,7 +1236,6 @@
     min-width: min-content;
   }
   .order-utility-link small { display: none; }
-  .order-application-orientation span { display: none; }
   .order-workbench-identity {
     grid-template-columns: minmax(0, 1fr) auto;
     padding-block: var(--spacing-2);
