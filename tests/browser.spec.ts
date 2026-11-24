@@ -1993,6 +1993,51 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     .toHaveCount(0, { timeout: 15_000 });
   await expect(settings.getByText("Settings readiness unavailable", { exact: true }))
     .toHaveCount(0);
+  if (diagnosticCurrentState) {
+    await capture({
+      id: "diagnostic-application-settings-wide-light",
+      workItemKind: "QUEUE",
+      workflowStep: null,
+      surface: "SURF-APP-001",
+      state: "settings-destination-wide",
+      fixture: "deterministic installation Settings",
+      viewport: light,
+      theme: "Light",
+      route: routeValue(),
+      references: [
+        "docs/references/workbench-ui/settings-repositories.svg",
+        "docs/references/workbench-ui/theme-parity.svg",
+      ],
+      authorityRefs: [
+        "GW-DOC-WORKBENCH-UX",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+      ],
+      captureScope: "full application viewport",
+    });
+    await page.setViewportSize(narrow);
+    await capture({
+      id: "diagnostic-application-settings-narrow-light",
+      workItemKind: "QUEUE",
+      workflowStep: null,
+      surface: "SURF-APP-001",
+      state: "settings-destination-narrow",
+      fixture: "deterministic installation Settings",
+      viewport: narrow,
+      theme: "Light",
+      route: routeValue(),
+      references: [
+        "docs/references/workbench-ui/settings-repositories.svg",
+        "docs/references/workbench-ui/responsive-composition.svg",
+      ],
+      authorityRefs: [
+        "GW-DOC-WORKBENCH-UX",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+      ],
+      captureScope: "full application viewport",
+    });
+    await page.setViewportSize(light);
+  }
   await capture({
     id: "ia26-settings-frame-wide-light",
     workItemKind: "QUEUE",
@@ -2274,6 +2319,71 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   await page.goto("/");
   await openWorkItem(page, "Source editing workbench");
   await selectWorkflowStep(page, "Work request");
+  if (diagnosticCurrentState) {
+    await capture({
+      id: "diagnostic-application-workitem-wide-light",
+      workItemKind: "CHANGE",
+      workflowStep: "Work request",
+      surface: "SURF-APP-001",
+      state: "selected-workitem-destination-wide",
+      fixture: "Source editing workbench",
+      viewport: light,
+      theme: "Light",
+      route: routeValue(),
+      references: [
+        "docs/references/workbench-ui/workitem-shell-controls.svg",
+        "docs/references/workbench-ui/theme-parity.svg",
+      ],
+      authorityRefs: [
+        "GW-DOC-WORKBENCH-UX",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+      ],
+      captureScope: "full application viewport",
+    });
+    await page.setViewportSize({ width: 1000, height: 800 });
+    await capture({
+      id: "diagnostic-application-workitem-medium-light",
+      workItemKind: "CHANGE",
+      workflowStep: "Work request",
+      surface: "SURF-APP-001",
+      state: "selected-workitem-destination-medium",
+      fixture: "Source editing workbench",
+      viewport: { width: 1000, height: 800 },
+      theme: "Light",
+      route: routeValue(),
+      references: [
+        "docs/references/workbench-ui/workitem-shell-controls.svg",
+        "docs/references/workbench-ui/responsive-composition.svg",
+      ],
+      authorityRefs: [
+        "GW-DOC-WORKBENCH-UX",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+      ],
+      captureScope: "full application viewport",
+    });
+    await page.setViewportSize(narrow);
+    await capture({
+      id: "diagnostic-application-workitem-narrow-light",
+      workItemKind: "CHANGE",
+      workflowStep: "Work request",
+      surface: "SURF-APP-001",
+      state: "selected-workitem-destination-narrow",
+      fixture: "Source editing workbench",
+      viewport: narrow,
+      theme: "Light",
+      route: routeValue(),
+      references: [
+        "docs/references/workbench-ui/workitem-shell-controls.svg",
+        "docs/references/workbench-ui/responsive-composition.svg",
+      ],
+      authorityRefs: [
+        "GW-DOC-WORKBENCH-UX",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+      ],
+      captureScope: "full application viewport",
+    });
+    await page.setViewportSize(light);
+  }
   const sourceMaterial = page.getByTestId("source-document-material");
   await expect(sourceMaterial.getByText("Requested outcome", { exact: true }))
     .toBeVisible({ timeout: 15_000 });
