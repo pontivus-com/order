@@ -1,10 +1,10 @@
 # 0.6.0 verification and closeout contract
 
-This component allocates proof across the one canonical signed task T1 and its ordered IA01-IA34 implementation/proof phases. It does not create another validation model or second executable-task representation.
+This component allocates proof across the one canonical T1 candidate and its ordered IA01-IA34 implementation/proof phases. It does not define implementation actions, component APIs or another task representation; those are owned by `12-action-catalog.md`, P4 and DESIGN respectively.
 
 ## In-task architecture and reconstruction checkpoints
 
-Before ordinary signed-task execution exists, bounded IA27/IA28 evidence realization is governed by the canonical campaign register rather than this verification component. Eligibility requires exact G5/G5A PASS plus explicit operator authorization bound to that exact package. The resulting IA27/IA28 evidence is reviewed by R3/G6. IA28 → IA29 remains a **human sign-off boundary** after G6, never an automatic phase advance.
+No bounded or signed implementation authority is currently active because campaign G4/G5/G5A/G6 are reopened by C19-F09/C20-F11. If a future bounded IA27/IA28 grant is authorized, eligibility/state is governed only by the campaign register; this file owns only the evidence/checkpoint requirements.
 
 
 Preflight IA07 re-proves the existing coordinator-owned signed-checkpoint capability; no candidate byte is relied upon to create it.
@@ -16,14 +16,14 @@ T1 carries the same six logical gate IDs through final validation. During the li
 | Completed phase | Before next phase | Required retained evidence |
 |---|---|---|
 | applicable IA01-IA25 non-UI work | IA27 | non-UI baseline proof; no protected execution-foundation mutation |
-| IA27 | IA28 | SD21 foundation correction is complete: `WorkflowStepFrame`/`WorkflowMaterialSelector` responsibilities are required-absent, closed primitive APIs are freshly realized where destructive replacement is required, zero compatibility/deprecated/dual paths remain, primitive consumer allowlists pass architecture fitness, and foundation-readiness rendered proof is PASS. This authorizes IA28 consumption but is not acceptance/freeze. |
-| IA28 | **R3/G6 REVIEW → HUMAN SIGN-OFF; IA29 only after sign-off** | Fresh Queue/Create/application-shell consumer proof against corrected IA27 + actual production-browser IA28 captures + all owned rows independently PASS for `schema_information`, `ux_interaction`, `visual_ui` + explicit foundation-realization PASS. The prior IA27/IA28 acceptance is superseded by the IA26 defect review and cannot be inherited. |
-| IA29 | IA30 | direct Document composition proof: no generic workflow summary/material selector, no duplicate outer heading, no raw internal enum/technical identity in ordinary content, compact editor/control adjacency, Context inspection, and all IA29 rows PASS |
-| IA30 | IA31 | direct Document/Dialogue/Review/Evidence interaction resolution, continuous multi-turn Dialogue semantics, no internal interaction taxonomy/helper slabs, direct Proposal Review, and all IA30 rows PASS |
-| IA31 | IA32 | direct Readiness/Approval Review; no whole-R3-under-Findings duplication, raw typed enum or generic material selector; required-input Dialogue replaces Review; all IA31 rows PASS |
-| IA32 | IA33 | applicable signed checkpoints + both IA32 face-ledger rows PASS |
-| IA33 | IA34 | applicable signed checkpoints + all 3 IA33 face-ledger rows PASS |
-| IA34 | IA20-IA23 integrated certification | applicable signed checkpoints + all 11 IA34 face-ledger rows PASS; 37/37 IA27-IA34 phase-local SURF union complete |
+| IA27 | IA28 | SD21/F6B foundation realization proof is complete: all seven required-new semantic primitives exist, Review/Context destructive API replacements are closed, ResourceRow→ResourceList decomposition is proven, required-absent generic owners remain zero, semantic-component consumer allowlists/SoC/theme/accessibility checks pass, and IA27 SURF foundation-readiness rows PASS. This authorizes IA28 consumption but is not acceptance/freeze. |
+| IA28 | **R3/G6 REVIEW → HUMAN SIGN-OFF; IA29 only after sign-off** | Fresh Queue/Create/application-shell consumer proof against the corrected IA27 candidate + actual production-browser captures + owned rows independently PASS `schema_information`, `ux_interaction`, `visual_ui`, `component_ownership` and explicit foundation-realization. No former RZ16 verdict is inherited. |
+| IA29 | IA30 | WorkbenchDocument/Facts/Section composition proof; required repository/document/Git supporting facts visible; no screen-local document-facts/aside grammar, generic workflow chrome, duplicate heading or technical leakage; all IA29 rows PASS. |
+| IA30 | IA31 | direct Document/Dialogue/Review/Evidence resolution; Proposal Review uses ReviewVerdict/ReviewSection + DocumentChangeView with raw diff secondary; no local review/resource grammar; continuous Dialogue semantics; all IA30 rows PASS. |
+| IA31 | IA32 | Readiness/Approval use one canonical ReviewVerdict + ReviewSections/Facts/ResourceList; no local `order-review-*` structural grammar, whole-R3-under-Findings duplication, raw enum or selector; all IA31 rows PASS. |
+| IA32 | IA33 | Implementation purge/rebuild proof + canonical MasterDetail/Section/Facts/ResourceList ownership + both IA32 rows PASS; no local recurring card/section/resource grammar. |
+| IA33 | IA34 | Complete uses WorkbenchResult/Section/ResourceList and Evidence remains exact-byte owner; no local terminal/resource grammar; all IA33 rows PASS. |
+| IA34 | IA20-IA23 integrated certification | Settings uses Section/Facts/ResourceList with one diagnostics owner; all eleven IA34 rows PASS; 37/37 IA27-IA34 SURF union complete. |
 | IA20-IA23 | IA26 | complete semantic/component/theme/responsive/scenario/regression certification PASS |
 | IA26 | IA24 | exhaustive exact-candidate **scope-valid** evidence artifact + separately reviewable per-row `schema_information` / `ux_interaction` / `visual_ui` PASS/FAIL ledger with rationale + zero unresolved FAIL |
 
@@ -31,32 +31,17 @@ These are **in-task phase boundaries**, not ExecutionTask dependencies. P6 does 
 
 A failed in-task checkpoint permits only correction inside T1's signed semantic scope/accepted design or an explicit execution block. It does not grant provider shell/execute or authorize redesign. Checkpoints never substitute for V3/V5/V7 or T1's complete logical gate union.
 
-## Resumed-baseline revalidation and remaining reconstruction evidence law
+## UI reconstruction evidence law
 
-For IA27-IA31, the fresh T1 baseline already contains historically completed replacement bytes. Verification does **not** replay the historical whole-foundation purge merely to reproduce history. IA27 does, however, require bounded current replacement checkpoints for any owner newly classified `DESTRUCTIVE_REPLACEMENT`; those checkpoints remove the divergent implementation/selectors/assertions before fresh authorship and are current evidence, not historical replay.
+`12-action-catalog.md` is the single owner of IA27-IA34 mutation procedures and physical dispositions. Verification records evidence against those dispositions; it does not restate or reinterpret them.
 
-Each resumed phase retains:
+For every affected physical owner, retained evidence records: canonical P4/SD/F6B authority; catalogued disposition; pre-mutation evidence where destructive/decompose work is required; exact resulting API/consumer set; removed obsolete selectors/owners; and the phase-local semantic/browser/rendered result. A final-looking screen is insufficient if a forbidden owner, compatibility API, duplicate semantic component responsibility or feature-local substitute grammar remains.
 
-- historical purge/reconstruction provenance only as evidence that the old implementation was previously displaced;
-- IA27 derives/revalidates the closed SD21 visual-language → foundation realization ledger from current P3/DESIGN, P4, theme authority and reviewed derived references before current foundation bytes are judged; IA28 then loads its exact already-closed surface rows through the foundation candidate and provides the first consumer realization/acceptance; only after IA28 PASS do IA29-IA31 load their rows through the accepted/frozen foundation before current screen bytes are judged;
-- IA27: the exact four-way authority-classification ledger (`CONFORMING_NO_EDIT` / `BOUNDED_RESIDUAL` / `DESTRUCTIVE_REPLACEMENT` / `REQUIRED_ABSENT`) plus purge/fresh-authorship evidence for every `DESTRUCTIVE_REPLACEMENT` and local correction evidence for every `BOUNDED_RESIDUAL`; IA28-IA31: exact residual-delta/no-edit ledgers;
-- final current-state absence/singularity proof for obsolete/duplicate ownership;
-- semantic/browser/rendered proof is phase-local: each IA27-IA34 phase proves its owned SURF rows plus shared invariants exercised there. IA27/IA28 prove optional semantic Surface attention, accepted shell/Context, Evidence bypass and attention-free Queue without requiring IA30/IA31/IA33 consumer repair. IA30 proves direct Proposal Review, IA31 proves direct Readiness/Approval Review, IA33 proves Terminal/Evidence composition. After all owning phases, IA20/IA26 proves the complete no-nested/no-synthetic-attention/global renderer matrix;
-- applicable signed gate feedback.
+IA27 proof specifically demonstrates `REQUIRED_NEW`, `DECOMPOSE_REFACTOR`, `DESTRUCTIVE_REPLACEMENT`, fresh `CONFORMING_NO_EDIT`/`BOUNDED_RESIDUAL`, and `REQUIRED_ABSENT` outcomes exactly as catalogued. IA28-IA34 prove the catalogued renderer dispositions and their owned SURF rows. Historical purge/RZ16 evidence may explain the defect but never satisfies the new proof.
 
-Current bytes do not pass because they already exist; they pass only when the signed DESIGN contract and current authority/proof independently demonstrate conformance. Minimum change forbids deleting/recreating conforming paths merely to replay historical process evidence.
+Phase-local rendered proof remains bounded to each IA's owned SURF rows plus shared invariants exercised there. After all owning phases, IA20/IA26 prove the global component API/consumer/SoC matrix, no local substitute semantic grammar, no nested/synthetic primary composition, and the complete 37-SURF union.
 
-For IA32-IA34, verification retains the original purge/rebuild discipline:
-
-- bounded in-task purge observation/evidence records exact deleted old screen paths/selectors before replacement authorship;
-- the procedural purge contains no replacement JSX/DOM and is not a Git commit/candidate/validation result;
-- the exhaustive 37-surface information contract in `solution-design.md` already records each datum/action's P3 class/default visibility/owner/disclosure/promotion rule; implementation records only its conformance/delta trace;
-- recreated IA32-IA34 screens consume the IA28-accepted IA27 foundation and canonical domain/query owners;
-- shared style mutation is limited to exact phase-owned selectors;
-- semantic/browser/rendered proof passes for each owned SURF row.
-
-A final screen that looks correct is insufficient if obsolete ownership or technical-information leakage remains. Historical purge provenance cannot substitute for current semantic/browser/rendered proof.
-
+## Requirement-level proof law
 ## Requirement-level proof law
 
 For every stable requirement row in phases 01-11:
@@ -78,7 +63,7 @@ SD20 exact-pin OpenCode proof is a mandatory IA23 precondition to IA26 and IA24:
 
 ### Pre-Approval structural-sensor correction
 
-The permanent package sensor is pre-signoff campaign material, not signed implementation surface. Before G5/G5A/R3 may return to PASS it must validate the current **68-path** DESIGN forecast against the exact one-task PLAN `changeSurface`; exactly one signed task with empty `dependsOn`; the historical 20-path foundation replacement boundary, six positively retained atomic adapters and three foundation-owner paths; the resumed-baseline split where IA27 reaches foundation-readiness, IA28 performs first rendered foundation acceptance through the realized application-shell/Queue/Create screens, IA29-IA31 independently revalidate/remediate current bytes only after that acceptance without replaying historical purge, and IA32-IA34 retain purge-before-fresh-authorship; exactly one application-shell, WorkItem-shell and structural-responsive owner; exact IA27-IA34 screen/selector ownership including shared stylesheet access; and the exact 37-row rendered-face allocation without creating a second semantic UI registry. It derives the surface universe from `docs/references/workbench-ui/README.md`, proves the PLAN ledger union is exactly equal with no duplicate/unowned row, and proves each IA27-IA34 phase owns its declared replacement surface/face set inside T1. It also retains exact IA01-IA34 catalog/one-definition checks and recognizes IA23/IA26/IA24 as cross-solution/rendered-acceptance/final actions.
+The permanent package sensor is pre-signoff campaign material, not signed implementation surface. Before G5/G5A/R3 may return to PASS it must validate the current **76-path** DESIGN forecast against the exact one-task PLAN `changeSurface`; exactly one task candidate with empty `dependsOn`; the seven required-new semantic primitives plus `DocumentChangeView`; the P4/F6B disposition set; one application-shell, WorkItem-shell, Context and structural-responsive owner; exact IA27-IA34 owner/SURF allocation; and zero duplicate/shadow IA definitions outside `12-action-catalog.md`. It derives the 37-surface universe from `docs/references/workbench-ui/README.md` without creating another semantic registry.
 
 This sensor correction is campaign/package fitness only: `tests/architecture.test.ts` remains outside signed implementation tasks. Re-run architecture and root/modular compilation checks on the corrected package before G5 may return to PASS.
 
@@ -106,7 +91,7 @@ The six logical gates remain the canonical signed task gate union. IA26 is an ad
 
 ## Bounded pre-sign-off IA27/IA28 evidence lane
 
-The pre-sign-off IA27/IA28 tranche is not final T1 validation and must remain executable while known later-phase UI obligations are still open. During an active exact-package bounded authorization:
+The pre-sign-off IA27/IA28 lane is conditional evidence machinery only; **no grant is active**. If campaign §17A/§18 later authorizes the exact corrected package, the lane must remain capable of producing IA27/IA28 evidence while later-phase UI obligations are open:
 
 1. PR verification first runs dependency-lock, typecheck, architecture, the complete non-browser test gate and build on the exact merge candidate;
 2. before the ordinary full browser step, a dedicated Playwright scenario/capture lane runs only the IA27/IA28 proof set: `SURF-WI-001`, `SURF-WI-CONTEXT-001`, `SURF-APP-001`, `SURF-QUEUE-001` and `SURF-CREATE-001`, plus the exact semantic/browser states declared by IA27/IA28;
@@ -118,7 +103,7 @@ The bounded lane is not a waiver, test skip or alternate browser gate. It exists
 
 ## First rendered foundation acceptance — IA28
 
-IA27's ledger/owner classification, semantic checks, browser proof and `SURF-WI-001` render establish **foundation readiness**, not product acceptance. Foundation correctness must be demonstrated through a real consumer screen family.
+SD21/F6B's closed ledger plus IA27 implementation/disposition evidence, semantic checks, browser proof and `SURF-WI-001` render establish **foundation readiness**, not product acceptance. Foundation correctness must be demonstrated through a real consumer screen family.
 
 IA28 is therefore the first acceptance test for the Workbench foundation. Before IA29 may begin, the exact IA28 candidate must produce actual browser-rendered evidence for `SURF-APP-001`, `SURF-QUEUE-001` and `SURF-CREATE-001`, covering the Queue/application shell, Queue states, application notices/readiness, Create WorkItem, linked remediation and active-account utility states required by the IA28 face ledger. This evidence is produced by the bounded phase-local lane above and is valid for R3 review even when the ordinary browser suite remains red solely on explicitly later-phase obligations; such red results remain recorded blockers and cannot be reclassified as pass. The review uses current P3/P4/DESIGN/theme authority as normative truth and the paired `docs/references/workbench-ui/*.svg` files as derived visual comparison material.
 
@@ -178,11 +163,11 @@ V4/V5/V6 explicitly verify:
 - all 112 stable rows retain their exact current R1 evidence and DESIGN disposition;
 - all 27 package-local atoms, including `PL-C12-02`, are satisfied by their one implementation or DESIGN-positive-reuse proof owner;
 - every `POSITIVE_NO_CHANGE` and DESIGN-positive-reuse obligation remains true;
-- T1 retains the exact 68-path `changeSurface`, including newly mutable `MarkdownEditor.tsx`; it remains the cumulative immutable forecast;
+- T1 retains the exact 76-path `changeSurface`, including the eight C19-F09 component/specialist paths; it remains the cumulative immutable forecast for the corrected package;
 - every actual changed path is inside signed `scope`, outside exclusions/protected material, and either forecast or positively proven as minimum same-layer responsibility-preserving variance;
 - forecast variance changes no semantic owner, public contract, state meaning, effect boundary, dependency direction/external dependency, validation contract or authorized behavior;
 - current-v2 task non-vacuity is enforced without changing published v1 task semantics or creating a second task schema/parser/review owner;
-- bootstrap `dependency-lock` passed before T1 mutation; IA27 completed its exact authority-classification ledger, verified every `CONFORMING_NO_EDIT` owner without churn, proved all `REQUIRED_ABSENT` owners remain absent, applied only any freshly proven bounded/destructive correction authorized by the exact ledger, and closed one-primary-composition/foundation-readiness proof; IA28 completed the first rendered foundation acceptance through real application-shell/Queue/Create realization with all three row dimensions plus foundation-realization PASS; IA29-IA31 then completed screen revalidation with exact residual-delta/no-edit evidence; IA32-IA34 retained purge-before-fresh-authorship and realized the same pre-existing DESIGN contract with required semantic/rendered evidence; and IA20-IA23/IA26 completed integrated/final acceptance before IA24;
+- bootstrap `dependency-lock` passed before T1 mutation; IA27 realized every catalogued REQUIRED_NEW/DECOMPOSE_REFACTOR/DESTRUCTIVE_REPLACEMENT/REQUIRED_ABSENT outcome and freshly proved any retained no-edit/bounded owner; IA28 freshly accepted the foundation in real consumers; IA29-IA34 completed their exact renderer dispositions and SURF proofs; IA20-IA23/IA26 proved global component ownership/SoC plus integrated/final acceptance before IA24;
 - FCIS/SoC/DRY/canonical ownership/strict typing/no-OOP/no-DTO;
 - no compatibility/fallback/shadow state/owner, deprecated prop/alias, translation adapter, hidden legacy DOM, dual old/new path, feature-flagged superseded topology or CSS shim;
 - corrected productive installer semantics without loss of incomplete-config recovery or upgrade continuity;
