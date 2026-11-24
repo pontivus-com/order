@@ -38,7 +38,7 @@ A positive no-change or baseline-reuse disposition is an implementation instruct
 
 This PLAN carries no implementation authority by itself. Current campaign gate state, bounded authorization and sign-off are owned only by campaign §17A/§18. These bytes remain a candidate until those registers establish the required gates and explicit authorization; any bounded pre-sign-off grant must bind the exact current P4/DESIGN/PLAN package.
 
-For the Workbench tranche, IA27 consumes the already-closed SD21/F6B component ledger. IA27 does not derive component responsibilities, API shapes, surface information grouping or physical decomposition. IA28 is the first real-consumer foundation acceptance; IA29-IA34 then consume that accepted foundation subject to their one catalogued disposition per owner. IA26 is terminal exact-candidate acceptance and never design authority.
+For the Workbench tranche, SD21/F6B already closes every component responsibility/API and consumer mapping. Physical breaking cutover is consumer-atomic: bounded IA27 realizes only the compile-closed shell/Context + Section/Facts slice; IA28 accepts that bounded slice in Queue/Create; after explicit sign-off IA27 completes the all-caller ResourceRow/ResourceList cutover; IA29/IA31/IA33 atomically cut over Document/Review/Result with their complete consumer sets. IA30 excludes Proposal Review so WorkbenchReview changes only once, in IA31 with Proposal/Readiness/Approval together. No phase derives component architecture and IA26 remains terminal exact-candidate acceptance.
 
 ## Candidate scope and forecast law
 ## Signed scope and forecast law
@@ -62,9 +62,9 @@ Published `change-v1`/`defect-v1` schema semantics remain immutable. SD10 may ad
 
 The authority-driven target is current P4 plus SD21-SD30/F6B. Current UI bytes and historical IA27-IA34 results are evidence only; no prior `CONFORMING_NO_EDIT`, RZ16 acceptance or screen reconstruction status is inherited.
 
-The complete Workbench mutation/disposition procedure is defined once in `12-action-catalog.md` IA27-IA34. In summary only: IA27 realizes the required-new semantic component layer and corrects foundation APIs; IA28 freshly accepts that foundation in Queue/Create; IA29-IA34 revalidate every owned renderer and execute its catalogued `DECOMPOSE_REFACTOR`, `DESTRUCTIVE_REPLACEMENT`, `BOUNDED_RESIDUAL`, freshly proven `CONFORMING_NO_EDIT`, `REQUIRED_NEW` or `REQUIRED_ABSENT` disposition. Phase files cannot redefine these decisions.
+The complete Workbench mutation/disposition procedure is defined once in `12-action-catalog.md` IA27-IA34. In summary only: bounded IA27 realizes the compile-closed shell/Context slice; IA28 accepts only that slice; post-signoff IA27 performs the all-caller ResourceRow/ResourceList cutover; IA29/IA31/IA33 own Document/Review/Result breaking cutovers; the remaining phases revalidate their owned renderers and execute their catalogued dispositions. Phase files cannot redefine these decisions or introduce compatibility paths.
 
-`ui/src/styles.css` / `ui/src/theme.css` remain shared physical owners. IA27 owns semantic-component/foundation/theme selectors; later phases may remove or replace only their exact feature selectors as required by the catalog and may not recreate a shared section/facts/resource/review/document/result grammar locally.
+`ui/src/styles.css` / `ui/src/theme.css` remain shared physical owners. Bounded IA27 owns shell/Context/Section/Facts foundation selectors; later component cutover checkpoints may add their canonical ResourceList/Document/Review/Result treatments and remove only the corresponding migrated feature selectors. No phase may recreate shared semantic grammar locally.
 
 No IA27-IA34 phase may resurrect a required-absent generic owner, widen a corrected component API for compatibility, introduce DTO/view-model/browser-state families, duplicate shell/responsive/Context ownership, or treat current JSX/SVG shape as product authority.
 
@@ -73,7 +73,7 @@ No IA27-IA34 phase may resurrect a required-absent generic owner, widen a correc
 
 SD21's realization ledger is **DESIGN authority for this package**, not implementation-derived evidence and not a runtime schema. IA27 consumes it and may realize a recurring visual/composition role only through the P4 owner, canonical theme/token role and the exact SD21/F6B consumer mapping.
 
-After IA27 foundation-readiness PASS, IA28 consumes the foundation candidate in the first real screen family. The foundation becomes accepted/frozen only after the IA28 rendered foundation-acceptance checkpoint passes; IA29-IA34 then consume that accepted foundation. Screen phases may not add or locally vary recurring color/token meaning, typography/spacing/density scales, control/button/action treatments, status/notice chrome, progressive-disclosure lanes, overlay mechanics, shell/region hierarchy, foundation geometry or breakpoint/responsive grammar. A screen that appears to require a new recurring role returns to IA27/DESIGN; it is not solved with feature CSS, a new wrapper or an SVG-shaped local composition.
+After bounded IA27 readiness PASS, IA28 consumes the shell/Context candidate in the first real screen family. IA28 accepts/finalizes only the bounded foundation slice it exercises. Shared breaking semantic APIs are frozen separately when their complete consumer sets cut over at post-signoff IA27 (ResourceList/Row), IA29 (Document), IA31 (Review) and IA33 (Result). Screen phases may not add or locally vary recurring color/token meaning, typography/spacing/density scales, control/button/action treatments, status/notice chrome, progressive-disclosure lanes, overlay mechanics, shell/region hierarchy, foundation geometry or breakpoint/responsive grammar. A screen that appears to require a new recurring role returns to DESIGN/PLAN rather than solving it locally.
 
 ## Information visibility / disclosure execution law
 
