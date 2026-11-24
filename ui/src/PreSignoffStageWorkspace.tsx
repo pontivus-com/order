@@ -95,7 +95,15 @@ export const PreSignoffStageWorkspace = ({
       onSelect:()=>onOpenSupportingMaterial({kind:"SUPPORTING_DOCUMENT",artifactId:artifact.id}),
     })),
   ];
-  const supportingResources=items.filter((item)=>item.selected!==true);
+  const supportingResources=items.filter((item)=>
+    item.selected!==true &&
+    !(
+      stage==="R1" &&
+      material.kind==="STAGE_RUN" &&
+      stageArtifact!==null &&
+      item.id==="document-"+stageArtifact.id
+    )
+  );
   const supportingMaterial=supportingResources.length===0 ? undefined : (
     <section className="order-productive-supporting" aria-label="Supporting workflow material">
       <div className="order-resource-list">
@@ -130,15 +138,18 @@ export const PreSignoffStageWorkspace = ({
 
   const primary=(()=>{
     switch(material.kind){
-      case "STAGE_RUN": return <StageRunMaterial stage={stage} runs={runs} runEvents={runEvents}
-        companion={dialogueSupport} selectedRunId={material.runId}
-        currentRunId={workItem.stage===stage ? currentRunId : null}
-        currentInteraction={workItem.stage===stage ? currentInteraction : null}
-        currentAttention={currentAttention} focusedRequiredInputEventId={focusedRequiredInputEventId}
-        mutationsDisabled={mutationsDisabled} onRequiredInputFocused={onRequiredInputFocused}
-        onSelectedRunChange={(runId)=>onSelectMaterial({kind:"STAGE_RUN",runId})}
-        onOpenEvidence={onOpenEvidence} onOpenProposalReview={onOpenProposalReview}
-        onMutationRefresh={onMutationRefresh} onMutationError={onMutationError} />;
+      case "STAGE_RUN": return <>
+        {documentAttention}
+        <StageRunMaterial stage={stage} runs={runs} runEvents={runEvents}
+          companion={dialogueSupport} selectedRunId={material.runId}
+          currentRunId={workItem.stage===stage ? currentRunId : null}
+          currentInteraction={workItem.stage===stage ? currentInteraction : null}
+          currentAttention={currentAttention} focusedRequiredInputEventId={focusedRequiredInputEventId}
+          mutationsDisabled={mutationsDisabled} onRequiredInputFocused={onRequiredInputFocused}
+          onSelectedRunChange={(runId)=>onSelectMaterial({kind:"STAGE_RUN",runId})}
+          onOpenEvidence={onOpenEvidence} onOpenProposalReview={onOpenProposalReview}
+          onMutationRefresh={onMutationRefresh} onMutationError={onMutationError} />
+      </>;
       case "STAGE_DOCUMENT": return <>
         {documentAttention}
         {materialState?.tag==="DRAFT" || materialState?.tag==="HISTORICAL" ||
