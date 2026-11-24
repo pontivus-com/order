@@ -86,9 +86,6 @@ jobs:
       - name: dependency-lock
         run: bun ci
 
-      - name: Install Playwright Chromium
-        run: node node_modules/@playwright/test/cli.js install --with-deps chromium
-
       - name: typecheck
         run: bun run tsc --noEmit
 
@@ -100,6 +97,9 @@ jobs:
 
       - name: build
         run: node node_modules/vite/bin/vite.js build
+
+      - name: Install Playwright Chromium
+        run: node node_modules/@playwright/test/cli.js install --with-deps chromium
 
       - name: Record current-state diagnostic candidate
         id: diagnostic_candidate
