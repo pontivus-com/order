@@ -740,6 +740,12 @@ describe("Order cross-boundary certification", () => {
 
     const proposal = read("ui/src/PreSignoffStageWorkspace.tsx");
     expect(proposal).toContain('if (material.kind === "PROPOSAL") return primary;');
+    expect(proposal).toContain("documentAttention?: ReactNode");
+    expect(proposal).toContain("historicalReturn?: ReactNode");
+    expect(proposal).toContain("stateNotice?: ReactNode");
+    expect(proposal).toContain("stateAction?: ReactNode");
+    expect(proposal).not.toContain("attention?: ReactNode");
+    expect(proposal).not.toContain("{attention}");
 
     const approval = read("ui/src/SignoffReview.tsx");
     expect(approval).toContain("WorkbenchReview");
