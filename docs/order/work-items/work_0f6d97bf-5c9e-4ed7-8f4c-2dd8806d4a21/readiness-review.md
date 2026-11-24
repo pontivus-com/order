@@ -4,102 +4,49 @@
 
 ## Readiness verdict
 
-`READY_FOR_SIGNOFF`.
+`RETURN_TO_DESIGN`.
 
-This is a fresh adversarial R3 review of the current G-F27-corrected authority package plus the accepted IA27/IA28 bounded foundation evidence. It does not treat the current IA29-IA34 implementation bytes as the desired 0.6.0 baseline. Those bytes remain defect/evidence inputs until their signed post-Approval phases execute.
+C19-F09/C20-F11 invalidate the former `READY_FOR_SIGNOFF` package. The permanent Workbench component architecture, the 0.6.0 solution design and the P7 task scope/action ownership have materially changed since the prior R3 review. Under S12/GW-FR-098, R3 cannot accept stale DESIGN/PLAN/ALIGN evidence or the former RZ16 rendered acceptance as substitutes for a current coherent P1-P7 package.
 
-## Exact reviewed authority package
+The exact defective owning stage for lifecycle return is **DESIGN** because campaign G4 is currently revalidation-owned. This R3 artifact does not repair or approve DESIGN; it records the required lifecycle return only.
 
-- R1 `research.md`: `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`
-- R2 `requirements.md`: `e1e53c493f405610f6f73d3e8b83084b91e7db9e`
-- canonical P3 Workbench: `d47173839201c68937bdb4c840d0273dec5bcffc`
-- canonical P4 Workbench: `cc71d48d8707362325ed8cd437ea5dce372cde7d`
-- canonical Workbench theme: `43b81a61291841d827a47f392e0149ace5c8351f`
-- DESIGN `solution-design.md`: `469539382fe3d86f98eff8b760437a642f367afd`
-- PLAN `implementation-plan.md`: `8301b41a9d8bb19fae7f4c3993adbbf69cef7566`
-- reference registry: `6aff4233f4f0c9c2a09c6aa2504b7e2cef1708fb`
+## Current evidence supporting the return
 
-Campaign gate state remains owned only by `0.6.0-design-campaign-plan.md §18`. This artifact owns the R3 verdict, not a second campaign-status projection.
+- R1 `research.md`: unchanged factual authority baseline; no new R1 defect was established by C19-F09/C20-F11.
+- R2 `requirements.md`: unchanged functional-design baseline; no new P3/product decision is required by the semantic-component correction.
+- canonical P3 Workbench: unchanged; it already requires primary-information economy, Review hierarchy, unified component presentation and closed interaction grammar.
+- canonical P4 Workbench: `9f05647f14fa43309d46457f30d66ca48b0b182f` — now owns the missing semantic composition layer, closed component APIs and physical-remediation disposition semantics.
+- DESIGN `solution-design.md`: `53f6fdd000930ff0854287d8193b08c1cc5a0836` — now owns F6B, the datum→component→composition mapping, Proposal `DocumentChangeView` design and the 76-path realization forecast.
+- PLAN `implementation-plan.md`: `590311033463482f7551da7c4f991f5822cf0bc3` — regenerated as a 76-path candidate with `implementation-plan/12-action-catalog.md` as the single IA definition owner.
+- campaign current state: owned only by `0.6.0-design-campaign-plan.md §7/§13A/§18`; this artifact does not project a second campaign status.
 
-## Fresh bounded realization evidence
+## Why the prior R3 verdict is invalid
 
-R3 reviewed the corrected IA27/IA28 realization rather than inheriting the workflow result:
+The former R3 review bound P4 `cc71d48d...`, DESIGN `46953938...`, PLAN `8301b41a...` and RZ16 evidence. That package assumed the macro interaction-class/primitive vocabulary was sufficient and allowed implementation to derive part of the middle composition layer. The post-signoff audit proved otherwise:
 
-- PR head producing the evidence: `ab6d5b459fccf72a084f9f737c5d2d2630ea2314`
-- exact PR merge candidate: `72f5ebc87b294a58ad2b3a3f42b44c03bb61f459`
-- PR Verification run: `45342226649`
-- bounded artifact: `14896503856`
-- bounded artifact digest: `sha256:ef55cf88d01202ae11f5c2fbea1f05d5dfe6843804290563ab1e2112326d5f91`
-- diagnostic artifact: `14896503813`
-- diagnostic artifact digest: `sha256:3984b8dd9ad7ab03d707dbbe7a60e4e2c768f8ab4944399e37c411ff577b5d34`
+- `WorkbenchReview` exposed an arbitrary body hierarchy while claiming complete Review ownership;
+- recurring section/facts/resource/review/document/result responsibilities were delegated to feature JSX/CSS rather than one canonical component owner;
+- Proposal Review made raw unified diff the dominant human review surface;
+- several route-sized renderers accumulated independently testable presentation responsibilities;
+- PLAN preserved affected abstractions through stale `CONFORMING_NO_EDIT` dispositions and an exact 68-path forecast that excluded the required same-layer component decomposition;
+- IA mutation procedure was repeated across PLAN governance/action/verification prose instead of being singularly owned.
 
-The bounded artifact contains 23 exact-candidate captures over all five required owners. Independent review returns PASS for `schema_information`, `ux_interaction`, `visual_ui` and foundation realization for:
+Those are material technical-design/PLAN-topology changes. The former RZ16 captures and R3 findings remain historical evidence only and confer no current acceptance or implementation authority.
 
-- `SURF-WI-001`
-- `SURF-WI-CONTEXT-001`
-- `SURF-APP-001`
-- `SURF-QUEUE-001`
-- `SURF-CREATE-001`
+## Required path back to R3
 
-The prior G-F28 failure is closed by the IA27 correction: narrow Queue, selected-WorkItem and Settings application-toolbar captures retain both product identity and the required current-destination meaning. The required-absent generic foundation owners remain absent, primitive/API ownership remains singular, and no IA29+ production owner was mutated by the bounded correction.
+R3 may return `READY_FOR_SIGNOFF` only after the normal canonical sequence is completed against the corrected package:
 
-## Adversarial R3 challenge
+1. fresh DESIGN pair audits/H3 establish current G4 closure for the corrected P4 + SD21-SD30/F6B package;
+2. the regenerated root PLAN and its modular source manifest receive fresh PLAN audits and G5 closure;
+3. ALIGN-A01-A11/H1 is rerun against those exact bytes and G5A closes;
+4. any required pre-signoff implementation/rendered evidence is produced only through an explicitly authorized exact-package campaign grant;
+5. R3 independently reopens the complete current P1-P7 topology and evidence rather than inheriting the former verdict.
 
-### Authority and freshness
-
-PASS.
-
-All C01-C22 concerns are closed in the canonical concern register. R1/R2/DESIGN/PLAN pair audits are PASS. Fresh G-F27 ALIGN-A01 through ALIGN-A11 and ALIGN-H1 START/END records bind the exact PLAN `8301b41a9d8bb19fae7f4c3993adbbf69cef7566` and return PASS. The latest IA27 presentation correction changes implementation/evidence only; it does not alter R1/R2/P3/P4/DESIGN/PLAN meaning and therefore does not stale those authority conclusions.
-
-### Traceability and canonical ownership
-
-PASS.
-
-The package retains the complete requirement -> DESIGN -> IA/no-code -> proof chain, one cumulative T1 execution representation, exact signed scope/changeSurface, FCIS/SoC/canonical-ownership constraints, strict typing, and the no-DTO/no-parallel-state posture. No lower-layer current implementation behavior is promoted into desired-state authority.
-
-### Foundation and component compliance
-
-PASS for the pre-sign-off acceptance boundary.
-
-The accepted IA27 foundation has one AppShell, one WorkItem shell, one Context owner and one structural responsive owner. `WorkbenchLayout`, `WorkbenchSelector`, `WorkflowStepFrame` and `WorkflowMaterialSelector` remain required-absent. The current Workbench primitive APIs match their closed P4 responsibilities. The corrected application-header/theme realization preserves Primary destination meaning across wide/medium/narrow rather than hiding it at the narrow breakpoint.
-
-### Remaining implementation defects
-
-CLOSED AS PLAN OBLIGATIONS, NOT ACCEPTED CURRENT IMPLEMENTATION.
-
-The complete current-state diagnostic still proves substantial downstream defects. R3 confirms that the package does not rely on those bytes as preservation targets:
-
-- IA29 owns Work request/document/editor revalidation and correction across 8 SURF rows.
-- IA30 owns Research/Requirements/Solution-design/Plan Dialogue/Proposal reconstruction across 6 SURF rows.
-- IA31 owns Readiness/Approval direct-Review correction across 3 SURF rows.
-- IA32 owns destructive Implementation reconstruction across 2 SURF rows.
-- IA33 owns destructive Complete/Evidence reconstruction across 2 SURF rows.
-- IA34 owns destructive Settings/repository/account/model reconstruction across 11 SURF rows.
-
-IA29-IA31 are authority-first resumed-baseline revalidation/remediation. IA32-IA34 retain purge-before-fresh-authorship. A later screen that discovers a recurring foundation defect returns to IA27/DESIGN rather than locally extending the visual language.
-
-This is exactly why the current downstream visual defects do not make PLAN ambiguous: they are the work the signed task is required to replace, with exact owners, information contracts, forbidden alternatives and phase-local acceptance.
-
-### Failure/recovery and negative coverage
-
-PASS.
-
-The package explicitly covers current-attention precedence, stale authority, required input, proposal adoption/rejection, source diagnostics, retry/resume, dirty navigation/material confirmation, documentation Git consent, destructive repository/account confirmation, responsive recomposition, Context/Evidence inspection, theme parity and post-phase return conditions. Known downstream browser/rendered failures remain visible evidence for their owning IA29-IA34 phases and cannot be suppressed by bounded foundation acceptance.
-
-### Minimum-change and implementation discretion
-
-PASS.
-
-Conforming foundation owners are retained; bounded residuals receive only local correction; structural/API/topology divergence requires destructive replacement or required absence. The implementer is not asked to choose product behavior, interaction class, data visibility, architecture, semantic owner or verification contract.
-
-## R3 findings
-
-No new R1/R2/DESIGN/PLAN defect is found.
-
-G-F28 is resolved at IA27 implementation/evidence. The earlier R3 return and stale RZ12 package/grant projections in the superseded readiness artifact are historical provenance only and are intentionally not reproduced here.
+Until that sequence completes, no former operator sign-off, T1 authorization, bounded grant or IA27-IA34 acceptance is current.
 
 ## Final disposition
 
-`READY_FOR_SIGNOFF`.
+`RETURN_TO_DESIGN`.
 
-The exact authority package is coherent, current, traceable and executable with no material P1-P6 decision delegated to implementation. The bounded foundation evidence is accepted. Human sign-off remains the next lifecycle authority boundary before IA29+ ordinary execution.
+The package has an explicit corrected design/PLAN candidate, but the governing DESIGN/PLAN/ALIGN gates have not yet been freshly revalidated. The next lifecycle work is therefore the campaign-owned DESIGN revalidation, not implementation.
