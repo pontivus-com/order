@@ -51,6 +51,7 @@ export const WorkItemQueue = ({
   search,
   sourceDiagnostics,
   refreshPending,
+  loading,
   onShowArchivedChange,
   onSearchChange,
   onRefresh,
@@ -65,6 +66,7 @@ export const WorkItemQueue = ({
   search: string;
   sourceDiagnostics: readonly WorkItemSourceDiagnostic[];
   refreshPending: boolean;
+  loading: boolean;
   onShowArchivedChange: (value: boolean) => void;
   onSearchChange: (value: string) => void;
   onRefresh: () => void;
@@ -226,7 +228,9 @@ export const WorkItemQueue = ({
                 }
               />
             ) : null}
-            {rows.length === 0 ? (
+            {loading ? (
+              <WorkbenchEmptyState compact title="Loading work items…" />
+            ) : rows.length === 0 ? (
               <WorkbenchEmptyState
                 compact
                 title={emptyTitle}
