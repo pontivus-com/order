@@ -72,10 +72,9 @@
 
 /* 3. Closed Workbench primitive presentation. */
 .order-workbench-toolbar {
-  min-height: 3rem;
   padding: var(--spacing-2) var(--spacing-4);
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: var(--spacing-4);
   border-bottom: 1px solid var(--color-border-emphasized);
@@ -1225,15 +1224,12 @@
     max-width: 100%;
   }
   .order-workbench-toolbar {
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: auto minmax(0, 1fr);
     gap: var(--spacing-2);
     padding-inline: var(--spacing-2);
   }
   .order-workbench-toolbar-primary {
     overflow: hidden;
-  }
-  .order-workbench-toolbar-secondary {
-    max-width: min(70vw, 30rem);
   }
   .order-workbench-toolbar-search {
     width: auto;
