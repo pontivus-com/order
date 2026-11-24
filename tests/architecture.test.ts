@@ -2849,11 +2849,12 @@ describe("architecture fitness", () => {
           "corrected authority-driven Order 0.6.0 candidate",
           "fresh G4-G6/sign-off",
           "P4/SD21/F6B as closed component authority",
-          "IA27 realizes the required semantic component foundation",
-          "IA28 freshly accepts it in Queue/Create",
+          "bounded IA27 realizes the compile-closed shell/Context foundation",
+          "IA28 accepts it in Queue/Create",
+          "post-signoff IA27 completes the ResourceRow/ResourceList cutover",
           "IA29 reconstructs Document composition",
-          "Proposal Review with DocumentChangeView",
-          "IA31 destructively rebuilds Readiness/Approval",
+          "IA30 reconstructs productive stages excluding Proposal Review",
+          "IA31 atomically cuts over Proposal/Readiness/Approval Review with DocumentChangeView",
           "IA32 rebuilds Implementation",
           "IA33 rebuilds Complete around WorkbenchResult",
           "IA34 rebuilds Settings",
@@ -2943,6 +2944,33 @@ describe("architecture fitness", () => {
         }
         exactSet("PLAN rendered face allocation", faceSurfaceUnion, referenceSurfaceIds);
 
+        const ia30Faces = faceLedgerRows.find((row) => row.phaseId === "IA30")?.surfaceIds ?? [];
+        const ia31Faces = faceLedgerRows.find((row) => row.phaseId === "IA31")?.surfaceIds ?? [];
+        if (ia30Faces.includes("SURF-MAT-PROPOSAL-001")) {
+          violations.push("Proposal Review must not cut over in IA30 before the complete WorkbenchReview consumer set");
+        }
+        if (!ia31Faces.includes("SURF-MAT-PROPOSAL-001")) {
+          violations.push("Proposal Review must be owned by IA31 atomic WorkbenchReview cutover");
+        }
+        const ia30Section =
+          actionCatalog.match(/## IA30 —[\s\S]*?(?=\n## IA31 —)/)?.[0] ?? "";
+        const ia31Section =
+          actionCatalog.match(/## IA31 —[\s\S]*?(?=\n## IA32 —)/)?.[0] ?? "";
+        if (/ProposalReview\.tsx|DocumentChangeView\.tsx/.test(ia30Section)) {
+          violations.push("IA30 must exclude ProposalReview/DocumentChangeView breaking cutover");
+        }
+        for (const required of [
+          "ProposalReview.tsx",
+          "ReadinessWorkspace.tsx",
+          "SignoffReview.tsx",
+          "WorkbenchReview.tsx",
+          "DocumentChangeView.tsx",
+        ]) {
+          if (!ia31Section.includes(required)) {
+            violations.push("IA31 atomic Review cutover missing " + required);
+          }
+        }
+
         for (const required of [
           "### Exact IA27-IA34 rendered face ownership",
           "No prior phase PASS is inherited",
@@ -2975,23 +3003,23 @@ describe("architecture fitness", () => {
           }
         }
 
-        const requiredDispositionRows = [
-          "| new `WorkbenchSection.tsx` | `REQUIRED_NEW` |",
-          "| new `WorkbenchFacts.tsx` | `REQUIRED_NEW` |",
-          "| new `WorkbenchResourceList.tsx` | `REQUIRED_NEW` |",
-          "| new `WorkbenchReviewVerdict.tsx` | `REQUIRED_NEW` |",
-          "| new `WorkbenchReviewSection.tsx` | `REQUIRED_NEW` |",
-          "| new `WorkbenchDocument.tsx` | `REQUIRED_NEW` |",
-          "| new `WorkbenchResult.tsx` | `REQUIRED_NEW` |",
-          "| `WorkbenchReview.tsx` | `DESTRUCTIVE_REPLACEMENT` |",
-          "| `WorkbenchResourceRow.tsx` | `DECOMPOSE_REFACTOR` |",
-          "| `WorkbenchContextPanel.tsx` | `DESTRUCTIVE_REPLACEMENT` |",
-          "| `WorkItemContext.tsx` | `DECOMPOSE_REFACTOR` |",
-          "| `theme.css` semantic-component selectors | `DECOMPOSE_REFACTOR` |",
+        const requiredCutoverContracts = [
+          "| new `WorkbenchSection.tsx` | `REQUIRED_NEW` | bounded IA27 |",
+          "| new `WorkbenchFacts.tsx` | `REQUIRED_NEW` | bounded IA27 |",
+          "| new `WorkbenchResourceList.tsx` | `REQUIRED_NEW` | **post-signoff IA27 completion** |",
+          "| `WorkbenchResourceRow.tsx` | `DECOMPOSE_REFACTOR` | **post-signoff IA27 completion** |",
+          "| `WorkbenchContextPanel.tsx` | `DESTRUCTIVE_REPLACEMENT` | bounded IA27 |",
+          "| `WorkItemContext.tsx` | `DECOMPOSE_REFACTOR` | bounded IA27 |",
+          "create `WorkbenchDocument` and atomically migrate its complete",
+          "new `WorkbenchReviewVerdict.tsx`, `WorkbenchReviewSection.tsx` and `DocumentChangeView.tsx` = `REQUIRED_NEW`",
+          "existing `WorkbenchReview.tsx` = `DESTRUCTIVE_REPLACEMENT`",
+          "migrate **all three** current WorkbenchReview consumers",
+          "create `WorkbenchResult` and atomically migrate `TerminalResult`",
+          "Do not add compatibility props or temporary old/new paths",
         ];
-        for (const row of requiredDispositionRows) {
-          if (!actionCatalog.includes(row)) {
-            violations.push("PLAN IA27 disposition contract missing " + row);
+        for (const contract of requiredCutoverContracts) {
+          if (!actionCatalog.includes(contract)) {
+            violations.push("PLAN consumer-atomic cutover contract missing " + contract);
           }
         }
         if (
