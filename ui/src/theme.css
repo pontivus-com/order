@@ -63,7 +63,6 @@
   --order-toolbar-height: 3.25rem;
   --order-identity-height: 3rem;
   --order-context-width: 22rem;
-  --order-fact-label-width: 7rem;
   --order-context-max-width: 24rem;
   --order-master-width: 18rem;
   --order-prose-max-width: 52rem;
@@ -424,7 +423,7 @@
 .order-workbench-fact {
   min-width: 0;
   display: grid;
-  grid-template-columns: minmax(var(--order-fact-label-width), 0.4fr) minmax(0, 1fr);
+  grid-template-columns: max-content minmax(0, 1fr);
   align-items: baseline;
   gap: var(--spacing-3);
 }
