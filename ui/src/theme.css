@@ -125,6 +125,9 @@
 .order-workbench-toolbar .order-utility-link {
   color: var(--color-on-accent);
 }
+.order-workbench-toolbar [role="radio"][aria-checked="false"] {
+  color: var(--color-on-accent);
+}
 .order-utility-link {
   display: inline-flex;
   align-items: center;
