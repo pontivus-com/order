@@ -159,7 +159,7 @@ C19-F04/C19-F05/C20-F07 disprove the previous assumption that datum-level visibi
 - exact-candidate rendered acceptance supplements semantic/browser certification and must include materially active editor/modal/inspection states, not passive substitutes;
 - no LOCAL technical authority, DTO/model/service family, alternate workflow state, alternate task/proposal model or new runtime dependency is introduced;
 - open technical questions: NONE;
-- material technical UNPROVEN: 0 **as a design candidate** after SD21-SD30 and the corrected 37-surface contract below; G4 remains REVALIDATION until fresh DESIGN pair/H3 evidence passes.
+- material technical UNPROVEN: 0 **as a design candidate** after SD21-SD30 and the corrected 37-surface contract below; campaign G4 progression remains owned only by §18 and the fresh DESIGN pair/H3 evidence.
 
 Execution packaging remains one cumulative signed task because `GW-DOC-CANONICAL-CONTRACTS-V2` does not promote dependency candidate bytes between ExecutionTasks. IA01-IA34 are ordered implementation/proof phases inside that task.
 
