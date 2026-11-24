@@ -1,20 +1,32 @@
-import { useEffect } from "react";
+import { useEffect, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { MetadataList, MetadataListItem } from "@astryxdesign/core/MetadataList";
 
-import type { ArtifactRef, ExecutionTask, Run, RunEvent, ValidationStage, WorkItem } from "../../src/core/contracts.ts";
-import type { ExecutionOwner, ValidationBoundary } from "../../src/core/lifecycle.ts";
+import type {
+  ArtifactRef,
+  ExecutionTask,
+  Run,
+  RunEvent,
+  ValidationStage,
+  WorkItem,
+} from "../../src/core/contracts.ts";
+import type {
+  ExecutionOwner,
+  ValidationBoundary,
+} from "../../src/core/lifecycle.ts";
 import * as api from "./http.ts";
 import { EvidenceViewer } from "./EvidenceViewer.tsx";
 import { RunEventTimeline } from "./RunEventTimeline.tsx";
-import { invalidateWorkbenchMutation, workbenchQueryKeys } from "./query-keys.ts";
+import {
+  invalidateWorkbenchMutation,
+  workbenchQueryKeys,
+} from "./query-keys.ts";
 import {
   agentActivityRunEvents,
+  lifecycleArtifactLabel,
   runEventPresentation,
   runIsActive,
   runRoleLabel,
   runStatusLabel,
-  lifecycleArtifactLabel,
   type EvidenceSelection,
   type WorkflowMaterial,
 } from "./workbench-presentation.ts";
@@ -22,7 +34,6 @@ import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchAttention } from "./primitives/WorkbenchAttention.tsx";
 import { WorkbenchDisclosure } from "./primitives/WorkbenchDisclosure.tsx";
 import { WorkbenchMasterDetail } from "./primitives/WorkbenchMasterDetail.tsx";
-import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
 import { WorkbenchResourceRow } from "./primitives/WorkbenchResourceRow.tsx";
 import { WorkbenchSectionHeader } from "./primitives/WorkbenchSectionHeader.tsx";
 import { WorkbenchState } from "./primitives/WorkbenchState.tsx";
@@ -31,7 +42,9 @@ import { WorkbenchSurface } from "./primitives/WorkbenchSurface.tsx";
 import { WorkbenchTable } from "./primitives/WorkbenchTable.tsx";
 import { WorkbenchTimeline } from "./primitives/WorkbenchTimeline.tsx";
 
-const validationStages: readonly ValidationStage[] = ["V0","V1","V2","V3","V4","V5","V6","V7"];
+const validationStages: readonly ValidationStage[] = [
+  "V0", "V1", "V2", "V3", "V4", "V5", "V6", "V7",
+];
 
 const validationBoundaryTone = (
   boundary: ValidationBoundary | null,
@@ -50,7 +63,7 @@ const validationBoundaryLabel = (
     ? scope + " boundary: updating"
     : boundary.tag === "FAILED_AT"
       ? scope + " boundary: failed at " + boundary.stage
-    : boundary.tag === "PASSED_THROUGH"
+      : boundary.tag === "PASSED_THROUGH"
         ? scope + " boundary: passed through " + boundary.stage
         : boundary.tag === "COMPLETE"
           ? scope + " boundary: complete"
@@ -65,15 +78,18 @@ const validationBoundaryStatus = (
     label={validationBoundaryLabel(boundary, scope)}
   />
 );
-const taskTone = (task: ExecutionTask): "danger" | "warning" | "success" | "neutral" =>
-  task.state === "BLOCKED" ? "danger" :
-  task.state === "CANDIDATE_DONE" || task.state === "ALREADY_SATISFIED" ? "success" :
-  task.state === "TODO" ? "warning" : "neutral";
-const runTone = (run: Run): "danger" | "warning" | "success" | "info" | "neutral" =>
-  run.status === "FAILED" || run.status === "BLOCKED" ? "danger" :
-  run.status === "WAITING_FOR_INPUT" ? "warning" :
-  run.status === "COMPLETED" ? "success" :
-  run.status === "RUNNING" ? "info" : "neutral";
+
+const taskTone = (
+  task: ExecutionTask,
+): "danger" | "warning" | "success" | "neutral" =>
+  task.state === "BLOCKED"
+    ? "danger"
+    : task.state === "CANDIDATE_DONE" || task.state === "ALREADY_SATISFIED"
+      ? "success"
+      : task.state === "TODO"
+        ? "warning"
+        : "neutral";
+
 const taskStateLabel = (task: ExecutionTask): string => {
   switch (task.state) {
     case "TODO": return "Ready to start";
@@ -83,38 +99,61 @@ const taskStateLabel = (task: ExecutionTask): string => {
     case "BLOCKED": return "Blocked";
   }
 };
-const latestValidationEvent = (events: readonly RunEvent[], stage: ValidationStage): RunEvent | null =>
-  events.findLast((event) => (event.event.tag === "VALIDATION_PASSED" || event.event.tag === "VALIDATION_FAILED") && event.event.stage === stage) ?? null;
+
+const runTone = (
+  run: Run,
+): "danger" | "warning" | "success" | "info" | "neutral" =>
+  run.status === "FAILED" || run.status === "BLOCKED"
+    ? "danger"
+    : run.status === "WAITING_FOR_INPUT"
+      ? "warning"
+      : run.status === "COMPLETED"
+        ? "success"
+        : run.status === "RUNNING"
+          ? "info"
+          : "neutral";
+
+const latestValidationEvent = (
+  events: readonly RunEvent[],
+  stage: ValidationStage,
+): RunEvent | null =>
+  events.findLast(
+    (event) =>
+      (event.event.tag === "VALIDATION_PASSED" ||
+        event.event.tag === "VALIDATION_FAILED") &&
+      event.event.stage === stage,
+  ) ?? null;
 
 const validationRows = (
   events: readonly RunEvent[],
   stages: readonly ValidationStage[],
-) => stages.map((stage) => {
-  const event = latestValidationEvent(events, stage);
-  const passed = event?.event.tag === "VALIDATION_PASSED";
-  const failed = event?.event.tag === "VALIDATION_FAILED";
-  return {
-    id: stage,
-    testId: "validation-stage-" + stage,
-    cells: {
-      stage: <code>{stage}</code>,
-      state: (
-        <WorkbenchStatus
-          tone={passed ? "success" : failed ? "danger" : "neutral"}
-          label={passed ? "Passed" : failed ? "Failed" : "Not recorded"}
-        />
-      ),
-      result:
-        failed && event.event.tag === "VALIDATION_FAILED"
-          ? event.event.summary
-          : passed
-            ? "Validation passed."
-            : "—",
-    },
-  };
-});
+) =>
+  stages.map((stage) => {
+    const event = latestValidationEvent(events, stage);
+    const passed = event?.event.tag === "VALIDATION_PASSED";
+    const failed = event?.event.tag === "VALIDATION_FAILED";
+    return {
+      id: stage,
+      testId: "validation-stage-" + stage,
+      cells: {
+        stage: <code>{stage}</code>,
+        state: (
+          <WorkbenchStatus
+            tone={passed ? "success" : failed ? "danger" : "neutral"}
+            label={passed ? "Passed" : failed ? "Failed" : "Not recorded"}
+          />
+        ),
+        result:
+          failed && event.event.tag === "VALIDATION_FAILED"
+            ? event.event.summary
+            : passed
+              ? "Validation passed."
+              : "—",
+      },
+    };
+  });
 
-const ValidationMatrix = ({
+const ValidationSummary = ({
   events,
   active,
   boundary,
@@ -129,62 +168,101 @@ const ValidationMatrix = ({
     (stage) => latestValidationEvent(events, stage) !== null,
   );
 
-  if (recordedStages.length === 0) {
-    return (
-      <section data-testid="validation-matrix">
-        <WorkbenchSectionHeader
-          title="Validation"
-          action={validationBoundaryStatus(boundary, boundaryScope)}
-        />
+  return (
+    <section className="order-implementation-validation" data-testid="validation-matrix">
+      <WorkbenchSectionHeader
+        title="Validation"
+        action={validationBoundaryStatus(boundary, boundaryScope)}
+      />
+      {recordedStages.length === 0 ? (
         <WorkbenchState
           kind={active ? "pending" : "empty"}
           title={active ? "Validation in progress" : "Validation not started"}
           description={
             active
-              ? "Recorded validation stages will appear while this implementation attempt advances."
-              : "No durable validation evidence has been recorded for this implementation attempt."
+              ? "Recorded validation stages will appear as this attempt advances."
+              : "No durable validation result has been recorded for this attempt."
           }
         />
-      </section>
-    );
-  }
-
-  return (
-    <section data-testid="validation-matrix">
-      <WorkbenchSectionHeader
-        title="Validation"
-        action={validationBoundaryStatus(boundary, boundaryScope)}
-      />
-      <WorkbenchTable
-        label="Recorded validation"
-        columns={[
-          { key: "stage", label: "Stage" },
-          { key: "state", label: "State" },
-          { key: "result", label: "Result" },
-        ]}
-        rows={validationRows(events, recordedStages)}
-      />
-      {recordedStages.length < validationStages.length ? (
-        <WorkbenchDisclosure
-          label="Complete validation matrix"
-          content={
-            <WorkbenchTable
+      ) : (
+        <>
+          <WorkbenchTable
+            label="Recorded validation"
+            columns={[
+              { key: "stage", label: "Stage" },
+              { key: "state", label: "State" },
+              { key: "result", label: "Result" },
+            ]}
+            rows={validationRows(events, recordedStages)}
+          />
+          {recordedStages.length < validationStages.length ? (
+            <WorkbenchDisclosure
               label="Complete validation matrix"
-              columns={[
-                { key: "stage", label: "Stage" },
-                { key: "state", label: "State" },
-                { key: "result", label: "Result" },
-              ]}
-              rows={validationRows(events, validationStages)}
+              content={
+                <WorkbenchTable
+                  label="Complete validation matrix"
+                  columns={[
+                    { key: "stage", label: "Stage" },
+                    { key: "state", label: "State" },
+                    { key: "result", label: "Result" },
+                  ]}
+                  rows={validationRows(events, validationStages)}
+                />
+              }
             />
-          }
-        />
-      ) : null}
+          ) : null}
+        </>
+      )}
     </section>
   );
 };
 
-export const ExecutionWorkspace = ({ workItem, material, tasks, runs, artifacts, statePending, stateError, executionOwner, validationBoundary, mutationsDisabled = false, onSelectMaterial, onOpenEvidence, onReturnFromEvidence, onMutationError }: Readonly<{
+const values = (items: readonly string[]): ReactNode =>
+  items.length === 0 ? (
+    <p>None</p>
+  ) : (
+    <ul>{items.map((item) => <li key={item}><code>{item}</code></li>)}</ul>
+  );
+
+const TaskContract = ({ task }: Readonly<{ task: ExecutionTask }>) => (
+  <section className="order-implementation-contract" aria-label="Approved task contract">
+    <section className="order-implementation-scope">
+      <h3>Authorized scope</h3>
+      {values(task.scope)}
+    </section>
+    <WorkbenchDisclosure
+      label="Signed task details"
+      content={
+        <div className="order-implementation-contract-supporting">
+          <section><h3>Exclusions</h3>{values(task.exclusions)}</section>
+          <section><h3>Acceptance</h3>{values(task.acceptanceRefs)}</section>
+          <section><h3>Authority</h3>{values(task.authorityRefs)}</section>
+          <section><h3>Concerns</h3>{values(task.concernIds)}</section>
+          <section><h3>Gates</h3>{values(task.gateIds)}</section>
+          <section><h3>Dependencies</h3>{values(task.dependsOn)}</section>
+          <section><h3>Change surface forecast</h3>{values(task.changeSurface)}</section>
+        </div>
+      }
+    />
+  </section>
+);
+
+export const ExecutionWorkspace = ({
+  workItem,
+  material,
+  tasks,
+  runs,
+  artifacts,
+  statePending,
+  stateError,
+  executionOwner,
+  validationBoundary,
+  mutationsDisabled = false,
+  onSelectMaterial,
+  onOpenEvidence,
+  onReturnFromEvidence,
+  onMutationError,
+}: Readonly<{
   workItem: WorkItem;
   material: WorkflowMaterial;
   tasks: readonly ExecutionTask[];
@@ -201,202 +279,415 @@ export const ExecutionWorkspace = ({ workItem, material, tasks, runs, artifacts,
   onMutationError?: (error: unknown) => void;
 }>) => {
   const queryClient = useQueryClient();
-  const currentOwnerTask = executionOwner.tag === "NONE"
-    ? null
-    : tasks.find((task) => task.id === executionOwner.taskId) ?? null;
-  const currentOwnerRun = currentOwnerTask === null
-    ? null
-    : runs.find((run) =>
-        run.executionTaskId === currentOwnerTask.id &&
-        runIsActive(run)) ?? null;
-  const materialTaskId = material.kind === "EXECUTION_TASK" ? material.taskId : null;
-  const selectedTask = tasks.find((task) => task.id === materialTaskId) ?? tasks.find((task) => task.state === "RUNNING" || task.state === "BLOCKED") ?? tasks[0] ?? null;
-  const taskRuns = selectedTask ? runs.filter((run) => run.executionTaskId === selectedTask.id) : [];
-  const materialRunId = material.kind === "EXECUTION_TASK" ? material.runId : null;
-  const selectedRun = taskRuns.find((run) => run.id === materialRunId) ?? taskRuns.find(runIsActive) ?? taskRuns.at(-1) ?? null;
+
+  const currentOwnerTask =
+    executionOwner.tag === "NONE"
+      ? null
+      : tasks.find((task) => task.id === executionOwner.taskId) ?? null;
+  const currentOwnerRun =
+    currentOwnerTask === null
+      ? null
+      : runs.find(
+          (run) =>
+            run.executionTaskId === currentOwnerTask.id &&
+            runIsActive(run),
+        ) ?? null;
+
+  const materialTask =
+    material.kind === "EXECUTION_TASK"
+      ? tasks.find((task) => task.id === material.taskId) ?? null
+      : null;
+  const selectedTask = materialTask ?? currentOwnerTask ?? tasks[0] ?? null;
+  const taskRuns =
+    selectedTask === null
+      ? []
+      : [...runs]
+          .filter((run) => run.executionTaskId === selectedTask.id)
+          .sort(
+            (left, right) =>
+              left.attempt - right.attempt ||
+              left.startedAt.localeCompare(right.startedAt) ||
+              left.id.localeCompare(right.id),
+          );
+  const materialRun =
+    material.kind === "EXECUTION_TASK"
+      ? taskRuns.find((run) => run.id === material.runId) ?? null
+      : null;
+  const selectedRun =
+    materialRun ??
+    taskRuns.find(runIsActive) ??
+    taskRuns.at(-1) ??
+    null;
 
   useEffect(() => {
-    if (!selectedTask || material.kind === "EVIDENCE") return;
-    const next: WorkflowMaterial = { kind:"EXECUTION_TASK", taskId:selectedTask.id, runId:selectedRun?.id ?? null };
-    if (material.kind !== "EXECUTION_TASK" || material.taskId !== next.taskId || material.runId !== next.runId) onSelectMaterial(next);
-  }, [material,onSelectMaterial,selectedRun,selectedTask]);
+    if (selectedTask === null || material.kind === "EVIDENCE") return;
+    const next: WorkflowMaterial = {
+      kind: "EXECUTION_TASK",
+      taskId: selectedTask.id,
+      runId: selectedRun?.id ?? null,
+    };
+    if (
+      material.kind !== "EXECUTION_TASK" ||
+      material.taskId !== next.taskId ||
+      material.runId !== next.runId
+    ) {
+      onSelectMaterial(next);
+    }
+  }, [material, onSelectMaterial, selectedRun, selectedTask]);
 
-  const eventKey=workbenchQueryKeys.runEvents(selectedRun?.id ?? null);
-  const eventsQuery=useQuery({
-    queryKey:eventKey,
-    queryFn:async()=>{if(!selectedRun)return[];const current=queryClient.getQueryData<readonly RunEvent[]>(eventKey)??[];const after=current.at(-1)?.sequence??0;const next=await api.listRunEvents(selectedRun.id,after);return after===0?next:[...current,...next];},
-    enabled:selectedRun!==null,
-    refetchInterval:selectedRun&&runIsActive(selectedRun)?1000:false,
-  });
-  const events=eventsQuery.data??[];
-  const activityEvents=agentActivityRunEvents(events);
-  const invalidate=():Promise<void>=>invalidateWorkbenchMutation(queryClient,workItem.id);
-  const reportError=async(error:unknown):Promise<void>=>{onMutationError?.(error);await invalidate();};
-  const start=useMutation({
-    mutationFn:()=>{
-      if(!currentOwnerTask)throw new TypeError("current execution owner has no task");
-      return api.startExecutionTask(workItem.id,currentOwnerTask.id);
+  const eventKey = workbenchQueryKeys.runEvents(selectedRun?.id ?? null);
+  const eventsQuery = useQuery({
+    queryKey: eventKey,
+    queryFn: async () => {
+      if (selectedRun === null) return [];
+      const current =
+        queryClient.getQueryData<readonly RunEvent[]>(eventKey) ?? [];
+      const after = current.at(-1)?.sequence ?? 0;
+      const next = await api.listRunEvents(selectedRun.id, after);
+      return after === 0 ? next : [...current, ...next];
     },
-    onSuccess:invalidate,
-    onError:reportError,
+    enabled: selectedRun !== null,
+    refetchInterval:
+      selectedRun !== null && runIsActive(selectedRun) ? 1000 : false,
   });
-  const cancel=useMutation({
-    mutationFn:()=>{
-      if(!currentOwnerRun)throw new TypeError("current implementation owner has no active attempt");
+  const events = eventsQuery.data ?? [];
+  const activityEvents = agentActivityRunEvents(events);
+
+  const invalidate = (): Promise<void> =>
+    invalidateWorkbenchMutation(queryClient, workItem.id);
+  const reportError = async (error: unknown): Promise<void> => {
+    onMutationError?.(error);
+    await invalidate();
+  };
+
+  const start = useMutation({
+    mutationFn: () => {
+      if (currentOwnerTask === null) {
+        throw new TypeError("current execution owner has no task");
+      }
+      return api.startExecutionTask(workItem.id, currentOwnerTask.id);
+    },
+    onSuccess: invalidate,
+    onError: reportError,
+  });
+  const cancel = useMutation({
+    mutationFn: () => {
+      if (currentOwnerRun === null) {
+        throw new TypeError("current implementation owner has no active attempt");
+      }
       return api.cancelRun(currentOwnerRun.id);
     },
-    onSuccess:invalidate,
-    onError:reportError,
+    onSuccess: invalidate,
+    onError: reportError,
   });
-  const resume=useMutation({
-    mutationFn:()=>api.resumeWorkItem(workItem.id),
-    onSuccess:invalidate,
-    onError:reportError,
+  const resume = useMutation({
+    mutationFn: () => api.resumeWorkItem(workItem.id),
+    onSuccess: invalidate,
+    onError: reportError,
   });
 
-  const canRunNext=
-    workItem.stage==="EXECUTION"&&
-    workItem.status==="ACTIVE"&&
-    executionOwner.tag==="CURRENT_TASK"&&
-    currentOwnerTask?.state==="TODO"&&
-    currentOwnerRun===null;
-  const canResume=
-    workItem.stage==="EXECUTION"&&
-    workItem.status==="BLOCKED"&&
-    executionOwner.tag==="BLOCKED_TASK";
-  const currentAction=currentOwnerRun?
-    <WorkbenchAction label="Cancel current implementation attempt" tone="destructive" loading={cancel.isPending} disabled={mutationsDisabled || cancel.isPending} onClick={()=>cancel.mutate()}/>:
-    canResume?<WorkbenchAction label="Resume resolved blocker" tone="primary" loading={resume.isPending} disabled={mutationsDisabled || resume.isPending} onClick={()=>resume.mutate()}/>:
-    canRunNext?<WorkbenchAction label="Start current task" tone="primary" loading={start.isPending} disabled={mutationsDisabled || start.isPending} onClick={()=>start.mutate()}/>:undefined;
-  const mutationError=start.error??cancel.error??resume.error;
-  const summaryBlocker=executionOwner.tag==="BLOCKED_TASK"?
-    {status:"error" as const,title:"Implementation task is blocked",description:"Resolve the recorded blocker before resuming this approved task."}:
-    mutationError?{status:"error" as const,title:"Implementation action failed",description:mutationError instanceof Error?mutationError.message:String(mutationError)}:null;
+  const canStart =
+    workItem.stage === "EXECUTION" &&
+    workItem.status === "ACTIVE" &&
+    executionOwner.tag === "CURRENT_TASK" &&
+    currentOwnerTask?.state === "TODO" &&
+    currentOwnerRun === null;
+  const canResume =
+    workItem.stage === "EXECUTION" &&
+    workItem.status === "BLOCKED" &&
+    executionOwner.tag === "BLOCKED_TASK";
 
-  const attempts=selectedTask&&taskRuns.length>0?(
-    <section className="order-execution-attempts" aria-label="Implementation attempts">
-      <WorkbenchSectionHeader title="Attempts"/>
-      <div className="order-resource-list">
-        {taskRuns.map((run)=>(
-          <WorkbenchResourceRow
-            key={run.id}
-            label={runRoleLabel(run.role)+" · Attempt "+run.attempt}
-            detail={new Date(run.startedAt).toLocaleString()+" · "+runStatusLabel(run.status)}
-            actionLabel={"Open "+runRoleLabel(run.role)+" · Attempt "+run.attempt}
-            leading={<WorkbenchStatus tone={runTone(run)} label={runStatusLabel(run.status)}/>}
-            onOpen={()=>onSelectMaterial({kind:"EXECUTION_TASK",taskId:selectedTask.id,runId:run.id})}
-          />
-        ))}
-      </div>
-    </section>
-  ):null;
-
-  const attention=summaryBlocker!==null?(
-    <WorkbenchAttention
-      title={summaryBlocker.title}
-      description={summaryBlocker.description}
-      action={currentAction}
-    />
-  ):currentAction===undefined?undefined:(
-    <WorkbenchAttention
-      title="Implementation is ready for your action"
-      action={currentAction}
-    />
-  );
-
-  const master=tasks.length>0?<WorkbenchTable
-    label="Approved tasks"
-    selection="single"
-    columns={[{key:"task",label:"Approved task"}]}
-    rows={tasks.map((task)=>({
-      id:task.id,
-      selected:task.id===selectedTask?.id,
-      onSelect:()=>onSelectMaterial({
-        kind:"EXECUTION_TASK",
-        taskId:task.id,
-        runId:runs.findLast((run)=>run.executionTaskId===task.id)?.id??null,
-      }),
-      cells:{
-        task:<div className="order-execution-master-task"><strong>{task.objective}</strong><WorkbenchStatus tone={taskTone(task)} label={taskStateLabel(task)}/></div>,
-      },
-    }))}
-  />:<WorkbenchState kind="empty" title="No approved tasks"/>;
-  const detail=stateError?<WorkbenchState kind="error" title="Implementation state unavailable" description={stateError instanceof Error?stateError.message:String(stateError)}/>:
-    statePending?<WorkbenchState kind="loading" title="Loading implementation state…"/>:
-    selectedTask?<section className="order-execution-task-material" data-testid="execution-task-detail">
-      <WorkbenchSectionHeader title={selectedTask.objective} description="Approved task" action={<WorkbenchStatus tone={taskTone(selectedTask)} label={taskStateLabel(selectedTask)}/>} />
-      {attempts}
-      {selectedRun ? (
-        <div data-testid="selected-run-header">
-          <WorkbenchSectionHeader
-            title={runRoleLabel(selectedRun.role)+" · Attempt "+selectedRun.attempt}
-            action={<WorkbenchStatus tone={runTone(selectedRun)} label={runStatusLabel(selectedRun.status)}/>}
-          />
-        </div>
-      ) : <WorkbenchState kind="empty" title="No attempts yet"/>}
-      <section className="order-execution-task-contract" aria-label="Approved task contract">
-        <WorkbenchSectionHeader title="Approved task contract" />
-        <MetadataList columns="single">
-          <MetadataListItem label="Scope">{selectedTask.scope.join(", ") || "None"}</MetadataListItem>
-          <MetadataListItem label="Exclusions">{selectedTask.exclusions.join(", ") || "None"}</MetadataListItem>
-          <MetadataListItem label="Acceptance">{selectedTask.acceptanceRefs.join(", ") || "None"}</MetadataListItem>
-          <MetadataListItem label="Authority">{selectedTask.authorityRefs.join(", ") || "None"}</MetadataListItem>
-          <MetadataListItem label="Concerns">{selectedTask.concernIds.join(", ") || "None"}</MetadataListItem>
-          <MetadataListItem label="Gates">{selectedTask.gateIds.join(", ") || "None"}</MetadataListItem>
-          <MetadataListItem label="Dependencies">{selectedTask.dependsOn.join(", ") || "None"}</MetadataListItem>
-          <MetadataListItem label="Change surface forecast">{selectedTask.changeSurface.join(", ") || "None"}</MetadataListItem>
-        </MetadataList>
-      </section>
-      {activityEvents.length > 0 ? (
-        <WorkbenchTimeline
-          label="Agent activity"
-          items={activityEvents.map((event) => {
-            const presentation = runEventPresentation(event);
-            return {
-              id: event.id,
-              heading: <strong>{presentation.detail}</strong>,
-              meta: <time>{new Date(event.occurredAt).toLocaleString()}</time>,
-              body: event.event.tag === "AGENT_ACTIVITY_RECORDED" && event.event.resource
-                ? <code>{event.event.resource}</code>
-                : undefined,
-            };
-          })}
-        />
-      ) : selectedRun !== null && runIsActive(selectedRun) ? (
-        <WorkbenchState kind="pending" title="Agent activity" description="Waiting for bounded operational activity…" />
-      ) : null}
-      <ValidationMatrix
-        events={events}
-        active={selectedRun !== null && runIsActive(selectedRun)}
-        boundary={
-          currentOwnerTask?.id === selectedTask.id
-            ? validationBoundary
-            : selectedTask.state === "CANDIDATE_DONE" || selectedTask.state === "ALREADY_SATISFIED"
-              ? { tag: "COMPLETE" }
-              : { tag: "NONE" }
-        }
-        boundaryScope={currentOwnerTask?.id === selectedTask.id ? "Current" : "Recorded"}
+  const currentAction =
+    currentOwnerRun !== null ? (
+      <WorkbenchAction
+        label="Cancel current implementation attempt"
+        tone="destructive"
+        loading={cancel.isPending}
+        disabled={mutationsDisabled || cancel.isPending}
+        onClick={() => cancel.mutate()}
       />
-      {selectedRun===null?<WorkbenchState kind="empty" title="No persisted attempt events"/>:
-       eventsQuery.isPending?<WorkbenchState kind="loading" title="Loading attempt timeline…"/>:
-       eventsQuery.isError?<WorkbenchState kind="error" title="Attempt timeline unavailable" description={eventsQuery.error instanceof Error?eventsQuery.error.message:String(eventsQuery.error)}/>:
-       events.length>0?<RunEventTimeline run={selectedRun} events={events} onOpenEvidence={onOpenEvidence}/>:<WorkbenchState kind="empty" title="No persisted attempt events"/>}
-      <WorkbenchSectionHeader title="Implementation material"/>
-      <div className="order-resource-list">{artifacts.map((artifact)=>{
-        const label=lifecycleArtifactLabel(artifact.role);
-        return <WorkbenchResourceRow key={artifact.id} label={label} detail="Read-only governed implementation material" actionLabel={"Open "+label} onOpen={()=>onOpenEvidence({kind:"ARTIFACT",artifactId:artifact.id,label:label+": "+artifact.repositoryPath})}/>;
-      })}</div>
-    </section>:<WorkbenchState kind="empty" title="No implementation tasks materialized"/>;
+    ) : canResume ? (
+      <WorkbenchAction
+        label="Resume resolved blocker"
+        tone="primary"
+        loading={resume.isPending}
+        disabled={mutationsDisabled || resume.isPending}
+        onClick={() => resume.mutate()}
+      />
+    ) : canStart ? (
+      <WorkbenchAction
+        label="Start current task"
+        tone="primary"
+        loading={start.isPending}
+        disabled={mutationsDisabled || start.isPending}
+        onClick={() => start.mutate()}
+      />
+    ) : undefined;
 
-  const detailSurface=material.kind==="EVIDENCE"&&stateError===null&&!statePending
-    ?<EvidenceViewer selection={material.selection} onBack={onReturnFromEvidence}/>
-    :<WorkbenchSurface attention={attention} material={detail}/>;
+  const mutationError = start.error ?? cancel.error ?? resume.error;
+  const attention =
+    mutationError !== null ? (
+      <WorkbenchAttention
+        title="Implementation action failed"
+        description={
+          mutationError instanceof Error
+            ? mutationError.message
+            : String(mutationError)
+        }
+        action={currentAction}
+      />
+    ) : executionOwner.tag === "BLOCKED_TASK" ? (
+      <WorkbenchAttention
+        title={
+          currentOwnerTask === null
+            ? "Implementation is blocked"
+            : currentOwnerTask.objective + " is blocked"
+        }
+        description="Resolve the recorded blocker before resuming the approved task."
+        action={currentAction}
+      />
+    ) : currentAction === undefined ? undefined : (
+      <WorkbenchAttention
+        title={
+          currentOwnerTask === null
+            ? "Implementation requires your action"
+            : currentOwnerTask.objective + " requires your action"
+        }
+        action={currentAction}
+      />
+    );
+
+  const master =
+    tasks.length === 0 ? (
+      <WorkbenchState kind="empty" title="No approved tasks" />
+    ) : (
+      <WorkbenchTable
+        label="Approved tasks"
+        selection="single"
+        columns={[{ key: "task", label: "Approved task" }]}
+        rows={tasks.map((task) => ({
+          id: task.id,
+          selected: task.id === selectedTask?.id,
+          onSelect: () =>
+            onSelectMaterial({
+              kind: "EXECUTION_TASK",
+              taskId: task.id,
+              runId:
+                [...runs]
+                  .filter((run) => run.executionTaskId === task.id)
+                  .sort((left, right) => left.attempt - right.attempt)
+                  .at(-1)?.id ?? null,
+            }),
+          cells: {
+            task: (
+              <div className="order-implementation-master-task">
+                <strong>{task.objective}</strong>
+                <WorkbenchStatus
+                  tone={taskTone(task)}
+                  label={taskStateLabel(task)}
+                />
+              </div>
+            ),
+          },
+        }))}
+      />
+    );
+
+  const selectedBoundary: ValidationBoundary | null =
+    selectedTask === null
+      ? null
+      : currentOwnerTask?.id === selectedTask.id
+        ? validationBoundary
+        : selectedTask.state === "CANDIDATE_DONE" ||
+            selectedTask.state === "ALREADY_SATISFIED"
+          ? { tag: "COMPLETE" }
+          : { tag: "NONE" };
+
+  const detail =
+    stateError !== null ? (
+      <WorkbenchState
+        kind="error"
+        title="Implementation state unavailable"
+        description={
+          stateError instanceof Error ? stateError.message : String(stateError)
+        }
+      />
+    ) : statePending ? (
+      <WorkbenchState kind="loading" title="Loading implementation state…" />
+    ) : selectedTask === null ? (
+      <WorkbenchState kind="empty" title="No implementation tasks materialized" />
+    ) : (
+      <section className="order-implementation-detail" data-testid="execution-task-detail">
+        <header className="order-implementation-detail-header">
+          <div>
+            <h2>{selectedTask.objective}</h2>
+            <span>Approved implementation task</span>
+          </div>
+          <WorkbenchStatus
+            tone={taskTone(selectedTask)}
+            label={taskStateLabel(selectedTask)}
+          />
+        </header>
+
+        <TaskContract task={selectedTask} />
+
+        <section
+          className="order-implementation-attempts"
+          aria-label="Implementation attempts"
+        >
+          <WorkbenchSectionHeader title="Attempts" />
+          {taskRuns.length === 0 ? (
+            <WorkbenchState kind="empty" title="No attempts yet" />
+          ) : (
+            <div className="order-resource-list">
+              {taskRuns.map((run) => (
+                <WorkbenchResourceRow
+                  key={run.id}
+                  label={runRoleLabel(run.role) + " · Attempt " + run.attempt}
+                  detail={
+                    new Date(run.startedAt).toLocaleString() +
+                    " · " +
+                    runStatusLabel(run.status)
+                  }
+                  actionLabel={
+                    "Open " + runRoleLabel(run.role) + " · Attempt " + run.attempt
+                  }
+                  leading={
+                    <WorkbenchStatus
+                      tone={runTone(run)}
+                      label={runStatusLabel(run.status)}
+                    />
+                  }
+                  onOpen={() =>
+                    onSelectMaterial({
+                      kind: "EXECUTION_TASK",
+                      taskId: selectedTask.id,
+                      runId: run.id,
+                    })}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+
+        {selectedRun === null ? null : (
+          <section className="order-implementation-attempt" aria-label="Selected implementation attempt">
+            <div data-testid="selected-run-header">
+              <WorkbenchSectionHeader
+                title={runRoleLabel(selectedRun.role) + " · Attempt " + selectedRun.attempt}
+                description={
+                  new Date(selectedRun.startedAt).toLocaleString() +
+                  (selectedRun.endedAt === null
+                    ? ""
+                    : " — " + new Date(selectedRun.endedAt).toLocaleString())
+                }
+                action={
+                  <WorkbenchStatus
+                    tone={runTone(selectedRun)}
+                    label={runStatusLabel(selectedRun.status)}
+                  />
+                }
+              />
+            </div>
+
+            <ValidationSummary
+              events={events}
+              active={runIsActive(selectedRun)}
+              boundary={selectedBoundary}
+              boundaryScope={
+                currentOwnerTask?.id === selectedTask.id
+                  ? "Current"
+                  : "Recorded"
+              }
+            />
+
+            {activityEvents.length === 0 ? null : (
+              <WorkbenchTimeline
+                label="Agent activity"
+                items={activityEvents.map((event) => {
+                  const presentation = runEventPresentation(event);
+                  return {
+                    id: event.id,
+                    heading: <strong>{presentation.detail}</strong>,
+                    meta: <time>{new Date(event.occurredAt).toLocaleString()}</time>,
+                    body:
+                      event.event.tag === "AGENT_ACTIVITY_RECORDED" &&
+                      event.event.resource
+                        ? <code>{event.event.resource}</code>
+                        : undefined,
+                  };
+                })}
+              />
+            )}
+
+            {eventsQuery.isPending ? (
+              <WorkbenchState kind="loading" title="Loading attempt chronology…" />
+            ) : eventsQuery.isError ? (
+              <WorkbenchState
+                kind="error"
+                title="Attempt chronology unavailable"
+                description={
+                  eventsQuery.error instanceof Error
+                    ? eventsQuery.error.message
+                    : String(eventsQuery.error)
+                }
+              />
+            ) : events.length === 0 ? (
+              <WorkbenchState kind="empty" title="No persisted attempt events" />
+            ) : (
+              <RunEventTimeline
+                run={selectedRun}
+                events={events}
+                onOpenEvidence={onOpenEvidence}
+              />
+            )}
+          </section>
+        )}
+
+        <section className="order-implementation-resources">
+          <WorkbenchSectionHeader title="Evidence and governed material" />
+          {artifacts.length === 0 ? (
+            <WorkbenchState kind="empty" title="No governed implementation material" />
+          ) : (
+            <div className="order-resource-list">
+              {artifacts.map((artifact) => {
+                const label = lifecycleArtifactLabel(artifact.role);
+                return (
+                  <WorkbenchResourceRow
+                    key={artifact.id}
+                    label={label}
+                    detail="Read-only governed implementation material"
+                    actionLabel={"Open " + label}
+                    onOpen={() =>
+                      onOpenEvidence({
+                        kind: "ARTIFACT",
+                        artifactId: artifact.id,
+                        label: label + ": " + artifact.repositoryPath,
+                      })}
+                  />
+                );
+              })}
+            </div>
+          )}
+        </section>
+      </section>
+    );
+
+  const primary =
+    material.kind === "EVIDENCE" && stateError === null && !statePending ? (
+      <EvidenceViewer
+        selection={material.selection}
+        onBack={onReturnFromEvidence}
+      />
+    ) : (
+      <WorkbenchSurface attention={attention} material={detail} />
+    );
 
   return (
     <div data-testid="execution-workspace">
       <WorkbenchMasterDetail
         master={master}
-        detail={detailSurface}
+        detail={primary}
         masterLabel="Approved tasks"
       />
     </div>
