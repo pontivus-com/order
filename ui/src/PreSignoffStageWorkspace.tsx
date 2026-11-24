@@ -95,12 +95,11 @@ export const PreSignoffStageWorkspace = ({
       onSelect:()=>onOpenSupportingMaterial({kind:"SUPPORTING_DOCUMENT",artifactId:artifact.id}),
     })),
   ];
-  const relatedResources=items.filter((item)=>item.selected!==true);
-  const related=relatedResources.length===0 ? null : (
-    <section className="order-productive-related" aria-label="Related workflow material">
-      <h3>Related material</h3>
+  const supportingResources=items.filter((item)=>item.selected!==true);
+  const supportingMaterial=supportingResources.length===0 ? undefined : (
+    <section className="order-productive-supporting" aria-label="Supporting workflow material">
       <div className="order-resource-list">
-        {relatedResources.map((item)=>(
+        {supportingResources.map((item)=>(
           <WorkbenchResourceRow
             key={item.id}
             label={item.label}
@@ -113,7 +112,7 @@ export const PreSignoffStageWorkspace = ({
     </section>
   );
 
-  const companion=stage==="R1" && stageArtifact!==null ? <section
+  const researchMaterial=stage==="R1" && stageArtifact!==null ? <section
     className="order-productive-research-context" aria-label="Research governed material">
     <strong>Repository-backed Research material</strong>
     <span>{materialState===null ? "Current governed Research material" : materialPresentationStateLabel(materialState)}</span>
@@ -121,10 +120,18 @@ export const PreSignoffStageWorkspace = ({
       onClick={()=>onSelectMaterial({kind:"STAGE_DOCUMENT",artifactId:stageArtifact.id})} />
   </section> : undefined;
 
+  const dialogueSupport =
+    researchMaterial === undefined && supportingMaterial === undefined ? undefined : (
+      <div className="order-productive-dialogue-support">
+        {researchMaterial}
+        {supportingMaterial}
+      </div>
+    );
+
   const primary=(()=>{
     switch(material.kind){
       case "STAGE_RUN": return <StageRunMaterial stage={stage} runs={runs} runEvents={runEvents}
-        companion={companion} selectedRunId={material.runId}
+        companion={dialogueSupport} selectedRunId={material.runId}
         currentRunId={workItem.stage===stage ? currentRunId : null}
         currentInteraction={workItem.stage===stage ? currentInteraction : null}
         currentAttention={currentAttention} focusedRequiredInputEventId={focusedRequiredInputEventId}
@@ -177,7 +184,9 @@ export const PreSignoffStageWorkspace = ({
     {historicalReturn === undefined ? null : (
       <div className="order-inline-actions">{historicalReturn}</div>
     )}
-    <div className="order-productive-primary">{primary}</div>
-    {related}
+    <div className="order-productive-primary">
+      {primary}
+      {material.kind === "STAGE_RUN" ? null : supportingMaterial}
+    </div>
   </section>;
 };
