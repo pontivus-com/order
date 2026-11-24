@@ -429,9 +429,7 @@ export const App = () => {
     />
   );
 
-  const queue = workItemsQuery.isPending ? (
-    <WorkbenchEmptyState title="Loading work items…" />
-  ) : (
+  const queue = (
     <Suspense fallback={<WorkbenchEmptyState compact title="Loading work queue…" />}>
       <WorkItemQueue
         workItems={filtered}
@@ -442,6 +440,7 @@ export const App = () => {
         search={search}
         sourceDiagnostics={diagnosticsQuery.data ?? []}
         refreshPending={refresh.isPending}
+        loading={workItemsQuery.isPending}
         onShowArchivedChange={setShowArchived}
         onSearchChange={setSearch}
         onRefresh={() => refresh.mutate()}
