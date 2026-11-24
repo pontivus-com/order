@@ -2976,7 +2976,12 @@ describe("architecture fitness", () => {
           ia27Classifications
             .filter((row) => row.disposition === "DESTRUCTIVE_REPLACEMENT")
             .map((row) => row.path),
-          [],
+          [
+            "ui/src/primitives/WorkbenchToolbar.tsx",
+            "ui/src/primitives/WorkbenchAppShell.tsx",
+            "ui/src/app.tsx",
+            "ui/src/theme.css",
+          ],
         );
         for (const requiredNoEdit of [
           "ui/src/primitives/WorkbenchAttention.tsx",
@@ -3014,6 +3019,11 @@ describe("architecture fitness", () => {
           "zero compatibility/adapter paths",
           "only genuine attention owners render `WorkbenchAttention`",
           "current authority-first no-edit classification evidence",
+          "Post-RZ14 application-header correction",
+          "Pre-remediation current-state diagnostic rendered sweep",
+          "all **37 governed `SURF-*` rows**",
+          "does not transfer IA29-IA34 production ownership",
+          "application-header reconstruction proof across Queue/selected-WorkItem/Settings destinations",
         ]) {
           if (!actionCatalog.includes(required)) {
             violations.push(
