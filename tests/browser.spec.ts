@@ -1319,6 +1319,16 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     if (message.type() === "error") runtimeErrors.push("console: " + message.text());
   });
 
+  let renderedAccountState = OpenCodeAccountStateSchema.parse({
+    accounts: [{
+      id: "cred_rendered_acceptance",
+      label: "operator@example.com",
+      active: true,
+      status: { status: "READY" },
+    }],
+    activeAccountId: "cred_rendered_acceptance",
+    mutationBlockers: [],
+  });
   await page.route("**/api/opencode/accounts", async (route) => {
     if (route.request().method() !== "GET") {
       await route.fallback();
@@ -1327,16 +1337,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     await route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({
-        accounts: [{
-          id: "cred_rendered_acceptance",
-          label: "operator@example.com",
-          active: true,
-          status: { status: "READY" },
-        }],
-        activeAccountId: "cred_rendered_acceptance",
-        mutationBlockers: [],
-      }),
+      body: JSON.stringify(renderedAccountState),
     });
   });
   let renderedReadinessBlockers: string[] = [];
@@ -1392,6 +1393,51 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       "GW-DOC-INSTALLATION-READINESS",
     ],
   }));
+
+  if (diagnosticCurrentState) {
+    renderedAccountState = OpenCodeAccountStateSchema.parse({
+      accounts: [],
+      activeAccountId: null,
+      mutationBlockers: [],
+    });
+    await page.reload();
+    await expect(page.getByTestId("opencode-account-trigger")).toContainText("No account");
+    await expect(page.getByTestId("opencode-account-trigger")).toContainText("Account required");
+    entries.push(await captureRenderedAcceptance(page, {
+      id: "diagnostic-application-wide-light-account-required",
+      workItemKind: "QUEUE",
+      workflowStep: null,
+      surface: "SURF-APP-001",
+      state: "missing-account-required",
+      fixture: "application shell with deterministic missing OpenCode account",
+      viewport: { width: 1440, height: 900 },
+      theme: "Light",
+      route: "/",
+      references: [
+        "docs/references/workbench-ui/application-notices-states.svg",
+        "docs/references/workbench-ui/installation-readiness.svg",
+      ],
+      authorityRefs: [
+        "GW-DOC-WORKBENCH-UX",
+        "GW-DOC-INSTALLATION-READINESS",
+      ],
+      captureScope: "full application viewport",
+    }));
+    renderedAccountState = OpenCodeAccountStateSchema.parse({
+      accounts: [{
+        id: "cred_rendered_acceptance",
+        label: "operator@example.com",
+        active: true,
+        status: { status: "READY" },
+      }],
+      activeAccountId: "cred_rendered_acceptance",
+      mutationBlockers: [],
+    });
+    await page.reload();
+    await expect(page.getByTestId("opencode-account-trigger")).toContainText(
+      "operator@example.com",
+    );
+  }
 
   renderedReadinessBlockers = ["REPOSITORY_REQUIRED"];
   await page.reload();
