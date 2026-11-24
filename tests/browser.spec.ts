@@ -3972,8 +3972,8 @@ test("historical inspection preserves current attention reason, return and curre
   ] as const) {
     await openWorkItem(page, title);
     await selectWorkflowStep(page, "Work request");
-    const attention = page.locator(".order-workbench-attention");
-    await expect(attention).toContainText(attentionText);
+    await expect(page.locator(".order-workbench-attention")).toHaveCount(0);
+    await expect(page.getByText(attentionText, { exact: false })).toBeVisible();
     await expect(page.getByTestId("workflow-step-summary")).toHaveCount(0);
     const returnToCurrent = page.getByRole("button", {
       name: "Return to Implementation plan",
@@ -3998,8 +3998,8 @@ test("historical inspection preserves current attention reason, return and curre
   await expect(page.getByTestId("workflow-step-summary")).toHaveCount(0);
   await expect(page.getByTestId("review-workspace")).toContainText("Package stale");
   await selectWorkflowStep(page, "Work request");
-  const staleAttention = page.locator(".order-workbench-attention");
-  await expect(staleAttention).toContainText("Approval authority is stale");
+  await expect(page.locator(".order-workbench-attention")).toHaveCount(0);
+  await expect(page.getByText("Approval authority is stale", { exact: true })).toBeVisible();
   await expect(page.getByTestId("workflow-step-summary")).toHaveCount(0);
   const returnToApproval = page.getByRole("button", { name: "Return to Approval", exact: true });
   await expect(returnToApproval).toBeVisible();
@@ -4066,7 +4066,8 @@ test("canonical Run feedback remains visible in the owning workflow context with
   await selectCurrentWorkflowMaterial(page, "Attempt 2");
   await expect(page.getByText("Agent setup blocked", { exact: true })).toBeVisible();
   await expect(page.getByTestId("workflow-step-summary")).toHaveCount(0);
-  await expect(page.locator(".order-workbench-attention")).toBeVisible();
+  await expect(page.locator(".order-workbench-attention")).toHaveCount(0);
+  await expect(page.getByText("Implementation plan is blocked", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Return to Implementation plan", exact: true })).toBeVisible();
   await expect(
     page.getByText("Technical diagnostics available", { exact: true }),
@@ -4384,13 +4385,15 @@ test("mutation conflict remains primary until the selected WorkItem refresh succ
   });
   await start.click();
 
-  const attention = page.locator(".order-workbench-attention");
-  await expect(attention).toContainText(
+  await expect(page.locator(".order-workbench-attention")).toHaveCount(0);
+  await expect(page.getByText(
     "Workflow state changed during the action",
-  );
-  await expect(attention).toContainText(
+    { exact: true },
+  )).toBeVisible();
+  await expect(page.getByText(
     "Review the refreshed current workflow state before attempting another mutation.",
-  );
+    { exact: true },
+  )).toBeVisible();
   await expect(page.getByTestId("workflow-step-summary")).toHaveCount(0);
   await expect(
     page.getByRole("button", {
@@ -4613,8 +4616,8 @@ test("all nine workflow steps keep their canonical summary/material grammar and 
         await expect(page.getByRole("button", { name: "Return to Approval" })).toHaveCount(0);
       }
     } else {
-      const attention = page.locator(".order-workbench-attention");
-      await expect(attention).toContainText("Approval");
+      await expect(page.locator(".order-workbench-attention")).toHaveCount(0);
+      await expect(page.getByText("Approval is ready for your action", { exact: true })).toBeVisible();
       await expect(page.getByRole("button", { name: "Return to Approval" })).toBeVisible();
       await expect(page.getByTestId("workflow-step-summary")).toHaveCount(0);
       await expect(page.getByTestId("primary-material-frame")).toHaveCount(0);
@@ -5132,8 +5135,8 @@ test("historical pre-signoff inspection returns to the current owner before offe
   await expect(page.getByRole("button", { name: "Start Requirements", exact: true })).toBeVisible();
 
   await selectWorkflowStep(page, "Research");
-  const attention = page.locator(".order-workbench-attention");
-  await expect(attention).toContainText("Requirements");
+  await expect(page.locator(".order-workbench-attention")).toHaveCount(0);
+  await expect(page.getByText("Requirements is ready for your action", { exact: true })).toBeVisible();
   await expect(page.getByTestId("workflow-step-summary")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Return to Requirements", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Start Requirements", exact: true })).toHaveCount(0);
