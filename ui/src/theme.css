@@ -453,13 +453,22 @@
   min-width: 0;
   overflow: auto;
 }
+.order-implementation-master,
+.order-implementation-master-attempts,
 .order-implementation-master-task {
   min-width: 0;
   display: grid;
+  gap: var(--spacing-3);
+}
+.order-implementation-master-task {
   gap: var(--spacing-1);
 }
 .order-implementation-master-task strong {
   overflow-wrap: anywhere;
+}
+.order-implementation-master-attempts {
+  padding-top: var(--spacing-3);
+  border-top: 1px solid var(--color-border-emphasized);
 }
 .order-workbench-master-detail-constrained {
   height: 100%;
@@ -1057,7 +1066,6 @@
 .order-implementation-contract,
 .order-implementation-scope,
 .order-implementation-contract-supporting,
-.order-implementation-attempts,
 .order-implementation-attempt,
 .order-implementation-validation,
 .order-implementation-resources {
