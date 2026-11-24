@@ -17,9 +17,9 @@ The current corrected package is:
 - R1 `research.md`: `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`;
 - canonical P3 Workbench: `d47173839201c68937bdb4c840d0273dec5bcffc`;
 - R2 `requirements.md`: `e1e53c493f405610f6f73d3e8b83084b91e7db9e`;
-- canonical P4 Workbench: `389bf5edb96dcad81e9b18ffb4f2077395b0005e`;
-- DESIGN `solution-design.md`: `4da77bb7e047e237fb94b7ed7a44682483e83217`;
-- PLAN `implementation-plan.md`: `8c1dac2ba6beed289aae8f7437e60e01824c0d67`;
+- canonical P4 Workbench: `372c7a3380dc200d5ec0b425f2d6cac781f2e6bc`;
+- DESIGN `solution-design.md`: `a6dc89a0ce2fcdcb986d6c3fdb3414766562c95f`;
+- PLAN `implementation-plan.md`: `9009f2f9c3f938d34f3263dbfa1ed88fbe2973c2`;
 - reference-pack README: `6aff4233f4f0c9c2a09c6aa2504b7e2cef1708fb`.
 
 The sole current campaign/gate authority remains `0.6.0-design-campaign-plan.md §7/§18`. Current campaign state is not projected from this R3 artifact.
@@ -44,7 +44,7 @@ The current authority package now requires:
 
 ## Current bounded realization boundary
 
-Campaign §17A currently owns authorization `IA28-RZ7`.
+Campaign §17A currently owns authorization `IA28-RZ11`.
 
 That grant permits only:
 
@@ -57,7 +57,7 @@ The grant stops before IA29. Any IA28-discovered shared-foundation defect return
 
 After IA27/IA28 evidence is complete:
 
-1. terminate RZ7;
+1. terminate RZ11;
 2. run a fresh adversarial R3 against the exact current authority package and exact bounded foundation evidence;
 3. only a new `READY_FOR_SIGNOFF` may advance G6;
 4. normal human Approval must bind that same exact package;
@@ -67,4 +67,4 @@ After IA27/IA28 evidence is complete:
 
 **Recorded return:** `RETURN_TO_DESIGN` for the now-corrected P4 consumer-permission defect.
 
-**Current next permitted action:** continue the active bounded `IA28-RZ7` IA27 → IA28 realization/evidence sequence. No current `READY_FOR_SIGNOFF` or Approval authority exists, and IA29+ remains forbidden until fresh R3/G6 and human Approval.
+**Current next permitted action:** continue the active bounded `IA28-RZ11` IA27 → IA28 realization/evidence sequence. No current `READY_FOR_SIGNOFF` or Approval authority exists, and IA29+ remains forbidden until fresh R3/G6 and human Approval.
