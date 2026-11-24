@@ -36,7 +36,6 @@ import { WorkbenchConfirmation } from "./primitives/WorkbenchConfirmation.tsx";
 import {
   WorkbenchToolbar,
   WorkbenchToolbarGroup,
-  WorkbenchToolbarSearch,
   WorkbenchToolbarUtilities,
 } from "./primitives/WorkbenchToolbar.tsx";
 import {
@@ -430,16 +429,6 @@ export const App = () => {
     />
   );
 
-  const queueControls = (
-    <div className="order-queue-commandbar">
-      <WorkbenchToolbarGroup>
-        <WorkbenchAction label="New work item" tone="primary" icon={<WorkbenchIcon name="add" />} onClick={() => { resetCreate(); setCreateOpen(true); }} />
-        <WorkbenchAction label={refresh.isPending ? "Refreshing…" : "Refresh sources"} icon={<WorkbenchIcon name="refresh" />} loading={refresh.isPending} onClick={() => refresh.mutate()} />
-      </WorkbenchToolbarGroup>
-      <WorkbenchToolbarSearch value={search} onChange={setSearch} />
-    </div>
-  );
-
   const queue = workItemsQuery.isPending ? (
     <WorkbenchEmptyState title="Loading work items…" />
   ) : (
@@ -450,7 +439,16 @@ export const App = () => {
         selectedWorkItemId={selectedWorkItemId}
         showArchived={showArchived}
         emptyTitle={search.trim().length > 0 ? "No matching work items" : "No work items"}
+        search={search}
+        sourceDiagnostics={diagnosticsQuery.data ?? []}
+        refreshPending={refresh.isPending}
         onShowArchivedChange={setShowArchived}
+        onSearchChange={setSearch}
+        onRefresh={() => refresh.mutate()}
+        onCreate={() => {
+          resetCreate();
+          setCreateOpen(true);
+        }}
         onSelect={requestSelection}
       />
     </Suspense>
@@ -513,7 +511,6 @@ export const App = () => {
     />
   ) : (
     <div className="order-queue-workspace">
-      {queueControls}
       {readinessQuery.data && !readinessQuery.data.ready ? (
         <section className="order-app-readiness" data-testid="installation-readiness">
           <WorkbenchNotice tone="warning" title="Setup requires attention" description="Productive readiness is derived from canonical installation state. Each unresolved concern links directly to its owning Settings area; the queue never appears mysteriously empty." />
@@ -528,25 +525,6 @@ export const App = () => {
             })}
           </div>
         </section>
-      ) : null}
-      {(diagnosticsQuery.data ?? []).length > 0 ? (
-        <div className="order-app-notice-stack" data-testid="source-diagnostics">
-          <WorkbenchNotice
-            tone="danger"
-            title="Source diagnostics require attention"
-            description={
-              <ul>
-                {(diagnosticsQuery.data ?? []).map((item, index) => (
-                  <li key={item.code + "-" + (item.path ?? String(index))}>
-                    <strong>{item.path ?? item.projectId}</strong>
-                    {" — "}
-                    {item.detail}
-                  </li>
-                ))}
-              </ul>
-            }
-          />
-        </div>
       ) : null}
       {queue}
     </div>
