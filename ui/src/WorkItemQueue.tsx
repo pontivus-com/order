@@ -4,6 +4,7 @@ import type {
   WorkItem,
   WorkItemId,
   WorkItemSchemaCatalogEntry,
+  WorkItemSourceDiagnostic,
 } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
 import {
@@ -15,12 +16,17 @@ import {
   workflowPresentation,
 } from "./workbench-presentation.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
+import { WorkbenchIcon } from "./primitives/WorkbenchIcon.tsx";
 import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
 import { WorkbenchSectionHeader } from "./primitives/WorkbenchSectionHeader.tsx";
 import { WorkbenchEmptyState } from "./primitives/WorkbenchState.tsx";
 import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
 import { WorkbenchSurface } from "./primitives/WorkbenchSurface.tsx";
 import { WorkbenchTable } from "./primitives/WorkbenchTable.tsx";
+import {
+  WorkbenchToolbarGroup,
+  WorkbenchToolbarSearch,
+} from "./primitives/WorkbenchToolbar.tsx";
 
 const humanKindLabel = (
   kind: WorkItemSchemaCatalogEntry["kind"] | undefined,
@@ -42,7 +48,13 @@ export const WorkItemQueue = ({
   selectedWorkItemId,
   showArchived,
   emptyTitle,
+  search,
+  sourceDiagnostics,
+  refreshPending,
   onShowArchivedChange,
+  onSearchChange,
+  onRefresh,
+  onCreate,
   onSelect,
 }: Readonly<{
   workItems: readonly WorkItem[];
@@ -50,7 +62,13 @@ export const WorkItemQueue = ({
   selectedWorkItemId: WorkItemId | null;
   showArchived: boolean;
   emptyTitle: string;
+  search: string;
+  sourceDiagnostics: readonly WorkItemSourceDiagnostic[];
+  refreshPending: boolean;
   onShowArchivedChange: (value: boolean) => void;
+  onSearchChange: (value: string) => void;
+  onRefresh: () => void;
+  onCreate: () => void;
   onSelect: (id: WorkItemId) => void;
 }>) => {
   const queryClient = useQueryClient();
@@ -147,6 +165,42 @@ export const WorkItemQueue = ({
       <WorkbenchSurface
         material={
           <div className="order-queue-scan-content">
+            <div className="order-queue-commandbar">
+              <WorkbenchToolbarGroup>
+                <WorkbenchAction
+                  label="New work item"
+                  tone="primary"
+                  icon={<WorkbenchIcon name="add" />}
+                  onClick={onCreate}
+                />
+                <WorkbenchAction
+                  label={refreshPending ? "Refreshing…" : "Refresh sources"}
+                  icon={<WorkbenchIcon name="refresh" />}
+                  loading={refreshPending}
+                  onClick={onRefresh}
+                />
+              </WorkbenchToolbarGroup>
+              <WorkbenchToolbarSearch value={search} onChange={onSearchChange} />
+            </div>
+            {sourceDiagnostics.length > 0 ? (
+              <div className="order-app-notice-stack" data-testid="source-diagnostics">
+                <WorkbenchNotice
+                  tone="danger"
+                  title="Source diagnostics require attention"
+                  description={
+                    <ul>
+                      {sourceDiagnostics.map((item, index) => (
+                        <li key={item.code + "-" + (item.path ?? String(index))}>
+                          <strong>{item.path ?? item.projectId}</strong>
+                          {" — "}
+                          {item.detail}
+                        </li>
+                      ))}
+                    </ul>
+                  }
+                />
+              </div>
+            ) : null}
             <WorkbenchSectionHeader
               title="Work items"
               description={
