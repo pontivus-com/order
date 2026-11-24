@@ -1327,16 +1327,6 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     "rendered acceptance capture runs only in its GitHub Actions evidence step",
   );
   test.setTimeout(300_000);
-  if (
-    diagnosticCurrentState &&
-    (diagnosticPhase === null ||
-      !renderedDiagnosticPhases.includes(diagnosticPhase as RenderedDiagnosticPhase))
-  ) {
-    throw new TypeError(
-      "PONTIVUS_ORDER_DIAGNOSTIC_PHASE must select one IA29-IA34 rendered diagnostic phase",
-    );
-  }
-
   const runtimeErrors: string[] = [];
   let expectedDiagnosticConsoleErrors = 0;
   page.on("pageerror", (error) => runtimeErrors.push("pageerror: " + error.message));
@@ -2066,6 +2056,16 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     "IA26 rendered acceptance runs only in its GitHub Actions evidence step",
   );
   test.setTimeout(300_000);
+
+  if (
+    diagnosticCurrentState &&
+    (diagnosticPhase === null ||
+      !renderedDiagnosticPhases.includes(diagnosticPhase as RenderedDiagnosticPhase))
+  ) {
+    throw new TypeError(
+      "PONTIVUS_ORDER_DIAGNOSTIC_PHASE must select one IA29-IA34 rendered diagnostic phase",
+    );
+  }
 
   const runtimeErrors: string[] = [];
   let expectedConflictConsoleErrors = 0;
