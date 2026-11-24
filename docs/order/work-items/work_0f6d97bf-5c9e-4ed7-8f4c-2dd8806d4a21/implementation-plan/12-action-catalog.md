@@ -14,7 +14,7 @@ This is a trace/readability view of the one canonical `order-tasks` block in the
 
 ## Execution waves
 
-**Pre-sign-off realization boundary:** no bounded or signed implementation authority is current while campaign G4/G5/G5A/G6 are reopened by C19-F09/C20-F11. This catalog is the candidate execution definition only. A future bounded grant, if any, is owned exclusively by `0.6.0-design-campaign-plan.md §17A/§18` after the exact corrected package reaches the required gates.
+**Pre-sign-off realization boundary:** this catalog confers no bounded or signed implementation authority. Current eligibility, gate state and any bounded grant are owned exclusively by `0.6.0-design-campaign-plan.md §17A/§18` and must bind the exact corrected P4/DESIGN/PLAN package. The catalog is only the candidate execution definition.
 
 
 0. **Preflight 0 — DESIGN-positive reuse proof:** IA07-IA08. No production mutation.
