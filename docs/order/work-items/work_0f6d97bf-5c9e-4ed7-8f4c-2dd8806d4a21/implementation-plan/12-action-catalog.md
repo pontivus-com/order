@@ -19,20 +19,21 @@ This is a trace/readability view of the one canonical `order-tasks` block in the
 
 0. **Preflight 0 — DESIGN-positive reuse proof:** IA07-IA08. No production mutation.
 1. **Wave 1 — authority/source/task/runtime corrections:** IA01-IA10 plus IA25 where still unsatisfied.
-2. **Wave 2 — semantic component foundation + shell realization:** IA27 consumes the closed SD21/F6B ledger; it does not derive component architecture. Create required-new semantic owners, destructively replace over-permissive APIs, decompose valid-but-overloaded owners, preserve freshly proven atoms, and keep forbidden generic owners absent. IA27 closes at foundation-ready-for-consumer, not product acceptance.
-3. **Wave 3 — fresh Queue/Create/account-utility consumer revalidation + first rendered foundation acceptance:** IA11, IA12, IA28 consume the IA27 foundation candidate. Queue/Create production bytes may remain only after fresh authority proof; IA29 remains blocked until this checkpoint passes.
-4. **Wave 4 — Work request/document/editor reconstruction:** IA13, IA14, IA29 migrate to WorkbenchDocument/Facts/Section and remove screen-local document/facts composition.
-5. **Wave 5 — productive pre-signoff reconstruction:** IA15, IA30; Proposal Review uses ReviewVerdict/ReviewSection plus DocumentChangeView and makes raw diff secondary inspection.
-6. **Wave 6 — Readiness/Approval reconstruction:** IA16, IA17, IA31; both consume the canonical Review semantic component set and remove local review/card/grid grammar.
-7. **Wave 7 — Implementation reconstruction:** IA32 consumes Section/Facts/ResourceList inside the canonical MasterDetail topology.
-8. **Wave 8 — Complete/Evidence reconstruction:** IA19, IA33; Complete consumes WorkbenchResult/Section/ResourceList, Evidence remains the exact-byte owner.
-9. **Wave 9 — Settings/account-management/configuration reconstruction:** IA18, IA34 consumes Section/Facts/ResourceList while preserving one Settings diagnostics owner.
-10. **Wave 10 — permanent semantic/component certification:** IA20-IA22.
-11. **Wave 11 — cross-solution regression closure:** IA23.
-12. **Wave 12 — rendered product acceptance:** IA26.
-13. **Wave 13 — candidate closeout:** IA24.
+2. **Wave 2 — bounded shell/Context foundation realization:** bounded IA27 consumes the closed SD21/F6B ledger and realizes only the compile-closed AppShell/WorkItem-shell/Context/responsive/theme + Section/Facts slice and required-absent generic owners. Breaking APIs with later consumers remain unchanged; no compatibility path is introduced.
+3. **Wave 3 — fresh Queue/Create/account-utility consumer revalidation + bounded foundation acceptance:** IA11, IA12, IA28 consume that IA27 bounded slice. Queue/Create production bytes may remain only after fresh authority proof. The grant stops after evidence review; IA29 remains blocked until explicit normal sign-off.
+4. **Post-signoff IA27 completion — shared resource collection atomic cutover:** after normal sign-off and before IA29, create `WorkbenchResourceList`, atomically migrate every current `WorkbenchResourceRow` caller, then narrow `WorkbenchResourceRow`. The candidate must typecheck at the same checkpoint; no caller is left on the old API.
+5. **Wave 4 — Work request/document/editor reconstruction:** IA13, IA14, IA29 create/cut over WorkbenchDocument/Facts/Section with the complete Document consumer set.
+6. **Wave 5 — productive pre-signoff-stage reconstruction excluding Proposal Review:** IA15, IA30 reconstruct R1/R2/DESIGN/PLAN Document/Dialogue/Evidence/State routing and activity/timeline behavior; Proposal Review remains untouched until the atomic Review cutover.
+7. **Wave 6 — atomic Proposal/Readiness/Approval Review reconstruction:** IA16, IA17, IA31 create ReviewVerdict/ReviewSection/DocumentChangeView and destructively replace WorkbenchReview in the same change set that migrates **all** current Review consumers: ProposalReview, ReadinessWorkspace and SignoffReview.
+8. **Wave 7 — Implementation reconstruction:** IA32 consumes Section/Facts/ResourceList inside the canonical MasterDetail topology.
+9. **Wave 8 — Complete/Evidence reconstruction:** IA19, IA33 create/cut over WorkbenchResult with TerminalResult; Complete consumes Section/ResourceList, Evidence remains the exact-byte owner.
+10. **Wave 9 — Settings/account-management/configuration reconstruction:** IA18, IA34 consumes Section/Facts/ResourceList while preserving one Settings diagnostics owner.
+11. **Wave 10 — permanent semantic/component certification:** IA20-IA22.
+12. **Wave 11 — cross-solution regression closure:** IA23.
+13. **Wave 12 — rendered product acceptance:** IA26.
+14. **Wave 13 — candidate closeout:** IA24.
 
-Before any bounded Wave 2/3 UI mutation, the exact corrected P4/DESIGN/PLAN package must have current R3/G6 `READY_FOR_SIGNOFF` and an explicit exact-package §17A operator grant. Normal Wave 4+ execution additionally requires ordinary human sign-off. IA27 consumes the SD21/F6B ledger and executes its already-decided physical dispositions; it may not invent component roles or use current JSX/CSS to choose them. IA28 then performs the first real-consumer acceptance. IA29-IA34 each revalidate their complete owned renderer set against the new semantic component architecture before editing and execute the catalogued disposition: `DECOMPOSE_REFACTOR` when semantic responsibility is valid but physically overloaded, `DESTRUCTIVE_REPLACEMENT` when hierarchy/API ownership is materially wrong, `BOUNDED_RESIDUAL` only for a strictly local defect, `CONFORMING_NO_EDIT` only after fresh proof, `REQUIRED_NEW` for missing canonical owners and `REQUIRED_ABSENT` for forbidden owners. The 37 SURF rows remain partitioned once across IA27-IA34 and IA26 rechecks the exact-candidate union plus the component-ownership/SoC invariants.
+Before any bounded Wave 2/3 UI mutation, the exact corrected P4/DESIGN/PLAN package must have current R3/G6 `READY_FOR_SIGNOFF` and an explicit exact-package §17A operator grant. That bounded grant authorizes only the compile-closed IA27 shell/Context slice plus IA28 consumers; it never authorizes ResourceRow/ResourceList, Review, Document or Result cutovers. Normal post-evidence execution requires ordinary human sign-off. After sign-off, IA27 first completes the all-caller ResourceRow/ResourceList atomic cutover; IA29/IA31/IA33 own the Document/Review/Result breaking cutovers with their complete consumer sets. Each action consumes SD21/F6B rather than deriving component roles. IA29-IA34 revalidate their complete owned renderer set before editing and execute the catalogued disposition: `DECOMPOSE_REFACTOR` when semantic responsibility is valid but physically overloaded, `DESTRUCTIVE_REPLACEMENT` when hierarchy/API ownership is materially wrong, `BOUNDED_RESIDUAL` only for a strictly local defect, `CONFORMING_NO_EDIT` only after fresh proof, `REQUIRED_NEW` for missing canonical owners and `REQUIRED_ABSENT` for forbidden owners. The 37 SURF rows remain partitioned once across IA27-IA34 and IA26 rechecks the exact-candidate union plus the component-ownership/SoC invariants.
 ## IA01 — pure project-authority resolution
 
 **Solution:** SD02.  
@@ -225,83 +226,81 @@ Before any bounded Wave 2/3 UI mutation, the exact corrected P4/DESIGN/PLAN pack
 **Proof:** create `tests/installer.test.ts` covering fresh productive setup success/failure/cancel and deferred-Settings rejection; existing `tests/order-migration.test.ts` must continue proving migration/rollback/continuity.
 
 
-## IA27 — realize the closed Workbench semantic-component foundation and shell
+## IA27 — realize the compile-closed Workbench shell/Context foundation and post-signoff resource cutover
 
 **Solution:** SD21 + F6B, with SD29 responsive/accessibility containment.  
-**Authority boundary:** P4 defines permanent component responsibilities/APIs; SD21/F6B defines this package's exact realization. IA27 does not derive either.
+**Authority boundary:** P4 defines permanent component responsibilities/APIs; SD21/F6B defines this package's exact realization and consumer-atomic cutover. IA27 does not derive either.
 
-**Physical owner dispositions:**
+**Cutover law:** a breaking component API changes only in a checkpoint that simultaneously migrates its complete current compile-time consumer set. No compatibility props, overloads, aliases, translators, hidden legacy DOM or old/new dual path are permitted.
 
-| Owner / responsibility | Disposition | Required consequence |
-|---|---|---|
-| new `WorkbenchSection.tsx` | `REQUIRED_NEW` | canonical bounded semantic section; no feature-local substitute section/card grammar |
-| new `WorkbenchFacts.tsx` | `REQUIRED_NEW` | canonical structured-facts rhythm/visibility shell |
-| new `WorkbenchResourceList.tsx` | `REQUIRED_NEW` | canonical repeated-resource collection |
-| new `WorkbenchReviewVerdict.tsx` | `REQUIRED_NEW` | dominant human Review verdict/currentness |
-| new `WorkbenchReviewSection.tsx` | `REQUIRED_NEW` | named Review-body responsibility |
-| new `WorkbenchDocument.tsx` | `REQUIRED_NEW` | complete Document-class composition |
-| new `WorkbenchResult.tsx` | `REQUIRED_NEW` | complete Terminal-result composition |
-| `WorkbenchReview.tsx` | `DESTRUCTIVE_REPLACEMENT` | replace arbitrary `currentness/summary/body/decisions` structure with title/description + exactly one ReviewVerdict + ordered ReviewSections + decisions; no compatibility body prop |
-| `WorkbenchResourceRow.tsx` | `DECOMPOSE_REFACTOR` | narrow to one item; collection label/empty/layout moves to ResourceList; no caller-selected card/button chrome |
-| `WorkbenchContextPanel.tsx` | `DESTRUCTIVE_REPLACEMENT` | replace arbitrary children escape with canonical section composition while preserving conforming docked/Drawer mechanics |
-| `WorkItemContext.tsx` | `DECOMPOSE_REFACTOR` | project selection-aware technical data into Section/Facts; remove recurring local section/facts layout |
-| `WorkbenchSectionHeader.tsx` | `CONFORMING_NO_EDIT` after fresh audit | remains heading atom only; no independent section/document/result ownership |
-| `WorkbenchSurface.tsx`, `WorkbenchAttention.tsx`, `WorkbenchDialogue.tsx`, `WorkbenchForm.tsx`, `WorkbenchIdentity.tsx`, `WorkbenchMasterDetail.tsx`, `WorkbenchRail.tsx`, `WorkbenchSettingsLayout.tsx`, `WorkbenchTable.tsx`, `WorkbenchTaskPanel.tsx`, `WorkbenchTimeline.tsx`, `WorkbenchState.tsx`, `WorkbenchUtilityLink.tsx`, `WorkbenchConfirmation.tsx` | `CONFORMING_NO_EDIT` after fresh audit | retain only because the corrected P4 APIs/responsibilities are independently satisfied; no inherited PASS |
-| `WorkbenchToolbar.tsx`, `WorkbenchAppShell.tsx`, application-header composition in `app.tsx`, header-owned `theme.css` selectors | `DESTRUCTIVE_REPLACEMENT` | preserve only canonical shell/navigation policy; purge superseded header DOM/CSS composition before fresh authorship |
-| `WorkItemWorkspace.tsx` shell integration | `BOUNDED_RESIDUAL` | preserve canonical routing/shell ownership; correct title-edit action precedence already proven defective; consume new Context API |
-| `WorkbenchLayout.tsx`, `WorkbenchSelector.tsx`, `WorkflowStepFrame.tsx`, `WorkflowMaterialSelector.tsx` responsibilities | `REQUIRED_ABSENT` | delete/keep absent with zero aliases, wrappers, CSS shims, hidden DOM or renamed equivalents |
-| `theme.css` semantic-component selectors | `DECOMPOSE_REFACTOR` | add only canonical P4 component treatments and delete migrated feature-local recurring section/facts/resource/review/result selectors |
-| `tests/certification.test.ts`, `tests/browser.spec.ts` | `BOUNDED_RESIDUAL` verification | update only to prove corrected component APIs/consumers/SoC/foundation behavior; tests are not design authority |
+| Owner / responsibility | Disposition | Cutover checkpoint | Required consequence |
+|---|---|---|---|
+| new `WorkbenchSection.tsx` | `REQUIRED_NEW` | bounded IA27 | canonical bounded semantic section used by Context; no feature-local substitute section/card grammar |
+| new `WorkbenchFacts.tsx` | `REQUIRED_NEW` | bounded IA27 | canonical structured-facts owner used by Context |
+| `WorkbenchContextPanel.tsx` | `DESTRUCTIVE_REPLACEMENT` | bounded IA27 | replace arbitrary children escape with canonical section composition while preserving conforming docked/Drawer mechanics |
+| `WorkItemContext.tsx` | `DECOMPOSE_REFACTOR` | bounded IA27 | project selection-aware technical data into Section/Facts; remove recurring local section/facts layout |
+| `WorkbenchToolbar.tsx`, `WorkbenchAppShell.tsx`, application-header composition in `app.tsx`, header-owned `theme.css` selectors | `DESTRUCTIVE_REPLACEMENT` | bounded IA27 | preserve only canonical shell/navigation policy; purge superseded header DOM/CSS composition before fresh authorship |
+| `WorkItemWorkspace.tsx` shell integration | `BOUNDED_RESIDUAL` | bounded IA27 | preserve canonical routing/shell ownership; correct title-edit action precedence and consume the new Context API |
+| `WorkbenchLayout.tsx`, `WorkbenchSelector.tsx`, `WorkflowStepFrame.tsx`, `WorkflowMaterialSelector.tsx` responsibilities | `REQUIRED_ABSENT` | bounded IA27 | delete/keep absent with zero aliases, wrappers, CSS shims, hidden DOM or renamed equivalents |
+| `WorkbenchSectionHeader.tsx` and conforming narrow primitives | `CONFORMING_NO_EDIT` after fresh audit | bounded IA27 | retain only after corrected P4 responsibility/API proof; no inherited PASS |
+| new `WorkbenchResourceList.tsx` | `REQUIRED_NEW` | **post-signoff IA27 completion** | create the canonical repeated-resource collection only when every existing ResourceRow caller is authorized to migrate |
+| `WorkbenchResourceRow.tsx` | `DECOMPOSE_REFACTOR` | **post-signoff IA27 completion** | atomically migrate every current caller to ResourceList/canonical Row API and narrow Row in the same typecheck-clean checkpoint |
+| `theme.css` semantic-component selectors | `DECOMPOSE_REFACTOR` | owning cutover checkpoint | add only selectors for components actually cut over at that checkpoint; delete corresponding feature-local recurring grammar only as its consumer migrates |
+| `tests/certification.test.ts`, `tests/browser.spec.ts` | `BOUNDED_RESIDUAL` verification | bounded IA27 and later checkpoints | prove exact API/consumer/SoC behavior; tests are not design authority |
 
-**Ordered mutation:** create the required-new semantic components; purge/re-author destructive APIs; migrate IA27-owned consumers so compilation cannot depend on old shapes; narrow ResourceRow and introduce ResourceList; migrate Context to Section/Facts; remove required-absent owners; re-author header foundation; then delete obsolete foundation/theme selectors. Do not add compatibility props or temporary old/new paths.
+**Not owned by the bounded IA27 checkpoint:** `WorkbenchDocument` (IA29), `WorkbenchReviewVerdict` / `WorkbenchReviewSection` / destructive `WorkbenchReview` + `DocumentChangeView` (IA31), and `WorkbenchResult` (IA33). Their P4 APIs are already closed DESIGN authority, but production cutover is deferred so the repository never needs an old/new compatibility interface.
 
-**Proof:** type/API closure; consumer allowlists; required-new modules present; required-absent modules/responsibilities absent; no arbitrary Review body/Context children hierarchy escape; no feature-local recurring foundation grammar in IA27-owned consumers; single AppShell/WorkItemShell/responsive/Context owners; accessibility/focus/theme proof; IA27-owned SURF rows PASS as foundation-readiness evidence. IA27 does not freeze the foundation.
+**Bounded IA27 ordered mutation:** create Section/Facts; destructively cut over ContextPanel + WorkItemContext together; keep required-absent generic owners absent; re-author AppShell/Toolbar/header/root integration and bounded theme selectors; apply the WorkItemWorkspace shell residual; update only bounded proof. The candidate must pass typecheck/build without touching IA29-IA34 consumer semantics.
+
+**Post-signoff IA27 completion:** after explicit normal sign-off and before IA29, create ResourceList, migrate **all** current direct ResourceRow consumers to ResourceList/canonical Row usage, narrow ResourceRow in the same change set, and prove type/API/consumer closure. No consumer may remain compiled against the superseded Row API.
+
+**Proof:** bounded checkpoint proves Section/Facts/Context API closure, required-absent owners, shell/Context consumer allowlists, one AppShell/WorkItemShell/responsive/Context owner, accessibility/focus/theme and IA27 SURF rows. Post-signoff completion separately proves ResourceList/ResourceRow exact API closure and all-caller migration. Neither checkpoint claims Review/Document/Result cutover before its owning phase.
 
 ### Exact IA27-IA34 rendered face ownership
 
-The 37 audited `SURF-*` rows in `docs/references/workbench-ui/README.md` remain partitioned exactly once across IA27-IA34. C19-F09/C20-F11 invalidate prior phase acceptance but do not change this surface universe or ownership allocation. This table is the PLAN owner of phase-local rendered acceptance allocation; IA26 independently rechecks the union plus component-architecture/SoC invariants.
+The 37 audited `SURF-*` rows in `docs/references/workbench-ui/README.md` remain partitioned exactly once across IA27-IA34. G-F30 changes only physical cutover timing and moves Proposal Review acceptance to IA31 so the WorkbenchReview API can change atomically with all Review consumers.
 
 | Phase | Exact owned SURF rows | Required state/reference sheets before phase advance |
 |---|---|---|
-| IA27 | `SURF-WI-001`, `SURF-WI-CONTEXT-001` | WorkItem shell controls; singular technical Context; semantic-component foundation, current-attention/chrome and responsive **readiness** proof only — not foundation acceptance/freeze |
-| IA28 | `SURF-APP-001`, `SURF-QUEUE-001`, `SURF-CREATE-001` | fresh first rendered foundation acceptance through application-shell/Queue/Create; Queue states; application notices; installation readiness; linked-remediation Create; active-account visibility |
+| IA27 | `SURF-WI-001`, `SURF-WI-CONTEXT-001` | bounded WorkItem shell + singular technical Context + shell/responsive readiness only; no claim that later shared APIs are cut over |
+| IA28 | `SURF-APP-001`, `SURF-QUEUE-001`, `SURF-CREATE-001` | fresh rendered acceptance of the bounded shell/Context foundation slice through application-shell/Queue/Create |
 | IA29 | `SURF-STEP-WR-001`, `SURF-MAT-SOURCE-001`, `SURF-MAT-DOC-001`, `SURF-MAT-DOC-RO-001`, `SURF-CONF-DIRTY-DEST-001`, `SURF-CONF-DIRTY-MATERIAL-001`, `SURF-CONF-ARCHIVE-001`, `SURF-CONF-DOC-GIT-001` | Work request/WorkbenchDocument/Facts/editor states and owned confirmations |
-| IA30 | `SURF-STEP-R1-001`, `SURF-STEP-R2-001`, `SURF-STEP-DESIGN-001`, `SURF-STEP-PLAN-001`, `SURF-MAT-ACTIVITY-001`, `SURF-MAT-PROPOSAL-001` | productive-stage direct interaction classes; Dialogue; Proposal Review + DocumentChangeView; four-kind Research differences |
-| IA31 | `SURF-STEP-R3-001`, `SURF-STEP-APPROVAL-001`, `SURF-MAT-APPROVAL-TASK-001` | Readiness/Approval canonical ReviewVerdict/ReviewSections/Facts/ResourceList; required-input; current/stale/task detail |
+| IA30 | `SURF-STEP-R1-001`, `SURF-STEP-R2-001`, `SURF-STEP-DESIGN-001`, `SURF-STEP-PLAN-001`, `SURF-MAT-ACTIVITY-001` | productive-stage Document/Dialogue/Evidence/State routing and four-kind Research differences; Proposal Review remains IA31 |
+| IA31 | `SURF-MAT-PROPOSAL-001`, `SURF-STEP-R3-001`, `SURF-STEP-APPROVAL-001`, `SURF-MAT-APPROVAL-TASK-001` | atomic Proposal/Readiness/Approval WorkbenchReview cutover: ReviewVerdict/ReviewSections/Facts/ResourceList + DocumentChangeView; required-input; current/stale/task detail |
 | IA32 | `SURF-STEP-EXEC-001`, `SURF-MAT-EXEC-TASK-001` | Implementation MasterDetail/Section/Facts/ResourceList; current-vs-historical selection; blocker/action/validation |
 | IA33 | `SURF-STEP-COMPLETE-001`, `SURF-MAT-EVIDENCE-001` | Complete WorkbenchResult/Section/ResourceList; linked remediation; candidate/non-candidate terminal states; Evidence |
 | IA34 | `SURF-SET-001`, `SURF-SET-REPO-001`, `SURF-SET-REPO-ADD-001`, `SURF-SET-REPO-MOVE-001`, `SURF-SET-OC-001`, `SURF-SET-OC-RENAME-001`, `SURF-SET-OC-ADD-001`, `SURF-SET-OC-LOGIN-001`, `SURF-SET-MODEL-001`, `SURF-CONF-REPO-DISCONNECT-001`, `SURF-CONF-OC-REMOVE-001` | Settings repository/account/model readiness and active tasks; login terminal states; destructive confirmations |
 
-The IA27-IA34 union is exactly **37 unique SURF rows** with no duplicate or unowned row. Each phase records independent `schema_information`, `ux_interaction`, and `visual_ui` verdicts; component ownership/SoC is additionally proven by the phase where it is exercised and globally by IA20/IA26. IA27 rows are foundation-readiness evidence; IA28 additionally records the first foundation-realization verdict. No prior phase PASS is inherited.
+The IA27-IA34 union remains exactly **37 unique SURF rows** with no duplicate or unowned row. Each phase records independent `schema_information`, `ux_interaction`, and `visual_ui` verdicts. The bounded IA27/IA28 evidence accepts only the shell/Context foundation slice it exercises. Later component cutovers are independently accepted at their owning phase and globally rechecked by IA20/IA26.
 
-## IA28 — freshly revalidate Queue and Create and accept the foundation in real consumers
+## IA28 — freshly revalidate Queue and Create and accept the bounded shell/Context foundation slice
 
 **Solution:** SD22.  
 **Owners:** `ui/src/OpenCodeAccountControl.tsx`, `ui/src/WorkItemQueue.tsx`, `ui/src/CreateWorkItem.tsx`.  
 **Disposition:** `CONFORMING_NO_EDIT` is permitted only after a fresh source + rendered audit against corrected P4/SD21/SD22; any exact consumer migration required by the new foundation is `BOUNDED_RESIDUAL`. No prior RZ16 PASS is inherited.  
-**Required action:** consume the IA27 candidate, prove Queue remains attention-free Operational scan, Create remains TaskPanel→Form, active-account utility remains navigation to the single Settings owner, and no local section/facts/resource grammar has appeared. Correct only a proven IA28-local residual; recurring-component defects return to IA27/DESIGN.  
-**Proof:** `SURF-APP-001`, `SURF-QUEUE-001`, `SURF-CREATE-001` plus IA27 shell/Context evidence independently PASS schema/information, UX/interaction, visual/UI, component-ownership and foundation-realization checks. IA29 is blocked until this fresh acceptance passes.
+**Required action:** consume the bounded IA27 shell/Context candidate, prove Queue remains attention-free Operational scan, Create remains TaskPanel→Form, active-account utility remains navigation to the single Settings owner, and no local section/facts grammar has appeared. Correct only a proven IA28-local residual; a recurring shell/Context defect returns to bounded IA27/DESIGN. ResourceList/Review/Document/Result are outside this pre-signoff checkpoint.  
+**Proof:** `SURF-APP-001`, `SURF-QUEUE-001`, `SURF-CREATE-001` plus IA27 shell/Context evidence independently PASS schema/information, UX/interaction, visual/UI, component-ownership and bounded-foundation-realization checks. The bounded grant then stops. IA29 remains blocked until normal explicit sign-off and post-signoff IA27 ResourceList/ResourceRow completion.
 
 ## IA29 — reconstruct Work request and governed Document composition
 
 **Solution:** SD23.  
 **Owner dispositions:** `DocumentWorkspace.tsx` = `DECOMPOSE_REFACTOR`; `MarkdownEditor.tsx` = `DECOMPOSE_REFACTOR` at its outer composition/API boundary while preserving its specialist editing mechanics.  
-**Required mutation:** migrate Work request/editable/read-only material to one `WorkbenchDocument`. Move repository path, WorkItem document directory and compact Git state into DESIGN-authorized `WorkbenchFacts`; remove local `WorkRequestFacts`/aside/`dl` layout ownership and any generic workflow chrome. Remove MarkdownEditor structural props that exist only to host feature-owned document layout; retain one compact editor-control region and direct control→canvas adjacency. Technical identity remains Context-owned.  
+**Required mutation:** create `WorkbenchDocument` and atomically migrate its complete Work request/editable/read-only consumer set to that one canonical Document composition. Move repository path, WorkItem document directory and compact Git state into DESIGN-authorized `WorkbenchFacts`; remove local `WorkRequestFacts`/aside/`dl` layout ownership and any generic workflow chrome. Remove MarkdownEditor structural props that exist only to host feature-owned document layout; retain one compact editor-control region and direct control→canvas adjacency. Technical identity remains Context-owned.  
 **Proof:** all IA29 SURF rows PASS wide/narrow; required supporting facts are visible; no local document/facts grammar, duplicate heading, raw internal enum/technical identity or generic frame/selector remains; Context and Git consent paths remain exact.
 
-## IA30 — reconstruct productive stages and Proposal Review
+## IA30 — reconstruct productive stages excluding Proposal Review
 
 **Solution:** SD24.  
-**Owner dispositions:** `ProposalReview.tsx` = `DESTRUCTIVE_REPLACEMENT` presentation; new `ui/src/DocumentChangeView.tsx` = `REQUIRED_NEW`; `PreSignoffStageWorkspace.tsx` and `RunEventTimeline.tsx` = `DECOMPOSE_REFACTOR` where they own recurring resource/section grammar; `ActivityWorkspace.tsx`/`ActivityComposer.tsx` = fresh `CONFORMING_NO_EDIT` or bounded migration only after P4 audit.  
-**Required mutation:** route each canonical state directly to WorkbenchDocument/Dialogue/Review/Evidence/State. Build Proposal Review from ReviewVerdict + named ReviewSections; render the proposed governed document through `DocumentChangeView` with changed regions marked in context; keep canonical unified diff as secondary exact inspection only. Derive the presentation ephemerally from current target bytes + existing proposal diff—no DTO/view-model/persisted second proposal. Repeated timeline/evidence resources use ResourceList.  
-**Proof:** all IA30 SURF rows PASS; no generic frame/selector/local review grammar; Proposal's dominant mutation surface is the in-context proposed document rather than raw diff; continuous Dialogue behavior and Context/Evidence inspection remain correct.
+**Owner dispositions:** `PreSignoffStageWorkspace.tsx` and `RunEventTimeline.tsx` = `DECOMPOSE_REFACTOR` where they own recurring section/timeline grammar; `ActivityWorkspace.tsx`/`ActivityComposer.tsx` = fresh `CONFORMING_NO_EDIT` or bounded migration only after P4 audit. Proposal Review is deliberately excluded until IA31 so WorkbenchReview can cut over with its complete consumer set.  
+**Required mutation:** route non-Proposal canonical productive-stage states directly to WorkbenchDocument/Dialogue/Evidence/State. Consume the post-signoff ResourceList cutover where repeated resources occur. Preserve Proposal selection/routing but do not change `ProposalReview.tsx` or WorkbenchReview in this phase.  
+**Proof:** all IA30-owned SURF rows PASS; no generic frame/selector or local recurring section/resource grammar in those rows; continuous Dialogue behavior and Context/Evidence inspection remain correct; Proposal Review is unchanged and explicitly unaccepted until IA31.
 
 ## IA31 — destructively rebuild Readiness and Approval Review composition
 
 **Solution:** SD25 plus IA16/IA17 semantic inputs.  
-**Owners:** `ReadinessWorkspace.tsx`, `SignoffReview.tsx` = `DESTRUCTIVE_REPLACEMENT` of presentation composition; domain/query/mutation semantics are reused only where independently conforming.  
-**Required mutation:** use exactly one WorkbenchReview, one ReviewVerdict and DESIGN-declared ReviewSections. Findings/return owner, package material and evidence/history use named sections; structured facts use Facts; repeated resources use ResourceList. Remove all `order-review-*` local structural/card/grid systems once migrated. Required-input Dialogue replaces Review for that turn. Approval uses the same Review anatomy and keeps sign-off decision primary; technical identities remain Context-owned.  
-**Proof:** ready/return/required-input and Approval current/stale/sign-off matrices PASS with one verdict, canonical sections/facts/resources, no whole-R3-under-findings duplication, local review grammar, raw enum, generic selector or technical leakage.
+**Owners:** `ProposalReview.tsx`, `ReadinessWorkspace.tsx`, `SignoffReview.tsx` = `DESTRUCTIVE_REPLACEMENT` of Review presentation composition; new `WorkbenchReviewVerdict.tsx`, `WorkbenchReviewSection.tsx` and `DocumentChangeView.tsx` = `REQUIRED_NEW`; existing `WorkbenchReview.tsx` = `DESTRUCTIVE_REPLACEMENT`. Domain/query/mutation semantics are reused only where independently conforming.  
+**Required mutation:** in one compile-atomic change set, create ReviewVerdict/ReviewSection/DocumentChangeView, destructively replace WorkbenchReview with its closed P4 API, and migrate **all three** current WorkbenchReview consumers. Proposal Review renders the proposed governed document through DocumentChangeView with changed regions marked in context and keeps canonical unified diff secondary; no duplicate proposal state/model. Readiness and Approval use exactly one WorkbenchReview, one ReviewVerdict and DESIGN-declared ReviewSections. Findings/return owner, package material and evidence/history use named sections; structured facts use Facts; repeated resources use ResourceList. Remove all `order-review-*` local structural/card/grid systems once migrated. Required-input Dialogue replaces Review for that turn. Approval uses the same Review anatomy and keeps sign-off decision primary; technical identities remain Context-owned.  
+**Proof:** Proposal mutation review plus ready/return/required-input and Approval current/stale/sign-off matrices PASS with one verdict, canonical sections/facts/resources, in-context DocumentChangeView, no raw-diff-dominant Proposal surface, whole-R3-under-findings duplication, local review grammar, raw enum, generic selector or technical leakage. Typecheck proves no old WorkbenchReview consumer remains.
 
 ## IA32 — destructively rebuild Implementation on canonical semantic components
 
@@ -314,7 +313,7 @@ The IA27-IA34 union is exactly **37 unique SURF rows** with no duplicate or unow
 
 **Solution:** SD27 plus IA19 product-language projection.  
 **Owner dispositions:** `TerminalResult.tsx` = `DESTRUCTIVE_REPLACEMENT`; `EvidenceViewer.tsx` = fresh audit then `BOUNDED_RESIDUAL` only if required; WorkItem Context foundation migration is IA27-owned and consumed here.  
-**Required mutation:** Complete becomes one attention-free Surface containing one WorkbenchResult: canonical product-facing status/outcome, ordered Sections, ResourceList for repeated resources, permitted result action. Remove local terminal section/resource/status grammar and generic container-taxonomy headings. Evidence remains the one exact-byte primary surface and replaces rather than nests.  
+**Required mutation:** create `WorkbenchResult` and atomically migrate `TerminalResult` so Complete becomes one attention-free Surface containing one WorkbenchResult: canonical product-facing status/outcome, ordered Sections, ResourceList for repeated resources, permitted result action. Remove local terminal section/resource/status grammar and generic container-taxonomy headings. Evidence remains the one exact-byte primary surface and replaces rather than nests.  
 **Proof:** candidate/non-candidate/linked-remediation + Evidence rows PASS; no synthetic attention, duplicated outcome, local result/resource grammar, internal enum/event identity or nested primary Surface.
 
 ## IA34 — destructively rebuild Settings/account/configuration presentation
