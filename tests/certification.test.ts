@@ -1172,7 +1172,10 @@ describe("Order cross-boundary certification", () => {
     expect(workspace).not.toContain("mutationConflict: false");
     expect(workspace).toContain("api.isCurrentStateConflict(error)");
     expect(workspace).toContain('currentAttention === "MUTATION_CONFLICT"');
-    expect(workspace).toContain('case "MUTATION_CONFLICT": return "error" as const;');
+    expect(workspace).toMatch(
+      /currentAttention === "MUTATION_CONFLICT"[\s\S]*title: "Workflow state changed during the action"/,
+    );
+    expect(workspace).not.toContain('case "MUTATION_CONFLICT": return "error" as const;');
     expect(workspace).toContain("mutationConflictWorkItemUpdatedAt");
     expect(workspace).toContain("selectedWorkItemUpdatedAt !== mutationConflictWorkItemUpdatedAt.current");
     expect(workspace).toContain("currentObservationError === null");
