@@ -26,6 +26,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Fixed
 
+- Reopen IA27/IA28 after bounded rendered evidence proves the application-global header still uses the superseded UX/UI renderer: require destructive re-authorship of the AppShell/Toolbar/header selector realization from current authority, add a read-only 37-surface plus active-state diagnostic corpus before fresh production authorization, invalidate the superseded RZ14 grant, and keep IA29+ blocked until renewed PLAN/alignment closure and exact-package authorization.
+
 - Reopen the bounded IA27/IA28 grant when exact-head browser evidence disproves a no-edit shell assumption: reclassify WorkItem edit-mode action precedence as a bounded residual, correct stale/racy browser verification without weakening later-phase failures, and require fresh G5/G5A plus a new exact-package authorization before production mutation.
 
 - Correct stale 0.6.0 readiness/campaign sequencing after the post-IA26 Workbench authority correction: invalidate the superseded READY_FOR_SIGNOFF package, return current R3 to R2/G3, preserve G3→G5A revalidation before any new realization, and make the sole pre-sign-off exception the exact-package bounded IA27 foundation reconstruction → IA28 first-consumer acceptance tranche that stops before IA29 and feeds fresh R3/G6.
