@@ -25,10 +25,12 @@ Package atoms in phase: **2**.
 
 ## Referenced actions
 
+Action mutation/disposition semantics are owned only by `12-action-catalog.md`; the bullets below are dependency/traceability references, not alternate IA definitions.
+
 - **IA16** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA05** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
-- **IA30** — consume the direct Implementation-plan Document/Dialogue/Proposal composition; no generic workflow summary/material selector.
-- **IA31** — consume fresh Readiness/Approval direct Review reconstruction, including non-duplicated R3 verdict/findings and required-input Dialogue replacement.
+- **IA30** — consume the single IA30 definition in `12-action-catalog.md`.
+- **IA31** — consume the single IA31 definition in `12-action-catalog.md`.
 
 ## Completion proof
 
