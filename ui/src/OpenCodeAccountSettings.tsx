@@ -253,6 +253,7 @@ export const OpenCodeAccountSettings = () => {
         className="order-settings-pane"
         data-testid="settings-opencode"
       >
+        <div data-testid="rename-opencode-account">
         <WorkbenchSectionHeader
           title="Rename OpenCode account"
           description={"Rename " + renaming.label + "."}
@@ -308,6 +309,7 @@ export const OpenCodeAccountSettings = () => {
             ) : undefined
           }
         />
+        </div>
       </section>
     );
   }
@@ -379,7 +381,7 @@ export const OpenCodeAccountSettings = () => {
       >
         <div
           className="order-settings-login-task"
-          data-testid="add-opencode-account"
+          data-testid="opencode-login-attempt"
         >
           <WorkbenchSectionHeader
             title="OpenCode sign-in"
