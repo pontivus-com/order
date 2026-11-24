@@ -144,8 +144,8 @@ describe("Order cross-boundary certification", () => {
     expect(applicationShell).not.toContain('data-testid="source-diagnostics"');
     expect(applicationShell).not.toContain('className="order-queue-commandbar"');
     const context = read("ui/src/WorkItemContext.tsx");
-    expect(context).toContain('label="WorkItem id"');
-    expect(context).toContain("{workItem.id}");
+    expect(context).toContain('label:"WorkItem id"');
+    expect(context).toContain("value:<code>{workItem.id}</code>");
 
     const terminal = read("ui/src/TerminalResult.tsx");
     expect(terminal).toContain('data-testid="final-governed-outcome"');
@@ -968,9 +968,9 @@ describe("Order cross-boundary certification", () => {
     expect(documentWorkspace).not.toContain("artifact.authorityLayer");
 
     const workItemContext = read("ui/src/WorkItemContext.tsx");
-    expect(workItemContext).toContain('label="Artifact id"');
-    expect(workItemContext).toContain('label="Authority layer"');
-    expect(workItemContext).toContain('label="Git commit"');
+    expect(workItemContext).toContain('label:"Artifact id"');
+    expect(workItemContext).toContain('label:"Authority layer"');
+    expect(workItemContext).toContain('label:"Git commit"');
 
     const markdownEditor = read("ui/src/MarkdownEditor.tsx");
     expect(markdownEditor).toContain("WorkbenchSectionHeader");
