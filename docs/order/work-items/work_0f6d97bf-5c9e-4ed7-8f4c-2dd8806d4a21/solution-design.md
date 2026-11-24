@@ -1386,8 +1386,9 @@ The presentation path is reconstructed in dependency order:
 canonical browser/domain/query facts
  -> SD21 purge old design-bearing Workbench foundation
  -> SD21 fresh WorkbenchAppShell + WorkbenchWorkItemShell + shared responsive owner + reconstructed composition primitives
- -> SD21 foundation acceptance gate
+ -> SD21 foundation-readiness gate
  -> SD22 application shell/Queue/Create services
+ -> IA28 first real-consumer acceptance and foundation freeze
  -> SD23 WorkItem shell + Work request/document
  -> SD24 Research/Requirements/Design/Plan shared productive-stage grammar
  -> SD25 Readiness/Approval review grammar
@@ -1453,13 +1454,14 @@ P3 information hierarchy + this DESIGN's 37-SURF contract
     Selector only for explicitly authorized true-selection consumers / TaskPanel / Table / Timeline / ResourceRow / SectionHeader
  -> prove visual-language realization across representative services:
       same semantic role -> same primitive + token/variant + hierarchy/inspection behavior
- -> foundation architecture + theme + accessibility + responsive + rendered acceptance
- -> freeze accepted foundation for IA28-IA34 consumption
+ -> foundation architecture + theme + accessibility + responsive + foundation-readiness proof
+ -> IA28 real-consumer acceptance through SD22 application-shell/Queue/Create
+ -> freeze accepted foundation for IA29-IA34 consumption
 ```
 
 This is one ordered implementation phase inside the single signed 0.6.0 task. Historical whole-foundation purge records are provenance only and are not replayed mechanically. IA27 first classifies every current design-bearing owner from the closed ledger, then deletes required-absent generic workflow owners, destructively recreates materially divergent APIs/topologies, leaves independently conforming owners unchanged, and applies only strictly local bounded residual corrections. No compatibility facade, alias, old-to-new translator, hidden legacy path, CSS shim or temporary second shell is permitted. The existing primitive directory, class names, DOM hierarchy, component APIs, structural CSS and implementation-specific tests are evidence only. Current implementation may satisfy a ledger row only when current P3/P4/theme authority and, where applicable, the reviewed derived reference independently require that result.
 
-After IA27 acceptance, IA28-IA34 may compose classified SURF content only through the accepted foundation. They may not introduce a recurring color/token, typography/spacing/density scale, button/action treatment, status/notice treatment, disclosure lane, overlay mechanic, hierarchy convention, shell/region geometry or breakpoint/responsive grammar. A screen that appears to need such a new recurring concern has discovered a foundation/DESIGN defect and returns to IA27/DESIGN rather than solving it locally.
+After IA28 acceptance, IA29-IA34 may compose classified SURF content only through the accepted/frozen foundation. IA28 itself consumes the IA27 foundation candidate before freeze and is the acceptance boundary. They may not introduce a recurring color/token, typography/spacing/density scale, button/action treatment, status/notice treatment, disclosure lane, overlay mechanic, hierarchy convention, shell/region geometry or breakpoint/responsive grammar. A screen that appears to need such a new recurring concern has discovered a foundation/DESIGN defect and returns to IA27/DESIGN rather than solving it locally.
 
 ### F7 — productive installer closure (SD19)
 
