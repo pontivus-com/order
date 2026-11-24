@@ -152,7 +152,17 @@ export const WorkItemWorkspace = ({
     queryKey: workbenchQueryKeys.lifecycleArtifacts(workItem.id),
     queryFn: () => api.listLifecycleArtifacts(workItem.id),
   });
+  const historicalPreSignoffSelected =
+    selectedStep !== workItem.stage &&
+    (
+      selectedStep === "R1" ||
+      selectedStep === "R2" ||
+      selectedStep === "DESIGN" ||
+      selectedStep === "PLAN" ||
+      selectedStep === "R3"
+    );
   const historicalArtifactsRequired =
+    historicalPreSignoffSelected ||
     selectedStep === "AWAITING_SIGNOFF" ||
     workItem.stage === "AWAITING_SIGNOFF" ||
     selectedStep === "EXECUTION" ||
@@ -267,6 +277,13 @@ export const WorkItemWorkspace = ({
 
   const artifacts = artifactsQuery.data ?? [];
   const allArtifacts = allArtifactsQuery.data ?? [];
+  const currentArtifactIds = new Set(artifacts.map((artifact) => artifact.id));
+  const inspectionArtifacts = historicalArtifactsRequired
+    ? [
+        ...artifacts,
+        ...allArtifacts.filter((artifact) => !currentArtifactIds.has(artifact.id)),
+      ]
+    : artifacts;
   const tasks = tasksQuery.data ?? [];
   const currentExecutionTasks =
     workItem.stage === "EXECUTION" ? tasks : [];
@@ -370,7 +387,7 @@ export const WorkItemWorkspace = ({
     selectedStep === "DESIGN" ||
     selectedStep === "PLAN" ||
     selectedStep === "R3"
-      ? artifacts.find((artifact) => artifact.role === selectedStep) ?? null
+      ? inspectionArtifacts.find((artifact) => artifact.role === selectedStep) ?? null
       : null;
 
   const sourceDiagnostics = (diagnosticsQuery.data ?? []).filter(
@@ -460,7 +477,7 @@ export const WorkItemWorkspace = ({
     sourceQuery.data === undefined ||
     diagnosticsQuery.data === undefined ||
     (
-      (workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE") &&
+      historicalArtifactsRequired &&
       allArtifactsQuery.data === undefined
     ) ||
     currentExecutionTasksFetching ||
@@ -481,9 +498,10 @@ export const WorkItemWorkspace = ({
     currentExecutionEventsError ??
     (
       workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE"
-        ? tasksQuery.error ?? allArtifactsQuery.error
+        ? tasksQuery.error
         : null
     ) ??
+    (historicalArtifactsRequired ? allArtifactsQuery.error : null) ??
     (
       workItem.stage === "AWAITING_SIGNOFF" && packageStaleOwner === null
         ? signoffPackageQuery.error
@@ -527,7 +545,7 @@ export const WorkItemWorkspace = ({
     selectedStep,
     reachedStages,
     runs,
-    artifacts,
+    artifacts: inspectionArtifacts,
     currentStageRunId: currentStageRun?.id ?? null,
     currentStageRunActive: currentStageRun !== null && runIsActive(currentStageRun),
     currentAttention,
@@ -1260,7 +1278,7 @@ export const WorkItemWorkspace = ({
             stage={sharedPreSignoffStage}
             runs={runs}
             runEvents={allRunEvents}
-            artifacts={artifacts}
+            artifacts={inspectionArtifacts}
             material={material}
             materialState={selectedStageMaterialState}
             documentAttention={currentInteractionAttention}
@@ -1296,7 +1314,7 @@ export const WorkItemWorkspace = ({
             workItem={workItem}
             runs={runs}
             runEvents={allRunEvents}
-            artifacts={artifacts}
+            artifacts={inspectionArtifacts}
             material={material}
             materialState={selectedStageMaterialState}
             reviewNotice={currentReviewNotice}
