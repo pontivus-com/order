@@ -937,7 +937,16 @@ For a destructive replacement or required-absent owner:
 - a new recurring semantic slot/consumer requires DESIGN/P4 authority before implementation;
 - if no current authorized consumer remains for a primitive after migration, the primitive is deleted rather than retained speculatively.
 
-A design-bearing owner may be classified as a bounded residual only when its owner, responsibility, topology, interaction model and public semantic API already conform and the remaining delta is strictly local (for example accessibility wiring or a bounded token/geometry defect). Any mismatch in ownership, topology, interaction grammar, semantic slots or API freedom requires destructive replacement or required absence.
+A design-bearing owner is dispositioned by current DESIGN/P7 evidence, never by file age or LOC:
+
+- `CONFORMING_NO_EDIT` when responsibility, API, topology and physical cohesion already conform;
+- `BOUNDED_RESIDUAL` only when the owner/API/topology already conform and the remaining defect is strictly local (for example accessibility wiring or a bounded token/geometry defect);
+- `DECOMPOSE_REFACTOR` when the semantic responsibility remains valid but multiple independently testable presentation responsibilities have accumulated in one production owner and must be split into the canonical same-layer components without preserving a catch-all API;
+- `DESTRUCTIVE_REPLACEMENT` when ownership, topology, interaction grammar, semantic slots or public API freedom materially contradict this authority; the old implementation is purged before fresh authorship;
+- `REQUIRED_NEW` for a canonical responsibility with an authorized current consumer and no conforming production owner;
+- `REQUIRED_ABSENT` when a responsibility/API is forbidden or has no authorized current consumer.
+
+A refactor/decomposition may reuse conforming leaf logic, but may not preserve a superseded structural API through aliases, wrappers or compatibility props.
 
 Permanent architecture fitness must enforce both primitive API shape and the allowed production-consumer set. Unauthorized imports/usages are architecture failures.
 ### 8.12.1 Astryx foundation-conformance law
