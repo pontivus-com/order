@@ -1,11 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
-import { MetadataList, MetadataListItem } from "@astryxdesign/core/MetadataList";
 import type { Sha256, WorkItem } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
 import { workbenchQueryKeys } from "./query-keys.ts";
-import { runRoleLabel, runStatusLabel, workflowMaterialLabel, workflowMaterialRunId, workflowPresentation, type WorkflowMaterial } from "./workbench-presentation.ts";
+import {
+  runRoleLabel,
+  runStatusLabel,
+  workflowMaterialLabel,
+  workflowMaterialRunId,
+  workflowPresentation,
+  type WorkflowMaterial,
+} from "./workbench-presentation.ts";
 import { WorkbenchContextPanel } from "./primitives/WorkbenchContextPanel.tsx";
+import { WorkbenchFacts } from "./primitives/WorkbenchFacts.tsx";
 import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
+import { WorkbenchSection } from "./primitives/WorkbenchSection.tsx";
 import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
 
 export const WorkItemContext=({workItem,selectedStep,selectedMaterial,selectedDocumentPath,selectedDocumentSha256,onClose}:Readonly<{
@@ -56,86 +64,141 @@ export const WorkItemContext=({workItem,selectedStep,selectedMaterial,selectedDo
     ?signoffPackageQuery.data??null
     :null;
   const selectedDocumentIsRelevant=material.kind==="SOURCE_DOCUMENT"||material.kind==="STAGE_DOCUMENT"||material.kind==="SUPPORTING_DOCUMENT"||step==="AWAITING_SIGNOFF";
-  return <WorkbenchContextPanel title="Technical context" onClose={onClose}>
-    <div data-testid="selected-view-context">
-      <WorkbenchStatus tone="info" label={workflowPresentation(step).label+" · "+workflowMaterialLabel(material)}/>
-      {selectedDocumentIsRelevant&&selectedDocumentPath?<MetadataList columns="single">
-        <MetadataListItem label="Selected document"><code>{selectedDocumentPath}</code></MetadataListItem>
-        <MetadataListItem label="Exact SHA"><code>{selectedDocumentSha256??"Resolving…"}</code></MetadataListItem>
-        {selectedDocumentArtifact===null?null:<>
-          <MetadataListItem label="Artifact id"><code>{selectedDocumentArtifact.id}</code></MetadataListItem>
-          <MetadataListItem label="Authority layer"><code>{selectedDocumentArtifact.authorityLayer??"—"}</code></MetadataListItem>
-          <MetadataListItem label="Git commit"><code>{selectedDocumentArtifact.gitCommit??"—"}</code></MetadataListItem>
-        </>}
-      </MetadataList>:null}
-      {selectedRun?<MetadataList columns="single">
-        <MetadataListItem label="Selected Run"><code>{selectedRun.id}</code></MetadataListItem>
-        <MetadataListItem label="Role">{runRoleLabel(selectedRun.role)}</MetadataListItem>
-        <MetadataListItem label="Status"><WorkbenchStatus tone={selectedRun.status==="FAILED"||selectedRun.status==="BLOCKED"?"danger":selectedRun.status==="WAITING_FOR_INPUT"?"warning":selectedRun.status==="COMPLETED"?"success":"info"} label={runStatusLabel(selectedRun.status)}/></MetadataListItem>
-        <MetadataListItem label="Attempt">{selectedRun.attempt}</MetadataListItem>
-        <MetadataListItem label="Started">{new Date(selectedRun.startedAt).toLocaleString()}</MetadataListItem>
-        <MetadataListItem label="Ended">{selectedRun.endedAt===null?"—":new Date(selectedRun.endedAt).toLocaleString()}</MetadataListItem>
-        <MetadataListItem label="Baseline"><code>{selectedRun.baselineCommit}</code></MetadataListItem>
-        <MetadataListItem label="Context hash"><code>{selectedRun.contextHash}</code></MetadataListItem>
-        <MetadataListItem label="Provider session"><code>{selectedRun.providerSessionId??"—"}</code></MetadataListItem>
-        <MetadataListItem label="Terminal classification"><code>{selectedRun.terminalClassification??"—"}</code></MetadataListItem>
-      </MetadataList>:null}
-      {diagnostics.length>0?<WorkbenchNotice tone="warning" title="Source requires attention" description={diagnostics.length+" source issue"+(diagnostics.length===1?"":"s")+" require attention"}/>:null}
-    </div>
-    <section className="order-workbench-context-group" aria-label="WorkItem identity">
-      <h3>WorkItem identity</h3>
-      <MetadataList columns="single">
-        <MetadataListItem label="WorkItem id"><code>{workItem.id}</code></MetadataListItem>
-        <MetadataListItem label="Canonical stage"><code>{workItem.stage}</code></MetadataListItem>
-        <MetadataListItem label="Status"><code>{workItem.status}</code></MetadataListItem>
-        <MetadataListItem label="Outcome"><code>{workItem.outcome??"—"}</code></MetadataListItem>
-        <MetadataListItem label="Project">{workItem.projectId}</MetadataListItem>
-        <MetadataListItem label="Kind">{kind}</MetadataListItem>
-        <MetadataListItem label="Schema"><code>{workItem.schemaId}</code></MetadataListItem>
-        <MetadataListItem label="Concerns">{workItem.concernIds.join(", ")||"—"}</MetadataListItem>
-      </MetadataList>
-    </section>
-    {material.kind==="PROPOSAL"?<section className="order-workbench-context-group" aria-label="Selected proposal identity">
-      <h3>Selected proposal identity</h3>
-      <MetadataList columns="single">
-        <MetadataListItem label="Run id"><code>{material.runId}</code></MetadataListItem>
-        <MetadataListItem label="Proposal event id"><code>{material.eventId}</code></MetadataListItem>
-        {selectedProposalEvent?.event.tag==="ARTIFACT_PROPOSAL_CREATED"?<>
-          <MetadataListItem label="Target path"><code>{selectedProposalEvent.event.targetPath}</code></MetadataListItem>
-          <MetadataListItem label="Base SHA"><code>{selectedProposalEvent.event.baseSha256??"—"}</code></MetadataListItem>
-          <MetadataListItem label="Authority layer"><code>{selectedProposalEvent.event.authorityLayer}</code></MetadataListItem>
-        </>:null}
-      </MetadataList>
-    </section>:null}
-    {material.kind==="APPROVAL_PACKAGE"&&selectedPackage!==null?<section className="order-workbench-context-group" aria-label="Selected approval package identity">
-      <h3>Selected approval package identity</h3>
-      <MetadataList columns="single">
-        <MetadataListItem label="Package hash"><code data-testid="context-signoff-package-hash">{selectedPackage.packageHash}</code></MetadataListItem>
-        <MetadataListItem label="Source SHA"><code>{selectedPackage.sourceSha256}</code></MetadataListItem>
-        <MetadataListItem label="Baseline"><code>{selectedPackage.baselineCommit}</code></MetadataListItem>
-      </MetadataList>
-    </section>:null}
-    {material.kind==="EXECUTION_TASK"?<section className="order-workbench-context-group" aria-label="Selected execution identity">
-      <h3>Selected execution identity</h3>
-      <MetadataList columns="single">
-        <MetadataListItem label="Execution task id"><code>{material.taskId}</code></MetadataListItem>
-        {selectedTask===null?null:<>
-          <MetadataListItem label="Plan task id"><code>{selectedTask.planTaskId}</code></MetadataListItem>
-          <MetadataListItem label="Approval id"><code>{selectedTask.approvalId}</code></MetadataListItem>
-        </>}
-        {material.runId===null?null:<MetadataListItem label="Selected Run id"><code>{material.runId}</code></MetadataListItem>}
-      </MetadataList>
-    </section>:null}
-    {material.kind==="EVIDENCE"?<section className="order-workbench-context-group" aria-label="Selected evidence identity">
-      <h3>Selected evidence identity</h3>
-      <MetadataList columns="single">
-        {material.selection.kind==="ARTIFACT"
-          ? <MetadataListItem label="Artifact id"><code>{material.selection.artifactId}</code></MetadataListItem>
-          : <>
-              <MetadataListItem label="Run id"><code>{material.selection.runId}</code></MetadataListItem>
-              <MetadataListItem label="Evidence path"><code>{material.selection.relativePath}</code></MetadataListItem>
-            </>}
-      </MetadataList>
-    </section>:null}
-  </WorkbenchContextPanel>;
+
+  const sections = [
+    <WorkbenchSection
+      key="selected-view"
+      title="Selected view"
+      content={
+        <div data-testid="selected-view-context" className="order-workbench-context-selected">
+          <WorkbenchStatus tone="info" label={workflowPresentation(step).label+" · "+workflowMaterialLabel(material)}/>
+          {selectedDocumentIsRelevant&&selectedDocumentPath?(
+            <WorkbenchFacts
+              label="Selected document identity"
+              items={[
+                {id:"selected-document",label:"Selected document",value:<code>{selectedDocumentPath}</code>,emphasis:"strong"},
+                {id:"selected-document-sha",label:"Exact SHA",value:<code>{selectedDocumentSha256??"Resolving…"}</code>},
+                ...(selectedDocumentArtifact===null?[]:[
+                  {id:"artifact-id",label:"Artifact id",value:<code>{selectedDocumentArtifact.id}</code>},
+                  {id:"artifact-authority",label:"Authority layer",value:<code>{selectedDocumentArtifact.authorityLayer??"—"}</code>},
+                  {id:"artifact-commit",label:"Git commit",value:<code>{selectedDocumentArtifact.gitCommit??"—"}</code>},
+                ]),
+              ]}
+            />
+          ):null}
+          {selectedRun?(
+            <WorkbenchFacts
+              label="Selected Run identity"
+              items={[
+                {id:"run-id",label:"Selected Run",value:<code>{selectedRun.id}</code>,emphasis:"strong"},
+                {id:"run-role",label:"Role",value:runRoleLabel(selectedRun.role)},
+                {id:"run-status",label:"Status",value:<WorkbenchStatus tone={selectedRun.status==="FAILED"||selectedRun.status==="BLOCKED"?"danger":selectedRun.status==="WAITING_FOR_INPUT"?"warning":selectedRun.status==="COMPLETED"?"success":"info"} label={runStatusLabel(selectedRun.status)}/>},
+                {id:"run-attempt",label:"Attempt",value:selectedRun.attempt},
+                {id:"run-started",label:"Started",value:new Date(selectedRun.startedAt).toLocaleString()},
+                {id:"run-ended",label:"Ended",value:selectedRun.endedAt===null?"—":new Date(selectedRun.endedAt).toLocaleString()},
+                {id:"run-baseline",label:"Baseline",value:<code>{selectedRun.baselineCommit}</code>},
+                {id:"run-context",label:"Context hash",value:<code>{selectedRun.contextHash}</code>},
+                {id:"run-provider",label:"Provider session",value:<code>{selectedRun.providerSessionId??"—"}</code>},
+                {id:"run-terminal",label:"Terminal classification",value:<code>{selectedRun.terminalClassification??"—"}</code>},
+              ]}
+            />
+          ):null}
+          {diagnostics.length>0?<WorkbenchNotice tone="warning" title="Source requires attention" description={diagnostics.length+" source issue"+(diagnostics.length===1?"":"s")+" require attention"}/>:null}
+        </div>
+      }
+    />,
+    <WorkbenchSection
+      key="workitem-identity"
+      title="WorkItem identity"
+      content={
+        <WorkbenchFacts
+          label="WorkItem identity"
+          items={[
+            {id:"workitem-id",label:"WorkItem id",value:<code>{workItem.id}</code>,emphasis:"strong"},
+            {id:"workitem-stage",label:"Canonical stage",value:<code>{workItem.stage}</code>},
+            {id:"workitem-status",label:"Status",value:<code>{workItem.status}</code>},
+            {id:"workitem-outcome",label:"Outcome",value:<code>{workItem.outcome??"—"}</code>},
+            {id:"workitem-project",label:"Project",value:workItem.projectId},
+            {id:"workitem-kind",label:"Kind",value:kind},
+            {id:"workitem-schema",label:"Schema",value:<code>{workItem.schemaId}</code>},
+            {id:"workitem-concerns",label:"Concerns",value:workItem.concernIds.join(", ")||"—"},
+          ]}
+        />
+      }
+    />,
+    ...(material.kind==="PROPOSAL"?[
+      <WorkbenchSection
+        key="proposal-identity"
+        title="Selected proposal identity"
+        content={
+          <WorkbenchFacts
+            label="Selected proposal identity"
+            items={[
+              {id:"proposal-run",label:"Run id",value:<code>{material.runId}</code>},
+              {id:"proposal-event",label:"Proposal event id",value:<code>{material.eventId}</code>},
+              ...(selectedProposalEvent?.event.tag==="ARTIFACT_PROPOSAL_CREATED"?[
+                {id:"proposal-target",label:"Target path",value:<code>{selectedProposalEvent.event.targetPath}</code>,emphasis:"strong" as const},
+                {id:"proposal-base",label:"Base SHA",value:<code>{selectedProposalEvent.event.baseSha256??"—"}</code>},
+                {id:"proposal-authority",label:"Authority layer",value:<code>{selectedProposalEvent.event.authorityLayer}</code>},
+              ]:[]),
+            ]}
+          />
+        }
+      />
+    ]:[]),
+    ...(material.kind==="APPROVAL_PACKAGE"&&selectedPackage!==null?[
+      <WorkbenchSection
+        key="approval-package"
+        title="Selected approval package identity"
+        content={
+          <WorkbenchFacts
+            label="Selected approval package identity"
+            items={[
+              {id:"package-hash",label:"Package hash",value:<code data-testid="context-signoff-package-hash">{selectedPackage.packageHash}</code>,emphasis:"strong"},
+              {id:"package-source",label:"Source SHA",value:<code>{selectedPackage.sourceSha256}</code>},
+              {id:"package-baseline",label:"Baseline",value:<code>{selectedPackage.baselineCommit}</code>},
+            ]}
+          />
+        }
+      />
+    ]:[]),
+    ...(material.kind==="EXECUTION_TASK"?[
+      <WorkbenchSection
+        key="execution-identity"
+        title="Selected execution identity"
+        content={
+          <WorkbenchFacts
+            label="Selected execution identity"
+            items={[
+              {id:"execution-task",label:"Execution task id",value:<code>{material.taskId}</code>,emphasis:"strong"},
+              ...(selectedTask===null?[]:[
+                {id:"plan-task",label:"Plan task id",value:<code>{selectedTask.planTaskId}</code>},
+                {id:"approval-id",label:"Approval id",value:<code>{selectedTask.approvalId}</code>},
+              ]),
+              ...(material.runId===null?[]:[{id:"selected-run",label:"Selected Run id",value:<code>{material.runId}</code>}]),
+            ]}
+          />
+        }
+      />
+    ]:[]),
+    ...(material.kind==="EVIDENCE"?[
+      <WorkbenchSection
+        key="evidence-identity"
+        title="Selected evidence identity"
+        content={
+          <WorkbenchFacts
+            label="Selected evidence identity"
+            items={material.selection.kind==="ARTIFACT"
+              ?[{id:"evidence-artifact",label:"Artifact id",value:<code>{material.selection.artifactId}</code>,emphasis:"strong"}]
+              :[
+                {id:"evidence-run",label:"Run id",value:<code>{material.selection.runId}</code>},
+                {id:"evidence-path",label:"Evidence path",value:<code>{material.selection.relativePath}</code>,emphasis:"strong"},
+              ]}
+          />
+        }
+      />
+    ]:[]),
+  ];
+
+  return <WorkbenchContextPanel title="Technical context" onClose={onClose} sections={sections}/>;
 };
