@@ -1210,6 +1210,11 @@
   flex: 0 0 auto;
 }
 
+/* Keep explicit document Save/Cancel actions fully visible while formatting commands absorb constrained-width overflow. */
+.order-markdown-editor > .order-workbench-toolbar {
+  grid-template-columns: minmax(0, 1fr) max-content;
+}
+
 .order-markdown-editor {
   height: 100%;
   min-height: 0;
