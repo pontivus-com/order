@@ -277,7 +277,83 @@ const rowFor = (page: Page, title: string) =>
     .filter({ has: page.getByText(title, { exact: true }) })
     .first();
 
+const recoveryFixtureEventIds = new Map([
+  ["Workflow retry action", "00000000-0000-4000-8000-000000000001"],
+  ["Workflow resume action", "00000000-0000-4000-8000-000000000002"],
+] as const);
+const recoveryFixtureRoutes = new WeakMap<Page, Set<string>>();
+
+const ensureCanonicalRecoveryFixture = async (
+  page: Page,
+  title: string,
+): Promise<void> => {
+  const syntheticEventId = recoveryFixtureEventIds.get(
+    title as "Workflow retry action" | "Workflow resume action",
+  );
+  if (syntheticEventId === undefined) return;
+
+  const installed = recoveryFixtureRoutes.get(page) ?? new Set<string>();
+  if (installed.has(title)) return;
+
+  const workItemsResponse = await page.context().request.get("/api/work-items");
+  expect(workItemsResponse.status()).toBe(200);
+  const workItems = WorkItemSchema.array().parse(await workItemsResponse.json());
+  const workItem = workItems.find((candidate) => candidate.title === title);
+  expect(workItem).toBeDefined();
+
+  const runsResponse = await page.context().request.get(
+    "/api/work-items/" + workItem!.id + "/runs",
+  );
+  expect(runsResponse.status()).toBe(200);
+  const runs = RunSchema.array().parse(await runsResponse.json());
+  const run = runs.find((candidate) =>
+    candidate.stage === "PLAN" &&
+    (candidate.status === "FAILED" || candidate.status === "BLOCKED")
+  );
+  expect(run).toBeDefined();
+
+  const eventsResponse = await page.context().request.get(
+    "/api/runs/" + run!.id + "/events?afterSequence=0",
+  );
+  expect(eventsResponse.status()).toBe(200);
+  const events = RunEventSchema.array().parse(await eventsResponse.json());
+  const canonicalEvents = events.some((event) => event.event.tag === "STAGE_STARTED")
+    ? events
+    : [
+        RunEventSchema.parse({
+          id: syntheticEventId,
+          runId: run!.id,
+          sequence: 1,
+          occurredAt: run!.startedAt,
+          event: {
+            tag: "STAGE_STARTED",
+            stage: "PLAN",
+            mode: "INTERACTIVE",
+            contextHash: run!.contextHash,
+          },
+        }),
+        ...events.map((event) => RunEventSchema.parse({
+          ...event,
+          sequence: event.sequence + 1,
+        })),
+      ];
+
+  await page.route(
+    "**/api/runs/" + run!.id + "/events*",
+    async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(canonicalEvents),
+      });
+    },
+  );
+  installed.add(title);
+  recoveryFixtureRoutes.set(page, installed);
+};
+
 const openWorkItem = async (page: Page, title: string): Promise<void> => {
+  await ensureCanonicalRecoveryFixture(page, title);
   const row = rowFor(page, title);
   await expect(row).toBeVisible();
   await row.click();
