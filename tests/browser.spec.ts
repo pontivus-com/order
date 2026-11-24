@@ -4768,7 +4768,10 @@ test("workflow mutations lock their owning controls while pending and keep failu
   const implementationDetail = page.getByTestId("execution-task-detail");
   await expect(implementationDetail).toBeVisible();
   await expect(implementationDetail.getByText("Approved implementation task", { exact: true })).toBeVisible();
-  await expect(implementationDetail.getByText("No attempts yet", { exact: true })).toBeVisible();
+  await expect(
+    page.getByTestId("workbench-master-detail-master")
+      .getByText("No attempts yet", { exact: true }),
+  ).toBeVisible();
   await expect(implementationDetail.getByText("Loading attempt timeline…", { exact: true })).toHaveCount(0);
   const signedTaskDetails = implementationDetail.getByRole("button", { name: "Signed task details", exact: true });
   await expect(signedTaskDetails).toBeVisible();
