@@ -19,7 +19,6 @@ import { ReadOnlyLifecycleDocumentMaterial } from "./DocumentWorkspace.tsx";
 import { invalidateWorkbenchMutation } from "./query-keys.ts";
 import { lifecycleArtifactLabel } from "./workbench-presentation.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
-import { WorkbenchDisclosure } from "./primitives/WorkbenchDisclosure.tsx";
 import { WorkbenchReview } from "./primitives/WorkbenchReview.tsx";
 import { WorkbenchResourceRow } from "./primitives/WorkbenchResourceRow.tsx";
 import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
@@ -285,55 +284,56 @@ export const SignoffReview = ({
   const approvalCompleted = !currentApproval && tasks.length > 0;
 
   const packageMaterial = (
-    <WorkbenchDisclosure
-      label="Package material"
-      content={
-        <div className="order-review-approval-resources">
+    <section
+      className="order-review-approval-package-material"
+      aria-label="Package material"
+    >
+      <h3>Package material</h3>
+      <div className="order-review-approval-resources">
+        <WorkbenchResourceRow
+          label="Approval overview"
+          detail={
+            packageStale
+              ? "Stale package history and recovery context"
+              : currentApproval
+                ? "Exact current package and authorization"
+                : "Reached Approval history"
+          }
+          actionLabel="Open approval overview"
+          onOpen={() => setSelection({ kind: "OVERVIEW" })}
+        />
+        {packageArtifacts.map((artifact) => (
           <WorkbenchResourceRow
-            label="Approval overview"
-            detail={
-              packageStale
-                ? "Stale package history and recovery context"
-                : currentApproval
-                  ? "Exact current package and authorization"
-                  : "Reached Approval history"
-            }
-            actionLabel="Open approval overview"
-            onOpen={() => setSelection({ kind: "OVERVIEW" })}
+            key={artifact.id}
+            label={lifecycleArtifactLabel(artifact.role)}
+            detail="Read-only governed package material"
+            actionLabel={"Open " + lifecycleArtifactLabel(artifact.role)}
+            onOpen={() =>
+              setSelection({
+                kind: "DOCUMENT",
+                artifactId: artifact.id,
+              })}
           />
-          {packageArtifacts.map((artifact) => (
-            <WorkbenchResourceRow
-              key={artifact.id}
-              label={lifecycleArtifactLabel(artifact.role)}
-              detail="Read-only governed package material"
-              actionLabel={"Open " + lifecycleArtifactLabel(artifact.role)}
-              onOpen={() =>
-                setSelection({
-                  kind: "DOCUMENT",
-                  artifactId: artifact.id,
-                })}
-            />
-          ))}
-          {(currentApproval ? currentTasks : tasks).map((task) => (
-            <WorkbenchResourceRow
-              key={task.id}
-              label={task.objective}
-              detail={
-                currentApproval
-                  ? "Signed implementation task"
-                  : "Approved historical task"
-              }
-              actionLabel={"Inspect task: " + task.objective}
-              onOpen={() =>
-                setSelection({
-                  kind: "TASK",
-                  taskId: task.id,
-                })}
-            />
-          ))}
-        </div>
-      }
-    />
+        ))}
+        {(currentApproval ? currentTasks : tasks).map((task) => (
+          <WorkbenchResourceRow
+            key={task.id}
+            label={task.objective}
+            detail={
+              currentApproval
+                ? "Signed implementation task"
+                : "Approved historical task"
+            }
+            actionLabel={"Inspect task: " + task.objective}
+            onOpen={() =>
+              setSelection({
+                kind: "TASK",
+                taskId: task.id,
+              })}
+          />
+        ))}
+      </div>
+    </section>
   );
 
   const selectedMaterial = (() => {
