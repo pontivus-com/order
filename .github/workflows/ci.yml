@@ -120,9 +120,9 @@ jobs:
         run: |
           set +e
           failures=0
-          node node_modules/@playwright/test/cli.js test             --grep "^rendered acceptance phase 1" || failures=1
+          node node_modules/@playwright/test/cli.js test             --grep "rendered acceptance phase 1" || failures=1
           for phase in IA34 IA29 IA30 IA31 IA32 IA33; do
-            PONTIVUS_ORDER_DIAGNOSTIC_PHASE="$phase"               node node_modules/@playwright/test/cli.js test               --grep "^rendered acceptance IA26" || failures=1
+            PONTIVUS_ORDER_DIAGNOSTIC_PHASE="$phase"               node node_modules/@playwright/test/cli.js test               --grep "rendered acceptance IA26" || failures=1
           done
           exit "$failures"
 
