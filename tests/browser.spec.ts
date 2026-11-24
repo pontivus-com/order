@@ -1320,6 +1320,21 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       }),
     });
   });
+  let renderedReadinessBlockers: string[] = [];
+  await page.route("**/api/settings/readiness", async (route) => {
+    if (route.request().method() !== "GET") {
+      await route.fallback();
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        ready: renderedReadinessBlockers.length === 0,
+        blockers: renderedReadinessBlockers,
+      }),
+    });
+  });
   await page.route("**/api/work-item-sources/diagnostics", async (route) => {
     if (route.request().method() !== "GET") {
       await route.fallback();
@@ -1359,20 +1374,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     ],
   }));
 
-  await page.route("**/api/settings/readiness", async (route) => {
-    if (route.request().method() !== "GET") {
-      await route.fallback();
-      return;
-    }
-    await route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({
-        ready: false,
-        blockers: ["REPOSITORY_REQUIRED", "OPENCODE_ACCOUNT_REQUIRED"],
-      }),
-    });
-  });
+  renderedReadinessBlockers = ["REPOSITORY_REQUIRED"];
   await page.reload();
   await expect(page.getByTestId("installation-readiness")).toBeVisible();
   await expect(page.getByTestId("work-item-queue")).toBeVisible();
@@ -1395,7 +1397,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       "GW-DOC-INSTALLATION-READINESS",
     ],
   }));
-  await page.unroute("**/api/settings/readiness");
+  renderedReadinessBlockers = [];
   await page.reload();
 
   await page.unroute("**/api/work-item-sources/diagnostics");
@@ -1422,6 +1424,8 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   await expect(diagnostics).toContainText("docs/order/work-items/broken/work-request.md");
   await expect(diagnostics).toContainText("The WorkItem source could not be parsed.");
   await expect(diagnostics).not.toContainText("INVALID_SOURCE");
+  await expect(page.getByRole("table", { name: "Work items" })).toBeVisible();
+  await expect(page.getByText("Loading work queue...", { exact: true })).toHaveCount(0);
   entries.push(await captureRenderedAcceptance(page, {
     id: "queue-wide-light-source-diagnostic",
     workItemKind: "QUEUE",
