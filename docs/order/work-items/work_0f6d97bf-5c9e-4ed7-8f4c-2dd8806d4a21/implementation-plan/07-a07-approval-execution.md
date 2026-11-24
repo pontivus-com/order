@@ -34,12 +34,14 @@ Package atoms in phase: **4**.
 
 ## Referenced actions
 
+Action mutation/disposition semantics are owned only by `12-action-catalog.md`; the bullets below are dependency/traceability references, not alternate IA definitions.
+
 - **IA17** — consume the single implementation definition in `12-action-catalog.md`.
 - **IA06** — consume the single implementation definition in `12-action-catalog.md`.
 - **IA07** — consume the single baseline-checkpoint proof definition; authorize no checkpoint-protocol production edit.
 - **IA08** — consume the single scope/forecast/V4-V6 baseline proof definition; authorize no execution-foundation production edit.
-- **IA31** — consume the Readiness/Approval resumed-baseline Review revalidation/remediation definition for C11 presentation.
-- **IA32** — consume the Implementation destructive operational master/detail replacement definition for C12 presentation; execution semantics remain owned by existing core/daemon contracts.
+- **IA31** — consume the single IA31 definition in `12-action-catalog.md`.
+- **IA32** — consume the single IA32 definition in `12-action-catalog.md`.
 
 ## Completion proof
 
