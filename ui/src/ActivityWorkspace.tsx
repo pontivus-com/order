@@ -46,13 +46,15 @@ const interactionLabel = (
 export const StageRunMaterial = ({
   stage, runs, runEvents, companion, selectedRunId, currentRunId,
   currentInteraction, currentAttention, focusedRequiredInputEventId,
+  stateNotice, stateAction,
   mutationsDisabled = false, onRequiredInputFocused, onSelectedRunChange,
   onOpenEvidence, onOpenProposalReview, onMutationRefresh, onMutationError,
 }: Readonly<{
   stage: PreSignoffStage; runs: readonly Run[]; runEvents: readonly RunEvent[];
   companion?: ReactNode; selectedRunId: Run["id"] | null; currentRunId: Run["id"] | null;
   currentInteraction: StageRunInteraction | null; currentAttention: CurrentAttentionTag;
-  focusedRequiredInputEventId: RunEvent["id"] | null; mutationsDisabled?: boolean;
+  focusedRequiredInputEventId: RunEvent["id"] | null;
+  stateNotice?: ReactNode; stateAction?: ReactNode; mutationsDisabled?: boolean;
   onRequiredInputFocused: (eventId: RunEvent["id"]) => void;
   onSelectedRunChange: (runId: Run["id"]) => void;
   onOpenEvidence: (selection: EvidenceSelection) => void;
@@ -147,11 +149,16 @@ export const StageRunMaterial = ({
       <WorkbenchDialogue transcript={transcript}
         activity={operational === undefined && companion === undefined ? undefined
           : <div className="order-activity-support">{operational}{companion}</div>}
-        state={actionError === null && workflow === undefined ? undefined
+        state={actionError === null && workflow === undefined && stateNotice === undefined && stateAction === undefined
+          ? undefined
           : <div className="order-activity-workflow-state">
               {actionError ? <WorkbenchNotice tone="danger" title="Workflow action failed"
                 description={actionError instanceof Error ? actionError.message : String(actionError)} /> : null}
+              {stateNotice}
               {workflow}
+              {stateAction === undefined ? null : (
+                <div className="order-inline-actions">{stateAction}</div>
+              )}
             </div>}
         composer={canReply ? <ActivityComposer run={selectedRun} pending={pending}
           focusedRequiredInputEventId={focusedRequiredInputEventId}
