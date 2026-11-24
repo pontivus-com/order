@@ -240,73 +240,75 @@ const RepositorySettings = ({
         className="order-settings-pane"
         data-testid="settings-repositories"
       >
-        <WorkbenchSectionHeader
-          title="Move WorkItem documents"
-          description={
-            "Move governed documents for " +
-            (migrationTarget.projectId ?? "this repository") +
-            " without changing WorkItem identity."
-          }
-        />
         <div
-          className="order-settings-task-context"
+          className="order-settings-bounded-task"
           data-testid="move-workitem-documents"
         >
-          <div>
-            <strong>Repository</strong>
-            <code>{migrationTarget.repositoryRoot}</code>
+          <WorkbenchSectionHeader
+            title="Move WorkItem documents"
+            description={
+              "Move governed documents for " +
+              (migrationTarget.projectId ?? "this repository") +
+              " without changing WorkItem identity."
+            }
+          />
+          <div className="order-settings-task-context">
+            <div>
+              <strong>Repository</strong>
+              <code>{migrationTarget.repositoryRoot}</code>
+            </div>
+            <div>
+              <strong>Current repository-relative root</strong>
+              <code>{migrationTarget.workItemsRoot ?? "Unavailable"}</code>
+            </div>
+            <p>
+              Migration preserves WorkItem identities and document bytes,
+              updates project configuration atomically, and leaves one
+              productive WorkItem document root.
+            </p>
           </div>
-          <div>
-            <strong>Current repository-relative root</strong>
-            <code>{migrationTarget.workItemsRoot ?? "Unavailable"}</code>
-          </div>
-          <p>
-            Migration preserves WorkItem identities and document bytes,
-            updates project configuration atomically, and leaves one
-            productive WorkItem document root.
-          </p>
+          <WorkbenchForm
+            content={
+              <TextInput
+                label="New repository-relative WorkItem document root"
+                value={targetWorkItemsRoot}
+                onChange={setTargetWorkItemsRoot}
+                placeholder="docs/order/work-items"
+                width="100%"
+              />
+            }
+            actions={
+              <>
+                <WorkbenchAction
+                  label="Move documents"
+                  tone="primary"
+                  loading={migrate.isPending}
+                  disabled={
+                    migrate.isPending ||
+                    targetWorkItemsRoot.trim().length === 0
+                  }
+                  onClick={() => migrate.mutate(migrationTarget)}
+                />
+                <WorkbenchAction
+                  label="Cancel move"
+                  onClick={() => {
+                    setMigrationRepositoryRoot(null);
+                    setTargetWorkItemsRoot("");
+                  }}
+                />
+              </>
+            }
+            feedback={
+              migrate.error ? (
+                <WorkbenchNotice
+                  tone="danger"
+                  title="Document move failed"
+                  description={errorText(migrate.error)}
+                />
+              ) : undefined
+            }
+          />
         </div>
-        <WorkbenchForm
-          content={
-            <TextInput
-              label="New repository-relative WorkItem document root"
-              value={targetWorkItemsRoot}
-              onChange={setTargetWorkItemsRoot}
-              placeholder="docs/order/work-items"
-              width="100%"
-            />
-          }
-          actions={
-            <>
-              <WorkbenchAction
-                label="Move documents"
-                tone="primary"
-                loading={migrate.isPending}
-                disabled={
-                  migrate.isPending ||
-                  targetWorkItemsRoot.trim().length === 0
-                }
-                onClick={() => migrate.mutate(migrationTarget)}
-              />
-              <WorkbenchAction
-                label="Cancel move"
-                onClick={() => {
-                  setMigrationRepositoryRoot(null);
-                  setTargetWorkItemsRoot("");
-                }}
-              />
-            </>
-          }
-          feedback={
-            migrate.error ? (
-              <WorkbenchNotice
-                tone="danger"
-                title="Document move failed"
-                description={errorText(migrate.error)}
-              />
-            ) : undefined
-          }
-        />
       </section>
     );
   }
