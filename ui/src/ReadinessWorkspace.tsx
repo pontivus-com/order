@@ -30,6 +30,7 @@ import {
   type EvidenceSelection,
   type WorkflowMaterial,
 } from "./workbench-presentation.ts";
+import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchResourceRow } from "./primitives/WorkbenchResourceRow.tsx";
 import { WorkbenchReview } from "./primitives/WorkbenchReview.tsx";
 import { WorkbenchState } from "./primitives/WorkbenchState.tsx";
@@ -329,6 +330,59 @@ export const ReadinessWorkspace = ({
     }
   })();
 
+  const historicalRunSelected =
+    material.kind === "STAGE_RUN" &&
+    material.runId !== currentRunId;
+
+  if (
+    selectedSecondary !== null &&
+    (requiredInputOwnsAttention || historicalRunSelected)
+  ) {
+    return (
+      <div data-testid="review-workspace">
+        {requiredInputOwnsAttention ? null : (
+          <div className="order-inline-actions">
+            <WorkbenchAction
+              label="Back to Readiness review"
+              tone="ghost"
+              onClick={onReturnFromTransient}
+            />
+          </div>
+        )}
+        {selectedSecondary}
+      </div>
+    );
+  }
+
+  if (
+    selectedSecondary !== null &&
+    material.kind === "SUPPORTING_DOCUMENT"
+  ) {
+    return (
+      <div data-testid="review-workspace">
+        <section className="order-productive-transient">
+          <WorkbenchAction
+            label="Back to Readiness review"
+            tone="ghost"
+            onClick={onReturnFromTransient}
+          />
+          {selectedSecondary}
+        </section>
+      </div>
+    );
+  }
+
+  if (
+    selectedSecondary !== null &&
+    material.kind === "EVIDENCE"
+  ) {
+    return (
+      <div data-testid="review-workspace">
+        {selectedSecondary}
+      </div>
+    );
+  }
+
   const currentness = (
     <WorkbenchStatus
       tone={
@@ -360,17 +414,6 @@ export const ReadinessWorkspace = ({
             body={
               <div className="order-review-readiness-body">
                 {reviewNotice}
-                {requiredInputOwnsAttention && selectedSecondary !== null ? (
-                  <section
-                    className="order-review-readiness-attention"
-                    data-testid="readiness-current-attention"
-                    aria-label="Readiness current attention"
-                  >
-                    <h3>Waiting for you</h3>
-                    {selectedSecondary}
-                  </section>
-                ) : null}
-
                 <section
                   className="order-review-readiness-verdict"
                   data-testid="readiness-verdict"
@@ -448,15 +491,6 @@ export const ReadinessWorkspace = ({
                   )}
                 </section>
 
-                {!requiredInputOwnsAttention && selectedSecondary !== null ? (
-                  <section
-                    className="order-review-readiness-selected"
-                    aria-label="Selected Readiness supporting material"
-                  >
-                    <h3>Selected supporting material</h3>
-                    {selectedSecondary}
-                  </section>
-                ) : null}
               </div>
             }
             decisions={reviewAction ?? <></>}
