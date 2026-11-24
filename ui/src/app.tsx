@@ -374,8 +374,8 @@ export const App = () => {
     settingsSection !== null
       ? "Settings"
       : selectedWorkItem
-        ? "Work item"
-        : "Work queue";
+        ? "Governed work item"
+        : "Governed work queue";
 
   const toolbar = (
     <WorkbenchToolbar
