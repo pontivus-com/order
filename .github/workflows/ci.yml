@@ -121,7 +121,7 @@ jobs:
           --grep "rendered acceptance"
 
       - name: Upload current-state diagnostic evidence
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.diagnostic_candidate.outcome == 'success' }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: rendered-diagnostic-current-state-${{ steps.diagnostic_candidate.outputs.sha }}
@@ -130,7 +130,7 @@ jobs:
           retention-days: 14
 
       - name: Validate current-state diagnostic completeness
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.diagnostic_candidate.outcome == 'success' }}
         shell: bash
         env:
           DIAGNOSTIC_DIR: ${{ runner.temp }}/order-rendered-diagnostic-current-state
