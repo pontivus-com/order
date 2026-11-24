@@ -34,9 +34,12 @@ const latestStageRun = (runs: readonly Run[], stage: PreSignoffStage): Run | nul
   [...runs].filter((run) => run.role === "STAGE" && run.stage === stage)
     .sort((a,b) => a.attempt - b.attempt || a.startedAt.localeCompare(b.startedAt) || a.id.localeCompare(b.id)).at(-1) ?? null;
 
-const interactionLabel = (run: Run, interaction: StageRunInteraction | null): string =>
+const interactionLabel = (
+  run: Run,
+  interaction: StageRunInteraction | null,
+): string | null =>
   interaction?.tag === "PROCESSING" ? "Processing" :
-  interaction?.tag === "OPEN" ? "Open for continuation" :
+  interaction?.tag === "OPEN" ? null :
   interaction?.tag === "REQUIRED_INPUT" ? "Waiting for you" :
   runStatusLabel(run.status);
 
@@ -125,13 +128,16 @@ export const StageRunMaterial = ({
     onOpenProposalReview={onOpenProposalReview} />;
 
   const actionError=inputError ?? cancel.error;
+  const interactionStatus = interactionLabel(selectedRun, interaction);
   const header=<div className="order-activity-heading" data-testid="selected-run-header">
     <WorkbenchSectionHeader title="Conversation"
       description={workflowPresentation(stage).label+" · Attempt "+selectedRun.attempt+" · "+new Date(selectedRun.startedAt).toLocaleString()}
       action={canCancel ? <WorkbenchAction label="Cancel current activity" tone="destructive"
         loading={cancel.isPending} disabled={mutationsDisabled || cancel.isPending}
         onClick={() => cancel.mutate()} /> : undefined} />
-    <WorkbenchStatus tone={statusTone(selectedRun.status)} label={interactionLabel(selectedRun,interaction)} />
+    {interactionStatus === null ? null : (
+      <WorkbenchStatus tone={statusTone(selectedRun.status)} label={interactionStatus} />
+    )}
   </div>;
 
 
