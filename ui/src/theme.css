@@ -56,16 +56,10 @@
     --color-accent-muted: #203554;
     color-scheme: dark;
   }
-  :root:not([data-theme]) .order-application-toolbar .order-toolbar,
-  [data-astryx-theme="neutral"]:not([data-theme]) .order-application-toolbar .order-toolbar {
-    background: var(--color-background-muted);
-    color: var(--color-text-primary);
-  }
 }
 
 /* 2. Order-only structural/readability roles. */
 :root {
-  --order-toolbar-height: 3.25rem;
   --order-identity-height: 3rem;
   --order-context-width: 22rem;
   --order-context-max-width: 24rem;
@@ -77,53 +71,53 @@
 }
 
 /* 3. Closed Workbench primitive presentation. */
-.order-toolbar {
-  min-height: var(--order-toolbar-height);
-  padding: 0 var(--spacing-4);
-  display: flex;
+.order-workbench-toolbar {
+  min-height: 3rem;
+  padding: var(--spacing-2) var(--spacing-4);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-3);
+  gap: var(--spacing-4);
   border-bottom: 1px solid var(--color-border-emphasized);
   background: var(--color-background-surface);
   color: var(--color-text-primary);
 }
-.order-application-toolbar .order-toolbar {
-  border-bottom: 0;
-  background: var(--color-text-primary);
-  color: var(--color-background-surface);
-}
-.order-toolbar-start,
-.order-toolbar-end,
+.order-workbench-toolbar-primary,
+.order-workbench-toolbar-secondary,
 .order-inline-actions {
   min-width: 0;
   display: flex;
   align-items: center;
   gap: var(--spacing-2);
 }
-.order-toolbar-start,
-.order-toolbar-end { flex-wrap: nowrap; }
+.order-workbench-toolbar-primary,
+.order-workbench-toolbar-secondary {
+  flex-wrap: nowrap;
+}
 .order-inline-actions { flex-wrap: wrap; }
-.order-toolbar-end { justify-content: flex-end; }
-.order-toolbar-search-wrap {
+.order-workbench-toolbar-secondary {
+  justify-content: flex-end;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+.order-workbench-toolbar-search {
   display: flex;
   align-items: center;
   gap: var(--spacing-2);
   min-width: var(--order-master-width);
 }
-.order-brand {
-  min-width: var(--order-master-width);
-  display: flex;
+.order-application-orientation {
+  min-width: 0;
+  display: inline-flex;
   align-items: baseline;
-  gap: var(--spacing-1);
+  gap: var(--spacing-2);
+  white-space: nowrap;
 }
-.order-brand strong {
-  color: currentColor;
-  font-size: var(--font-size-xl);
-  line-height: 1;
+.order-application-orientation strong {
+  font-size: var(--font-size-lg);
 }
-.order-brand span {
-  color: currentColor;
+.order-application-orientation span {
+  color: var(--color-text-secondary);
   font-size: var(--font-size-sm);
 }
 .order-utility-link {
@@ -138,16 +132,11 @@
   min-width: 0;
 }
 .order-utility-link small { color: currentColor; }
-.order-theme-control { color: currentColor; }
 
-:root[data-theme="dark"] .order-application-toolbar .order-toolbar,
-[data-astryx-theme="neutral"][data-theme="dark"] .order-application-toolbar .order-toolbar {
-  background: var(--color-background-muted);
-  color: var(--color-text-primary);
-}
-.order-workbench-app-destination {
-  height: calc(100dvh - var(--order-toolbar-height));
+.order-workbench-destination {
+  height: 100%;
   min-height: 0;
+  min-width: 0;
   background: var(--color-background-body);
 }
 .order-workbench-workitem-shell {
@@ -1202,12 +1191,6 @@
   display: grid;
   gap: var(--spacing-3);
 }
-.order-theme-control {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-}
-
 /* 5. Canonical Workbench breakpoint overrides only. */
 @media (max-width: 1279px) {
   .order-workbench-dialogue-has-activity { grid-template-columns: minmax(0, 1fr); }
@@ -1220,7 +1203,7 @@
   }
   .order-workbench-identity-primary { justify-content: flex-start; }
   .order-workitem-identity-copy { text-align: start; }
-  .order-toolbar-search-wrap { min-width: min-content; }
+  .order-workbench-toolbar-search { min-width: min-content; }
   .order-markdown-document-view-with-aside {
     display: block;
   }
@@ -1241,27 +1224,23 @@
     align-self: flex-start;
     max-width: 100%;
   }
-  .order-toolbar {
-    align-items: center;
-    flex-direction: row;
-    overflow-x: auto;
+  .order-workbench-toolbar {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--spacing-2);
+    padding-inline: var(--spacing-2);
   }
-  .order-toolbar-start,
-  .order-toolbar-end {
-    width: auto;
-    flex: 0 0 auto;
+  .order-workbench-toolbar-primary {
+    overflow: hidden;
   }
-  .order-toolbar-start { justify-content: flex-start; }
-  .order-toolbar-end {
-    justify-content: flex-end;
-    margin-inline-start: auto;
+  .order-workbench-toolbar-secondary {
+    max-width: min(70vw, 30rem);
   }
-  .order-toolbar-search-wrap {
+  .order-workbench-toolbar-search {
     width: auto;
     min-width: min-content;
   }
   .order-utility-link small { display: none; }
-  .order-brand { min-width: 0; }
+  .order-application-orientation span { display: none; }
   .order-workbench-identity {
     grid-template-columns: minmax(0, 1fr) auto;
     padding-block: var(--spacing-2);
