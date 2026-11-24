@@ -823,8 +823,9 @@ test("global OpenCode account utility switches, renames, signs in, blocks during
 
   await panel.getByRole("button", { name: "Remove gamma@example.com" }).click();
   const removeDialog = page.getByRole("alertdialog");
-  await expect(removeDialog).toContainText("Remove the selected saved OpenCode credential from this installation.");
-  await expect(removeDialog).not.toContainText("gamma@example.com");
+  await expect(removeDialog).toContainText("gamma@example.com");
+  await expect(removeDialog).toContainText("Repository selection and model configuration are unchanged.");
+  await expect(removeDialog).not.toContainText("cred_gamma");
   await removeDialog.getByRole("button", { name: "Remove account" }).click();
   await expect(panel).not.toContainText("gamma@example.com");
 
