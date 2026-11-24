@@ -48,12 +48,14 @@ Package atoms in phase: **3**.
 
 ## Referenced actions
 
+Action mutation/disposition semantics are owned only by `12-action-catalog.md`; the bullets below are dependency/traceability references, not alternate IA definitions.
+
 - **IA09** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA10** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA12** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA13** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
-- **IA28** — consume the Queue/Create resumed-baseline revalidation/remediation definition for the Queue operational-scan surface.
-- **IA29** — consume the WorkItem/document resumed-baseline revalidation/remediation definition for source/document/Git presentation.
+- **IA28** — consume the single IA28 definition in `12-action-catalog.md`.
+- **IA29** — consume the single IA29 definition in `12-action-catalog.md`.
 
 ## Completion proof
 
