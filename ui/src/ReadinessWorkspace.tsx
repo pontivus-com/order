@@ -23,9 +23,7 @@ import { EvidenceViewer } from "./EvidenceViewer.tsx";
 import {
   lifecycleArtifactLabel,
   materialPresentationStateLabel,
-  readinessOutcomeDescription,
   readinessOutcomeLabel,
-  readinessOutcomeTone,
   runStatusLabel,
   type EvidenceSelection,
   type WorkflowMaterial,
@@ -185,6 +183,20 @@ export const ReadinessWorkspace = ({
         : latestRun?.status === "FAILED"
           ? "Review failed"
           : "Review in progress";
+  const verdictTone =
+    outcome === "READY_FOR_SIGNOFF"
+      ? "success"
+      : outcome !== null
+        ? "warning"
+        : latestRun?.status === "BLOCKED" || latestRun?.status === "FAILED"
+          ? "danger"
+          : "info";
+  const verdictDescription =
+    outcome === "READY_FOR_SIGNOFF"
+      ? "The typed R3 result admits the exact package to Approval."
+      : outcome === null
+        ? "Verdict is derived only from the current canonical R3 result."
+        : "The typed R3 result returns workflow ownership to the named upstream stage.";
 
   const packageArtifacts = artifacts
     .filter((artifact) => packageRoles.has(artifact.role))
@@ -404,11 +416,11 @@ export const ReadinessWorkspace = ({
                   <div>
                     <strong>Readiness verdict</strong>
                     <span>
-                      {readinessOutcomeDescription(outcome)}
+                      {verdictDescription}
                     </span>
                   </div>
                   <WorkbenchStatus
-                    tone={readinessOutcomeTone(outcome, latestRun?.status ?? null)}
+                    tone={verdictTone}
                     label={verdict}
                   />
                 </section>
