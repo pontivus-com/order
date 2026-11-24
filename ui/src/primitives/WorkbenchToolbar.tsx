@@ -6,8 +6,8 @@ import { WorkbenchIcon } from "./WorkbenchIcon.tsx";
 export const WorkbenchToolbar = ({
   start,
   end,
-}: Readonly<{ start?: ReactNode; end?: ReactNode }>) => (
-  <header className="order-workbench-toolbar" data-testid="workbench-toolbar">
+}: Readonly<{ start: ReactNode; end: ReactNode }>) => (
+  <header className="order-workbench-toolbar" data-testid="workbench-toolbar" aria-label="Order application toolbar">
     <div className="order-workbench-toolbar-primary">{start}</div>
     <div className="order-workbench-toolbar-secondary">{end}</div>
   </header>
