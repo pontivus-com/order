@@ -522,8 +522,8 @@ Research document semantics are work-kind specific and remain owned by the selec
 | current Dialogue | current STAGE Run | converse/answer/continue when interaction owns attention | Primary | `SURF-MAT-ACTIVITY-001` | conversation never replaced by event dump |
 | current governed Research document | R1 ArtifactRef + bytes | inspect governed factual result | Primary | `SURF-MAT-DOC-001` | repository path/hash Technical |
 | proposal review | proposal state | review a proposed governed change | Primary | `SURF-MAT-PROPOSAL-001` | free-form continuation suppressed |
-| upstream source/document/evidence links | artifacts/source/evidence | inspect supporting authority/material | Supporting | `WorkbenchSelector` / supporting material | cannot change primary canvas width |
-| attempts/history/activity | Runs/RunEvents | inspect stage chronology | Operational | history/activity selector | subordinate when persistent display would compete |
+| upstream source/document/evidence links | artifacts/source/evidence | inspect supporting authority/material | Supporting | interaction-specific `WorkbenchResourceRow` / Action access | no peer selector; cannot change primary canvas width |
+| attempts/history/activity | Runs/RunEvents | inspect stage chronology | Operational | `WorkbenchTimeline` / interaction-specific resource/action treatment | no peer selector; subordinate when persistent display would compete |
 | exact Run mechanics | `Run.id/baselineCommit/contextHash/providerSessionId` plus raw `Run.stage/role/status/terminalClassification` | exact execution/provider mechanics | Technical | WorkItem Context for the selected Run | provider failure promotes only human meaning/action |
 | raw event tags/payloads/parser-provider diagnostics | RunEvents/diagnostics | implementation-facing failure evidence | Diagnostic | WorkItem Context / Evidence | never ordinary productive-stage content |
 | Start/Retry/Resume/Reconcile/Cancel/Input/Adopt/Reject | canonical attention/interaction/recovery | operate Research | Primary | owning material | never competing equal-weight mutations |
@@ -942,7 +942,7 @@ Any future new surface, datum/action class, inspection/material owner or interac
 
 Implementation uses only the canonical interaction owners:
 
-- operator-facing workflow material/history -> one `WorkbenchSelector` / resource / timeline owner appropriate to the task; there is no separate generic Supporting-material/history bar;
+- operator-facing workflow material/history -> interaction-specific `WorkbenchResourceRow`, `WorkbenchTimeline` or Action treatment owned by the task; this package authorizes no `WorkbenchSelector` production consumer and there is no separate generic Supporting-material/history bar;
 - selected-WorkItem technical identity -> explicit `WorkbenchContextPanel` populated by selection-aware `WorkItemContext`;
 - Settings/application technical identity -> one explicit Settings diagnostics/technical-inspection region;
 - same-task optional expansion -> retained `WorkbenchDisclosure` only when the label names the same semantic task content (for example **Complete validation matrix**);
@@ -999,7 +999,7 @@ Pre-signoff and review screens instead resolve canonical state directly to Docum
 
 ### Foundation consumer fitness
 
-Permanent architecture fitness must maintain an allowlist of design-bearing primitive consumers. Unauthorized imports/usages fail. `WorkbenchReview` is consumed only by Proposal/Readiness/Approval Review owners; `WorkbenchMasterDetail` only by Implementation; `WorkbenchDialogue` only by STAGE conversation owners; `WorkbenchAttention` only by genuine current-attention owners. `WorkbenchSelector` may remain only for explicitly DESIGN-authorized true peer selection; if no such production consumer remains after migration it is deleted rather than retained speculatively.
+Permanent architecture fitness must maintain an allowlist of design-bearing primitive consumers. Unauthorized imports/usages fail. `WorkbenchReview` is consumed only by Proposal/Readiness/Approval Review owners; `WorkbenchMasterDetail` only by Implementation; `WorkbenchDialogue` only by STAGE conversation owners; `WorkbenchAttention` only by genuine current-attention owners. This package authorizes no true peer-selection consumer, so `WorkbenchSelector.tsx` is `REQUIRED_ABSENT`; a future consumer requires a new explicit DESIGN/P4 decision rather than speculative retention.
 ## Technical change solution catalog
 
 ## Technical change solution catalog
@@ -1451,7 +1451,7 @@ P3 information hierarchy + this DESIGN's 37-SURF contract
  -> corrected WorkItemWorkspace / IdentityRow / WorkflowRail shell integration with direct primary interaction composition
  -> closed Toolbar / Identity / Rail / Surface(optional semantic attention) / Attention /
     Dialogue / Review / MasterDetail / Context / Settings / Form /
-    Selector only for explicitly authorized true-selection consumers / TaskPanel / Table / Timeline / ResourceRow / SectionHeader
+    TaskPanel / Table / Timeline / ResourceRow / SectionHeader; WorkbenchSelector has no current production consumer and remains required-absent
  -> prove visual-language realization across representative services:
       same semantic role -> same primitive + token/variant + hierarchy/inspection behavior
  -> foundation architecture + theme + accessibility + responsive + foundation-readiness proof
@@ -1521,7 +1521,7 @@ The corrected DESIGN forecast is the exact `changeSurface` of the one signed cum
 - `ui/src/primitives/WorkbenchResourceRow.tsx`
 - `ui/src/primitives/WorkbenchReview.tsx`
 - `ui/src/primitives/WorkbenchSectionHeader.tsx`
-- `ui/src/primitives/WorkbenchSelector.tsx`
+- `ui/src/primitives/WorkbenchSelector.tsx` — required absent; delete/no recreation in this package
 - `ui/src/primitives/WorkbenchSettingsLayout.tsx`
 - `ui/src/primitives/WorkbenchSurface.tsx`
 - `ui/src/primitives/WorkbenchTable.tsx`
