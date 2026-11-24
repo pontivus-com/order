@@ -4,7 +4,7 @@ This component allocates proof across the one canonical T1 candidate and its ord
 
 ## In-task architecture and reconstruction checkpoints
 
-No bounded or signed implementation authority is currently active because campaign G4/G5/G5A/G6 are reopened by C19-F09/C20-F11. If a future bounded IA27/IA28 grant is authorized, eligibility/state is governed only by the campaign register; this file owns only the evidence/checkpoint requirements.
+This verification component declares no campaign gate or authorization state. Eligibility for signed execution or any bounded IA27/IA28 grant is governed only by the campaign register; this file owns only the evidence/checkpoint requirements.
 
 
 Preflight IA07 re-proves the existing coordinator-owned signed-checkpoint capability; no candidate byte is relied upon to create it.
@@ -91,7 +91,7 @@ The six logical gates remain the canonical signed task gate union. IA26 is an ad
 
 ## Bounded pre-sign-off IA27/IA28 evidence lane
 
-The pre-sign-off IA27/IA28 lane is conditional evidence machinery only; **no grant is active**. If campaign §17A/§18 later authorizes the exact corrected package, the lane must remain capable of producing IA27/IA28 evidence while later-phase UI obligations are open:
+The pre-sign-off IA27/IA28 lane is conditional evidence machinery only. Whether a grant is active is owned exclusively by campaign §17A/§18; without exact-package authorization from that owner, this lane confers no mutation authority. When authorized, it must remain capable of producing IA27/IA28 evidence while later-phase UI obligations are open:
 
 1. PR verification first runs dependency-lock, typecheck, architecture, the complete non-browser test gate and build on the exact merge candidate;
 2. before the ordinary full browser step, a dedicated Playwright scenario/capture lane runs only the IA27/IA28 proof set: `SURF-WI-001`, `SURF-WI-CONTEXT-001`, `SURF-APP-001`, `SURF-QUEUE-001` and `SURF-CREATE-001`, plus the exact semantic/browser states declared by IA27/IA28;
