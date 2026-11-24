@@ -1327,6 +1327,15 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     "rendered acceptance capture runs only in its GitHub Actions evidence step",
   );
   test.setTimeout(300_000);
+  if (
+    diagnosticCurrentState &&
+    (diagnosticPhase === null ||
+      !renderedDiagnosticPhases.includes(diagnosticPhase as RenderedDiagnosticPhase))
+  ) {
+    throw new TypeError(
+      "PONTIVUS_ORDER_DIAGNOSTIC_PHASE must select one IA29-IA34 rendered diagnostic phase",
+    );
+  }
 
   const runtimeErrors: string[] = [];
   let expectedDiagnosticConsoleErrors = 0;
@@ -2155,6 +2164,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   const light = { width: 1440, height: 900 } as const;
   const narrow = { width: 700, height: 800 } as const;
 
+  if (runRenderedPhase("IA34")) {
   // IA34 — Settings and OpenCode, including the two destructive confirmations.
   await page.getByRole("link", { name: "Settings", exact: true }).click();
   const settings = page.getByTestId("settings-workspace");
@@ -2487,6 +2497,9 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   }, settings);
   await page.setViewportSize(light);
 
+  }
+
+  if (runRenderedPhase("IA29")) {
   // IA29 — Work request, document materials, and safety confirmations.
   await page.goto("/");
   await openWorkItem(page, "Source editing workbench");
@@ -2960,6 +2973,9 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     await backToQueue(page);
   }
 
+  }
+
+  if (runRenderedPhase("IA30")) {
   // IA30 — productive stages, Dialogue and direct Proposal Review.
   const stageCases = [
     ["Research open continuation", "Research", "SURF-STEP-R1-001", "research.svg"],
@@ -3199,6 +3215,9 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   }, page.getByTestId("proposal-review-workspace"));
   await backToQueue(page);
 
+  }
+
+  if (runRenderedPhase("IA31")) {
   // IA31 — direct Readiness and Approval Review plus task detail.
   await openWorkItem(page, "Awaiting sign-off");
   await selectWorkflowStep(page, "Readiness review");
@@ -3317,6 +3336,9 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   }, page.getByTestId("review-workspace"));
   await backToQueue(page);
 
+  }
+
+  if (runRenderedPhase("IA32")) {
   // IA32 — Implementation master/detail and task detail.
   await openWorkItem(page, "Implementation action ready");
   const execution = page.getByTestId("execution-workspace");
@@ -3412,6 +3434,9 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   }, page.getByTestId("execution-workspace"));
   await backToQueue(page);
 
+  }
+
+  if (runRenderedPhase("IA33")) {
   // IA33 — terminal result and Evidence, both attention-free.
   await openWorkItem(page, "Verified candidate");
   const complete = page.getByTestId("result-workspace");
@@ -3571,6 +3596,9 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     authorityRefs: ["GW-DOC-WORKBENCH-THEME-V1"],
   });
 
+  }
+
+  if (!diagnosticCurrentState) {
   writeRenderedAcceptanceEvidence(entries);
 
   const manifest = JSON.parse(
@@ -3783,6 +3811,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   expect(new Set(allEntries.map((entry) => entry.id)).size).toBe(allEntries.length);
   expect(expectedConflictConsoleErrors).toBe(0);
   expect(runtimeErrors).toEqual([]);
+  }
 });
 
 test("queue filtering composes archive dataset, project and search exactly once", async ({
