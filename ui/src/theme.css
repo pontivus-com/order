@@ -453,12 +453,12 @@
   min-width: 0;
   overflow: auto;
 }
-.order-execution-master-task {
+.order-implementation-master-task {
   min-width: 0;
   display: grid;
   gap: var(--spacing-1);
 }
-.order-execution-master-task strong {
+.order-implementation-master-task strong {
   overflow-wrap: anywhere;
 }
 .order-workbench-master-detail-constrained {
@@ -966,14 +966,74 @@
   height: 100%;
   min-height: 0;
 }
-.order-execution-task-material,
 .order-result-material-root {
   display: grid;
   gap: var(--spacing-3);
   min-width: 0;
+  padding: 0;
 }
-.order-execution-task-material,
-.order-result-material-root { padding: 0; }
+
+/* IA32 — canonical operational Implementation master/detail. */
+.order-implementation-detail {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: var(--spacing-5);
+  padding: var(--spacing-5);
+}
+.order-implementation-detail-header {
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+}
+.order-implementation-detail-header > div {
+  min-width: 0;
+  display: grid;
+  gap: var(--spacing-1);
+}
+.order-implementation-detail-header h2,
+.order-implementation-detail-header span { margin: 0; }
+.order-implementation-detail-header h2 { overflow-wrap: anywhere; }
+.order-implementation-detail-header span { color: var(--color-text-secondary); }
+.order-implementation-contract,
+.order-implementation-scope,
+.order-implementation-contract-supporting,
+.order-implementation-attempts,
+.order-implementation-attempt,
+.order-implementation-validation,
+.order-implementation-resources {
+  min-width: 0;
+  display: grid;
+  gap: var(--spacing-3);
+}
+.order-implementation-scope {
+  padding: var(--spacing-3);
+  border: 1px solid var(--color-border-emphasized);
+  border-radius: var(--radius-container);
+  background: var(--color-background-muted);
+}
+.order-implementation-scope h3,
+.order-implementation-contract-supporting h3 { margin: 0; }
+.order-implementation-scope ul,
+.order-implementation-contract-supporting ul {
+  margin: 0;
+  padding-inline-start: var(--spacing-5);
+}
+.order-implementation-contract-supporting {
+  grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr));
+}
+.order-implementation-contract-supporting > section {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: var(--spacing-2);
+}
+.order-implementation-attempt {
+  padding-top: var(--spacing-2);
+  border-top: 1px solid var(--color-border-emphasized);
+}
 
 .order-resource-list {
   display: grid;
@@ -1259,6 +1319,7 @@
   .order-app-readiness-item { align-items: stretch; flex-direction: column; }
   .order-workbench-review-header { grid-template-columns: minmax(0, 1fr); }
   .order-workbench-review-currentness { justify-self: start; }
+  .order-implementation-detail { padding: var(--spacing-3); }
   .order-workitem-title-edit {
     grid-template-columns: minmax(0, 1fr);
   }
