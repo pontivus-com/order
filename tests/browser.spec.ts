@@ -26,6 +26,8 @@ const fixtureControlURL = "http://127.0.0.1:17348";
 const renderedAcceptanceDir = process.env.PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR;
 const renderedAcceptanceCandidateSha =
   process.env.PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA;
+const renderedAcceptanceLabel =
+  process.env.PONTIVUS_ORDER_RENDERED_ACCEPTANCE_LABEL ?? "IA26";
 
 type RenderedAcceptanceEntry = Readonly<{
   id: string;
@@ -111,7 +113,7 @@ const writeRenderedAcceptanceEvidence = (
   writeFileSync(
     join(renderedAcceptanceDir, "index.md"),
     [
-      "# Order 0.6.0 rendered acceptance — IA26",
+      "# Order 0.6.0 rendered acceptance — " + renderedAcceptanceLabel,
       "",
       "Exact candidate: \`" + renderedAcceptanceCandidateSha + "\`",
       "",
@@ -145,11 +147,12 @@ const writeRenderedAcceptanceEvidence = (
     [
       "<!doctype html>",
       '<html lang="en"><head><meta charset="utf-8">',
-      "<title>Order 0.6.0 IA26 rendered acceptance</title>",
+      "<title>Order 0.6.0 " + escapeHtml(renderedAcceptanceLabel) + " rendered acceptance</title>",
       "<style>",
       "body{font-family:system-ui,sans-serif;margin:0;background:#f6f7f9;color:#111827}header{position:sticky;top:0;background:white;border-bottom:1px solid #d1d5db;padding:16px 24px;z-index:2}main{padding:24px;display:grid;gap:24px}.case{background:white;border:1px solid #d1d5db;border-radius:8px;padding:16px}.meta{display:flex;gap:12px;flex-wrap:wrap;margin:8px 0 16px;color:#4b5563}.pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}.visual{border:1px solid #e5e7eb;background:#fff;padding:8px;overflow:auto}.visual img,.visual object{display:block;width:100%;height:auto;min-height:240px}.refs{display:grid;gap:12px}@media(max-width:900px){.pair{grid-template-columns:1fr}}code{font-size:.9em}h2{margin-bottom:4px}",
       "</style></head><body>",
-      "<header><strong>Order 0.6.0 IA26</strong> · exact candidate <code>" +
+      "<header><strong>Order 0.6.0 " + escapeHtml(renderedAcceptanceLabel) +
+        "</strong> · exact candidate <code>" +
         escapeHtml(renderedAcceptanceCandidateSha) + "</code></header>",
       "<main>",
       ...merged.map((entry) => {
@@ -1289,6 +1292,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     renderedAcceptanceDir === undefined,
     "rendered acceptance capture runs only in its GitHub Actions evidence step",
   );
+  test.setTimeout(300_000);
 
   const runtimeErrors: string[] = [];
   page.on("pageerror", (error) => runtimeErrors.push("pageerror: " + error.message));

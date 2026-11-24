@@ -2482,12 +2482,21 @@ describe("public release delivery certification", () => {
     expect(ci).toContain("pull_request:");
     expect(ci).toContain("name: verify");
     expect(ci).toContain("scripts/verify-release.ts --mode pr");
+    expect(ci).toContain("name: bounded IA27/IA28 rendered evidence");
+    expect(ci).toContain("rendered-evidence-ia27-ia28-${{ steps.bounded_candidate.outputs.sha }}");
+    expect(ci).toContain('--grep "rendered acceptance phase 1"');
+    expect(ci).toContain('PONTIVUS_ORDER_RENDERED_ACCEPTANCE_LABEL: "IA27/IA28 bounded evidence"');
+    expect(ci.indexOf("name: bounded IA27/IA28 rendered evidence"))
+      .toBeLessThan(ci.indexOf("name: browser"));
     expect(ci).toContain("name: rendered acceptance IA26");
     expect(ci).toContain("rendered-acceptance-ia26-${{ steps.rendered_candidate.outputs.sha }}");
     expect(ci).toContain('--grep "rendered acceptance"');
+    expect(ci.indexOf("name: browser"))
+      .toBeLessThan(ci.indexOf("name: rendered acceptance IA26"));
     expect(
       [...ci.matchAll(/^\s*uses:\s*(\S+)\s*$/gm)].map((match) => match[1]),
     ).toEqual([
+      "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
       "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
     ]);
 

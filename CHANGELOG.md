@@ -8,6 +8,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Changed
 
+- Add the authorized pre-sign-off IA27/IA28 evidence lane before the ordinary browser gate: run the existing five-surface phase-local Playwright capture against the exact candidate, publish it as a separately labeled bounded-evidence artifact, and keep later-phase browser failures visible without mislabeling the bounded artifact as IA26.
+
 - Remove the structural causes of repeated 0.6.0 Workbench regressions: keep permanent P4 free of campaign/migration state, make PLAN reference rather than redefine closed component contracts, invalidate stale G4/G5/G5A/IA27-IA28 grants, compact live campaign control to current state plus current evidence, and strengthen package sensors against stale API/source-string preservation.
 
 - Tighten IA27 foundation execution so structurally divergent resumed UI bytes are removed rather than refactored into compliance: classify every design-bearing foundation owner as conforming, bounded residual or destructive replacement; remove the noncanonical Workbench current-attention primitive and its caller-selected whole-surface status-color selectors; and require fresh P4/SD21/theme authorship plus renewed PLAN/alignment/R3 validation before downstream screen work resumes.
