@@ -581,7 +581,7 @@ test("Settings uses stable native-history destinations and daemon-owned readines
   await expectDaemonReadiness();
   await repositories.getByRole("button", { name: "Add repository" }).click();
   await expect(repositories.getByTestId("add-repository-form")).toBeVisible();
-  await expect(settings.getByText("Ready for productive work", { exact: true })).toHaveCount(0);
+  await expectDaemonReadiness();
   await expect(repositories.getByText("Order does not create or initialize repositories here.")).toBeVisible();
   await repositories.getByRole("button", { name: "Cancel add repository" }).click();
   await expect(repositories.getByTestId("add-repository-form")).toHaveCount(0);
@@ -601,7 +601,7 @@ test("Settings uses stable native-history destinations and daemon-owned readines
   const movePanel = repositories.getByTestId("move-workitem-documents");
   await expect(movePanel).toContainText("Current repository-relative root");
   await expect(movePanel).toContainText("docs/order/work-items");
-  await expect(settings.getByText("Ready for productive work", { exact: true })).toHaveCount(0);
+  await expectDaemonReadiness();
   await expect(movePanel.getByLabel("New repository-relative WorkItem document root")).toBeVisible();
   await movePanel.getByRole("button", { name: "Cancel move" }).click();
   await expect(movePanel).toHaveCount(0);
@@ -610,6 +610,7 @@ test("Settings uses stable native-history destinations and daemon-owned readines
   const disconnectRepository = repositoryRow.getByRole("button", { name: /^Disconnect / });
   await disconnectRepository.click();
   const disconnectDialog = page.getByRole("alertdialog", { name: "Disconnect repository?" });
+  await expect(disconnectDialog).toContainText(repositoryRoot);
   await expect(disconnectDialog).toContainText("Remove only Order's connection. Repository files, WorkItem Markdown, Git history and authority documents are not deleted.");
   await expect(disconnectDialog).not.toContainText(repositoryRoot);
   await disconnectDialog.getByRole("button", { name: "Cancel" }).click();
@@ -619,12 +620,12 @@ test("Settings uses stable native-history destinations and daemon-owned readines
   await settings.getByRole("link", { name: "Model & runtime", exact: true }).click();
   await expect(page).toHaveURL(baseURL + "/settings/model");
   await expect(page.getByTestId("settings-model")).toBeVisible();
-  await expect(settings.getByText("Ready for productive work", { exact: true })).toHaveCount(0);
+  await expectDaemonReadiness();
 
   await settings.getByRole("link", { name: "OpenCode", exact: true }).click();
   await expect(page).toHaveURL(baseURL + "/settings/opencode");
   await expect(page.getByTestId("settings-opencode")).toBeVisible();
-  await expect(settings.getByText("Ready for productive work", { exact: true })).toHaveCount(0);
+  await expectDaemonReadiness();
 
   await page.goBack();
   await expect(page).toHaveURL(baseURL + "/settings/model");
