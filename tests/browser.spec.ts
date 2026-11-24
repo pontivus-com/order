@@ -612,7 +612,6 @@ test("Settings uses stable native-history destinations and daemon-owned readines
   const disconnectDialog = page.getByRole("alertdialog", { name: "Disconnect repository?" });
   await expect(disconnectDialog).toContainText(repositoryRoot);
   await expect(disconnectDialog).toContainText("Remove only Order's connection. Repository files, WorkItem Markdown, Git history and authority documents are not deleted.");
-  await expect(disconnectDialog).not.toContainText(repositoryRoot);
   await disconnectDialog.getByRole("button", { name: "Cancel" }).click();
   await expect(repositoryRow).toBeVisible();
   await expect(disconnectRepository).toBeFocused();
@@ -2616,7 +2615,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   }, modelSettings);
   await page.getByRole("radio", { name: "Light" }).click();
 
-  const diagnosticsToggle = settings.getByRole("button", { name: "Settings diagnostics", exact: true });
+  const diagnosticsToggle = settings.getByRole("button", { name: "Inspect settings diagnostics", exact: true });
   await diagnosticsToggle.click();
   await capture({
     id: "ia26-settings-diagnostics-model-wide-light",
@@ -2631,7 +2630,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     references: ["docs/references/workbench-ui/settings-model.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }, page.getByTestId("settings-diagnostics"));
-  await diagnosticsToggle.click();
+  await settings.getByRole("button", { name: "Hide settings diagnostics", exact: true }).click();
 
   await page.setViewportSize(narrow);
   await capture({
