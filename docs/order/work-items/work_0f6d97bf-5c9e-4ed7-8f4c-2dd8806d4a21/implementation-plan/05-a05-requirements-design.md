@@ -27,8 +27,10 @@ Requirements and Solution design retain their authority/proposal semantics. IA30
 
 ## Referenced actions
 
+Action mutation/disposition semantics are owned only by `12-action-catalog.md`; the bullets below are dependency/traceability references, not alternate IA definitions.
+
 - **IA03** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
-- **IA30** — consume the direct productive-stage reconstruction for Requirements/Solution design; no WorkflowStepFrame/WorkflowMaterialSelector equivalent is permitted.
+- **IA30** — consume the single IA30 definition in `12-action-catalog.md`.
 
 ## Completion proof
 
