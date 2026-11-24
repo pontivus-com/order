@@ -23,14 +23,15 @@ Package atoms in phase: **2**.
 
 ## Cross-domain presentation reconstruction dependency
 
-Requirements and Solution design retain their authority/proposal semantics. IA30 must now fresh-author their presentation against corrected SD24: the governed document is primary without generic workflow summary/material-selector chrome or duplicate outer headings; Dialogue/Proposal/Evidence replace the primary interaction when canonically selected. Existing runtime composition is failure evidence only and supplies no compatibility/preservation target.
+Requirements and Solution design retain their authority/proposal semantics. IA30 fresh-authors the non-Proposal productive-stage presentation against corrected SD24: the governed document is primary without generic workflow summary/material-selector chrome or duplicate outer headings; Dialogue/Evidence replace the primary interaction when canonically selected. Proposal selection remains routed but its `ProposalReview` composition is cut over in IA31 together with every WorkbenchReview consumer, because the Review API cannot change compile-safely in an earlier phase. Existing runtime composition is failure evidence only and supplies no compatibility/preservation target.
 
 ## Referenced actions
 
 Action mutation/disposition semantics are owned only by `12-action-catalog.md`; the bullets below are dependency/traceability references, not alternate IA definitions.
 
 - **IA03** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
-- **IA30** — consume the single IA30 definition in `12-action-catalog.md`.
+- **IA30** — consume the single non-Proposal productive-stage definition in `12-action-catalog.md`.
+- **IA31** — consume the single atomic Proposal/Readiness/Approval Review-cutover definition in `12-action-catalog.md`.
 
 ## Completion proof
 
