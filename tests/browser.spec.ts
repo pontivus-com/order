@@ -3490,7 +3490,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     workItemKind: "CHANGE",
     workflowStep: "Readiness review",
     surface: "SURF-STEP-R3-001",
-    state: "required-input-inside-review",
+    state: "required-input-dialogue-replaces-review",
     fixture: "Readiness input required",
     viewport: light,
     theme: "Light",
@@ -5508,6 +5508,8 @@ test("Readiness required input exposes the exact current question without sign-o
   ).toBeVisible();
   const readinessComposer = page.getByTestId("activity-composer");
   await expect(readinessComposer).toBeVisible();
+  await expect(page.getByTestId("stage-run-material")).toBeVisible();
+  await expect(page.getByTestId("readiness-verdict")).toHaveCount(0);
   await expect(readinessComposer.getByLabel("Message input")).toBeVisible();
   await expect(readinessComposer).not.toContainText("Answer the question above");
   await expect(readinessComposer.getByLabel("Message input"))
