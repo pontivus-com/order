@@ -1512,7 +1512,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     renderedReadinessBlockers = [];
     await page.reload();
 
-    let releaseLoading: (() => void) | null = null;
+    let releaseLoading!: () => void;
     const loadingGate = new Promise<void>((resolve) => {
       releaseLoading = resolve;
     });
@@ -1544,7 +1544,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       authorityRefs: ["GW-DOC-WORKBENCH-UX"],
       captureScope: "full application viewport",
     }));
-    releaseLoading?.();
+    releaseLoading();
     await expect(page.getByText("No work items", { exact: true })).toBeVisible();
     entries.push(await captureRenderedAcceptance(page, {
       id: "diagnostic-queue-wide-light-true-empty",
