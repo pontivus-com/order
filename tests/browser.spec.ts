@@ -29,6 +29,17 @@ const renderedAcceptanceCandidateSha =
 const renderedAcceptanceLabel =
   process.env.PONTIVUS_ORDER_RENDERED_ACCEPTANCE_LABEL ?? "IA26";
 
+const renderedEvidenceKind =
+  process.env.PONTIVUS_ORDER_RENDERED_EVIDENCE_KIND ?? "ia26_acceptance";
+if (![
+  "bounded_phase_acceptance",
+  "diagnostic_current_state",
+  "ia26_acceptance",
+].includes(renderedEvidenceKind)) {
+  throw new TypeError("unsupported rendered evidence kind: " + renderedEvidenceKind);
+}
+const diagnosticCurrentState = renderedEvidenceKind === "diagnostic_current_state";
+
 type RenderedAcceptanceEntry = Readonly<{
   id: string;
   workItemKind: "QUEUE" | "CHANGE" | "DEFECT" | "INVESTIGATION" | "AUDIT";
@@ -65,10 +76,14 @@ const writeRenderedAcceptanceEvidence = (
   try {
     const prior = JSON.parse(readFileSync(manifestPath, "utf8")) as {
       candidateSha?: unknown;
+      evidenceKind?: unknown;
       entries?: unknown;
     };
     if (prior.candidateSha !== renderedAcceptanceCandidateSha) {
       throw new TypeError("rendered acceptance candidate changed within one evidence run");
+    }
+    if (prior.evidenceKind !== renderedEvidenceKind) {
+      throw new TypeError("rendered evidence kind changed within one evidence run");
     }
     if (Array.isArray(prior.entries)) {
       priorEntries = prior.entries as readonly RenderedAcceptanceEntry[];
@@ -87,8 +102,10 @@ const writeRenderedAcceptanceEvidence = (
     manifestPath,
     JSON.stringify(
       {
-        schemaVersion: 1,
+        schemaVersion: 2,
         candidateSha: renderedAcceptanceCandidateSha,
+        evidenceKind: renderedEvidenceKind,
+        label: renderedAcceptanceLabel,
         entries: merged,
       },
       null,
@@ -116,6 +133,8 @@ const writeRenderedAcceptanceEvidence = (
       "# Order 0.6.0 rendered acceptance — " + renderedAcceptanceLabel,
       "",
       "Exact candidate: \`" + renderedAcceptanceCandidateSha + "\`",
+      "",
+      "Evidence kind: \`" + renderedEvidenceKind + "\`",
       "",
       "| Capture | Surface/state | Scope | Reference | Authority |",
       "|---|---|---|---|---|",
