@@ -6,13 +6,18 @@ export const WorkbenchAppShell = ({
   destination,
 }: Readonly<{ toolbar: ReactNode; destination: ReactNode }>) => (
   <AppShell
-    topNav={<div className="order-application-toolbar">{toolbar}</div>}
+    topNav={toolbar}
     mobileNav={false}
     contentPadding={0}
     height="fill"
     variant="section"
     data-testid="workbench-app-shell"
   >
-    <div className="order-workbench-app-destination">{destination}</div>
+    <div
+      className="order-workbench-destination"
+      data-testid="workbench-app-destination"
+    >
+      {destination}
+    </div>
   </AppShell>
 );
