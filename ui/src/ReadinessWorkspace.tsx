@@ -1,12 +1,17 @@
 import type { ReactNode } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Markdown } from "@astryxdesign/core/Markdown";
 
-import type {
-  ArtifactRef,
+import {
+  MarkdownTextSchema,
+  type ArtifactRef,
   Run,
   RunEvent,
   Sha256,
   WorkItem,
 } from "../../src/core/contracts.ts";
+import * as api from "./http.ts";
+import { workbenchQueryKeys } from "./query-keys.ts";
 import type {
   CurrentAttentionTag,
   MaterialPresentationState,
@@ -43,6 +48,39 @@ const packageRoles = new Set<ArtifactRef["role"]>([
   "DESIGN",
   "PLAN",
 ]);
+
+const decodeCanonicalMarkdown = (bytes: Uint8Array): string | null => {
+  try {
+    const parsed = MarkdownTextSchema.safeParse(
+      new TextDecoder("utf-8", { fatal: true }).decode(bytes),
+    );
+    return parsed.success ? parsed.data : null;
+  } catch {
+    return null;
+  }
+};
+
+const readinessFindingsMarkdown = (markdown: string): string | null => {
+  const lines = markdown.split("\n");
+  const selected: string[] = [];
+  let include = false;
+
+  for (const line of lines) {
+    const heading = /^(#{2,6})\s+(.+?)\s*$/.exec(line);
+    if (heading !== null) {
+      const label = (heading[2] ?? "").trim().toLowerCase();
+      include =
+        label === "findings" ||
+        label === "r3 findings" ||
+        label === "package judgment";
+      continue;
+    }
+    if (include) selected.push(line);
+  }
+
+  const value = selected.join("\n").trim();
+  return value.length === 0 ? null : value;
+};
 
 const readinessTone = (
   outcome: string | null,
@@ -101,6 +139,25 @@ export const ReadinessWorkspace = ({
 }>) => {
   const readinessArtifact =
     artifacts.find((artifact) => artifact.role === "R3") ?? null;
+  const readinessContentQuery = useQuery({
+    queryKey: workbenchQueryKeys.artifactContent(readinessArtifact?.id ?? null),
+    queryFn: () => {
+      if (readinessArtifact === null) {
+        throw new TypeError("readiness artifact selection required");
+      }
+      return api.readArtifactContent(readinessArtifact.id);
+    },
+    enabled: readinessArtifact !== null,
+  });
+  const readinessMarkdown =
+    readinessContentQuery.data === undefined
+      ? null
+      : decodeCanonicalMarkdown(readinessContentQuery.data);
+  const findingsMarkdown =
+    readinessMarkdown === null
+      ? null
+      : readinessFindingsMarkdown(readinessMarkdown);
+
   const stageRuns = [...runs]
     .filter((run) => run.role === "STAGE" && run.stage === "R3")
     .sort(
@@ -151,14 +208,14 @@ export const ReadinessWorkspace = ({
       ? []
       : [{
         id: "review-" + readinessArtifact.id,
-        label: "Readiness review",
-        description: "Governed R3 review material",
+        label: "Readiness review document",
+        description: "Inspect the exact governed R3 material",
         statusLabel:
           materialState === null
             ? "Review in progress"
             : materialPresentationStateLabel(materialState),
-        selected: material.kind === "READINESS_REVIEW",
-        onSelect: () => onSelectMaterial({ kind: "READINESS_REVIEW" }),
+        selected: false,
+        onSelect: () => onOpenArtifactEvidence(readinessArtifact.id),
       }]),
     ...stageRuns.map((run) => ({
       id: "attempt-" + run.id,
@@ -192,15 +249,34 @@ export const ReadinessWorkspace = ({
           description="The governed review findings will appear here when available."
         />
       )
-      : (
-        <ReadOnlyLifecycleDocumentMaterial
-          workItem={workItem}
-          artifactId={readinessArtifact.id}
-          onOpenArtifactEvidence={onOpenArtifactEvidence}
-          onContextDocumentChange={onContextDocumentChange}
-          embeddedReadOnly
-        />
-      );
+      : readinessContentQuery.isPending
+        ? <WorkbenchState kind="loading" title="Loading readiness findings…" />
+        : readinessContentQuery.isError
+          ? (
+            <WorkbenchState
+              kind="error"
+              title="Readiness findings unavailable"
+              description="Open the exact governed Readiness review document for inspection."
+            />
+          )
+          : findingsMarkdown === null
+            ? (
+              <WorkbenchState
+                kind="empty"
+                title="No separate readiness findings were recorded"
+                description="Open the exact governed Readiness review document for inspection."
+              />
+            )
+            : (
+              <div className="order-review-readiness-findings-content">
+                <Markdown
+                  contentWidth="var(--order-prose-max-width)"
+                  contentAlign="start"
+                >
+                  {findingsMarkdown}
+                </Markdown>
+              </div>
+            );
 
   const requiredInputOwnsAttention =
     workItem.stage === "R3" &&
@@ -328,7 +404,12 @@ export const ReadinessWorkspace = ({
                   className="order-review-readiness-findings"
                   aria-label="Readiness findings"
                 >
-                  <h3>Findings / defective owner</h3>
+                  <h3>{outcome?.startsWith("RETURN_TO_") ? "Findings / return owner" : "Findings"}</h3>
+                  {outcome?.startsWith("RETURN_TO_") ? (
+                    <p className="order-review-readiness-return-owner">
+                      {readinessOutcomeLabel(outcome)}
+                    </p>
+                  ) : null}
                   {reviewMaterial}
                 </section>
 
