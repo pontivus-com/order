@@ -115,7 +115,9 @@ describe("Order cross-boundary certification", () => {
     expect(activity).toContain("stageRunCancellationIsAdmitted(selectedRun, events)");
 
     const composer = read("ui/src/ActivityComposer.tsx");
-    expect(composer).toContain("Answer the question above");
+    expect(composer).not.toContain("Answer the question above");
+    expect(composer).not.toContain("Continue current work");
+    expect(composer).toContain('placeholder={required ? "Answer and continue" : "Send a message"}');
     expect(composer).not.toContain("pending.event.question");
 
     const timeline = read("ui/src/RunEventTimeline.tsx");
