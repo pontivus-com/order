@@ -6,9 +6,9 @@
 
 This file is the single deterministic P7 artifact and sole normative execution authority for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. The directory `implementation-plan/` is only its maintainable authoring decomposition. The complete source content is compiled below and this root becomes executable only after the canonical campaign gates and operator sign-off bind these exact bytes.
 
-This PLAN is regenerated for C19-F09/C20-F11 from current R2 `e1e53c493f405610f6f73d3e8b83084b91e7db9e`, corrected P4 Workbench `9f05647f14fa43309d46457f30d66ca48b0b182f` and corrected DESIGN `53f6fdd000930ff0854287d8193b08c1cc5a0836`. Historical PLAN structure, implementation/UI/tests, prior 68-path forecasts, RZ16 acceptance and prior sign-off are evidence only.
+This PLAN is regenerated for C19-F09/C20-F11 from current R2 `e1e53c493f405610f6f73d3e8b83084b91e7db9e`, corrected P4 Workbench `9f05647f14fa43309d46457f30d66ca48b0b182f` and corrected DESIGN `a01dc14d185f670db970caa4adbba3721bc3b396`. Historical PLAN structure, implementation/UI/tests, prior 68-path forecasts, RZ16 acceptance and prior sign-off are evidence only.
 
-Campaign G4 is currently `REVALIDATION`; G5/G5A/G6 are blocked. Therefore **no T1 implementation authority is current**. This document is the corrected P7 candidate that must be freshly audited/aligned/reviewed before execution.
+This PLAN carries no campaign gate state and no implementation authority by itself. Campaign §17A/§18 exclusively govern current gates, bounded authorization and sign-off; these exact PLAN bytes remain a candidate until those controls establish the required authorization.
 
 ## Current Workbench implementation plan
 
@@ -22,7 +22,7 @@ IA20/IA26 certify component API/consumer/physical-SoC closure in addition to the
 
 | Source component | Git blob |
 |---|---|
-| `implementation-plan/00-governance.md` | `5195afc05850b6f6c41a158b09328e150a535c10` |
+| `implementation-plan/00-governance.md` | `776ad2e4fd0da81e953132ec7e4bdbe244b33c76` |
 | `implementation-plan/01-a01-lifecycle-product.md` | `c8262da1eadade83558bc6b9fc05678d50691bc7` |
 | `implementation-plan/02-a02-governance-intake.md` | `6e42a26fe7f74bcefd2622adae44cce7eafd2fba` |
 | `implementation-plan/03-a03-queue-source.md` | `9269ec43081c72abd458b17c4d7f17c4eae80980` |
@@ -34,8 +34,8 @@ IA20/IA26 certify component API/consumer/physical-SoC closure in addition to the
 | `implementation-plan/09-a09-provider-settings.md` | `d817e0784222c986f9a3c354587114e9c4c88f8c` |
 | `implementation-plan/10-a10-recovery-accessibility.md` | `a6bc0ac160d6a7bf1ca7548afd109f4bc5d6c5c9` |
 | `implementation-plan/11-a11-component-certification.md` | `997f4c59edc85c8e9c71efb1cc7bf2e700ca6414` |
-| `implementation-plan/12-action-catalog.md` | `39d1d11a2d4f3c2ab5e39243dd3a7d85e4f458a5` |
-| `implementation-plan/13-verification-closeout.md` | `334f6b4bc8c393d3eb03244c3aee9409e6913653` |
+| `implementation-plan/12-action-catalog.md` | `4d82e193f2eedc40a41dbc38841a76c1a2f37139` |
+| `implementation-plan/13-verification-closeout.md` | `09fc1438c4d06e6909d154f1de29c4a1f7885225` |
 
 A source component hash mismatch makes PLAN non-current until this root is regenerated. Directory files contain no `order-tasks` block and own no independent lifecycle state or executable action definition.
 
@@ -168,7 +168,7 @@ This decomposition is revalidated under C19-F09/C20-F11 after the prior G4-G6 cl
 
 - R1 `research.md`: `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`.
 - R2 `requirements.md`: `e1e53c493f405610f6f73d3e8b83084b91e7db9e`.
-- DESIGN `solution-design.md`: `53f6fdd000930ff0854287d8193b08c1cc5a0836` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 76-path forecast.
+- DESIGN `solution-design.md`: `a01dc14d185f670db970caa4adbba3721bc3b396` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 76-path forecast.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `9c2ec83a9552b7583f90e91080c014df4d6870df`.
 - P3 `GW-DOC-WORKBENCH-UX-V2`: `d47173839201c68937bdb4c840d0273dec5bcffc` — §11.4A/§12/§13/§14 own semantic information classes, state-is-not-interface behavior, direct primary interaction composition, no generic workflow-material selector, continuous Dialogue semantics, Terminal-result primacy, singular technical inspection, task anatomy and composition invariants.
 - P3 `GW-DOC-MARKDOWN-WORKBENCH-V1`: `1cc5a28eff8d180f88106d89990f7b89aa27a132` — §17.4 owns one compact Markdown editor-control region, overflow-before-wrap formatting and control→canvas adjacency.
@@ -196,14 +196,14 @@ A positive no-change or baseline-reuse disposition is an implementation instruct
 
 `12-action-catalog.md` is the **single definition owner** for every IA01-IA34 implementation/proof action. Semantic phase files may map requirements/atoms to an IA and state their local consequence or completion evidence, but they must not restate that IA's mutation procedure, disposition table or API design. `13-verification-closeout.md` owns checkpoints/proof only and likewise references the catalog.
 
-Current implementation authority is **NONE**: campaign G4 is `REVALIDATION` and G5/G5A/G6 are blocked by C19-F09/C20-F11. This PLAN is a candidate package until the canonical campaign registers establish fresh gates/sign-off. Any future bounded pre-sign-off grant is owned only by campaign §17A/§18 and must bind the exact current P4/DESIGN/PLAN package.
+This PLAN carries no implementation authority by itself. Current campaign gate state, bounded authorization and sign-off are owned only by campaign §17A/§18. These bytes remain a candidate until those registers establish the required gates and explicit authorization; any bounded pre-sign-off grant must bind the exact current P4/DESIGN/PLAN package.
 
 For the Workbench tranche, IA27 consumes the already-closed SD21/F6B component ledger. IA27 does not derive component responsibilities, API shapes, surface information grouping or physical decomposition. IA28 is the first real-consumer foundation acceptance; IA29-IA34 then consume that accepted foundation subject to their one catalogued disposition per owner. IA26 is terminal exact-candidate acceptance and never design authority.
 
 ##### Candidate scope and forecast law
 ##### Signed scope and forecast law
 
-The canonical PLAN contains exactly one cumulative execution-task **candidate**. It becomes signed/executable only after fresh G4/G5/G5A/G6 and operator sign-off. The candidate uses:
+The canonical PLAN contains exactly one cumulative execution-task **candidate**. It becomes signed/executable only after the campaign-required gates and operator sign-off bind these exact bytes. The candidate uses:
 
 - the exact same **76 repository paths** for `scope` and `changeSurface`; these include the eight authority-required new semantic component/specialist paths in DESIGN F6B; no directory-wide `src/**`, `ui/src/**` or `tests/**` mutation envelope is authorized;
 - explicit `exclusions` for DESIGN-positive-reuse paths, positively retained atomic UI adapters and approved non-screen helpers that must remain unchanged;
@@ -258,6 +258,7 @@ Presence-only browser assertions are nonconforming when they force technical/dia
 Return to DESIGN/PLAN before editing when execution requires a new semantic owner, public contract, state meaning, persistence/transport/effect boundary, dependency direction or external dependency, validation contract, provider capability, verification authority, authorized behavior, or any path outside signed scope/exclusions.
 
 Because the current T1 candidate sets `scope` equal to the same exact 76-path `changeSurface`, any newly required physical path outside that set returns upstream for DESIGN/PLAN correction. The eight new semantic component/specialist files are already governed members of the candidate and are not variance.
+
 
 ### Compiled component: `implementation-plan/01-a01-lifecycle-product.md`
 #### A01 — Lifecycle and product identity
@@ -315,6 +316,7 @@ Package atoms in phase: **1**.
 6. action-specific exact proof propositions plus `13-verification-closeout.md` pass;
 7. any evidence contradiction returns upstream rather than broadening scope.
 
+
 ### Compiled component: `implementation-plan/02-a02-governance-intake.md`
 #### A02 — Project governance and WorkItem intake
 
@@ -366,6 +368,7 @@ Package atoms in phase: **4**.
 5. SD02 certification is owned by IA02 and proves the productive production path, including stable-current versus explicit-versioned materiality with both retained and current sources selected/reachable, not only the pure helper/daemon unit boundary;
 6. action-specific tests plus `13-verification-closeout.md` pass;
 7. any evidence contradiction returns upstream rather than broadening scope.
+
 
 ### Compiled component: `implementation-plan/03-a03-queue-source.md`
 #### A03 — Queue, source admission and documentation Git
@@ -436,6 +439,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 5. action-specific tests plus `13-verification-closeout.md` pass;
 6. any evidence contradiction returns upstream rather than broadening scope.
 
+
 ### Compiled component: `implementation-plan/04-a04-workbench-research.md`
 #### A04 — Workbench current attention and Research input
 
@@ -505,6 +509,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 5. action-specific tests plus `13-verification-closeout.md` pass;
 6. any evidence contradiction returns upstream rather than broadening scope.
 
+
 ### Compiled component: `implementation-plan/05-a05-requirements-design.md`
 #### A05 — Requirements and DESIGN authority mutation
 
@@ -549,6 +554,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 5. action-specific tests plus `13-verification-closeout.md` pass;
 6. any evidence contradiction returns upstream rather than broadening scope.
 
+
 ### Compiled component: `implementation-plan/06-a06-plan-readiness.md`
 #### A06 — PLAN contract and R3 readiness
 
@@ -592,6 +598,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 4. every package atom is satisfied by its one execution owner;
 5. action-specific tests plus `13-verification-closeout.md` pass;
 6. any evidence contradiction returns upstream rather than broadening scope.
+
 
 ### Compiled component: `implementation-plan/07-a07-approval-execution.md`
 #### A07 — Approval and execution
@@ -648,6 +655,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 5. action-specific tests plus `13-verification-closeout.md` pass;
 6. any evidence contradiction returns upstream rather than broadening scope.
 
+
 ### Compiled component: `implementation-plan/08-a08-complete-materials.md`
 #### A08 — Complete and governed materials
 
@@ -696,6 +704,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 4. every package atom is satisfied by its one execution owner;
 5. action-specific tests plus `13-verification-closeout.md` pass;
 6. any evidence contradiction returns upstream rather than broadening scope.
+
 
 ### Compiled component: `implementation-plan/09-a09-provider-settings.md`
 #### A09 — Provider, installation and Settings
@@ -760,6 +769,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 5. action-specific tests plus `13-verification-closeout.md` pass;
 6. any evidence contradiction returns upstream rather than broadening scope.
 
+
 ### Compiled component: `implementation-plan/10-a10-recovery-accessibility.md`
 #### A10 — Recovery, current attention and accessibility
 
@@ -806,6 +816,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 4. every package atom is satisfied by its one execution owner;
 5. action-specific tests plus `13-verification-closeout.md` pass;
 6. any evidence contradiction returns upstream rather than broadening scope.
+
 
 ### Compiled component: `implementation-plan/11-a11-component-certification.md`
 #### A11 — Component/theme consistency and certification
@@ -863,6 +874,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 5. action-specific tests plus `13-verification-closeout.md` pass;
 6. any evidence contradiction returns upstream rather than broadening scope.
 
+
 ### Compiled component: `implementation-plan/12-action-catalog.md`
 #### 0.6.0 implementation action catalog
 
@@ -880,7 +892,7 @@ This is a trace/readability view of the one canonical `order-tasks` block in the
 
 ##### Execution waves
 
-**Pre-sign-off realization boundary:** no bounded or signed implementation authority is current while campaign G4/G5/G5A/G6 are reopened by C19-F09/C20-F11. This catalog is the candidate execution definition only. A future bounded grant, if any, is owned exclusively by `0.6.0-design-campaign-plan.md §17A/§18` after the exact corrected package reaches the required gates.
+**Pre-sign-off realization boundary:** this catalog confers no bounded or signed implementation authority. Current eligibility, gate state and any bounded grant are owned exclusively by `0.6.0-design-campaign-plan.md §17A/§18` and must bind the exact corrected P4/DESIGN/PLAN package. The catalog is only the candidate execution definition.
 
 
 0. **Preflight 0 — DESIGN-positive reuse proof:** IA07-IA08. No production mutation.
@@ -1217,6 +1229,7 @@ Any `FAIL` creates a blocking remediation item owned by the defective implementa
 **Forbidden:** treating the 0.5.0 SVG pack as semantic/product authority; pixel-diff threshold as the sole acceptance criterion; screenshot approval in place of existing semantic/browser assertions; generated screenshots blessed from the current implementation without comparison; a new visual-regression SaaS/platform dependency; committing runtime screenshots as a second design system; changing product behavior merely to match a superseded SVG.  
 **Proof:** required PR Verification rendered-evidence step succeeds on the exact candidate, publishes exhaustive scope-valid evidence, and the separately reviewable screen-by-screen acceptance ledger has no unresolved `FAIL`; capture generation/coverage alone cannot satisfy IA26.
 
+
 ### Compiled component: `implementation-plan/13-verification-closeout.md`
 #### 0.6.0 verification and closeout contract
 
@@ -1224,7 +1237,7 @@ This component allocates proof across the one canonical T1 candidate and its ord
 
 ##### In-task architecture and reconstruction checkpoints
 
-No bounded or signed implementation authority is currently active because campaign G4/G5/G5A/G6 are reopened by C19-F09/C20-F11. If a future bounded IA27/IA28 grant is authorized, eligibility/state is governed only by the campaign register; this file owns only the evidence/checkpoint requirements.
+This verification component declares no campaign gate or authorization state. Eligibility for signed execution or any bounded IA27/IA28 grant is governed only by the campaign register; this file owns only the evidence/checkpoint requirements.
 
 
 Preflight IA07 re-proves the existing coordinator-owned signed-checkpoint capability; no candidate byte is relied upon to create it.
@@ -1311,7 +1324,7 @@ The six logical gates remain the canonical signed task gate union. IA26 is an ad
 
 ##### Bounded pre-sign-off IA27/IA28 evidence lane
 
-The pre-sign-off IA27/IA28 lane is conditional evidence machinery only; **no grant is active**. If campaign §17A/§18 later authorizes the exact corrected package, the lane must remain capable of producing IA27/IA28 evidence while later-phase UI obligations are open:
+The pre-sign-off IA27/IA28 lane is conditional evidence machinery only. Whether a grant is active is owned exclusively by campaign §17A/§18; without exact-package authorization from that owner, this lane confers no mutation authority. When authorized, it must remain capable of producing IA27/IA28 evidence while later-phase UI obligations are open:
 
 1. PR verification first runs dependency-lock, typecheck, architecture, the complete non-browser test gate and build on the exact merge candidate;
 2. before the ordinary full browser step, a dedicated Playwright scenario/capture lane runs only the IA27/IA28 proof set: `SURF-WI-001`, `SURF-WI-CONTEXT-001`, `SURF-APP-001`, `SURF-QUEUE-001` and `SURF-CREATE-001`, plus the exact semantic/browser states declared by IA27/IA28;
@@ -1395,7 +1408,6 @@ V4/V5/V6 explicitly verify:
 - IA26 exact-candidate rendered evidence is exhaustive and scope-valid; the Actions artifact is bound to the reviewed candidate; the separate acceptance ledger records PASS with rationale for every required schema/information, UX/interaction and visual/UI dimension; zero unresolved discrepancy remains. Capture generation success alone is not acceptance. Required-absent generic composition, direct Review/Dialogue ownership and zero legacy/adapter paths are proven; no parent-SURF PASS hides a visibly nonconforming descendant.
 
 `tests/architecture.test.ts`, `pontivus-order.toml`, P1-P6 docs, package/lock metadata and workflow metadata other than the explicitly signed `.github/workflows/ci.yml` SD20 verification change remain outside T1. The pre-signoff campaign/traceability sensor may change only before Approval; any such change must be included in the exact G5/G5A/R3 evidence package before sign-off and is never a T1 candidate edit.
-
 ---
 
 ```order-tasks
@@ -1404,7 +1416,7 @@ V4/V5/V6 explicitly verify:
   "tasks": [
     {
       "id": "T1",
-      "objective": "Implement the corrected authority-driven Order 0.6.0 candidate only after fresh G4-G6/sign-off. Consume P4/SD21/F6B as closed component authority: IA27 realizes the required semantic component foundation and exact physical dispositions; IA28 freshly accepts it in Queue/Create; IA29 reconstructs Document composition; IA30 reconstructs productive stages and Proposal Review with DocumentChangeView and secondary raw diff; IA31 destructively rebuilds Readiness/Approval on ReviewVerdict/ReviewSection/Facts/ResourceList; IA32 rebuilds Implementation on canonical MasterDetail/Section/Facts/ResourceList; IA33 rebuilds Complete around WorkbenchResult and preserves Evidence as exact-byte owner; IA34 rebuilds Settings on Section/Facts/ResourceList with one diagnostics owner. IA20-IA23/IA26 certify required-new/required-absent component ownership, closed APIs/allowlists, physical SoC, no feature-local substitute grammar, all 37 governed surfaces, responsive/theme semantics and exact-candidate rendered acceptance. No prior RZ16/IA27-IA34 PASS, compatibility path or implementation-derived design is inherited.",
+      "objective": "Implement the corrected authority-driven Order 0.6.0 candidate only after the required campaign gates and explicit sign-off. Consume P4/SD21/F6B as closed component authority: IA27 realizes the required semantic component foundation and exact physical dispositions; IA28 freshly accepts it in Queue/Create; IA29 reconstructs Document composition; IA30 reconstructs productive stages and Proposal Review with DocumentChangeView and secondary raw diff; IA31 destructively rebuilds Readiness/Approval on ReviewVerdict/ReviewSection/Facts/ResourceList; IA32 rebuilds Implementation on canonical MasterDetail/Section/Facts/ResourceList; IA33 rebuilds Complete around WorkbenchResult and preserves Evidence as exact-byte owner; IA34 rebuilds Settings on Section/Facts/ResourceList with one diagnostics owner. IA20-IA23/IA26 certify required-new/required-absent component ownership, closed APIs/allowlists, physical SoC, no feature-local substitute grammar, all 37 governed surfaces, responsive/theme semantics and exact-candidate rendered acceptance. No prior RZ16/IA27-IA34 PASS, compatibility path or implementation-derived design is inherited.",
       "dependsOn": [],
       "scope": [
         "README.md",
