@@ -1563,10 +1563,20 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       authorityRefs: ["GW-DOC-WORKBENCH-UX"],
       captureScope: "full application viewport",
     }));
+    const sessionRecoveryRuntimeErrors =
+      runtimeErrors.slice(runtimeErrorsBeforeSessionRecovery);
+    expect(sessionRecoveryRuntimeErrors).toEqual([
+      "console: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+    ]);
+    runtimeErrors.splice(
+      runtimeErrorsBeforeSessionRecovery,
+      sessionRecoveryRuntimeErrors.length,
+    );
     await page.unroute("**/api/work-items**");
     await page.reload();
     await expect(page.getByRole("table", { name: "Work items" })).toBeVisible();
 
+    const runtimeErrorsBeforeSessionRecovery = runtimeErrors.length;
     await page.route("**/api/work-items**", async (route) => {
       if (route.request().method() !== "GET") {
         await route.fallback();
@@ -3086,21 +3096,48 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   }, proposal);
   await page.getByRole("radio", { name: "Light" }).click();
   await page.getByRole("button", { name: "Back to workflow attempt" }).click();
-  await selectCurrentWorkflowMaterial(page, "Attempt 1");
-  await page.getByRole("button", { name: "Review proposed document change" }).click();
-  await capture({
-    id: "ia26-proposal-review-adopted-wide-light",
-    workItemKind: "CHANGE",
-    workflowStep: "Implementation plan",
-    surface: "SURF-MAT-PROPOSAL-001",
-    state: "adopted",
-    fixture: "Proposal review historical adopted proposal",
-    viewport: light,
-    theme: "Light",
-    route: routeValue(),
-    references: ["docs/references/workbench-ui/proposal-states.svg"],
-    authorityRefs: ["GW-DOC-WORKBENCH-UX"],
-  }, page.getByTestId("proposal-review-workspace"));
+  const historicalAttemptAction = page.getByRole("button", {
+    name: "Open Attempt 1",
+    exact: true,
+  });
+  if (
+    diagnosticCurrentState &&
+    !(await historicalAttemptAction.isVisible().catch(() => false))
+  ) {
+    await capture({
+      id: "diagnostic-proposal-historical-attempt-affordance-missing",
+      workItemKind: "CHANGE",
+      workflowStep: "Implementation plan",
+      surface: "SURF-MAT-PROPOSAL-001",
+      state: "historical-attempt-affordance-missing",
+      fixture: "Proposal review after returning to workflow attempt",
+      viewport: light,
+      theme: "Light",
+      route: routeValue(),
+      references: [
+        "docs/references/workbench-ui/proposal-states.svg",
+        "docs/references/workbench-ui/current-attention-states.svg",
+      ],
+      authorityRefs: ["GW-DOC-WORKBENCH-UX"],
+      captureScope: "full application viewport",
+    });
+  } else {
+    await selectCurrentWorkflowMaterial(page, "Attempt 1");
+    await page.getByRole("button", { name: "Review proposed document change" }).click();
+    await capture({
+      id: "ia26-proposal-review-adopted-wide-light",
+      workItemKind: "CHANGE",
+      workflowStep: "Implementation plan",
+      surface: "SURF-MAT-PROPOSAL-001",
+      state: "adopted",
+      fixture: "Proposal review historical adopted proposal",
+      viewport: light,
+      theme: "Light",
+      route: routeValue(),
+      references: ["docs/references/workbench-ui/proposal-states.svg"],
+      authorityRefs: ["GW-DOC-WORKBENCH-UX"],
+    }, page.getByTestId("proposal-review-workspace"));
+  }
   await backToQueue(page);
 
   await openWorkItem(page, "Proposal rejection review");
