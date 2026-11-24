@@ -480,7 +480,7 @@ describe("Order cross-boundary certification", () => {
     expect(theme).not.toContain(".order-brand");
     expect(theme).not.toContain(".order-theme-control");
     expect(theme).not.toContain(".order-workbench-app-destination");
-    expect(theme).not.toContain("--order-toolbar-height");
+    expect(theme).toContain("--order-toolbar-height: 3.25rem");
 
     const attention = read("ui/src/primitives/WorkbenchAttention.tsx");
     expect(attention).not.toContain("tone?:");
