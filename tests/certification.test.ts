@@ -746,6 +746,13 @@ describe("Order cross-boundary certification", () => {
     expect(proposal).toContain("stateAction?: ReactNode");
     expect(proposal).not.toContain("attention?: ReactNode");
     expect(proposal).not.toContain("{attention}");
+    const dialogueStart = proposal.indexOf('case "STAGE_RUN"');
+    const documentStart = proposal.indexOf('case "STAGE_DOCUMENT"');
+    expect(dialogueStart).toBeGreaterThanOrEqual(0);
+    expect(documentStart).toBeGreaterThan(dialogueStart);
+    expect(proposal.slice(dialogueStart, documentStart)).not.toContain(
+      "documentAttention",
+    );
 
     const approval = read("ui/src/SignoffReview.tsx");
     expect(approval).toContain("WorkbenchReview");
