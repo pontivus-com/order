@@ -356,24 +356,6 @@ export const ReadinessWorkspace = ({
 
   if (
     selectedSecondary !== null &&
-    material.kind === "SUPPORTING_DOCUMENT"
-  ) {
-    return (
-      <div data-testid="review-workspace">
-        <section className="order-productive-transient">
-          <WorkbenchAction
-            label="Back to Readiness review"
-            tone="ghost"
-            onClick={onReturnFromTransient}
-          />
-          {selectedSecondary}
-        </section>
-      </div>
-    );
-  }
-
-  if (
-    selectedSecondary !== null &&
     material.kind === "EVIDENCE"
   ) {
     return (
@@ -491,6 +473,16 @@ export const ReadinessWorkspace = ({
                   )}
                 </section>
 
+                {material.kind === "SUPPORTING_DOCUMENT" &&
+                selectedSecondary !== null ? (
+                  <section
+                    className="order-review-readiness-selected"
+                    aria-label="Selected Readiness supporting material"
+                  >
+                    <h3>Selected supporting material</h3>
+                    {selectedSecondary}
+                  </section>
+                ) : null}
               </div>
             }
             decisions={reviewAction ?? <></>}
