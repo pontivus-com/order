@@ -1834,6 +1834,44 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       "GW-DOC-WORKBENCH-THEME-V1",
     ],
   }));
+  await page.getByRole("radio", { name: "System" }).click();
+  await page.emulateMedia({ colorScheme: "light" });
+  await expect(page.locator("html")).not.toHaveAttribute("data-theme");
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "application-toolbar-wide-system-light",
+    workItemKind: "QUEUE",
+    workflowStep: null,
+    surface: "SURF-APP-001",
+    state: "queue-system-theme-effective-light",
+    fixture: "order-e2e populated queue",
+    viewport: { width: 1440, height: 900 },
+    theme: "System/light",
+    route: "/",
+    references: ["docs/references/workbench-ui/theme-parity.svg"],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-WORKBENCH-THEME-V1",
+    ],
+    captureScope: "production application toolbar only",
+  }, page.getByTestId("workbench-toolbar")));
+  await page.emulateMedia({ colorScheme: "dark" });
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "application-toolbar-wide-system-dark",
+    workItemKind: "QUEUE",
+    workflowStep: null,
+    surface: "SURF-APP-001",
+    state: "queue-system-theme-effective-dark",
+    fixture: "order-e2e populated queue",
+    viewport: { width: 1440, height: 900 },
+    theme: "System/dark",
+    route: "/",
+    references: ["docs/references/workbench-ui/theme-parity.svg"],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-WORKBENCH-THEME-V1",
+    ],
+    captureScope: "production application toolbar only",
+  }, page.getByTestId("workbench-toolbar")));
   await page.getByRole("radio", { name: "Light" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
 
@@ -1919,6 +1957,46 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   await expect(currentAttention).toBeVisible();
   await expect(currentAttention).not.toContainText("Current attention:");
 
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "application-toolbar-workitem-wide-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Work request",
+    surface: "SURF-APP-001",
+    state: "selected-workitem-destination-wide",
+    fixture: "Change work type selected WorkItem",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: new URL(page.url()).pathname + new URL(page.url()).search,
+    references: [
+      "docs/references/workbench-ui/workitem-shell-controls.svg",
+      "docs/references/workbench-ui/theme-parity.svg",
+    ],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+    ],
+    captureScope: "production application toolbar only; WorkItem body excluded",
+  }, page.getByTestId("workbench-toolbar")));
+  await page.setViewportSize({ width: 1000, height: 800 });
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "application-toolbar-workitem-medium-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Work request",
+    surface: "SURF-APP-001",
+    state: "selected-workitem-destination-medium",
+    fixture: "Change work type selected WorkItem",
+    viewport: { width: 1000, height: 800 },
+    theme: "Light",
+    route: new URL(page.url()).pathname + new URL(page.url()).search,
+    references: ["docs/references/workbench-ui/responsive-composition.svg"],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+    ],
+    captureScope: "production application toolbar only; WorkItem body excluded",
+  }, page.getByTestId("workbench-toolbar")));
+  await page.setViewportSize({ width: 1440, height: 900 });
+
   await page.getByRole("button", { name: "Edit title", exact: true }).click();
   await expect(page.getByRole("button", { name: "Save title", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Start Research", exact: true })).toHaveCount(0);
@@ -1994,6 +2072,23 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     "narrow",
   );
   entries.push(await captureRenderedAcceptance(page, {
+    id: "application-toolbar-workitem-narrow-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Work request",
+    surface: "SURF-APP-001",
+    state: "selected-workitem-destination-narrow",
+    fixture: "Change work type selected WorkItem",
+    viewport: { width: 700, height: 800 },
+    theme: "Light",
+    route: new URL(page.url()).pathname + new URL(page.url()).search,
+    references: ["docs/references/workbench-ui/responsive-composition.svg"],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+    ],
+    captureScope: "production application toolbar only; WorkItem body excluded",
+  }, page.getByTestId("workbench-toolbar")));
+  entries.push(await captureRenderedAcceptance(page, {
     id: "workitem-shell-narrow-light-chrome",
     workItemKind: "CHANGE",
     workflowStep: "Work request",
@@ -2033,6 +2128,63 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
     ],
   }, currentAttention));
+
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.getByRole("link", { name: "Settings", exact: true }).click();
+  await expect(page.getByTestId("settings-workspace")).toBeVisible();
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "application-toolbar-settings-wide-light",
+    workItemKind: "QUEUE",
+    workflowStep: null,
+    surface: "SURF-APP-001",
+    state: "settings-destination-wide",
+    fixture: "Settings destination",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: new URL(page.url()).pathname + new URL(page.url()).search,
+    references: ["docs/references/workbench-ui/theme-parity.svg"],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+    ],
+    captureScope: "production application toolbar only; Settings body excluded",
+  }, page.getByTestId("workbench-toolbar")));
+  await page.setViewportSize({ width: 1000, height: 800 });
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "application-toolbar-settings-medium-light",
+    workItemKind: "QUEUE",
+    workflowStep: null,
+    surface: "SURF-APP-001",
+    state: "settings-destination-medium",
+    fixture: "Settings destination",
+    viewport: { width: 1000, height: 800 },
+    theme: "Light",
+    route: new URL(page.url()).pathname + new URL(page.url()).search,
+    references: ["docs/references/workbench-ui/responsive-composition.svg"],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+    ],
+    captureScope: "production application toolbar only; Settings body excluded",
+  }, page.getByTestId("workbench-toolbar")));
+  await page.setViewportSize({ width: 700, height: 800 });
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "application-toolbar-settings-narrow-light",
+    workItemKind: "QUEUE",
+    workflowStep: null,
+    surface: "SURF-APP-001",
+    state: "settings-destination-narrow",
+    fixture: "Settings destination",
+    viewport: { width: 700, height: 800 },
+    theme: "Light",
+    route: new URL(page.url()).pathname + new URL(page.url()).search,
+    references: ["docs/references/workbench-ui/responsive-composition.svg"],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+    ],
+    captureScope: "production application toolbar only; Settings body excluded",
+  }, page.getByTestId("workbench-toolbar")));
 
   if (!diagnosticCurrentState) writeRenderedAcceptanceEvidence(entries);
   expect([...new Set(entries.map((entry) => entry.surface))].sort()).toEqual([
