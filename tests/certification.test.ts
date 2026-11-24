@@ -2346,6 +2346,15 @@ describe("0.6.0 Wave 4 Workbench and product-language certification", () => {
     expect(composer).toContain("tabIndex={-1}");
     expect(composer).not.toContain("ChatComposerInputHandle");
     expect(composer).not.toContain("handleRef=");
+    expect(composer).not.toContain("Answer the question above");
+    expect(composer).not.toContain("Continue current work");
+
+    const activity = read("ui/src/ActivityWorkspace.tsx");
+    const preSignoff = read("ui/src/PreSignoffStageWorkspace.tsx");
+    expect(activity).not.toContain("Open for continuation");
+    expect(preSignoff).not.toContain(">Related material<");
+    expect(preSignoff).not.toContain('aria-label="Related workflow material"');
+    expect(preSignoff).toContain('aria-label="Supporting workflow material"');
 
     expect(readiness).toContain('event.event.completion.stage === "R3"');
     expect(readiness).toContain("readinessOutcomeLabel(outcome)");
