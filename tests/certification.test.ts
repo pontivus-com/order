@@ -424,10 +424,23 @@ describe("Order cross-boundary certification", () => {
 
     expect(names).not.toContain("WorkbenchLayout.tsx");
     const appShell = read("ui/src/primitives/WorkbenchAppShell.tsx");
+    const toolbar = read("ui/src/primitives/WorkbenchToolbar.tsx");
+    const application = read("ui/src/app.tsx");
     const workItemShell = read("ui/src/primitives/WorkbenchWorkItemShell.tsx");
     const responsive = read("ui/src/primitives/workbench-responsive.ts");
     expect(appShell).toContain("<AppShell");
+    expect(appShell).toContain("topNav={toolbar}");
+    expect(appShell).toContain('className="order-workbench-destination"');
+    expect(appShell).not.toContain("order-application-toolbar");
+    expect(appShell).not.toContain("order-workbench-app-destination");
     expect(appShell).not.toContain("<Drawer");
+    expect(toolbar).toContain('className="order-workbench-toolbar"');
+    expect(toolbar).toContain('className="order-workbench-toolbar-primary"');
+    expect(toolbar).toContain('className="order-workbench-toolbar-secondary"');
+    expect(toolbar).not.toContain('className="order-toolbar"');
+    expect(application).toContain('className="order-application-orientation"');
+    expect(application).not.toContain('className="order-brand"');
+    expect(application).not.toContain('className="order-theme-control"');
     expect(workItemShell).toContain("<Layout");
     expect(workItemShell).toContain("<Drawer");
     expect(responsive).toContain('"(min-width: 1280px)"');
@@ -448,6 +461,14 @@ describe("Order cross-boundary certification", () => {
     expect(theme).not.toContain("color-mix(");
     expect(theme).not.toContain("!important");
     expect(theme).not.toContain("[data-testid=");
+    expect(theme).toContain(".order-workbench-toolbar {");
+    expect(theme).toContain(".order-workbench-destination {");
+    expect(theme).not.toContain(".order-toolbar {");
+    expect(theme).not.toContain(".order-application-toolbar");
+    expect(theme).not.toContain(".order-brand");
+    expect(theme).not.toContain(".order-theme-control");
+    expect(theme).not.toContain(".order-workbench-app-destination");
+    expect(theme).not.toContain("--order-toolbar-height");
 
     const attention = read("ui/src/primitives/WorkbenchAttention.tsx");
     expect(attention).not.toContain("tone?:");
