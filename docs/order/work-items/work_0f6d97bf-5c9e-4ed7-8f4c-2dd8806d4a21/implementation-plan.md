@@ -34,8 +34,8 @@ IA20/IA26 certify component API/consumer/physical-SoC closure in addition to the
 | `implementation-plan/09-a09-provider-settings.md` | `d817e0784222c986f9a3c354587114e9c4c88f8c` |
 | `implementation-plan/10-a10-recovery-accessibility.md` | `a6bc0ac160d6a7bf1ca7548afd109f4bc5d6c5c9` |
 | `implementation-plan/11-a11-component-certification.md` | `997f4c59edc85c8e9c71efb1cc7bf2e700ca6414` |
-| `implementation-plan/12-action-catalog.md` | `4d82e193f2eedc40a41dbc38841a76c1a2f37139` |
-| `implementation-plan/13-verification-closeout.md` | `09fc1438c4d06e6909d154f1de29c4a1f7885225` |
+| `implementation-plan/12-action-catalog.md` | `feb239223a2f1e2a7b7c139dba1b43b8bd1d4726` |
+| `implementation-plan/13-verification-closeout.md` | `f2bc5f18bf6b128070fdebf5fd7bd2ffdc138f9b` |
 
 A source component hash mismatch makes PLAN non-current until this root is regenerated. Directory files contain no `order-tasks` block and own no independent lifecycle state or executable action definition.
 
@@ -892,7 +892,7 @@ This is a trace/readability view of the one canonical `order-tasks` block in the
 
 ##### Execution waves
 
-**Pre-sign-off realization boundary:** this catalog confers no bounded or signed implementation authority. Current eligibility, gate state and any bounded grant are owned exclusively by `0.6.0-design-campaign-plan.md §17A/§18` and must bind the exact corrected P4/DESIGN/PLAN package. The catalog is only the candidate execution definition.
+**Pre-sign-off realization boundary:** this catalog confers no bounded or signed implementation authority. Under `GW-DOC-SYSTEMS-GOVERNANCE-PYRAMID-V1` bounded acceptance-evidence realization may begin only after current R3 has closed the tranche and returned `READY_FOR_SIGNOFF`; current eligibility, G6 state and any exact-package bounded grant are then owned by `0.6.0-design-campaign-plan.md §17A/§18`. The catalog is only the candidate execution definition.
 
 
 0. **Preflight 0 — DESIGN-positive reuse proof:** IA07-IA08. No production mutation.
@@ -910,7 +910,7 @@ This is a trace/readability view of the one canonical `order-tasks` block in the
 12. **Wave 12 — rendered product acceptance:** IA26.
 13. **Wave 13 — candidate closeout:** IA24.
 
-Before any Wave 2+ UI mutation, the exact corrected P4/DESIGN/PLAN package must have current campaign authority. IA27 consumes the SD21/F6B ledger and executes its already-decided physical dispositions; it may not invent component roles or use current JSX/CSS to choose them. IA28 then performs the first real-consumer acceptance. IA29-IA34 each revalidate their complete owned renderer set against the new semantic component architecture before editing and execute the catalogued disposition: `DECOMPOSE_REFACTOR` when semantic responsibility is valid but physically overloaded, `DESTRUCTIVE_REPLACEMENT` when hierarchy/API ownership is materially wrong, `BOUNDED_RESIDUAL` only for a strictly local defect, `CONFORMING_NO_EDIT` only after fresh proof, `REQUIRED_NEW` for missing canonical owners and `REQUIRED_ABSENT` for forbidden owners. The 37 SURF rows remain partitioned once across IA27-IA34 and IA26 rechecks the exact-candidate union plus the component-ownership/SoC invariants.
+Before any bounded Wave 2/3 UI mutation, the exact corrected P4/DESIGN/PLAN package must have current R3/G6 `READY_FOR_SIGNOFF` and an explicit exact-package §17A operator grant. Normal Wave 4+ execution additionally requires ordinary human sign-off. IA27 consumes the SD21/F6B ledger and executes its already-decided physical dispositions; it may not invent component roles or use current JSX/CSS to choose them. IA28 then performs the first real-consumer acceptance. IA29-IA34 each revalidate their complete owned renderer set against the new semantic component architecture before editing and execute the catalogued disposition: `DECOMPOSE_REFACTOR` when semantic responsibility is valid but physically overloaded, `DESTRUCTIVE_REPLACEMENT` when hierarchy/API ownership is materially wrong, `BOUNDED_RESIDUAL` only for a strictly local defect, `CONFORMING_NO_EDIT` only after fresh proof, `REQUIRED_NEW` for missing canonical owners and `REQUIRED_ABSENT` for forbidden owners. The 37 SURF rows remain partitioned once across IA27-IA34 and IA26 rechecks the exact-candidate union plus the component-ownership/SoC invariants.
 ##### IA01 — pure project-authority resolution
 
 **Solution:** SD02.  
@@ -1237,7 +1237,7 @@ This component allocates proof across the one canonical T1 candidate and its ord
 
 ##### In-task architecture and reconstruction checkpoints
 
-This verification component declares no campaign gate or authorization state. Eligibility for signed execution or any bounded IA27/IA28 grant is governed only by the campaign register; this file owns only the evidence/checkpoint requirements.
+This verification component declares no campaign gate or authorization state. Eligibility for signed execution or any bounded IA27/IA28 grant is governed only by the campaign register and the P0 bounded acceptance-evidence rule. A bounded grant is eligible only after current R3/G6 has returned `READY_FOR_SIGNOFF`; this file owns only the evidence/checkpoint requirements.
 
 
 Preflight IA07 re-proves the existing coordinator-owned signed-checkpoint capability; no candidate byte is relied upon to create it.
@@ -1250,7 +1250,7 @@ T1 carries the same six logical gate IDs through final validation. During the li
 |---|---|---|
 | applicable IA01-IA25 non-UI work | IA27 | non-UI baseline proof; no protected execution-foundation mutation |
 | IA27 | IA28 | SD21/F6B foundation realization proof is complete: all seven required-new semantic primitives exist, Review/Context destructive API replacements are closed, ResourceRow→ResourceList decomposition is proven, required-absent generic owners remain zero, semantic-component consumer allowlists/SoC/theme/accessibility checks pass, and IA27 SURF foundation-readiness rows PASS. This authorizes IA28 consumption but is not acceptance/freeze. |
-| IA28 | **R3/G6 REVIEW → HUMAN SIGN-OFF; IA29 only after sign-off** | Fresh Queue/Create/application-shell consumer proof against the corrected IA27 candidate + actual production-browser captures + owned rows independently PASS `schema_information`, `ux_interaction`, `visual_ui`, `component_ownership` and explicit foundation-realization. No former RZ16 verdict is inherited. |
+| IA28 | **HUMAN EVIDENCE ACCEPTANCE → HUMAN SIGN-OFF; IA29 only after sign-off** | Fresh Queue/Create/application-shell consumer proof against the corrected IA27 candidate + actual production-browser captures + owned rows independently PASS `schema_information`, `ux_interaction`, `visual_ui`, `component_ownership` and explicit foundation-realization. Current R3/G6 `READY_FOR_SIGNOFF` is the prerequisite for the bounded tranche, not a downstream consequence of it. No former RZ16 verdict is inherited. |
 | IA29 | IA30 | WorkbenchDocument/Facts/Section composition proof; required repository/document/Git supporting facts visible; no screen-local document-facts/aside grammar, generic workflow chrome, duplicate heading or technical leakage; all IA29 rows PASS. |
 | IA30 | IA31 | direct Document/Dialogue/Review/Evidence resolution; Proposal Review uses ReviewVerdict/ReviewSection + DocumentChangeView with raw diff secondary; no local review/resource grammar; continuous Dialogue semantics; all IA30 rows PASS. |
 | IA31 | IA32 | Readiness/Approval use one canonical ReviewVerdict + ReviewSections/Facts/ResourceList; no local `order-review-*` structural grammar, whole-R3-under-Findings duplication, raw enum or selector; all IA31 rows PASS. |
@@ -1324,7 +1324,7 @@ The six logical gates remain the canonical signed task gate union. IA26 is an ad
 
 ##### Bounded pre-sign-off IA27/IA28 evidence lane
 
-The pre-sign-off IA27/IA28 lane is conditional evidence machinery only. Whether a grant is active is owned exclusively by campaign §17A/§18; without exact-package authorization from that owner, this lane confers no mutation authority. When authorized, it must remain capable of producing IA27/IA28 evidence while later-phase UI obligations are open:
+The pre-sign-off IA27/IA28 lane is conditional evidence machinery only. It is eligible only after the exact current package has passed R3/G6 as `READY_FOR_SIGNOFF`. Whether a grant is active is then owned exclusively by campaign §17A/§18; without exact-package authorization from that owner, this lane confers no mutation authority. When authorized, it must remain capable of producing IA27/IA28 evidence while later-phase UI obligations are open:
 
 1. PR verification first runs dependency-lock, typecheck, architecture, the complete non-browser test gate and build on the exact merge candidate;
 2. before the ordinary full browser step, a dedicated Playwright scenario/capture lane runs only the IA27/IA28 proof set: `SURF-WI-001`, `SURF-WI-CONTEXT-001`, `SURF-APP-001`, `SURF-QUEUE-001` and `SURF-CREATE-001`, plus the exact semantic/browser states declared by IA27/IA28;
@@ -1338,7 +1338,7 @@ The bounded lane is not a waiver, test skip or alternate browser gate. It exists
 
 SD21/F6B's closed ledger plus IA27 implementation/disposition evidence, semantic checks, browser proof and `SURF-WI-001` render establish **foundation readiness**, not product acceptance. Foundation correctness must be demonstrated through a real consumer screen family.
 
-IA28 is therefore the first acceptance test for the Workbench foundation. Before IA29 may begin, the exact IA28 candidate must produce actual browser-rendered evidence for `SURF-APP-001`, `SURF-QUEUE-001` and `SURF-CREATE-001`, covering the Queue/application shell, Queue states, application notices/readiness, Create WorkItem, linked remediation and active-account utility states required by the IA28 face ledger. This evidence is produced by the bounded phase-local lane above and is valid for R3 review even when the ordinary browser suite remains red solely on explicitly later-phase obligations; such red results remain recorded blockers and cannot be reclassified as pass. The review uses current P3/P4/DESIGN/theme authority as normative truth and the paired `docs/references/workbench-ui/*.svg` files as derived visual comparison material.
+IA28 is therefore the first acceptance test for the Workbench foundation. Before IA29 may begin, the exact IA28 candidate must produce actual browser-rendered evidence for `SURF-APP-001`, `SURF-QUEUE-001` and `SURF-CREATE-001`, covering the Queue/application shell, Queue states, application notices/readiness, Create WorkItem, linked remediation and active-account utility states required by the IA28 face ledger. This evidence is produced only after R3/G6 `READY_FOR_SIGNOFF` by the bounded phase-local lane above and is reviewed for the subsequent human evidence-acceptance/sign-off decision even when the ordinary browser suite remains red solely on explicitly later-phase obligations; such red results remain recorded blockers and cannot be reclassified as pass. The review uses current P3/P4/DESIGN/theme authority as normative truth and the paired `docs/references/workbench-ui/*.svg` files as derived visual comparison material.
 
 The reviewer must record for every IA28 SURF row:
 
