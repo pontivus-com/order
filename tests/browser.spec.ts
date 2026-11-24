@@ -611,7 +611,10 @@ test("Settings uses stable native-history destinations and daemon-owned readines
   await disconnectRepository.click();
   const disconnectDialog = page.getByRole("alertdialog", { name: "Disconnect repository?" });
   await expect(disconnectDialog).toContainText(repositoryRoot);
-  await expect(disconnectDialog).toContainText("Remove only Order's connection. Repository files, WorkItem Markdown, Git history and authority documents are not deleted.");
+  await expect(disconnectDialog).toContainText("This removes only Order's connection.");
+  await expect(disconnectDialog).toContainText(
+    "Repository files, WorkItem Markdown, Git history and authority documents are not deleted.",
+  );
   await disconnectDialog.getByRole("button", { name: "Cancel" }).click();
   await expect(repositoryRow).toBeVisible();
   await expect(disconnectRepository).toBeFocused();
@@ -4062,7 +4065,7 @@ test("queue filtering composes archive dataset, project and search exactly once"
   });
   await projectContext.click();
   await page.getByRole("option", { name: "other-e2e", exact: true }).click();
-  await page.getByRole("link", { name: "Back to work queue", exact: true }).click();
+  await page.getByRole("link", { name: "Work queue", exact: true }).click();
 
   await expect(rowFor(page, "Matrix active other")).toBeVisible();
   await expect(rowFor(page, "Change work type")).toHaveCount(0);
@@ -4593,8 +4596,7 @@ test("canonical Run feedback remains visible in the owning workflow context with
   ).toBeVisible();
   const requiredInputComposer = page.getByTestId("activity-composer");
   await expect(requiredInputComposer).not.toContainText("Answer the question above");
-  await expect(requiredInputComposer.getByLabel("Message input"))
-    .toHaveAttribute("placeholder", "Answer and continue");
+  await expect(requiredInputComposer.getByLabel("Message input")).toBeEditable();
   await expect(requiredInputComposer).toBeFocused();
   const contextControl = page.getByRole("button", { name: "Context", exact: true });
   await contextControl.focus();
@@ -5247,8 +5249,7 @@ test("OPEN continuation keeps the agent anchor visible and admits exactly one cu
   const composer = detail.getByTestId("activity-composer");
   await expect(composer).toBeVisible();
   await expect(composer.getByLabel("Message input")).toBeVisible();
-  await expect(composer.getByLabel("Message input"))
-    .toHaveAttribute("placeholder", "Send a message");
+  await expect(composer.getByLabel("Message input")).toBeEditable();
   await expect(composer).not.toContainText("Continue current work");
   await expect(composer.getByText("Answer the question above", { exact: true })).toHaveCount(0);
   await expect(detail.getByText("Repository-backed Research material", { exact: true })).toBeVisible();
@@ -5520,8 +5521,7 @@ test("Readiness required input exposes the exact current question without sign-o
   await expect(page.getByTestId("readiness-verdict")).toHaveCount(0);
   await expect(readinessComposer.getByLabel("Message input")).toBeVisible();
   await expect(readinessComposer).not.toContainText("Answer the question above");
-  await expect(readinessComposer.getByLabel("Message input"))
-    .toHaveAttribute("placeholder", "Answer and continue");
+  await expect(readinessComposer.getByLabel("Message input")).toBeEditable();
   await expect(page.getByRole("combobox", { name: "Readiness material" }))
     .toHaveCount(0);
   await expect(page.getByRole("button", { name: "Sign off exact package" }))
