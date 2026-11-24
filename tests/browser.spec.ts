@@ -1776,6 +1776,9 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   await noMatchSearch.fill("");
   await page.setViewportSize({ width: 700, height: 800 });
   await expect(queue).toBeVisible();
+  await expect(
+    page.getByLabel("Current application destination").getByText("Work queue", { exact: true }),
+  ).toBeVisible();
   await expect(queue.locator(".order-workbench-surface-attention")).toHaveCount(0);
   const narrowQueueTable = page.getByRole("table", { name: "Work items" });
   await expect(narrowQueueTable).toHaveCSS("table-layout", "auto");
@@ -2071,6 +2074,9 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     "data-responsive-class",
     "narrow",
   );
+  await expect(
+    page.getByLabel("Current application destination").getByText("Work item", { exact: true }),
+  ).toBeVisible();
   entries.push(await captureRenderedAcceptance(page, {
     id: "application-toolbar-workitem-narrow-light",
     workItemKind: "CHANGE",
@@ -2168,6 +2174,9 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     captureScope: "production application toolbar only; Settings body excluded",
   }, page.getByTestId("workbench-toolbar")));
   await page.setViewportSize({ width: 700, height: 800 });
+  await expect(
+    page.getByLabel("Current application destination").getByText("Settings", { exact: true }),
+  ).toBeVisible();
   entries.push(await captureRenderedAcceptance(page, {
     id: "application-toolbar-settings-narrow-light",
     workItemKind: "QUEUE",
