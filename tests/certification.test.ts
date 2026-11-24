@@ -862,6 +862,10 @@ describe("Order cross-boundary certification", () => {
 
     const readiness = read("ui/src/ReadinessWorkspace.tsx");
     expect(readiness).toContain("WorkbenchReview");
+    expect(readiness).toContain("requiredInputOwnsAttention || historicalRunSelected");
+    expect(readiness).toContain('material.kind === "EVIDENCE"');
+    expect(readiness).toContain('material.kind === "SUPPORTING_DOCUMENT"');
+    expect(readiness).not.toContain("order-review-readiness-attention");
     expect(readiness).not.toContain("<WorkflowStepFrame");
     expect(readiness).not.toContain("<WorkbenchAttention");
 
