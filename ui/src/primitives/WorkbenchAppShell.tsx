@@ -13,11 +13,11 @@ export const WorkbenchAppShell = ({
     variant="section"
     data-testid="workbench-app-shell"
   >
-    <div
+    <main
       className="order-workbench-destination"
       data-testid="workbench-app-destination"
     >
       {destination}
-    </div>
+    </main>
   </AppShell>
 );
