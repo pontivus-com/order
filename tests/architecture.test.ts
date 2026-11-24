@@ -2957,7 +2957,8 @@ describe("architecture fitness", () => {
 
         for (const required of [
           "WorkbenchDialogue({ transcript, activity?, composer?, state? })",
-          "material = WorkbenchDialogue(transcript, activity?, composer, state)",
+          "-> WorkbenchDialogue(transcript, activity?, composer?, state?)",
+          "no outer WorkbenchSurface / WorkbenchAttention wrapper",
           "no generic header/technical-detail slots",
         ]) {
           if (!p4Workbench.includes(required)) {
@@ -3070,7 +3071,7 @@ describe("architecture fitness", () => {
           "WorkbenchTaskPanel",
           "header → scrollable body → footer",
           "WorkbenchReview",
-          "no automatic technical-details slot",
+          "no technical-details slot",
           "WorkbenchDisclosure",
           "same operator task",
           "WorkbenchContextPanel",
