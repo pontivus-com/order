@@ -593,7 +593,7 @@ export const WorkItemWorkspace = ({
       selectedStep === "R3"
     )
       ? deriveMaterialPresentationState(
-          selectedStepState !== "HISTORICAL",
+          artifacts.some((artifact) => artifact.id === selectedStageArtifact.id),
           reachStateForStage(workItem, reachedStages, selectedStep),
           materialCurrentnessForStage(currentness, selectedStep),
           artifactHasCurrentStageConformance(selectedStageArtifact, allRunEvents),
