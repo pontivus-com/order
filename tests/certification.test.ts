@@ -475,11 +475,13 @@ describe("Order cross-boundary certification", () => {
     expect(confirmationPrimitive).not.toContain("cancelLabel");
 
     const taskPanel = read("ui/src/primitives/WorkbenchTaskPanel.tsx");
+    expect(taskPanel).toContain('import { WorkbenchForm } from "./WorkbenchForm.tsx";');
     expect(taskPanel).toContain("order-workbench-task-panel-header");
     expect(taskPanel).toContain("order-workbench-task-panel-body");
     expect(taskPanel).toContain("order-workbench-task-panel-footer");
     expect(taskPanel).toContain("footer: ReactNode");
-    expect(taskPanel).toContain("<form");
+    expect(taskPanel).toContain("<WorkbenchForm");
+    expect(taskPanel).not.toContain("<form");
     expect(taskPanel).not.toContain('width="42rem"');
     expect(taskPanel).not.toContain("100vw");
     expect(taskPanel).not.toContain("calc(");
@@ -499,6 +501,12 @@ describe("Order cross-boundary certification", () => {
     expect(theme).not.toContain("order-workbench-review-selector");
     expect(theme).not.toContain("order-primary-material-frame");
     expect(theme).not.toContain("order-workflow-summary-status");
+    expect(theme).toContain(
+      ".order-workbench-task-panel > .order-workbench-form",
+    );
+    expect(theme).toContain(
+      ".order-workbench-task-panel > .order-workbench-form > .order-workbench-form-content",
+    );
 
     const queueSurface = read("ui/src/WorkItemQueue.tsx");
     expect(queueSurface).toContain("<WorkbenchSurface");
