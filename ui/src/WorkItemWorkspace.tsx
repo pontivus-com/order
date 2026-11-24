@@ -961,6 +961,11 @@ export const WorkItemWorkspace = ({
     setReturnFocusName(null);
     if (origin) {
       commitSelection(origin);
+    } else if (material.kind === "PROPOSAL") {
+      commitSelection({
+        step: selectedStep,
+        material: { kind: "STAGE_RUN", runId: material.runId },
+      });
     } else {
       setExplicitMaterial(null);
     }
