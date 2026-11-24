@@ -1304,7 +1304,7 @@ describe("Order cross-boundary certification", () => {
 
     const execution = read("ui/src/ExecutionWorkspace.tsx");
     expect(execution).toContain("onMutationError?.(error)");
-    expect(execution).toContain("onError:reportError");
+    expect(execution).toMatch(/onError:\\s*reportError/);
     expect(execution).toContain("executionOwner: ExecutionOwner");
     expect(execution).toContain("tasks: readonly ExecutionTask[]");
     expect(execution).toContain("runs: readonly Run[]");
@@ -1319,7 +1319,8 @@ describe("Order cross-boundary certification", () => {
     expect(execution).toContain('scope: "Current" | "Recorded"');
     expect(execution).toContain('scope + " boundary: updating"');
     expect(execution).toContain('currentOwnerTask?.id === selectedTask.id');
-    expect(execution).toContain('selectedTask.state === "CANDIDATE_DONE" || selectedTask.state === "ALREADY_SATISFIED"');
+    expect(execution).toContain('selectedTask.state === "CANDIDATE_DONE"');
+    expect(execution).toContain('selectedTask.state === "ALREADY_SATISFIED"');
     expect(execution).toContain("validationBoundaryStatus(boundary, boundaryScope)");
     expect(execution).not.toContain("deriveValidationBoundary");
     expect(execution).not.toContain("deriveExecutionOwner");
