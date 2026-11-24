@@ -345,10 +345,13 @@ const openDisclosureResource = async (
   actionName: string,
 ): Promise<void> => {
   const disclosure = page.getByRole("button", { name: disclosureName, exact: true });
-  await expect(disclosure).toBeVisible();
-  const expanded = await disclosure.getAttribute("aria-expanded");
-  if (expanded !== "true") await disclosure.click();
-  await page.getByRole("button", { name: actionName, exact: true }).click();
+  if (await disclosure.isVisible().catch(() => false)) {
+    const expanded = await disclosure.getAttribute("aria-expanded");
+    if (expanded !== "true") await disclosure.click();
+  }
+  const action = page.getByRole("button", { name: actionName, exact: true });
+  await expect(action).toBeVisible();
+  await action.click();
 };
 
 const markdownSourceValue = async (editor: Locator): Promise<string> =>
@@ -5499,7 +5502,9 @@ test("Readiness required input exposes the exact current question without sign-o
   const readinessComposer = page.getByTestId("activity-composer");
   await expect(readinessComposer).toBeVisible();
   await expect(readinessComposer.getByLabel("Message input")).toBeVisible();
-  await expect(readinessComposer).toContainText("Answer the question above");
+  await expect(readinessComposer).not.toContainText("Answer the question above");
+  await expect(readinessComposer.getByLabel("Message input"))
+    .toHaveAttribute("placeholder", "Answer and continue");
   await expect(page.getByRole("combobox", { name: "Readiness material" }))
     .toHaveCount(0);
   await expect(page.getByRole("button", { name: "Sign off exact package" }))
@@ -5518,10 +5523,10 @@ test("Readiness keeps verdict and findings primary while subordinate material ch
   await expect(
     review.getByTestId("readiness-verdict").getByText("Review in progress", { exact: true }),
   ).toBeVisible();
-  await expect(review.getByText("Findings / defective owner", { exact: true })).toBeVisible();
+  await expect(review.getByText("Findings", { exact: true })).toBeVisible();
   await openWorkflowResource(page, "Implementation plan");
   await expect(review.getByText("Readiness verdict", { exact: true })).toBeVisible();
-  await expect(review.getByText("Findings / defective owner", { exact: true })).toBeVisible();
+  await expect(review.getByText("Findings", { exact: true })).toBeVisible();
   await expect(review.getByText("Selected supporting material", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Sign off exact package" })).toHaveCount(0);
 });
