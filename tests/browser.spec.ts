@@ -2158,7 +2158,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     "narrow",
   );
   await expect(
-    page.getByLabel("Current application destination").getByText("Work item", { exact: true }),
+    page.getByLabel("Current application destination").getByText("Governed work item", { exact: true }),
   ).toBeVisible();
   entries.push(await captureRenderedAcceptance(page, {
     id: "application-toolbar-workitem-narrow-light",
