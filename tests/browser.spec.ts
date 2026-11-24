@@ -278,8 +278,8 @@ const rowFor = (page: Page, title: string) =>
     .first();
 
 const recoveryFixtureEventIds = new Map([
-  ["Workflow retry action", "00000000-0000-4000-8000-000000000001"],
-  ["Workflow resume action", "00000000-0000-4000-8000-000000000002"],
+  ["Workflow retry action", "event_00000000-0000-4000-8000-000000000001"],
+  ["Workflow resume action", "event_00000000-0000-4000-8000-000000000002"],
 ] as const);
 const recoveryFixtureRoutes = new WeakMap<Page, Set<string>>();
 
