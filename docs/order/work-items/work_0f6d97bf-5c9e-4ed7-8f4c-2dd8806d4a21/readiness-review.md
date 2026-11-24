@@ -17,7 +17,7 @@ The exact defective owning stage for lifecycle return is **DESIGN** because camp
 - canonical P3 Workbench: unchanged; it already requires primary-information economy, Review hierarchy, unified component presentation and closed interaction grammar.
 - canonical P4 Workbench: `9f05647f14fa43309d46457f30d66ca48b0b182f` — now owns the missing semantic composition layer, closed component APIs and physical-remediation disposition semantics.
 - DESIGN `solution-design.md`: `53f6fdd000930ff0854287d8193b08c1cc5a0836` — now owns F6B, the datum→component→composition mapping, Proposal `DocumentChangeView` design and the 76-path realization forecast.
-- PLAN `implementation-plan.md`: `590311033463482f7551da7c4f991f5822cf0bc3` — regenerated as a 76-path candidate with `implementation-plan/12-action-catalog.md` as the single IA definition owner.
+- PLAN `implementation-plan.md`: `5d6cc4766daeea2b7b6e3d0152f1bee61dbe7bf4` — regenerated as a 76-path candidate with `implementation-plan/12-action-catalog.md` as the single IA definition owner.
 - campaign current state: owned only by `0.6.0-design-campaign-plan.md §7/§13A/§18`; this artifact does not project a second campaign status.
 
 ## Why the prior R3 verdict is invalid
