@@ -966,11 +966,33 @@
   height: 100%;
   min-height: 0;
 }
-.order-result-material-root {
+/* IA33 — canonical attention-free Terminal result. */
+.order-terminal-result {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: var(--spacing-5);
+  padding: var(--spacing-5);
+}
+.order-terminal-outcome,
+.order-terminal-resources,
+.order-terminal-result-content {
+  min-width: 0;
   display: grid;
   gap: var(--spacing-3);
+}
+.order-terminal-resources,
+.order-terminal-result-content {
+  padding-top: var(--spacing-3);
+  border-top: 1px solid var(--color-border-emphasized);
+}
+.order-terminal-markdown {
   min-width: 0;
-  padding: 0;
+  overflow: auto;
+}
+.order-terminal-code {
+  min-width: 0;
+  overflow: auto;
 }
 
 /* IA32 — canonical operational Implementation master/detail. */
@@ -1212,45 +1234,34 @@
 
 .order-secondary-copy { color: var(--color-text-secondary); }
 
-.order-evidence-primary {
+/* IA33 — explicit exact Evidence inspection. */
+.order-evidence-composition {
   height: 100%;
   min-height: 0;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr);
   gap: var(--spacing-3);
+  padding: var(--spacing-4);
 }
-.order-evidence-content {
-  height: 100%;
-  min-height: 0;
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  align-content: stretch;
-  gap: var(--spacing-3);
-}
-.order-evidence-raw-content {
-  height: 100%;
-  min-height: 0;
-}
-.order-evidence-code-block {
-  height: 100%;
-}
-.order-evidence-identity {
+.order-evidence-exact-identity {
+  min-width: 0;
   display: grid;
   grid-template-columns: max-content minmax(0, 1fr);
   gap: var(--spacing-3);
   margin: 0;
 }
-.order-evidence-identity dt { font-weight: 700; }
-.order-evidence-identity dd {
+.order-evidence-exact-identity dt { font-weight: 700; }
+.order-evidence-exact-identity dd {
   min-width: 0;
   margin: 0;
   color: var(--color-text-secondary);
   overflow-wrap: anywhere;
 }
-
-.order-result-material-root > section {
-  display: grid;
-  gap: var(--spacing-3);
+.order-evidence-bytes,
+.order-evidence-raw,
+.order-evidence-code {
+  height: 100%;
+  min-height: 0;
 }
 /* 5. Canonical Workbench breakpoint overrides only. */
 @media (max-width: 1279px) {
@@ -1320,6 +1331,8 @@
   .order-workbench-review-header { grid-template-columns: minmax(0, 1fr); }
   .order-workbench-review-currentness { justify-self: start; }
   .order-implementation-detail { padding: var(--spacing-3); }
+  .order-terminal-result,
+  .order-evidence-composition { padding: var(--spacing-3); }
   .order-workitem-title-edit {
     grid-template-columns: minmax(0, 1fr);
   }
