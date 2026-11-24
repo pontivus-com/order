@@ -4586,9 +4586,9 @@ test("canonical Run feedback remains visible in the owning workflow context with
     page.getByText("Which constraint should the plan prioritize?", { exact: true }),
   ).toBeVisible();
   const requiredInputComposer = page.getByTestId("activity-composer");
-  await expect(
-    requiredInputComposer.getByText("Answer the question above", { exact: true }),
-  ).toBeVisible();
+  await expect(requiredInputComposer).not.toContainText("Answer the question above");
+  await expect(requiredInputComposer.getByLabel("Message input"))
+    .toHaveAttribute("placeholder", "Answer and continue");
   await expect(requiredInputComposer).toBeFocused();
   const contextControl = page.getByRole("button", { name: "Context", exact: true });
   await contextControl.focus();
@@ -5232,12 +5232,15 @@ test("OPEN continuation keeps the agent anchor visible and admits exactly one cu
   const detail = page.getByTestId("activity-detail");
   await expect(detail).toBeVisible();
   await expect(page.getByTestId("workflow-step-summary")).toHaveCount(0);
-  await expect(page.getByTestId("selected-run-header")).toContainText("Open for continuation");
+  await expect(page.getByTestId("selected-run-header"))
+    .not.toContainText("Open for continuation");
   await expect(detail).toContainText("The current Research findings are ready for your continuation.");
   const composer = detail.getByTestId("activity-composer");
   await expect(composer).toBeVisible();
   await expect(composer.getByLabel("Message input")).toBeVisible();
-  await expect(composer).toContainText("Continue current work");
+  await expect(composer.getByLabel("Message input"))
+    .toHaveAttribute("placeholder", "Send a message");
+  await expect(composer).not.toContainText("Continue current work");
   await expect(composer.getByText("Answer the question above", { exact: true })).toHaveCount(0);
   await expect(detail.getByText("Repository-backed Research material", { exact: true })).toBeVisible();
   await expect(detail.getByRole("button", { name: "Open Research document", exact: true })).toBeVisible();
