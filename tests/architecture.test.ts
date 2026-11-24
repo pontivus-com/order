@@ -2847,7 +2847,7 @@ describe("architecture fitness", () => {
         const objective = task?.objective ?? "";
         for (const required of [
           "corrected authority-driven Order 0.6.0 candidate",
-          "IA27 is priority foundational reconstruction",
+          "IA27 is priority foundation revalidation",
           "WorkflowStepFrame",
           "WorkflowMaterialSelector",
           "primitive consumer allowlists",
@@ -2976,15 +2976,25 @@ describe("architecture fitness", () => {
           ia27Classifications
             .filter((row) => row.disposition === "DESTRUCTIVE_REPLACEMENT")
             .map((row) => row.path),
-          [
-            "ui/src/primitives/WorkbenchAttention.tsx",
-            "ui/src/primitives/WorkbenchConfirmation.tsx",
-            "ui/src/primitives/WorkbenchDialogue.tsx",
-            "ui/src/primitives/WorkbenchReview.tsx",
-            "ui/src/primitives/WorkbenchSurface.tsx",
-            "ui/src/primitives/WorkbenchTaskPanel.tsx",
-          ],
+          [],
         );
+        for (const requiredNoEdit of [
+          "ui/src/primitives/WorkbenchAttention.tsx",
+          "ui/src/primitives/WorkbenchConfirmation.tsx",
+          "ui/src/primitives/WorkbenchDialogue.tsx",
+          "ui/src/primitives/WorkbenchReview.tsx",
+          "ui/src/primitives/WorkbenchSurface.tsx",
+          "ui/src/primitives/WorkbenchTaskPanel.tsx",
+        ]) {
+          if (!ia27Classifications.some((row) =>
+            row.path === requiredNoEdit && row.disposition === "CONFORMING_NO_EDIT"
+          )) {
+            violations.push(
+              "PLAN IA27 exact-current foundation owner must be CONFORMING_NO_EDIT: " +
+                requiredNoEdit,
+            );
+          }
+        }
         exactSet(
           "PLAN IA27 required-absent owners",
           ia27Classifications
@@ -3003,7 +3013,7 @@ describe("architecture fitness", () => {
           "no renamed `WorkflowStepFrame`/`WorkflowMaterialSelector`",
           "zero compatibility/adapter paths",
           "only genuine attention owners render `WorkbenchAttention`",
-          "current authority-first reconstruction evidence",
+          "current authority-first no-edit classification evidence",
         ]) {
           if (!actionCatalog.includes(required)) {
             violations.push(
