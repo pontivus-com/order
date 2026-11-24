@@ -45,17 +45,11 @@ export const ActivityComposer = ({
       tone="danger" title="Workflow action failed"
       description={input.error instanceof Error ? input.error.message : String(input.error)}
     /> : null}
-    <div className="order-activity-composer-context">
-      <strong>{required ? "Answer the question above" : "Continue current work"}</strong>
-      <span>{required
-        ? "Your reply is bound to the exact question shown in the conversation."
-        : "Send the next instruction or answer for this interactive activity."}</span>
-    </div>
     <ChatComposer
       onSubmit={(value) => {
         if (!mutationsDisabled && value.trim().length > 0) input.mutate(value);
       }}
-      placeholder={required ? "Answer and continue" : "Continue current work"}
+      placeholder={required ? "Answer and continue" : "Send a message"}
       isDisabled={mutationsDisabled || input.isPending}
       elevation="none"
     />
