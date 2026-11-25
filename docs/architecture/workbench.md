@@ -1293,12 +1293,11 @@ No feature/service adapter owns CSS establishing a primitive-owned layout/mechan
 
 ### 8.17 Complete production-renderer coverage audit
 
-The following matrix is exhaustive for the production TSX renderers present on the PR #59 design baseline. `main.tsx` is bootstrap only and is not a renderer contract. `http.ts`, `query-keys.ts`, `workbench-presentation.ts` and `markdown-source-formatting.ts` are non-rendering modules.
+The following matrix is exhaustive for the production TSX renderers present on the PR #59 design baseline after applying current DESIGN dispositions. `main.tsx` is bootstrap only and is not a renderer contract. `http.ts`, `query-keys.ts`, `workbench-presentation.ts`, `markdown-source-formatting.ts` and the bounded `OpenCodeAccountControl.tsx` account query/presentation adapter are non-rendering modules.
 
 | Production renderer | Target UI-language coverage | Current mechanism specifically superseded where applicable |
 |---|---|---|
 | `app.tsx` | Layout, Toolbar, UtilityLink, TaskPanel, Confirmation, Notice/State + approved theme choice leaf | direct Drawer/AlertDialog and bespoke theme/account utility chrome |
-| `OpenCodeAccountControl.tsx` | UtilityLink + Status | native feature-styled button |
 | `SettingsWorkspace.tsx` | SettingsLayout + Form + Astryx field-owning controls / Field fallback + SectionHeader + Status/Notice + Confirmation + Action | bespoke settings sidebar/buttons/cards/form controls |
 | `OpenCodeAccountSettings.tsx` | Form + Astryx field-owning controls / Field fallback + SectionHeader + Status/Notice + Confirmation + Action/ResourceRow | bespoke account rows/input styling and direct AlertDialog |
 | `CreateWorkItem.tsx` | TaskPanel header/body/footer + Astryx field-owning controls / Field fallback + Status/Notice | raw feature-styled select/input/form spacing; Form actions inside Dialog body; local Technical-details disclosure |
