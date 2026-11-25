@@ -413,7 +413,7 @@ FR-1 = "docs/other.md"
 `;
     writeFileSync(manifestPath, manifestText);
 
-    const resolved = bunEval(`
+    const resolved = JSON.parse(bunEval(`
       const p = await import("./src/shell/project.ts");
       const manifest = await p.loadValidatedProjectManifest(${JSON.stringify(root)});
       const authority = await p.resolveAuthoritySources(${JSON.stringify(root)}, manifest);
@@ -421,7 +421,7 @@ FR-1 = "docs/other.md"
         ref: p.resolveAuthorityRef(manifest, "FR-1"),
         active: Object.values(authority).flat(),
       }));
-    `, process.cwd()) as { ref: string; active: string[] };
+    `, process.cwd())) as { ref: string; active: string[] };
 
     expect(resolved.ref).toBe("docs/other.md");
     expect(resolved.active).toEqual(["AGENTS.md"]);
