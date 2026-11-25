@@ -216,7 +216,7 @@ export const ReadinessWorkspace = ({
             <WorkbenchState
               kind="error"
               title="Readiness findings unavailable"
-              description="Open the exact governed Readiness review document for inspection."
+              description="The governed review document remains available under Package documents."
             />
           )
           : findingsMarkdown === null
@@ -224,11 +224,11 @@ export const ReadinessWorkspace = ({
               <WorkbenchState
                 kind="empty"
                 title="No separate readiness findings were recorded"
-                description="Open the exact governed Readiness review document for inspection."
+                description="The governed review document remains available under Package documents."
               />
             )
             : (
-              <div className="order-review-readiness-findings-content">
+              <div>
                 <Markdown
                   contentWidth="var(--order-prose-max-width)"
                   contentAlign="start"
