@@ -2256,6 +2256,7 @@ describe("architecture fitness", () => {
     const requirements = sourceText(requirementsPath);
     const research = sourceText(researchPath);
     const design = sourceText(designPath);
+    const p3Workbench = sourceText("docs/requirements/workbench.md");
     const p4Workbench = sourceText("docs/architecture/workbench.md");
     const plan = sourceText(planPath);
     const campaign = sourceText(campaignPath);
@@ -2529,21 +2530,6 @@ describe("architecture fitness", () => {
         );
       }
     }
-    for (const [label, textValue] of [
-      ["PLAN action catalog", actionCatalog],
-      ["PLAN closeout", closeout],
-    ] as const) {
-      for (const required of [
-        "every rendered datum/action maps to exactly one current DESIGN",
-        "missing applicable DESIGN row",
-        "returns upstream to DESIGN rather than being inferred",
-      ]) {
-        if (!textValue.includes(required)) {
-          violations.push(label + " does not enforce closed-world rendered schema: " + required);
-        }
-      }
-    }
-
     for (const required of [
       "visual-language → foundation realization ledger",
       "semantic information hierarchy",
@@ -2636,6 +2622,20 @@ describe("architecture fitness", () => {
     const closeout = sourceText(
       workItemRoot + "/implementation-plan/13-verification-closeout.md",
     );
+    for (const [label, textValue] of [
+      ["PLAN action catalog", actionCatalog],
+      ["PLAN closeout", closeout],
+    ] as const) {
+      for (const required of [
+        "every rendered datum/action maps to exactly one current DESIGN",
+        "missing applicable DESIGN row",
+        "returns upstream to DESIGN rather than being inferred",
+      ]) {
+        if (!textValue.includes(required)) {
+          violations.push(label + " does not enforce closed-world rendered schema: " + required);
+        }
+      }
+    }
     for (const action of ["IA23", "IA26", "IA24"]) {
       if (!closeout.includes(action) && !actionCatalog.includes(action)) {
         violations.push("Cross-solution/final action is not governed: " + action);
