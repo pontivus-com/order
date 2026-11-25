@@ -1108,7 +1108,7 @@ describe("Order cross-boundary certification", () => {
     expect(documentViewRule).not.toMatch(/(?:^|\s)(?:background|border|border-radius)\s*:/);
 
     const editorRule = theme.match(/\.order-markdown-editor\s*\{([^}]*)\}/)?.[1] ?? "";
-    expect(editorRule).toContain("grid-template-rows: auto auto auto minmax(0, 1fr);");
+    expect(editorRule).toContain("grid-template-rows: auto auto minmax(0, 1fr);");
 
     const formattingToolbarRule =
       theme.match(/\.order-markdown-format-toolbar\s*\{([^}]*)\}/)?.[1] ?? "";
