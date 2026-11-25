@@ -306,6 +306,8 @@ describe("Order cross-boundary certification", () => {
     expect(application).not.toContain("gateweft-theme");
 
     const theme = read("ui/src/theme.css");
+    expect(theme).not.toContain(".order-markdown-document-view-with-aside");
+    expect(theme).not.toContain(".order-markdown-document-view-aside");
     expect(theme).not.toContain("--pontivus-plugin-");
     expect(theme).not.toContain("--gw-");
     expect(theme).not.toContain(".gw-");
@@ -1014,8 +1016,6 @@ describe("Order cross-boundary certification", () => {
     expect(markdownEditor).toContain("{toolbarAccessory}");
     expect(documentWorkspace).not.toContain("toolbarAccessory=");
     expect(markdownEditor).not.toContain("viewAside");
-    expect(theme).not.toContain(".order-markdown-document-view-with-aside");
-    expect(theme).not.toContain(".order-markdown-document-view-aside");
     expect(markdownEditor).not.toContain("editingTitle");
     expect(markdownEditor).not.toContain("title: string");
     expect(documentWorkspace).toContain("<WorkbenchDocument");
