@@ -544,6 +544,12 @@
   margin-inline-start: auto;
 }
 
+.order-review-navigation {
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-2) var(--spacing-6);
+}
+
 .order-workbench-master-detail-master {
   width: 100%;
   min-width: 0;
@@ -732,14 +738,10 @@
 }
 
 /* IA30 — productive Research/Requirements/Design/Plan composition. */
-.order-productive-stage{height:100%;min-height:0;display:grid;grid-template-rows:minmax(0,1fr)}
-.order-productive-primary{min-height:0;overflow:auto}
+.order-productive-stage{height:100%;min-height:0;display:flex;flex-direction:column}
+.order-productive-primary{min-height:0;flex:1 1 auto;overflow:auto}
+.order-productive-navigation{flex:0 0 auto;display:flex;align-items:center;padding:var(--spacing-2) var(--spacing-6)}
 .order-activity-support,.order-activity-workflow-state{min-width:0;display:grid;gap:var(--spacing-3)}
-.order-productive-research-context,.order-productive-transient{min-width:0;display:grid;gap:var(--spacing-2)}
-.order-productive-research-context{padding:var(--spacing-3);border:1px solid var(--color-border-emphasized);border-radius:var(--radius-container);background:var(--color-background-muted)}
-.order-productive-research-context span,.order-productive-research-context code{color:var(--color-text-secondary)}
-.order-productive-research-context code{overflow-wrap:anywhere;font-size:var(--order-font-size-technical-xs)}
-.order-productive-transient{height:100%;grid-template-rows:auto minmax(0,1fr)}
 .order-activity-material,.order-proposal-review{min-width:0}
 .order-activity-detail{min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:var(--spacing-3)}
 .order-activity-technical-disclosure{min-width:0}
@@ -1170,24 +1172,38 @@
   display: grid;
   gap: var(--spacing-3);
 }
-.order-document-change-comparison {
+.order-document-change-proposed {
   min-width: 0;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--spacing-3);
 }
-.order-document-change-document {
+.order-document-change-heading h4 {
+  margin: 0;
+}
+.order-document-change-content {
   min-width: 0;
-  overflow: auto;
-  padding: var(--spacing-4);
-  border: 1px solid var(--color-border-emphasized);
-  background: var(--color-background-surface);
+  display: grid;
+  gap: var(--spacing-2);
 }
-.order-document-change-document[data-proposed="true"] {
-  border-inline-start-width: var(--spacing-1);
+.order-document-change-context {
+  min-width: 0;
 }
-.order-document-change-document > header h4 {
-  margin: 0 0 var(--spacing-3);
+.order-document-change-region {
+  min-width: 0;
+  padding: var(--spacing-3);
+  border-inline-start: var(--spacing-1) solid var(--color-border-emphasized);
+  background: var(--color-background-muted);
+}
+.order-document-change-region-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-2);
+}
+.order-document-change-region-label span {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
 }
 .order-markdown-document-view {
   height: 100%;
@@ -1216,7 +1232,6 @@
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr);
   border: 1px solid var(--color-border-emphasized);
-  border-radius: var(--radius-container);
   background: var(--color-background-surface);
   overflow: hidden;
 }
@@ -1244,7 +1259,6 @@
   min-height: 0;
   overflow: hidden;
   border: 1px solid var(--color-border-emphasized);
-  border-radius: var(--radius-container);
 }
 .order-editor-source-pane-hidden {
   display: none;
@@ -1366,10 +1380,24 @@
   .order-workbench-review { padding: var(--spacing-3); }
   .order-workbench-review-verdict { flex-direction: column; }
   .order-approval-decision { grid-template-columns: minmax(0, 1fr); }
-  .order-document-change-comparison { grid-template-columns: minmax(0, 1fr); }
-  .order-markdown-editor-controls > :first-child { flex: 0 0 auto; }
-  .order-markdown-format-toolbar { flex: 1 1 0; min-width: 0; }
-  .order-markdown-editor-actions { flex: 0 0 auto; }
+  .order-markdown-editor-controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+  .order-markdown-editor-controls > :first-child {
+    min-width: max-content;
+    justify-self: start;
+  }
+  .order-markdown-format-toolbar {
+    width: 100%;
+    min-width: 0;
+  }
+  .order-markdown-editor-actions {
+    width: 100%;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
   .order-app-readiness-item { align-items: stretch; flex-direction: column; }
   .order-workbench-review-header { grid-template-columns: minmax(0, 1fr); }
   .order-workbench-review-currentness { justify-self: start; }
