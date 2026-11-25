@@ -26,10 +26,10 @@ IA20/IA26 certify component API/consumer/physical-SoC closure in addition to the
 | `implementation-plan/01-a01-lifecycle-product.md` | `faa288baf93c3a718578f513dadd6e1a9b8c2e41` |
 | `implementation-plan/02-a02-governance-intake.md` | `2d2c36ae4b44ad8db982cbda6fc681e710579cc8` |
 | `implementation-plan/03-a03-queue-source.md` | `445b78a56193b81220acb0ef7d33a08758925740` |
-| `implementation-plan/04-a04-workbench-research.md` | `b927940efefc24f45785ad591a8ab1a281a89de8` |
-| `implementation-plan/05-a05-requirements-design.md` | `1dce263c3937482b983502e35913305005b18471` |
-| `implementation-plan/06-a06-plan-readiness.md` | `cde4a6ebc8f5db9674d66f5245fede9b996676cd` |
-| `implementation-plan/07-a07-approval-execution.md` | `5761838d41a338f13652cad3476427836008ec09` |
+| `implementation-plan/04-a04-workbench-research.md` | `7ec1fd05fafaf46db54084fb69009176aa4537cb` |
+| `implementation-plan/05-a05-requirements-design.md` | `5971caf8a6866b53945cfb4b85086adebb8f96cb` |
+| `implementation-plan/06-a06-plan-readiness.md` | `1a4e4e830ac6649d3bc41c50959b2a55ef025dc4` |
+| `implementation-plan/07-a07-approval-execution.md` | `0be72fd9db0f62741197287e56e49b5dbcf52034` |
 | `implementation-plan/08-a08-complete-materials.md` | `5e6fa8f674c1acbbf22e7ff9bfd25b64c40f5e37` |
 | `implementation-plan/09-a09-provider-settings.md` | `1ea3a7e188bbbda135b1ca6616b1f0477d100d6d` |
 | `implementation-plan/10-a10-recovery-accessibility.md` | `741c1336550805c4e435fce7a2b5da398f065ad6` |
@@ -698,7 +698,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C05 + C06.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`; current DESIGN `517ec65ac4c89b2d22395cda9286960fbdb82ffa`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`; current DESIGN `69858deb399556d5c9404fc49452885b583ff1e6`.
 
 ##### Stable requirement execution dispositions
 
@@ -768,7 +768,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C07 + C08.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`; current DESIGN `517ec65ac4c89b2d22395cda9286960fbdb82ffa`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`; current DESIGN `69858deb399556d5c9404fc49452885b583ff1e6`.
 
 ##### Stable requirement execution dispositions
 
@@ -814,7 +814,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C09 + C10.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`; current DESIGN `517ec65ac4c89b2d22395cda9286960fbdb82ffa`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`; current DESIGN `69858deb399556d5c9404fc49452885b583ff1e6`.
 
 ##### Stable requirement execution dispositions
 
@@ -859,7 +859,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C11 + C12.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`; current DESIGN `517ec65ac4c89b2d22395cda9286960fbdb82ffa`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`; current DESIGN `69858deb399556d5c9404fc49452885b583ff1e6`.
 
 ##### Stable requirement execution dispositions
 
