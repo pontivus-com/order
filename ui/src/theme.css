@@ -1376,12 +1376,6 @@
   .order-workbench-identity-primary { justify-content: flex-start; }
   .order-workitem-identity-copy { text-align: start; }
   .order-queue-search { min-width: min-content; }
-  .order-markdown-document-view-with-aside {
-    display: block;
-  }
-  .order-markdown-document-view-aside {
-    margin-top: var(--spacing-4);
-  }
 }
 
 @media (max-width: 799px) {
