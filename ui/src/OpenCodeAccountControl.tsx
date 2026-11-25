@@ -17,8 +17,6 @@ export const useOpenCodeAccountControl = (): Readonly<{
   const state = accountStateQuery.data;
   const activeAccount =
     state?.accounts.find((candidate) => candidate.active) ?? null;
-  const hasMutationBlocker = (state?.mutationBlockers.length ?? 0) > 0;
-
   const readiness = accountStateQuery.isError
     ? { tone: "danger" as const, label: "Unavailable" }
     : accountStateQuery.isPending
@@ -27,9 +25,7 @@ export const useOpenCodeAccountControl = (): Readonly<{
         ? { tone: "warning" as const, label: "Account required" }
         : activeAccount.status.status !== "READY"
           ? { tone: "warning" as const, label: "Needs sign-in" }
-          : hasMutationBlocker
-            ? { tone: "warning" as const, label: "Changes blocked" }
-            : { tone: "success" as const, label: "Ready" };
+          : { tone: "success" as const, label: "Ready" };
 
   return {
     label: activeAccount?.label ??
