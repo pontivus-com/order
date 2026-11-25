@@ -807,7 +807,12 @@ export const validateTaskDefinitions = async (
       }
     }
     for (const authorityRef of [...task.acceptanceRefs, ...task.authorityRefs]) {
-      resolveAuthorityRef(manifest, authorityRef);
+      const sourcePath = resolveAuthorityRef(manifest, authorityRef);
+      if (!materialPaths.has(sourcePath)) {
+        throw new TypeError(
+          `signed task references non-material authority: ${authorityRef}`,
+        );
+      }
     }
     for (const path of task.changeSurface) {
       if (!task.scope.some((pattern) => repositoryPatternMatches(pattern, path))) {
