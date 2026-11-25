@@ -381,10 +381,10 @@ export const SourceDocumentMaterial = ({
           )
         }
         details={{
-          label: "Work request details",
+          label: "Work request context",
           content: (
             <WorkbenchFacts
-              label="Work request details"
+              label="Work request context"
               items={[
               {
                 id: "work-type",
@@ -648,10 +648,10 @@ export const LifecycleDocumentMaterial = ({
           )
         }
         details={{
-          label: "Document details",
+          label: "Document location",
           content: (
             <WorkbenchFacts
-              label="Document details"
+              label="Document location"
               items={[
               {
                 id: "repository-path",
