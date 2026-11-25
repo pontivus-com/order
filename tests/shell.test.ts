@@ -391,12 +391,13 @@ materialRefs = []
     });
   });
 
-  it("rejects unresolved manifest refs instead of searching filenames", () => {
-    const root = tempDir("order-project-invalid-");
+  it("keeps exact refs resolvable without granting active authority and rejects missing ref sources", () => {
+    const root = tempDir("order-project-reference-only-");
     mkdirSync(join(root, "docs"));
     writeFileSync(join(root, "AGENTS.md"), "# authority\n");
     writeFileSync(join(root, "docs", "other.md"), "# other\n");
-    writeFileSync(join(root, "pontivus-order.toml"), `version = 1
+    const manifestPath = join(root, "pontivus-order.toml");
+    const manifestText = `version = 1
 projectId = "fixture"
 
 [authority]
@@ -409,13 +410,35 @@ p6 = []
 
 [refs]
 FR-1 = "docs/other.md"
-`);
-    const result = run([
+`;
+    writeFileSync(manifestPath, manifestText);
+
+    const resolved = bunEval(`
+      const p = await import("./src/shell/project.ts");
+      const manifest = await p.loadValidatedProjectManifest(${JSON.stringify(root)});
+      const authority = await p.resolveAuthoritySources(${JSON.stringify(root)}, manifest);
+      console.log(JSON.stringify({
+        ref: p.resolveAuthorityRef(manifest, "FR-1"),
+        active: Object.values(authority).flat(),
+      }));
+    `, process.cwd()) as { ref: string; active: string[] };
+
+    expect(resolved.ref).toBe("docs/other.md");
+    expect(resolved.active).toEqual(["AGENTS.md"]);
+
+    writeFileSync(
+      manifestPath,
+      manifestText.replace("docs/other.md", "docs/missing.md"),
+    );
+    const missing = run([
       "bun",
       "--eval",
       `const p=await import("./src/shell/project.ts"); await p.loadValidatedProjectManifest(${JSON.stringify(root)});`,
     ], process.cwd(), { allowFailure: true });
-    expect(result.status).not.toBe(0);
+    expect(missing.status).not.toBe(0);
+    expect(missing.stderr).toContain(
+      "AuthorityRef FR-1 source is not a readable regular repository file",
+    );
   });
 });
 
