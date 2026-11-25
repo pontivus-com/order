@@ -1680,6 +1680,8 @@ describe("Order cross-boundary certification", () => {
     expect(accountSettings).not.toContain("sessionStorage");
     expect(accountControl).not.toContain("providerID");
     expect(accountSettings).not.toContain("providerID");
+    expect(accountControl).not.toContain("mutationBlockers");
+    expect(accountControl).not.toContain("Changes blocked");
     expect(accountControl).not.toContain("updateOrderConfig");
     expect(accountSettings).not.toContain("updateOrderConfig");
 
