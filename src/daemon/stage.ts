@@ -1119,7 +1119,14 @@ export const readArtifactProposalTarget = (
   }
   const run = getRun(runtime, proposal.runId);
   const workItem = getWorkItem(runtime, run.workItemId);
-  return readWorkingTreeFile(workItem.repositoryRoot, proposal.event.targetPath);
+  const bytes = readWorkingTreeFile(
+    workItem.repositoryRoot,
+    proposal.event.targetPath,
+  );
+  if (sha256(bytes) !== proposal.event.baseSha256) {
+    throw new TypeError("artifact proposal baseSha256 is stale");
+  }
+  return bytes;
 };
 
 const adoptArtifactProposalUnlocked = async (
