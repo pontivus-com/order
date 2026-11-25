@@ -858,6 +858,7 @@ describe("Order cross-boundary certification", () => {
     ]);
     expect(consumersOf("WorkbenchState")).toEqual([
       "ActivityWorkspace.tsx",
+      "DocumentChangeView.tsx",
       "DocumentWorkspace.tsx",
       "EvidenceViewer.tsx",
       "ExecutionWorkspace.tsx",
