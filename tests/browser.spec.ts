@@ -4473,9 +4473,17 @@ test("long Source and lifecycle Markdown keep the final line editable, savable, 
     await page.keyboard.press("End");
     await page.keyboard.insertText(" persisted");
     await expect(finalLine).toHaveText(marker + " persisted");
-    await expect(page.getByRole("button", { name: "Save", exact: true })).toBeVisible();
+    const save = page.getByRole("button", { name: "Save", exact: true });
+    await expect(save).toBeVisible();
     await expect(page.getByRole("button", { name: "Cancel", exact: true })).toBeVisible();
-    await page.getByRole("button", { name: "Save", exact: true }).click();
+    const saveResponse = page.waitForResponse((response) => {
+      if (response.request().method() !== "PUT") return false;
+      const path = new URL(response.url()).pathname;
+      return path.endsWith("/source/body") ||
+        /^\/api\/artifacts\/[^/]+\/content$/.test(path);
+    });
+    await save.click();
+    expect((await saveResponse).ok()).toBe(true);
     const editorControls = page.getByTestId("markdown-editor-controls");
     await expect(
       editorControls.getByRole("button", { name: "Save", exact: true }),
