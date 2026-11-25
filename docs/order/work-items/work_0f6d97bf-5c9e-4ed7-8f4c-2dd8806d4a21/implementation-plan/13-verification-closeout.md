@@ -149,7 +149,7 @@ The GitHub Actions artifact is then reviewed row by row. Automated capture/cover
 
 Every manifest row records three independent verdicts:
 
-- `schema_information`: all authority-required Primary information is present with correct labels/grouping/hierarchy/prominence; generic workflow-state/material chrome and raw typed/technical vocabulary are absent from ordinary UI; singular Context/Settings-diagnostics/Evidence ownership and correct return behavior are preserved;
+- `schema_information`: every rendered datum/action maps to exactly one current DESIGN `SURF-*` row and every applicable DESIGN row is realized with its declared source/class/placement/disclosure rule; all authority-required Primary information is present with correct labels/grouping/hierarchy/prominence; Supporting/Operational information appears only where explicitly authorized; generic workflow-state/material chrome and raw typed/technical vocabulary are absent from ordinary UI; singular Context/Settings-diagnostics/Evidence ownership and correct return behavior are preserved. An unmapped rendered datum/action or missing applicable DESIGN row is `FAIL` and returns upstream to DESIGN rather than being inferred by implementation;
 - `ux_interaction`: the direct owning interaction class is correct; required-absent WorkflowStepFrame/WorkflowMaterialSelector equivalents are absent; Dialogue remains continuous across OPEN/REQUIRED_INPUT/PROCESSING turns; Review/Evidence/Terminal primaries are not wrapped/nested; current-attention/action precedence, recovery and responsive composition conform;
 - `visual_ui`: rendered hierarchy, density, spacing, alignment, geometry, typography, component consistency, affordances, clipping/wrapping, overlays and theme behavior materially conform.
 

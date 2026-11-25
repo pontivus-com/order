@@ -2506,6 +2506,44 @@ describe("architecture fitness", () => {
       }
     }
 
+    for (const forbiddenP3 of [
+      "Review owns currentness, summary/body and decisions",
+      "WorkbenchToolbar({ start, end })",
+      "WorkbenchMasterDetail({ master, detail, masterLabel })",
+    ]) {
+      if (p3Workbench.includes(forbiddenP3) || p4Workbench.includes(forbiddenP3)) {
+        violations.push(
+          "current Workbench authority retains superseded open-ended UI contract: " +
+            forbiddenP3,
+        );
+      }
+    }
+    for (const requiredClosedWorld of [
+      "A typed field not enumerated for a surface is **not authorized to appear on that surface** merely because the client already has it.",
+      "map every rendered datum/action to the corresponding contract row",
+      "A missing contract row is not an implementation gap. It is a DESIGN defect and blocks the phase.",
+    ]) {
+      if (!design.includes(requiredClosedWorld)) {
+        violations.push(
+          "DESIGN closed-world UI information contract missing: " + requiredClosedWorld,
+        );
+      }
+    }
+    for (const [label, textValue] of [
+      ["PLAN action catalog", actionCatalog],
+      ["PLAN closeout", closeout],
+    ] as const) {
+      for (const required of [
+        "every rendered datum/action maps to exactly one current DESIGN",
+        "missing applicable DESIGN row",
+        "returns upstream to DESIGN rather than being inferred",
+      ]) {
+        if (!textValue.includes(required)) {
+          violations.push(label + " does not enforce closed-world rendered schema: " + required);
+        }
+      }
+    }
+
     for (const required of [
       "visual-language → foundation realization ledger",
       "semantic information hierarchy",
