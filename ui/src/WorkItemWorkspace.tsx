@@ -1158,26 +1158,10 @@ export const WorkItemWorkspace = ({
       />
     );
 
-  const historicalAttentionReason =
-    currentAttention === "REQUIRED_INPUT"
-      ? "Waiting for you"
-      : currentAttention === "PROPOSAL_DECISION"
-        ? "Proposal review required"
-        : currentAttention === "ACTIONABLE"
-          ? workflow.label + " is ready for your action"
-          : null;
-
   const historicalReturn =
-    inspectedHistorical && currentMaterialAction !== undefined ? (
-      <>
-        {summaryBlocker === null && historicalAttentionReason === null ? null : (
-          <span>
-            {summaryBlocker?.title ?? historicalAttentionReason}
-          </span>
-        )}
-        {currentMaterialAction}
-      </>
-    ) : undefined;
+    inspectedHistorical && currentMaterialAction !== undefined
+      ? currentMaterialAction
+      : undefined;
 
   const currentInteractionAttention =
     !inspectedHistorical && summaryBlocker !== null ? (
