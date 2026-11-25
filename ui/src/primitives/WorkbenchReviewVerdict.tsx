@@ -14,7 +14,7 @@ export const WorkbenchReviewVerdict = ({
   tone,
   currentness,
 }: WorkbenchReviewVerdictProps) => (
-  <section className="order-workbench-review-verdict" aria-label="Review verdict">
+  <section className="order-workbench-review-verdict" aria-label="Review verdict" data-testid="review-verdict">
     <div className="order-workbench-review-verdict-copy">
       {description === undefined ? null : <p>{description}</p>}
       {currentness === undefined ? null : (
