@@ -141,41 +141,6 @@ export const ReadinessWorkspace = ({
       ? null
       : readinessFindingsMarkdown(readinessMarkdown);
 
-  const readinessDocument =
-    readinessArtifact === null
-      ? (
-        <WorkbenchState
-          kind="empty"
-          title="Readiness review is in progress"
-          description="The governed readiness document will appear here when available."
-        />
-      )
-      : readinessContentQuery.isPending
-        ? <WorkbenchState kind="loading" title="Loading readiness review…" />
-        : readinessContentQuery.isError
-          ? (
-            <WorkbenchState
-              kind="error"
-              title="Readiness review unavailable"
-              description="The governed readiness document could not be loaded."
-            />
-          )
-          : readinessMarkdown === null
-            ? (
-              <WorkbenchState
-                kind="error"
-                title="Readiness review is not valid UTF-8 Markdown"
-              />
-            )
-            : (
-              <Markdown
-                contentWidth="var(--order-prose-max-width)"
-                contentAlign="start"
-              >
-                {readinessMarkdown}
-              </Markdown>
-            );
-
   const stageRuns = [...runs]
     .filter((run) => run.role === "STAGE" && run.stage === "R3")
     .sort(
@@ -252,7 +217,7 @@ export const ReadinessWorkspace = ({
             <WorkbenchState
               kind="error"
               title="Readiness findings unavailable"
-              description="The governed review document remains available under Package documents."
+              description="Use Governed review to inspect the complete readiness document."
             />
           )
           : findingsMarkdown === null
@@ -260,7 +225,7 @@ export const ReadinessWorkspace = ({
               <WorkbenchState
                 kind="empty"
                 title="No separate readiness findings were recorded"
-                description="The governed review document remains available under Package documents."
+                description="Use Governed review to inspect the complete readiness document."
               />
             )
             : (
@@ -464,9 +429,22 @@ export const ReadinessWorkspace = ({
             ),
           },
           {
-            id: "readiness-document",
-            title: "Readiness review",
-            content: readinessDocument,
+            id: "governed-review",
+            title: "Governed review",
+            content: readinessArtifact === null
+              ? <WorkbenchState kind="empty" title="Readiness review is in progress" />
+              : (
+                <WorkbenchAction
+                  label="Read readiness review"
+                  icon={<WorkbenchIcon name="document" />}
+                  tone="secondary"
+                  onClick={() =>
+                    onSelectMaterial({
+                      kind: "SUPPORTING_DOCUMENT",
+                      artifactId: readinessArtifact.id,
+                    })}
+                />
+              ),
           },
           {
             id: "package",
