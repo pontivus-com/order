@@ -4,7 +4,7 @@
 
 ## Exact task units/dependencies/objectives
 
-This plan authorizes the **governance-foundation and evidence-producing audit tranche only**. It does not pre-authorize unknown production remediation discovered by the audit.
+T1/T2 established the governance foundation and completed the evidence-producing audit. This amendment authorizes only the now-known owner-level remediation T3/T4 plus exact revalidation/closure obligations. Unknown additional production remediation remains unauthorized.
 
 ### T1 — establish the canonical governance foundation and tracker
 
@@ -122,6 +122,54 @@ Required for this tranche:
 6. for T2, independently review each recorded finding against its cited source and canonical authority;
 7. after any reconciliation with PR #83, repeat affected governance/documentation fitness and finding evidence before closure.
 
+## Post-audit exact remediation tasks
+
+### T3 — correct P2/P5 documentation ownership
+
+**Objective:** close FP-F04/FP-F05 at the documents that currently contain the lower-layer restatement/contradiction.
+
+**Depends on:** T2.
+
+**Exact work:**
+
+1. reduce `GW-DOC-SYSTEM-BRIEF-V1` §6 to P2 product intent and references to the P3 lifecycle/validation owners;
+2. correct D19 so the shell owns active-account identity/navigation while Settings owns full saved-account management under the existing P3 requirements;
+3. do not change product lifecycle, account behavior, contracts or runtime implementation.
+
+### T4 — separate exact reference identity from active authority applicability
+
+**Objective:** close FP-F06/FP-F07 without introducing a second registry or a new authority carrier.
+
+**Depends on:** T2.
+
+**Exact work:**
+
+1. amend `GW-DOC-CANONICAL-CONTRACTS-V2 §14` so `refs` grants exact identity resolution only and is not required to be active authority;
+2. preserve validation that every ref points at an exact readable regular repository file;
+3. require signed task `acceptanceRefs`/`authorityRefs` to resolve to sources already present in the current R3 material set;
+4. remove retained semantic-version owners and OpenSpec/Spec Kit/Kiro/BMAD prior-art evidence documents from root `authority.p1-p6` while retaining their exact `[refs]` mappings;
+5. preserve `ResolvedProjectAuthority.authorityRefs` as active-authority-only;
+6. update architecture/core/shell/daemon proof to establish the identity/applicability separation and reject non-material task refs.
+
+No HTTP, SQLite, WorkItem, ArtifactRef, SignedTaskBlock, dependency, process or UI schema changes are authorized.
+
+### T5 — reconcile separate 0.6.0 Workbench findings
+
+**Objective:** avoid a competing UI implementation.
+
+**Depends on:** T3/T4 and the exact current PR #83 candidate.
+
+This task is a verification/dependency obligation, not a production mutation on this branch:
+
+- revalidate FP-F09, FP-F10 and the terminal-resource portion of FP-F11 against the exact eventual PR #83 candidate;
+- require FP-F08 and the remaining shared-event FP-F11 path to be corrected by the 0.6.0 owner before this WorkItem can claim C06 closure;
+- revalidate FP-F01/FP-F02 against the reconciled `GW-DOC-SYSTEMS-GOVERNANCE-PYRAMID-V1`;
+- record exact results in the conformance register.
+
+### T6 — final conformance verification
+
+Run the full configured verification required by the changed concerns, inspect the exact diff for shadow specifications/unauthorized scope, and close only findings supported by exact-candidate evidence.
+
 ## Canonical order-tasks block
 
 ```order-tasks
@@ -137,14 +185,7 @@ Required for this tranche:
         "docs/governance/systems-governance.md",
         "docs/order/work-items/work_2591ffb8-9b32-480c-9f70-e705aa0159d6/**"
       ],
-      "exclusions": [
-        ".span/**",
-        "package.json",
-        "bun.lock",
-        "src/**",
-        "ui/**",
-        "tests/**"
-      ],
+      "exclusions": [".span/**", "package.json", "bun.lock", "src/**", "ui/**", "tests/**"],
       "acceptanceRefs": [
         "GW-P1-CANONICAL-OWNERSHIP",
         "GW-P1-EXPLICIT-FLOW",
@@ -161,9 +202,7 @@ Required for this tranche:
         "docs/order/work-items/work_2591ffb8-9b32-480c-9f70-e705aa0159d6/solution-design.md",
         "docs/order/work-items/work_2591ffb8-9b32-480c-9f70-e705aa0159d6/work-request.md"
       ],
-      "gateIds": [
-        "architecture"
-      ],
+      "gateIds": ["dependency-lock", "typecheck", "architecture", "test", "build", "browser"],
       "authorityRefs": [
         "GW-DOC-SYSTEMS-GOVERNANCE-PYRAMID-V1",
         "GW-DOC-LIFECYCLE-CONTEXT-V2",
@@ -172,27 +211,14 @@ Required for this tranche:
         "GW-DOC-CANONICAL-CONTRACTS-V2",
         "GW-DOC-TECHNICAL-DECISIONS-V1"
       ],
-      "concernIds": [
-        "foundation",
-        "verification"
-      ]
+      "concernIds": ["foundation", "verification"]
     },
     {
       "id": "T2",
       "objective": "Audit the current canonical P1-P6 corpus and material semantic producer-to-consumer paths, recording complete evidence-backed findings and owner dispositions without performing unknown production remediation.",
-      "dependsOn": [
-        "T1"
-      ],
-      "scope": [
-        "docs/**",
-        "pontivus-order.toml",
-        "src/**",
-        "ui/**",
-        "tests/**"
-      ],
-      "exclusions": [
-        ".span/**"
-      ],
+      "dependsOn": ["T1"],
+      "scope": ["docs/**", "pontivus-order.toml", "src/**", "ui/**", "tests/**"],
+      "exclusions": [".span/**"],
       "acceptanceRefs": [
         "GW-P1-CANONICAL-OWNERSHIP",
         "GW-P1-EXPLICIT-FLOW",
@@ -202,9 +228,7 @@ Required for this tranche:
       "changeSurface": [
         "docs/order/work-items/work_2591ffb8-9b32-480c-9f70-e705aa0159d6/conformance-register.md"
       ],
-      "gateIds": [
-        "architecture"
-      ],
+      "gateIds": ["dependency-lock", "typecheck", "architecture", "test", "build", "browser"],
       "authorityRefs": [
         "GW-DOC-SYSTEMS-GOVERNANCE-PYRAMID-V1",
         "GW-DOC-LIFECYCLE-CONTEXT-V2",
@@ -213,14 +237,70 @@ Required for this tranche:
         "GW-DOC-TECHNICAL-ARCHITECTURE-V2",
         "GW-DOC-CANONICAL-CONTRACTS-V2"
       ],
-      "concernIds": [
-        "core",
-        "daemon",
-        "foundation",
-        "shell",
-        "ui",
-        "verification"
-      ]
+      "concernIds": ["core", "daemon", "foundation", "shell", "ui", "verification"]
+    },
+    {
+      "id": "T3",
+      "objective": "Correct the P2 System Brief lifecycle restatement and P5 D19 account-management contradiction without changing the underlying product behavior.",
+      "dependsOn": ["T2"],
+      "scope": [
+        "docs/product/system-brief.md",
+        "docs/decisions/technical-decisions.md"
+      ],
+      "exclusions": ["src/**", "ui/**", "tests/**", ".span/**"],
+      "acceptanceRefs": [
+        "GW-DOC-WORK-LIFECYCLE-V1",
+        "GW-DOC-INSTALLATION-READINESS-V1"
+      ],
+      "changeSurface": [
+        "docs/product/system-brief.md",
+        "docs/decisions/technical-decisions.md"
+      ],
+      "gateIds": ["dependency-lock", "typecheck", "architecture", "test", "build"],
+      "authorityRefs": [
+        "GW-DOC-SYSTEMS-GOVERNANCE-PYRAMID-V1",
+        "GW-DOC-SYSTEM-BRIEF-V1",
+        "GW-DOC-TECHNICAL-DECISIONS-V1"
+      ],
+      "concernIds": ["foundation"]
+    },
+    {
+      "id": "T4",
+      "objective": "Separate exact AuthorityRef identity from automatic stage applicability, remove historical/prior-art evidence from Order's default active authority sets, and prove task refs cannot self-promote non-material sources.",
+      "dependsOn": ["T2"],
+      "scope": [
+        "docs/contracts/canonical-contracts.md",
+        "pontivus-order.toml",
+        "src/shell/project.ts",
+        "src/daemon/authority.ts",
+        "tests/architecture.test.ts",
+        "tests/core.test.ts",
+        "tests/shell.test.ts",
+        "tests/daemon.test.ts"
+      ],
+      "exclusions": ["ui/**", ".span/**", "package.json", "bun.lock"],
+      "acceptanceRefs": [
+        "GW-DOC-LIFECYCLE-CONTEXT-V2",
+        "GW-DOC-CANONICAL-CONTRACTS-V2"
+      ],
+      "changeSurface": [
+        "docs/contracts/canonical-contracts.md",
+        "pontivus-order.toml",
+        "src/shell/project.ts",
+        "src/daemon/authority.ts",
+        "tests/architecture.test.ts",
+        "tests/core.test.ts",
+        "tests/shell.test.ts",
+        "tests/daemon.test.ts"
+      ],
+      "gateIds": ["dependency-lock", "typecheck", "architecture", "test", "build", "browser"],
+      "authorityRefs": [
+        "GW-DOC-SYSTEMS-GOVERNANCE-PYRAMID-V1",
+        "GW-DOC-LIFECYCLE-CONTEXT-V2",
+        "GW-DOC-PROJECT-GOVERNANCE-INTEGRATION-V1",
+        "GW-DOC-TECHNICAL-ARCHITECTURE-V2"
+      ],
+      "concernIds": ["daemon", "foundation", "shell", "verification"]
     }
   ]
 }
