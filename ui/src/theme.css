@@ -668,6 +668,34 @@
 }
 .order-settings-layout-content-surface { padding: var(--spacing-5); }
 
+.order-workbench-document-actions {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
+}
+.order-workbench-document {
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  overflow: hidden;
+  padding-inline: var(--spacing-6);
+}
+.order-workbench-document-facts {
+  min-width: 0;
+  padding-block: var(--spacing-2) var(--spacing-3);
+  border-bottom: 1px solid var(--color-border-emphasized);
+}
+.order-workbench-document-content {
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  padding-block: var(--spacing-3) var(--spacing-6);
+}
+
 /* 4. Specialist content and feature-semantic layout. */
 
 /* IA31 — verdict-first Readiness and currentness-first Approval reviews. */
@@ -1186,8 +1214,7 @@
 .order-section-heading p { margin: 0; }
 .order-section-heading span { color: var(--color-text-secondary); }
 
-.order-document-git-action,
-.order-workbench-document-actions {
+.order-document-git-action {
   min-width: 0;
   display: inline-flex;
   align-items: center;
@@ -1199,26 +1226,6 @@
   display: grid;
   gap: var(--spacing-2);
   padding-bottom: var(--spacing-2);
-}
-.order-workbench-document {
-  height: 100%;
-  min-height: 0;
-  min-width: 0;
-  display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr);
-  overflow: hidden;
-  padding-inline: var(--spacing-6);
-}
-.order-workbench-document-facts {
-  min-width: 0;
-  padding-block: var(--spacing-2) var(--spacing-3);
-  border-bottom: 1px solid var(--color-border-emphasized);
-}
-.order-workbench-document-content {
-  min-height: 0;
-  min-width: 0;
-  overflow: hidden;
-  padding-block: var(--spacing-3) var(--spacing-6);
 }
 .order-document-technical,
 .order-document-source-bytes {
