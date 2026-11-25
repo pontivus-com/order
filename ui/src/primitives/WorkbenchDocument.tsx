@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { WorkbenchDisclosure } from "./WorkbenchDisclosure.tsx";
 import { WorkbenchSectionHeader } from "./WorkbenchSectionHeader.tsx";
 
 export type WorkbenchDocumentProps = Readonly<{
@@ -6,12 +7,20 @@ export type WorkbenchDocumentProps = Readonly<{
   description?: string;
   status?: ReactNode;
   action?: ReactNode;
-  facts?: ReactNode;
   content: ReactNode;
+  details?: Readonly<{
+    label: string;
+    content: ReactNode;
+  }>;
 }>;
 
 export const WorkbenchDocument = ({
-  title, description, status, action, facts, content,
+  title,
+  description,
+  status,
+  action,
+  content,
+  details,
 }: WorkbenchDocumentProps) => (
   <section className="order-workbench-document" data-testid="workbench-document">
     <WorkbenchSectionHeader
@@ -26,9 +35,11 @@ export const WorkbenchDocument = ({
         )
       }
     />
-    {facts === undefined ? null : (
-      <div className="order-workbench-document-facts">{facts}</div>
-    )}
     <div className="order-workbench-document-content">{content}</div>
+    {details === undefined ? null : (
+      <div className="order-workbench-document-details">
+        <WorkbenchDisclosure label={details.label} content={details.content} />
+      </div>
+    )}
   </section>
 );
