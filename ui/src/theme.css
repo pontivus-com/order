@@ -732,7 +732,7 @@
 .order-approval-decision {
   min-width: 0;
   display: grid;
-  grid-template-columns: minmax(14rem, 1fr) max-content;
+  grid-template-columns: minmax(0, 1fr) max-content;
   align-items: end;
   gap: var(--spacing-3);
 }
