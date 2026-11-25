@@ -695,7 +695,7 @@ Task ids are unique, dependencies are acyclic and local to the block, arrays con
 
 Task validation does not infer future decomposition paths. R3 instead proves that the signed scope/decomposition constraints are narrow enough to bound execution while still permitting the S8/S9 architecture-preserving variance rule above. A fixed forecast list must never be used to force a second responsibility into an existing module.
 
-Every `acceptanceRefs` and `authorityRefs` value must resolve through the same manifest's `refs` map described in §14. An unresolved reference is `SPEC_INVALID`; runtime never scans arbitrary prose or invents an alias/source mapping.
+Every `acceptanceRefs` and `authorityRefs` value must resolve through the same manifest's `refs` map described in §14. Exact reference resolution proves identity only. At R3/sign-off validation, each resolved task-ref source must already be present in the current material context/closure through an authorized authority, concern or other governed material-applicability path; naming a reference does not promote a reference-only or historical source into governing authority. An unresolved or non-material task reference is `SPEC_INVALID`; runtime never scans arbitrary prose, invents an alias/source mapping or infers applicability from the ref name.
 
 After Approval, Order maps block ids deterministically to generated ExecutionTask ids.
 
@@ -767,11 +767,12 @@ Exact schema:
 - `projectId`: ProjectId;
 - `authority`: only `p1` through `p6`, each an array of RepositoryPattern values selecting project authority; array order is deterministic processing order only and does **not** create semantic precedence;
 - optional `refs`: a map from `AuthorityRef` keys to literal `RepositoryPath` values; absent is equivalent to an empty map;
-- each `refs.<AuthorityRef>` source path must resolve through at least one `authority.p1`–`authority.p6` source set;
+- each `refs.<AuthorityRef>` source path must identify an exact existing regular repository file; it does **not** need to be selected by `authority.p1`–`authority.p6`;
 - `refs` is an identity-to-source index only: semantic requirement/ADR/spec content remains owned by the referenced source file and is never copied into the manifest;
-- canonical documentation concern references follow `GW-P1-DOC-CANONICALITY`: stable/versioned `GW-DOC-*` identifiers resolve through `refs`, while the referenced document remains the sole semantic owner;
-- task `acceptanceRefs` and `authorityRefs` resolve by exact key lookup in `refs`; no filename search, full-text scan, nearest-match rule, or P7-local alias inference is permitted;
-- a referenced source becomes material context/approval input when the task/stage uses that ref, so its exact ArtifactRef participates in conformance dependency/freshness handling;
+- presence in `refs` grants exact resolvability only. It does not grant authority layer, applicability, precedence, stage inclusion or materiality;
+- canonical documentation concern references follow `GW-P1-DOC-CANONICALITY`: stable/versioned `GW-DOC-*` identifiers resolve through `refs`, while the referenced document remains the sole semantic owner. Retained semantic versions may therefore remain exactly selectable without being ordinary current stage authority;
+- task `acceptanceRefs` and `authorityRefs` resolve by exact key lookup in `refs`; no filename search, full-text scan, nearest-match rule, P7-local alias inference or ref-name-to-layer inference is permitted;
+- a stage/task may rely on a referenced source as governing material only when that exact source is already admitted by the resolved authority/concern/material context for the stage. R3 validates that every resolved signed-task ref path is in its current material set before sign-off; exact lookup alone never self-promotes a reference-only source;
 - optional `precedence.p1` through `precedence.p6`: arrays of literal RepositoryPath values, highest authority first, declaring same-layer precedence only among the listed sources;
 - every precedence path must resolve from the matching `authority.<layer>` set;
 - a conflict between same-layer authorities without an applicable explicit precedence relation remains `CONTRADICTORY_AUTHORITY`;
