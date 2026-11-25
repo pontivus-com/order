@@ -792,12 +792,11 @@ describe("Order cross-boundary certification", () => {
       "DocumentWorkspace.tsx",
     ]);
     expect(consumersOf("WorkbenchSection")).toEqual([
+      "PreSignoffStageWorkspace.tsx",
       "WorkItemContext.tsx",
     ]);
     expect(consumersOf("WorkbenchFacts")).toEqual([
       "DocumentWorkspace.tsx",
-      "ProposalReview.tsx",
-      "SignoffReview.tsx",
       "WorkItemContext.tsx",
     ]);
     const contextPanel = read("ui/src/primitives/WorkbenchContextPanel.tsx");
@@ -942,15 +941,18 @@ describe("Order cross-boundary certification", () => {
     const proposalReview = read("ui/src/ProposalReview.tsx");
     const documentChangeView = read("ui/src/DocumentChangeView.tsx");
     expect(proposalReview).toContain("DocumentChangeView");
-    expect(proposalReview).toContain("WorkbenchFacts");
+    expect(proposalReview).toContain('title: "Target"');
+    expect(proposalReview).toContain('title: "Rationale"');
+    expect(proposalReview).not.toContain("WorkbenchFacts");
     expect(proposalReview).not.toContain("@astryxdesign/core/CodeBlock");
     expect(proposalReview).not.toContain("order-proposal-diff");
     expect(proposalReview).not.toContain("order-proposal-facts");
-    expect(documentChangeView).toContain("Current document");
     expect(documentChangeView).toContain("Proposed document");
+    expect(documentChangeView).toContain('data-testid="document-change-region"');
+    expect(documentChangeView).toContain("removedBefore");
     expect(documentChangeView).toContain('label="View exact diff"');
     expect(documentChangeView).toContain("<CodeBlock");
-    expect(documentChangeView.indexOf("order-document-change-comparison"))
+    expect(documentChangeView.indexOf("order-document-change-content"))
       .toBeLessThan(documentChangeView.indexOf('label="View exact diff"'));
 
     const proposal = read("ui/src/PreSignoffStageWorkspace.tsx");
@@ -971,7 +973,8 @@ describe("Order cross-boundary certification", () => {
 
     const approval = read("ui/src/SignoffReview.tsx");
     expect(approval).toContain("WorkbenchReview");
-    expect(approval).toContain("WorkbenchFacts");
+    expect((approval.match(/<WorkbenchReview\b/g) ?? [])).toHaveLength(1);
+    expect(approval).not.toContain("WorkbenchFacts");
     expect(approval).toContain("WorkbenchResourceList");
     expect(approval).toContain("packageStale?: boolean");
     expect(approval).toContain(
@@ -1060,8 +1063,8 @@ describe("Order cross-boundary certification", () => {
     expect(markdownEditor).not.toContain("title: string");
     expect(documentWorkspace).toContain("<WorkbenchDocument");
     expect(documentWorkspace).toContain("<WorkbenchFacts");
-    expect(documentWorkspace).toContain('label: "Work request details"');
-    expect(documentWorkspace).toContain('label: "Document details"');
+    expect(documentWorkspace).toContain('label: "Work request context"');
+    expect(documentWorkspace).toContain('label: "Document location"');
     expect(documentWorkspace).not.toContain("facts={");
     expect(documentWorkspace).not.toContain("WorkRequestFacts");
     expect(documentWorkspace).not.toContain("order-document-facts");
@@ -1127,6 +1130,7 @@ describe("Order cross-boundary certification", () => {
       ".order-review-approval-",
       ".order-proposal-diff",
       ".order-proposal-facts",
+      ".order-productive-research-context",
       ".order-settings-workspace",
       ".order-settings-page-heading",
       ".order-settings-content",
@@ -1160,6 +1164,10 @@ describe("Order cross-boundary certification", () => {
 
     const documentViewRule = theme.match(/\.order-markdown-document-view\s*\{([^}]*)\}/)?.[1] ?? "";
     expect(documentViewRule).not.toMatch(/(?:^|\s)(?:background|border|border-radius)\s*:/);
+    const markdownEditorRule = theme.match(/\.order-markdown-editor\s*\{([^}]*)\}/)?.[1] ?? "";
+    const sourcePaneRule = theme.match(/\.order-editor-source-pane,[\s\S]*?\{([^}]*)\}/)?.[1] ?? "";
+    expect(markdownEditorRule).not.toContain("border-radius");
+    expect(sourcePaneRule).not.toContain("border-radius");
     const reviewRule = theme.match(/\.order-workbench-review\s*\{([^}]*)\}/)?.[1] ?? "";
     expect(reviewRule).not.toMatch(/(?:^|\s)(?:background|border|border-radius)\s*:/);
 
