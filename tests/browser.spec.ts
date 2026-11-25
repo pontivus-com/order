@@ -43,7 +43,7 @@ const diagnosticCurrentState = renderedEvidenceKind === "diagnostic_current_stat
 
 const diagnosticPhase = process.env.PONTIVUS_ORDER_DIAGNOSTIC_PHASE ?? null;
 const huxPriorityOnly = process.env.PONTIVUS_ORDER_HUX_PRIORITY_ONLY === "1";
-const huxPriorityCaptureIds = new Set([
+const huxPriorityCaptureIds = new Set<string>([
   "ia26-work-request-step-wide-light",
   "ia26-source-document-editor-narrow-light",
   "ia26-lifecycle-document-editor-wide-light",
@@ -52,7 +52,7 @@ const huxPriorityCaptureIds = new Set([
   "ia26-readiness-review-wide-light",
   "ia26-approval-wide-light",
   "ia26-approval-task-wide-light",
-] as const);
+]);
 const renderedDiagnosticPhases = ["IA34", "IA29", "IA30", "IA31", "IA32", "IA33"] as const;
 type RenderedDiagnosticPhase = typeof renderedDiagnosticPhases[number];
 const runRenderedPhase = (phase: RenderedDiagnosticPhase): boolean =>
@@ -2657,7 +2657,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     entry: RenderedAcceptanceInput,
     target?: Locator,
   ): Promise<void> => {
-    if (huxPriorityOnly && !huxPriorityCaptureIds.has(entry.id as never)) return;
+    if (huxPriorityOnly && !huxPriorityCaptureIds.has(entry.id)) return;
     entries.push(await captureRenderedAcceptance(page, entry, target));
   };
   const light = { width: 1440, height: 900 } as const;
