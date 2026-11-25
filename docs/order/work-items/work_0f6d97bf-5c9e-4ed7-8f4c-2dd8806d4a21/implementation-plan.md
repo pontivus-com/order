@@ -34,7 +34,7 @@ IA20/IA26 certify component API/consumer/physical-SoC closure in addition to the
 | `implementation-plan/09-a09-provider-settings.md` | `1ea3a7e188bbbda135b1ca6616b1f0477d100d6d` |
 | `implementation-plan/10-a10-recovery-accessibility.md` | `741c1336550805c4e435fce7a2b5da398f065ad6` |
 | `implementation-plan/11-a11-component-certification.md` | `4cf83573e9605de4877f2ef1e9805c291a7917ff` |
-| `implementation-plan/12-action-catalog.md` | `00e691596b988dc918578b44ed9c6eecd7b04eaa` |
+| `implementation-plan/12-action-catalog.md` | `c30cebbafb01d561f7386b9bf33b4109493e06f3` |
 | `implementation-plan/13-verification-closeout.md` | `6b9c66440b0583ab96329740f22e07010123a230` |
 
 A source component hash mismatch makes PLAN non-current until this root is regenerated. Directory files contain no `order-tasks` block and own no independent lifecycle state or executable action definition.
@@ -865,11 +865,12 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 6. any evidence contradiction returns upstream rather than broadening scope.
 
 ### Compiled component: `implementation-plan/12-action-catalog.md`
-#### 0.6.0 implementation action catalog
+
+# 0.6.0 implementation action catalog
 
 Each IA action below has one execution owner. Semantic phase files may reference the action as consumers; they never duplicate implementation responsibility. The catalog is revalidated against current DESIGN SD01-SD30 under post-rendered-evidence reconstruction; historical action existence is not justification for retaining an action.
 
-##### Signed-task audit ledger
+## Signed-task audit ledger
 
 This is a trace/readability view of the one canonical `order-tasks` block in the root PLAN. It is **not** another executable task representation. A mismatch with the root block makes PLAN non-current.
 
@@ -879,7 +880,7 @@ This is a trace/readability view of the one canonical `order-tasks` block in the
 
 **Audit rule:** T1 is the only P6 ExecutionTask. Wave/IA ordering below is internal implementation sequencing and never relies on candidate-byte promotion between tasks. A later phase discovering a foundation defect returns to IA27/DESIGN rather than patching around it; T1 cannot close until every owned phase obligation and final candidate proof is satisfied.
 
-##### Execution waves
+## Execution waves
 
 **Pre-sign-off realization boundary:** this catalog confers no bounded or signed implementation authority. Under `GW-DOC-SYSTEMS-GOVERNANCE-PYRAMID-V1` bounded acceptance-evidence realization may begin only after current R3 has closed the tranche and returned `READY_FOR_SIGNOFF`; current eligibility, G6 state and any exact-package bounded grant are then owned by `0.6.0-design-campaign-plan.md §17A/§18`. The catalog is only the candidate execution definition.
 
@@ -901,7 +902,7 @@ This is a trace/readability view of the one canonical `order-tasks` block in the
 14. **Wave 13 — candidate closeout:** IA24.
 
 Before any bounded Wave 2/3 UI mutation, the exact corrected P4/DESIGN/PLAN package must have current R3/G6 `READY_FOR_SIGNOFF` and an explicit exact-package §17A operator grant. That bounded grant authorizes only the compile-closed IA27 shell/Context slice plus IA28 consumers; it never authorizes ResourceRow/ResourceList, Review, Document or Result cutovers. Normal post-evidence execution requires ordinary human sign-off. After sign-off, IA27 first completes the all-caller ResourceRow/ResourceList atomic cutover; IA29/IA31/IA33 own the Document/Review/Result breaking cutovers with their complete consumer sets. Each action consumes SD21/F6B rather than deriving component roles. IA29-IA34 revalidate their complete owned renderer set before editing and execute the catalogued disposition: `DECOMPOSE_REFACTOR` when semantic responsibility is valid but physically overloaded, `DESTRUCTIVE_REPLACEMENT` when hierarchy/API ownership is materially wrong, `BOUNDED_RESIDUAL` only for a strictly local defect, `CONFORMING_NO_EDIT` only after fresh proof, `REQUIRED_NEW` for missing canonical owners and `REQUIRED_ABSENT` for forbidden owners. The 37 SURF rows remain partitioned once across IA27-IA34 and IA26 rechecks the exact-candidate union plus the component-ownership/SoC invariants.
-##### IA01 — pure project-authority resolution
+## IA01 — pure project-authority resolution
 
 **Solution:** SD02.  
 **Owner/anchors:** `src/core/governance.ts`, existing authority-layer/concern/material/freshness pure functions.  
@@ -909,7 +910,7 @@ Before any bounded Wave 2/3 UI mutation, the exact corrected P4/DESIGN/PLAN pack
 **Forbidden:** filesystem/provider I/O; semantic contradiction inference; DTO/service/repository/class family; parallel authority graph.  
 **Proof:** `tests/core.test.ts` ordering/default/override/extension/invalid-input cases.
 
-##### IA02 — consume resolved authority before productive context
+## IA02 — consume resolved authority before productive context
 
 **Solution:** SD02. Depends on IA01.  
 **Anchors:** `src/daemon/authority.ts::resolveStageContextState/resolveStageContext`; `src/daemon/stage.ts::stagePrompt` and stage admission.  
@@ -919,7 +920,7 @@ Before any bounded Wave 2/3 UI mutation, the exact corrected P4/DESIGN/PLAN pack
 - `tests/daemon.test.ts` — productive-context admission consumes the resolved projection, derives the schema/stage-applicable material subset, excludes an unrelated retained V1 source from a current-v2 context, includes the exact retained source when a pinned historical schema or explicit versioned ref requires it, and blocks unresolved applicable bindings before provider use;
 - `tests/certification.test.ts` — representative production project manifest with both current and retained semantic sources plus same-layer precedence/default/override/extension reaches the real STAGE context with only the applicable material set in resolved order. Current-v2 and historical exact-version cases are both proved, and an equivalent unresolved simultaneously-applicable relation fails before any provider turn. The certification must fail if production falls back to raw manifest array/filesystem order, include-every-selected-source projection, or provider interpretation.
 
-##### IA03 — one GOVERNANCE proposal/adoption mechanism
+## IA03 — one GOVERNANCE proposal/adoption mechanism
 
 **Solution:** SD09.  
 **Anchors:** `src/core/contracts.ts` proposal/ArtifactRef contracts; `src/core/governance.ts`; `src/daemon/stage.ts::proposalDisposition/proposalAdoptionRequest/adoptArtifactProposal/reconcilePendingArtifactProposals`; `src/daemon/authority.ts`.  
@@ -927,14 +928,14 @@ Before any bounded Wave 2/3 UI mutation, the exact corrected P4/DESIGN/PLAN pack
 **Forbidden:** stage-specific proposal DTOs/direct provider writes/second decision store.  
 **Proof:** core/daemon wrong-layer/path/hash/stale/adoption/freshness cases.
 
-##### IA04 — durable-decision completion admission
+## IA04 — durable-decision completion admission
 
 **Solution:** SD08. Consumer dependency on IA03 when the durable target is permanent governance.  
 **Anchors:** `src/core/lifecycle.ts::evaluateStageCompletion/validateStageProviderTurn`; `src/daemon/stage.ts::runStageTurn/submitRunInput`.  
 **Required mutation:** after latest answered STAGE_CHOICE/AUTHORITY_DECISION/AUTHORITY_CONFLICT that changes durable authority, reject stage completion until later adopted authority exists. INFORMATION/EVIDENCE remains unchanged.  
 **Proof:** core/daemon chronology cases for adopted/rejected/cancelled/stale and ordinary information input.
 
-##### IA05 — schema-aware current-v2 task admission
+## IA05 — schema-aware current-v2 task admission
 
 **Solution:** SD10.  
 **Owners/anchors:** existing `SignedTaskBlockSchema` remains unchanged in `src/core/contracts.ts`; `src/core/execution.ts::parseSignedTaskBlockFromPlan` remains the one structural parser and gains one pure schema-aware admission helper over the parsed block; `src/daemon/stage.ts` owns PLAN/R3 authoring/conformance invocation; `src/daemon/authority.ts::validateTaskDefinitions` owns R3/sign-off deterministic task validation.  
@@ -943,14 +944,14 @@ Before any bounded Wave 2/3 UI mutation, the exact corrected P4/DESIGN/PLAN pack
 **Forbidden:** tightening the shared SignedTaskBlock schema globally; a v2-only shadow task schema/parser; a second semantic-review path.  
 **Proof:** `tests/core.test.ts` preserves v1 cases and proves v2 positive/negative mechanical admission; `tests/daemon.test.ts` proves PLAN and READY_FOR_SIGNOFF/sign-off cannot bypass v2 admission; `tests/certification.test.ts` binds the single parser/admission/prompt path and rejects duplicate task schema/parser ownership.
 
-##### IA06 — canonical Approval identity normalization
+## IA06 — canonical Approval identity normalization
 
 **Solution:** SD12.  
 **Anchors:** `src/core/contracts.ts` Approval schema; `src/daemon/authority.ts::signOffWorkItem`.  
 **Required mutation:** trim and reject whitespace-only `approvedBy` before persistence.  
 **Proof:** core/daemon direct-ingress negative tests plus browser feedback.
 
-##### IA07 — signed-checkpoint DESIGN-positive reuse proof
+## IA07 — signed-checkpoint DESIGN-positive reuse proof
 
 **Solution:** SD13; package atom `PL-C12-01`.  
 **Existing realization evidence owners:** existing `src/core/contracts.ts`, `src/core/execution.ts`, `src/daemon/execution.ts`, `src/daemon/validation.ts` and `src/shell/opencode.ts`.  
@@ -958,7 +959,7 @@ Before any bounded Wave 2/3 UI mutation, the exact corrected P4/DESIGN/PLAN pack
 **Failure:** if current evidence cannot prove the DESIGN-required capability, stop before mutation and return upstream; do not self-bootstrap the checkpoint protocol.  
 **Proof:** existing core/daemon/certification checkpoint success, failure, unsigned, out-of-scope and same-session cases plus exact current realization verification.
 
-##### IA08 — signed-scope/forecast DESIGN-positive reuse proof
+## IA08 — signed-scope/forecast DESIGN-positive reuse proof
 
 **Solution:** SD10; package atom `PL-C12-02`.  
 **Existing realization evidence owners:** existing `src/shell/opencode.ts`, `src/daemon/validation.ts` and `src/daemon/execution.ts`.  
@@ -966,77 +967,77 @@ Before any bounded Wave 2/3 UI mutation, the exact corrected P4/DESIGN/PLAN pack
 **Failure:** any contradiction blocks execution and returns to the owning pre-signoff layer; do not modify execution-foundation owners from this T1 to make the candidate admissible.  
 **Proof:** existing daemon/certification in-scope-unforecast, out-of-scope/exclusion/protected-path, V6 `CHANGE_BLOAT` and architecture-fitness cases.
 
-##### IA09 — singular new-source planner
+## IA09 — singular new-source planner
 
 **Solution:** SD04.  
 **Anchor:** `src/daemon/work-item-source.ts::reconcileWorkItemSources/createWorkItemFromSource`.  
 **Required mutation:** factor one daemon-local new-source planner returning the existing REGISTERED QueuePlan from a validated source snapshot.  
 **Proof:** created/discovered inputs produce equivalent admission plans except provenance.
 
-##### IA10 — converge created/discovered persistence
+## IA10 — converge created/discovered persistence
 
 **Solution:** SD04. Depends on IA09.  
 **Anchor:** `src/daemon/work-item-source.ts`.  
 **Required mutation:** route UI-created and discovered source snapshots through IA09 + existing applyPlan; delete direct create-path WorkItem construction/store.  
 **Proof:** daemon one-persistence-owner, read-back, diagnostics and freshness tests.
 
-##### IA11 — canonical Create interaction
+## IA11 — canonical Create interaction
 
 **Solution:** SD03.  
 **Anchor:** `ui/src/CreateWorkItem.tsx`.  
 **Required mutation:** ordinary vocabulary is Concerns; linked remediation shows fixed parent project context and no invalid cross-project selector. Preserve metadata/body ownership.  
 **Proof:** browser ordinary creation, metadata ownership and linked-remediation tests.
 
-##### IA12 — one archive/project/search derivation
+## IA12 — one archive/project/search derivation
 
 **Solution:** SD05.  
 **Anchors:** `ui/src/app.tsx::App`; `ui/src/WorkItemQueue.tsx::WorkItemQueue`.  
 **Required mutation:** App selects active/include-archived canonical dataset then applies project/search exactly once; queue does not own alternate filtering.  
 **Proof:** browser active/archived × project × search matrix while archive identity/history remains unchanged.
 
-##### IA13 — exact documentation-Git review
+## IA13 — exact documentation-Git review
 
 **Solution:** SD06.  
 **Anchor:** `ui/src/DocumentWorkspace.tsx::DocumentationGitConfirmation`.  
 **Required mutation:** list exact canonical governed changed paths/states before commit; reuse existing Git status owner.  
 **Proof:** browser exact-path/state review plus blocker cases. Do not alter save/status/eligibility semantics already proven conforming.
 
-##### IA14 — current attention survives inspection
+## IA14 — current attention survives inspection
 
 **Solution:** SD07.  
 **Anchors:** canonical `src/core/lifecycle.ts::deriveCurrentAttention` remains unchanged owner; UI `ActivityWorkspace.tsx`, `WorkItemWorkspace.tsx`, `workbench-presentation.ts`.  
 **Required mutation:** when inspected material differs from current owner, render exact higher-priority owner/reason/action and direct return while preserving legitimate inspection.  
 **Proof:** presentation/browser required-input/proposal/blocker/stale/recovery with historical selection.
 
-##### IA15 — focus once per required-input request
+## IA15 — focus once per required-input request
 
 **Solution:** SD15.  
 **Anchors:** `ui/src/ActivityComposer.tsx::ActivityComposer`; `ui/src/ActivityWorkspace.tsx::StageRunMaterial`.  
 **Required mutation:** new current required-input event id moves focus once to Workbench composer; rerender/polling does not refocus.  
 **Proof:** browser focus-once/rerender/responsive cases.
 
-##### IA16 — canonical Readiness verdict
+## IA16 — canonical Readiness verdict
 
 **Solution:** SD11.  
 **Anchor:** `ui/src/ReadinessWorkspace.tsx::ReadinessWorkspace` plus existing presentation helper.  
 **Required mutation:** dominant verdict is typed R3 completion outcome; maturity/currentness separate.  
 **Proof:** READY_FOR_SIGNOFF/RETURN_TO_*/BLOCKED + stale material cases.
 
-##### IA17 — Approval readiness/currentness hierarchy
+## IA17 — Approval readiness/currentness hierarchy
 
 **Solution:** SD12.  
 **Anchor:** `ui/src/SignoffReview.tsx::SignoffReview`.  
 **Required mutation:** readiness + package currentness precede task/technical identity; stale/history cannot fabricate readiness.  
 **Proof:** browser/presentation current/stale package cases.
 
-##### IA18 — operator-first Settings hierarchy
+## IA18 — operator-first Settings hierarchy
 
 **Solution:** SD14.  
 **Anchors:** `ui/src/SettingsWorkspace.tsx::SettingsWorkspace/RepositorySettings/ModelRuntimeSettings`.  
 **Required mutation:** readiness/meaning/actions primary; exact roots/endpoints/model source/credential-like identity in the one Settings diagnostics/technical-inspection region except when the exact value is the active configuration input.  
 **Proof:** browser normal Settings, blockers, Add/Move/configuration cases.
 
-##### IA19 — product-language projection
+## IA19 — product-language projection
 
 **Solution:** SD01.  
 **Anchors:** `README.md`; `ui/src/TerminalResult.tsx::TerminalResult`; `ui/src/workbench-presentation.ts`.  
@@ -1047,7 +1048,7 @@ Before any bounded Wave 2/3 UI mutation, the exact corrected P4/DESIGN/PLAN pack
 - `tests/browser.spec.ts` — Complete/TerminalResult candidate case renders **Verified candidate** and candidate resources; representative no-code terminal case renders its canonical non-candidate label and no candidate resources;
 - `tests/certification.test.ts` — README contains verified-result umbrella + conditional implementation/candidate wording + explicit documentation-Git exception, and rejects universal candidate/delivery wording or an absolute no-commit claim that erases that exception.
 
-##### IA20 — exhaustive renderer classification certification
+## IA20 — exhaustive renderer classification certification
 
 **Solution:** SD16.  
 **Owner:** `tests/certification.test.ts`.  
@@ -1055,35 +1056,35 @@ Before any bounded Wave 2/3 UI mutation, the exact corrected P4/DESIGN/PLAN pack
 **Forbidden:** edit `tests/architecture.test.ts` inside T1 or create second UI registry.  
 **Proof:** certification negative/positive fixture including deliberate forbidden Queue/Review/Terminal/Evidence attention usage, Proposal/Readiness/Approval outer-frame wrapping, and nested-primary-surface composition.
 
-##### IA21 — scenario-41 work-kind certification
+## IA21 — scenario-41 work-kind certification
 
 **Solution:** SD17.  
 **Owner:** `tests/browser.spec.ts`.  
 **Required mutation:** certify all four kinds' Work request + Research information contracts and distinct Change/Defect downstream obligations.  
 **Proof:** explicit four-kind semantic matrix.
 
-##### IA22 — System/Light/Dark component-semantic parity
+## IA22 — System/Light/Dark component-semantic parity
 
 **Solution:** SD18.  
 **Owners:** `tests/browser.spec.ts`, `tests/workbench-presentation.test.ts`.  
 **Required mutation:** representative Queue/Create/Settings/document/dialogue/review/Implementation/evidence/result/Context/overlay states preserve canonical semantic roles under all effective themes; theme changes may not change which interaction classes own current attention or create an attention band on Queue/Evidence/Terminal result.  
 **Proof:** semantic role/component assertions; no pixel-snapshot substitute.
 
-##### IA23 — cross-solution regression closure
+## IA23 — cross-solution regression closure
 
 **Upstream:** all SD01-SD30.  
 **Owners:** existing targeted core/daemon/presentation/browser/certification suites plus `tests/opencode.test.ts` and `.github/workflows/ci.yml` for SD20.  
 **Required mutation:** fill any integration-level positive/negative gaps needed to prove the composed solutions without duplicating action-specific tests. Explicitly prove no compatibility fallback, shadow owner or implementation-derived semantics. For SD20 specifically, add one permanent exact-pin OpenCode integration tier: PR verification installs exact `opencode-drive@2.4.1` + `effect@4.0.1` into runner-temporary verification space, `tests/opencode.test.ts` launches the actual supported OpenCode `2.2.6` process through Order's production OpenCode environment/admission/session path, and deterministic model responses are supplied through the Drive simulation provider/controller. Existing `fake-opencode` fixtures remain lower-level doubles and do not satisfy this exact-pin proposition. Do not add the simulation tooling to Order's product/runtime package graph, lockfiles, release bundle, configuration or state, and do not claim remote-provider availability, Console OAuth/account connectivity or model quality from simulated responses.  
 **Proof:** exact-pin SD20 integration case passes in permanent PR verification; all targeted suites green; V4/V5/V6 trace every added assertion/tooling change to an SD/requirement/atom.
 
-##### IA24 — exact candidate closeout
+## IA24 — exact candidate closeout
 
 **Upstream:** complete T1 with IA26 rendered UX/UI acceptance PASS.  
 **Owner:** `CHANGELOG.md` plus coordinator-owned validation evidence.  
 **Required mutation:** record user-visible/correctness consequences under Unreleased; run exact final six-gate union and V0-V7 with fresh V4/V5/V6, and bind closeout to the exact GitHub Actions rendered-acceptance run/evidence package accepted under IA26.  
 **Terminal:** only CANDIDATE_DONE or valid ALREADY_SATISFIED. PR merge/release/version bump remain outside T1.
 
-##### IA25 — guided productive installer completion
+## IA25 — guided productive installer completion
 
 **Solution:** SD19.  
 **Canonical authority:** P3 FR007 plus corrected P3 FR079 / Installation Readiness `9c2ec83a9552b7583f90e91080c014df4d6870df`, P4 GW-TR-007 and corrected P6.  
@@ -1093,7 +1094,7 @@ Before any bounded Wave 2/3 UI mutation, the exact corrected P4/DESIGN/PLAN pack
 **Proof:** create `tests/installer.test.ts` covering fresh productive setup success/failure/cancel and deferred-Settings rejection; existing `tests/order-migration.test.ts` must continue proving migration/rollback/continuity.
 
 
-##### IA27 — realize the compile-closed Workbench shell/Context foundation and post-signoff resource cutover
+## IA27 — realize the compile-closed Workbench shell/Context foundation and post-signoff resource cutover
 
 **Solution:** SD21 + F6B, with SD29 responsive/accessibility containment.  
 **Authority boundary:** P4 defines permanent component responsibilities/APIs; SD21/F6B defines this package's exact realization and consumer-atomic cutover. IA27 does not derive either.
@@ -1125,7 +1126,34 @@ Before any bounded Wave 2/3 UI mutation, the exact corrected P4/DESIGN/PLAN pack
 
 **Proof:** bounded checkpoint proves Section/Facts/Context API closure, required-absent owners, shell/Context consumer allowlists, one AppShell/WorkItemShell/responsive/Context owner, accessibility/focus/theme and IA27 SURF rows. Post-signoff completion separately proves ResourceList/ResourceRow exact API closure and all-caller migration. Neither checkpoint claims Review/Document/Result cutover before its owning phase.
 
-###### Exact IA27-IA34 rendered face ownership
+### Exact IA27-IA34 rendered face ownership
+
+
+### Binding operator UI findings — human acceptance ledger
+
+This ledger records direct operator findings from rendered 0.6.0 review. It is **binding P7 acceptance input**, not commentary and not implementation advice. These rows exist specifically so repeated human review findings cannot disappear between implementation passes, test rewrites or regenerated evidence.
+
+**State law:**
+- every row begins OPEN_BLOCKING;
+- typecheck, architecture, unit/browser success, screenshot generation or an IA26 machine PASS **cannot** close a row;
+- implementation may close the technical defect, but the row remains PROOF_REQUIRED until a fresh exact-candidate capture demonstrates the corrected state;
+- only explicit operator disposition of that fresh rendered evidence may set ACCEPTED;
+- an unchanged or materially equivalent rejected presentation is not new proof and must not be re-presented as if the finding were unresolved/unknown;
+- if implementation cannot satisfy a row using the stated canonical component owner, return to DESIGN/P4 instead of inventing feature-local UI.
+
+| Finding | Operator finding / non-negotiable UX consequence | Affected governed UI | Canonical component realization required | Forbidden presentation | Owning phase | Current state / required proof |
+|---|---|---|---|---|---|---|
+| HUX-01 | Work-request context does not belong permanently exposed before the Markdown. The actual Work request document is the task; work type, Project, Concerns and repository/document location are subordinate context. | SURF-STEP-WR-001, SURF-MAT-SOURCE-001; evidence: ia26-work-request-step-wide-light, ia26-source-document-editor-wide-dark, ia26-source-document-editor-narrow-light | WorkbenchDocument owns document-first order; WorkbenchDisclosure is the one specifically named same-task **Work request context** expansion; its structured values use WorkbenchFacts; compact Git status/action remains adjacent to the document action. | always-open facts/metadata slab before Markdown; feature-local metadata rows; generic “details” drawer; hiding the document below context | IA29 | OPEN_BLOCKING until wide+narrow source/read/editor proof shows Markdown immediately after document header and Work request context closed by default below it |
+| HUX-02 | Lifecycle/read-only documents have the same hierarchy requirement: the governed document is primary; repository placement is supporting and must not dominate the surface. | SURF-MAT-DOC-001, SURF-MAT-DOC-RO-001; evidence: ia26-lifecycle-document-editor-wide-light, ia26-lifecycle-document-readonly-wide-light | WorkbenchDocument + specifically named **Document location** WorkbenchDisclosure + WorkbenchFacts; document title/currentness/action remain header-owned. | path/directory facts before document body; duplicate document shell; nested card/panel around the document | IA29 | OPEN_BLOCKING until editable/read-only wide+narrow proof demonstrates identical document-first information order |
+| HUX-03 | Readiness and Approval are not prose documents or “text-branded” slabs. Their typed information must be rendered through the component schema: verdict/currentness, named review responsibilities, task/package/evidence resources and the decision. “Open X” copy must not substitute for a resource UI. | SURF-STEP-R3-001, SURF-STEP-APPROVAL-001, SURF-MAT-APPROVAL-TASK-001; evidence: ia26-readiness-review-wide-light, ia26-readiness-review-narrow-light, ia26-approval-wide-light, ia26-approval-narrow-light, ia26-approval-task-wide-light, ia26-approval-task-wide-dark | exactly one WorkbenchReview with one WorkbenchReviewVerdict; each DESIGN-declared responsibility uses WorkbenchReviewSection; structured facts use WorkbenchFacts; repeated package/task/evidence/history objects use WorkbenchResourceList/WorkbenchResourceRow; task action uses WorkbenchAction; selecting a governed document replaces Review with WorkbenchDocument and bounded Back navigation. | arbitrary Review body; screen-local order-review-* section/card/grid grammar; repeated explanatory prose describing objects already represented by components; textual “Open readiness review / Open solution design / Open requirements …” navigation rows; nesting a full Document inside Review | IA31 | OPEN_BLOCKING until Readiness ready/return, Approval current/stale and task-detail rendered proof shows componentized information with no slab-text substitute |
+| HUX-04 | Proposal review is a **document change review**, not a Git-diff text viewer. The human must review the proposed document in document context; exact unified diff is secondary inspection. | SURF-MAT-PROPOSAL-001; evidence: ia26-proposal-review-wide-light, ia26-proposal-review-wide-dark, adopted/adopting/rejected variants | WorkbenchReview + Review sections; DocumentChangeView derives current/proposed document presentation from current target bytes + canonical unified diff and visibly marks changed regions in context; rationale/target meaning occupy their declared Review responsibility; exact diff is a secondary intentional inspection. | raw CodeBlock(unifiedDiff) as sole/dominant review; Git patch syntax as the default human proposal UI; second proposal state/model | IA31 | OPEN_BLOCKING until pending/adopting/adopted/rejected proof shows document-first change review with visibly changed regions and collapsed/secondary exact diff |
+| HUX-05 | Mixed rounded-card and flat/straight container treatment is visually inconsistent and has been rejected repeatedly. Semantic grouping must come from component anatomy/spacing, not arbitrary cards. | cross-cutting Document/Review/productive surfaces, explicitly the lifecycle read-only/editor and Review families in the rejected IA26 corpus | current P3/P4/theme component roles only; persistent primary WorkbenchDocument/WorkbenchReview surfaces remain flat; radii/borders appear only where the canonical component role owns a real control/container boundary. | feature-local card chrome; rounded outer Review/Document/page panels; inconsistent nested rounded-versus-square surface framing; tokenized radius used merely because a token exists | IA29/IA30/IA31 + SD29 visual verification | OPEN_BLOCKING until affected proof surfaces show one coherent flat Workbench grammar and certification proves semantic role, not merely radius-token use |
+| HUX-06 | Current-action/historical-return UI must not collide with or overlay the selected lifecycle document. The selected primary composition keeps its own geometry. | SURF-STEP-R1-001, SURF-STEP-R2-001, SURF-STEP-DESIGN-001, SURF-STEP-PLAN-001, SURF-MAT-DOC-RO-001; evidence: ia26-lifecycle-document-editor-wide-light (“Approval is ready for your action / Return to Approval” collision) | direct primary composition selected by IA30; historical-return/current-owner navigation is a bounded action outside the Document content geometry and cannot create a second attention/header layer over it. | overlapping attention text/button on document heading; generic current-attention strip inserted into historical Document; two competing primary headers | IA30 | OPEN_BLOCKING until current/historical document captures demonstrate non-overlapping ownership and stable document geometry |
+| HUX-07 | Narrow Markdown editing controls must remain readable/discoverable. Truncated mode labels and compressed Save/Cancel are not acceptable responsive behavior. | SURF-MAT-SOURCE-001, SURF-MAT-DOC-001; evidence: ia26-source-document-editor-narrow-light | Markdown specialist editor-control region retains Edit/Preview/Split, formatting and Save/Cancel semantics with P4/Markdown-contract responsive recomposition/overflow while preserving direct controls→canvas adjacency. | clipped “E. / P… / S.” labels; unreadable or collapsed Save/Cancel; controls hidden by width without an intentional overflow mechanism | IA29 + SD29 | OPEN_BLOCKING until narrow rendered/browser proof establishes all mode and mutation controls remain discoverable and operable |
+| HUX-08 | No screen may replace the granular information/component contract with undifferentiated prose. Every information area must be projected into the canonical semantic owner defined by DESIGN/P4; implementation does not invent ad-hoc slabs. | all 37 governed SURF-* rows, with immediate blocking focus on IA29-IA31 rejected surfaces | enforce the closed mapping canonical datum/action -> P3 class -> DESIGN row -> semantic component owner -> exact composition position; Section/Facts/ResourceList/ReviewVerdict/ReviewSection/Document/Dialogue/Evidence/Result are mandatory where assigned. | “slab text”, explanatory copy used as structure, local recurring section/facts/resource/review grammar, component wrappers whose arbitrary ReactNode body lets the feature rebuild the UI hierarchy | IA20 certification + each owning implementation phase + IA26 | OPEN_BLOCKING globally until all affected phase proofs and final IA26 ledger have zero unresolved human findings |
+
+**No-loss rule:** IA29, IA30 and IA31 may not be recorded complete while any finding owned by that phase remains OPEN_BLOCKING or PROOF_REQUIRED. IA26 final acceptance additionally requires every HUX-* row to be ACCEPTED. The implementation team must reference the relevant HUX-* ids in commits/tests/proof notes for the corrected surfaces so a future session can trace each rendered correction back to the exact operator finding.
+
 
 The 37 governed `SURF-*` rows declared by current `solution-design.md` remain partitioned exactly once across IA27-IA34. G-F30 changes only physical cutover timing and moves Proposal Review acceptance to IA31 so the WorkbenchReview API can change atomically with all Review consumers.
 
@@ -1144,7 +1172,7 @@ The IA27-IA34 union remains exactly **37 unique SURF rows** with no duplicate or
 
 **Audit invariants:** No prior phase PASS is inherited. IA27 does not derive either P4 component contracts or SD21/F6B consumer mapping. Do not add compatibility props or temporary old/new paths. A breaking API cutover must include its complete current compile-time consumer set.
 
-##### IA28 — freshly revalidate Queue and Create and accept the bounded shell/Context foundation slice
+## IA28 — freshly revalidate Queue and Create and accept the bounded shell/Context foundation slice
 
 **Solution:** SD22.  
 **Owners:** `ui/src/OpenCodeAccountControl.tsx` non-rendering account presentation/query adapter, `ui/src/WorkItemQueue.tsx`, `ui/src/CreateWorkItem.tsx`.  
@@ -1152,48 +1180,56 @@ The IA27-IA34 union remains exactly **37 unique SURF rows** with no duplicate or
 **Required action:** consume the bounded IA27 shell/Context candidate, prove Queue remains attention-free Operational scan, Create remains TaskPanel→Form, and prove active-account presentation is projected by the non-rendering `OpenCodeAccountControl.tsx` adapter into the single Toolbar-owned Settings navigation/status slot with no second renderer. No local section/facts grammar may appear. Correct only a proven IA28-local residual; a recurring shell/Context defect returns to bounded IA27/DESIGN. ResourceList/Review/Document/Result are outside this pre-signoff checkpoint.  
 **Proof:** `SURF-APP-001`, `SURF-QUEUE-001`, `SURF-CREATE-001` plus IA27 shell/Context evidence independently PASS schema/information, UX/interaction, visual/UI, component-ownership and bounded-foundation-realization checks. The bounded grant then stops. IA29 remains blocked until normal explicit sign-off and post-signoff IA27 ResourceList/ResourceRow completion.
 
-##### IA29 — reconstruct Work request and governed Document composition
+## IA29 — reconstruct Work request and governed Document composition
+
+**Binding operator findings:** HUX-01, HUX-02, HUX-07; HUX-05 applies to the Document family visual grammar. These findings remain blocking until fresh rendered proof is explicitly accepted.
 
 **Solution:** SD23.  
 **Owner dispositions:** `DocumentWorkspace.tsx` = `DECOMPOSE_REFACTOR`; `MarkdownEditor.tsx` = `DECOMPOSE_REFACTOR` at its outer Document composition/API boundary while preserving its specialist editing mechanics. Its earlier bounded removal of the invalid application-Toolbar dependency is a prerequisite dependency delta only and carries no IA29 PASS.  
-**Required mutation:** create `WorkbenchDocument` and atomically migrate its complete Work request/editable/read-only consumer set to that one canonical Document composition. Move repository path, WorkItem document directory and compact Git state into DESIGN-authorized `WorkbenchFacts`; remove local `WorkRequestFacts`/aside/`dl` layout ownership and any generic workflow chrome. Remove MarkdownEditor structural props that exist only to host feature-owned document layout; retain one compact editor-control region and direct control→canvas adjacency. Technical identity remains Context-owned.  
-**Proof:** all IA29 SURF rows PASS wide/narrow; required supporting facts are visible; no local document/facts grammar, duplicate heading, raw internal enum/technical identity or generic frame/selector remains; Context and Git consent paths remain exact.
+**Required mutation:** create `WorkbenchDocument` and atomically migrate its complete Work request/editable/read-only consumer set to that one canonical Document composition. Governed Markdown/editor content follows document identity/currentness/actions immediately. Work type/Project/Concerns/repository path/WorkItem document directory remain available through `WorkbenchFacts` only inside one specifically named same-task details disclosure placed after the primary content and closed by default; compact Git state/action remains adjacent to the document action. Remove local `WorkRequestFacts`/aside/`dl` layout ownership, any always-open metadata slab and any generic workflow chrome. Remove MarkdownEditor structural props that exist only to host feature-owned document layout; retain one compact editor-control region and direct control→canvas adjacency. Technical identity remains Context-owned.  
+**Proof:** all IA29 SURF rows PASS wide/narrow; the Markdown/editor is the first dominant content after the document header; Work request/document details are closed by default and expand through the one named disclosure; no always-open pre-document metadata slab, local document/facts grammar, duplicate heading, raw internal enum/technical identity or generic frame/selector remains; Context and Git consent paths remain exact.
 
-##### IA30 — reconstruct productive stages excluding Proposal Review
+## IA30 — reconstruct productive stages excluding Proposal Review
+
+**Binding operator findings:** HUX-06; HUX-05 applies to productive-stage surface grammar. These findings remain blocking until fresh rendered proof is explicitly accepted.
 
 **Solution:** SD24.  
 **Owner dispositions:** `PreSignoffStageWorkspace.tsx` and `RunEventTimeline.tsx` = `DECOMPOSE_REFACTOR` where they own recurring section/timeline grammar; `ActivityWorkspace.tsx`/`ActivityComposer.tsx` = fresh `CONFORMING_NO_EDIT` or bounded migration only after P4 audit. Proposal Review is deliberately excluded until IA31 so WorkbenchReview can cut over with its complete consumer set.  
 **Required mutation:** route non-Proposal canonical productive-stage states directly to WorkbenchDocument/Dialogue/Evidence/State. Consume the post-signoff ResourceList cutover where repeated resources occur. Preserve Proposal selection/routing but do not change `ProposalReview.tsx` or WorkbenchReview in this phase.  
 **Proof:** all IA30-owned SURF rows PASS; no generic frame/selector or local recurring section/resource grammar in those rows; continuous Dialogue behavior and Context/Evidence inspection remain correct; Proposal Review is unchanged and explicitly unaccepted until IA31.
 
-##### IA31 — destructively rebuild Readiness and Approval Review composition
+## IA31 — destructively rebuild Proposal, Readiness and Approval Review composition
+
+**Binding operator findings:** HUX-03, HUX-04; HUX-05 applies to Review-family visual grammar. HUX-08 is the cross-cutting no-slab/component-ownership constraint. These findings remain blocking until fresh rendered proof is explicitly accepted.
 
 **Solution:** SD25 plus IA16/IA17 semantic inputs.  
 **Owners:** `ProposalReview.tsx`, `ReadinessWorkspace.tsx`, `SignoffReview.tsx` = `DESTRUCTIVE_REPLACEMENT` of Review presentation composition; new `WorkbenchReviewVerdict.tsx`, `WorkbenchReviewSection.tsx` and `DocumentChangeView.tsx` = `REQUIRED_NEW`; existing `WorkbenchReview.tsx` = `DESTRUCTIVE_REPLACEMENT`. Domain/query/mutation semantics are reused only where independently conforming.  
 **Required mutation:** in one compile-atomic change set, create ReviewVerdict/ReviewSection/DocumentChangeView, destructively replace WorkbenchReview with its closed P4 API, and migrate **all three** current WorkbenchReview consumers. Proposal Review renders the proposed governed document through DocumentChangeView with changed regions marked in context and keeps canonical unified diff secondary; no duplicate proposal state/model. Readiness and Approval use exactly one WorkbenchReview, one ReviewVerdict and DESIGN-declared ReviewSections. Findings/return owner, package material and evidence/history use named sections; structured facts use Facts; repeated resources use ResourceList. Remove all `order-review-*` local structural/card/grid systems once migrated. Required-input Dialogue replaces Review for that turn. Approval uses the same Review anatomy and keeps sign-off decision primary; technical identities remain Context-owned.  
 **Proof:** Proposal mutation review plus ready/return/required-input and Approval current/stale/sign-off matrices PASS with one verdict, canonical sections/facts/resources, in-context DocumentChangeView, no raw-diff-dominant Proposal surface, whole-R3-under-findings duplication, local review grammar, raw enum, generic selector or technical leakage. Typecheck proves no old WorkbenchReview consumer remains.
 
-##### IA32 — destructively rebuild Implementation on canonical semantic components
+## IA32 — destructively rebuild Implementation on canonical semantic components
 
 **Solution:** SD26.  
 **Owner:** `ExecutionWorkspace.tsx` = `DESTRUCTIVE_REPLACEMENT` presentation composition.  
 **Required mutation:** purge the old stacked/card/task-detail presentation and fresh-author canonical MasterDetail using Section/Facts/ResourceList for task detail, supporting history/resources and validation grouping. Preserve canonical execution/query/mutation owners; technical task/approval/plan/Run/baseline/context/provider identity routes to Context; exact evidence bytes route to Evidence. Same-task validation expansion alone may use Disclosure.  
 **Proof:** purge provenance + IA32 SURF rows PASS wide/narrow; no local recurring card/section/resource grammar, generic technical drawer or current-attention theft by historical selection.
 
-##### IA33 — destructively rebuild Complete/Evidence and consume refactored Context
+## IA33 — destructively rebuild Complete/Evidence and consume refactored Context
 
 **Solution:** SD27 plus IA19 product-language projection.  
 **Owner dispositions:** `TerminalResult.tsx` = `DESTRUCTIVE_REPLACEMENT`; `EvidenceViewer.tsx` = fresh audit then `BOUNDED_RESIDUAL` only if required; WorkItem Context foundation migration is IA27-owned and consumed here.  
 **Required mutation:** create `WorkbenchResult` and atomically migrate `TerminalResult` so Complete becomes one attention-free Surface containing one WorkbenchResult: canonical product-facing status/outcome, ordered Sections, ResourceList for repeated resources, permitted result action. Remove local terminal section/resource/status grammar and generic container-taxonomy headings. Evidence remains the one exact-byte primary surface and replaces rather than nests.  
 **Proof:** candidate/non-candidate/linked-remediation + Evidence rows PASS; no synthetic attention, duplicated outcome, local result/resource grammar, internal enum/event identity or nested primary Surface.
 
-##### IA34 — destructively rebuild Settings/account/configuration presentation
+## IA34 — destructively rebuild Settings/account/configuration presentation
 
 **Solution:** SD28 plus IA18 semantic inputs.  
 **Owners:** `SettingsWorkspace.tsx`, `OpenCodeAccountSettings.tsx` = `DESTRUCTIVE_REPLACEMENT` presentation composition.  
 **Required mutation:** rebuild operator-first Settings using Section/Facts/ResourceList plus canonical Form/fields. Required repository roots/context facts remain default-visible Supporting information; task-required exact values become Primary only in the active task; all remaining technical provider/config identity is grouped under the single Settings diagnostics owner. Remove feature-local card/row/section systems and per-section technical disclosures.  
 **Proof:** all eleven IA34 rows PASS wide/narrow/theme; canonical component ownership, one diagnostics owner, required facts/active inputs and destructive confirmations are correct.
-##### IA26 — rendered 0.6.0 UX/UI acceptance evidence
+## IA26 — rendered 0.6.0 UX/UI acceptance evidence
+
+**Binding human-review prerequisite:** every HUX-* row in the operator UI findings ledger must be ACCEPTED. Mechanical evidence generation, browser success and row-level machine checks cannot substitute for that explicit human disposition.
 
 **Solution/authority:** existing SD16-SD18 verification and Workbench realization, current `GW-DOC-WORKBENCH-UX`, `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`, `GW-DOC-WORKBENCH-THEME-V1`, and current DESIGN SD21-SD30. The authority-bound comparison corpus under `docs/references/workbench-ui/` is downstream evidence only and is valid only when its manifest pins these exact current owners.  
 **Owners/anchors:** `tests/browser.spec.ts` for deterministic rendered-state capture and coverage assertions; `.github/workflows/ci.yml` for exact-candidate execution and evidence publication; `tests/certification.test.ts` for the exact CI supply-chain rule permitting only the pinned first-party artifact uploader required by this acceptance path.  
