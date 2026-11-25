@@ -3016,6 +3016,13 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     await page.setViewportSize(light);
   }
   const sourceMaterial = page.getByTestId("source-document-material");
+  await expect(sourceMaterial.getByTestId("workbench-document")).toHaveCount(1);
+  await expect(sourceMaterial.getByLabel("Work request facts")).toContainText("Work type");
+  await expect(sourceMaterial.getByLabel("Work request facts")).toContainText("Project");
+  await expect(sourceMaterial.getByLabel("Work request facts")).toContainText("Concerns");
+  await expect(sourceMaterial.getByLabel("Work request facts")).toContainText("Repository path");
+  await expect(sourceMaterial.getByLabel("Work request facts")).toContainText("WorkItem documents");
+  await expect(sourceMaterial).not.toContainText("schemaId");
   await expect(sourceMaterial.getByText("Requested outcome", { exact: true }))
     .toBeVisible({ timeout: 15_000 });
   await capture({
@@ -3295,6 +3302,10 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   await backToQueue(page);
   await openWorkItem(page, "Lifecycle editing workbench");
   await selectWorkflowStep(page, "Implementation plan");
+  const planMaterial = page.getByTestId("lifecycle-document-material");
+  await expect(planMaterial.getByTestId("workbench-document")).toHaveCount(1);
+  await expect(planMaterial.getByLabel("Document facts")).toContainText("Repository path");
+  await expect(planMaterial.getByLabel("Document facts")).toContainText("WorkItem documents");
   const planEditor = await openMarkdownEditor(page, "Implementation plan document Markdown source");
   await capture({
     id: "ia26-lifecycle-document-editor-wide-light",

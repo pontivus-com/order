@@ -401,6 +401,7 @@ describe("Order cross-boundary certification", () => {
       "WorkbenchContextPanel.tsx",
       "WorkbenchDialogue.tsx",
       "WorkbenchDisclosure.tsx",
+      "WorkbenchDocument.tsx",
       "WorkbenchFacts.tsx",
       "WorkbenchField.tsx",
       "WorkbenchForm.tsx",
@@ -772,10 +773,14 @@ describe("Order cross-boundary certification", () => {
     expect(consumersOf("WorkbenchContextPanel")).toEqual([
       "WorkItemContext.tsx",
     ]);
+    expect(consumersOf("WorkbenchDocument")).toEqual([
+      "DocumentWorkspace.tsx",
+    ]);
     expect(consumersOf("WorkbenchSection")).toEqual([
       "WorkItemContext.tsx",
     ]);
     expect(consumersOf("WorkbenchFacts")).toEqual([
+      "DocumentWorkspace.tsx",
       "WorkItemContext.tsx",
     ]);
     const contextPanel = read("ui/src/primitives/WorkbenchContextPanel.tsx");
@@ -826,7 +831,6 @@ describe("Order cross-boundary certification", () => {
       "ActivityWorkspace.tsx",
       "EvidenceViewer.tsx",
       "ExecutionWorkspace.tsx",
-      "MarkdownEditor.tsx",
       "OpenCodeAccountSettings.tsx",
       "SettingsWorkspace.tsx",
       "TerminalResult.tsx",
@@ -1001,11 +1005,25 @@ describe("Order cross-boundary certification", () => {
     expect(workItemContext).toContain('label:"Git commit"');
 
     const markdownEditor = read("ui/src/MarkdownEditor.tsx");
-    expect(markdownEditor).toContain("WorkbenchSectionHeader");
+    expect(markdownEditor).not.toContain("WorkbenchSectionHeader");
     expect(markdownEditor).not.toContain("order-markdown-document-view-header");
     expect(markdownEditor).not.toContain("order-markdown-document-view-actions");
     expect(markdownEditor).not.toContain("WorkbenchDisclosure");
     expect(markdownEditor).not.toContain('label="Technical details"');
+    expect(markdownEditor).not.toContain("toolbarAccessory");
+    expect(markdownEditor).not.toContain("viewAside");
+    expect(markdownEditor).not.toContain("editingTitle");
+    expect(markdownEditor).not.toContain("title: string");
+    expect(documentWorkspace).toContain("<WorkbenchDocument");
+    expect(documentWorkspace).toContain("<WorkbenchFacts");
+    expect(documentWorkspace).not.toContain("WorkRequestFacts");
+    expect(documentWorkspace).not.toContain("order-document-facts");
+    expect(documentWorkspace).not.toContain("MetadataList");
+    expect(documentWorkspace).not.toContain("metadata.schemaId.replace");
+    const documentPrimitive = read("ui/src/primitives/WorkbenchDocument.tsx");
+    expect(documentPrimitive).toContain("title: string");
+    expect(documentPrimitive).toContain("facts?: ReactNode");
+    expect(documentPrimitive).toContain("content: ReactNode");
 
     const table = read("ui/src/primitives/WorkbenchTable.tsx");
     expect(table).toContain('overflowWrap: "normal"');

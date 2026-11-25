@@ -3,7 +3,6 @@ import {
   useRef,
   useState,
   type FormEvent,
-  type ReactNode,
 } from "react";
 import { Markdown } from "@astryxdesign/core/Markdown";
 import {
@@ -23,21 +22,16 @@ import {
   type WorkbenchIconName,
 } from "./primitives/WorkbenchIcon.tsx";
 import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
-import { WorkbenchSectionHeader } from "./primitives/WorkbenchSectionHeader.tsx";
 import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
 
 export type MarkdownEditorProps = Readonly<{
-  title: string;
-  description?: string;
+  sourceLabel: string;
   sha256: Sha256;
   markdown: string;
   readOnly: boolean;
   saveDisabled?: boolean;
   onSave: (expectedSha256: Sha256, markdown: string) => Promise<ExpectedHashWriteResult>;
   onDirtyChange?: (dirty: boolean) => void;
-  toolbarAccessory?: ReactNode;
-  editingTitle?: string;
-  viewAside?: ReactNode;
 }>;
 
 type MarkdownPresentationMode = "EDIT" | "PREVIEW" | "SPLIT";
@@ -78,17 +72,13 @@ const structureActions: readonly FormatAction[] = [
 ];
 
 export const MarkdownEditor = ({
-  title,
-  description,
+  sourceLabel,
   sha256,
   markdown,
   readOnly,
   saveDisabled = false,
   onSave,
   onDirtyChange,
-  toolbarAccessory,
-  editingTitle,
-  viewAside,
 }: MarkdownEditorProps) => {
   const sourceEditorRef = useRef<MarkdownSourceEditorHandle | null>(null);
   const onDirtyChangeRef = useRef(onDirtyChange);
@@ -181,7 +171,7 @@ export const MarkdownEditor = ({
     </div>
   );
 
-  const presentation = !editing ? undefined : (
+  const presentation = (
     <SegmentedControl
       label="Document presentation"
       value={presentationMode}
@@ -199,7 +189,7 @@ export const MarkdownEditor = ({
     </SegmentedControl>
   );
 
-  const formatting = !editing ? undefined : (
+  const formatting = (
     <div data-testid="markdown-format-toolbar" className="order-markdown-format-toolbar">
       <span className="order-markdown-format-group">
         <WorkbenchAction
@@ -246,62 +236,52 @@ export const MarkdownEditor = ({
 
   if (!editing) {
     return (
-      <section className="order-markdown-document-view" data-testid={readOnly ? "markdown-document-readonly" : "markdown-document-view"}>
-        <WorkbenchSectionHeader
-          title={title}
-          description={description}
-          action={
-            <span className="order-inline-actions">
-              {readOnly ? <WorkbenchStatus tone="neutral" label="Read-only supporting material" /> : toolbarAccessory}
-              {!readOnly ? <WorkbenchAction label="Edit" tone="secondary" onClick={() => { editablePresentationMode.current = "SPLIT"; setPresentationMode("SPLIT"); setEditing(true); }} /> : null}
-            </span>
-          }
-        />
-        <div className={"order-markdown-document-view-body" + (viewAside ? " order-markdown-document-view-with-aside" : "")}>
-          {preview}
-          {viewAside ? <aside className="order-markdown-document-view-aside">{viewAside}</aside> : null}
-        </div>
-      </section>
+      <div
+        className="order-markdown-document-view"
+        data-testid={readOnly ? "markdown-document-readonly" : "markdown-document-view"}
+      >
+        {readOnly ? null : (
+          <div className="order-markdown-editor-controls" data-testid="markdown-editor-controls">
+            <div className="order-markdown-editor-actions">
+              <WorkbenchAction
+                label="Edit"
+                tone="secondary"
+                onClick={() => {
+                  editablePresentationMode.current = "SPLIT";
+                  setPresentationMode("SPLIT");
+                  setEditing(true);
+                }}
+              />
+            </div>
+          </div>
+        )}
+        {preview}
+      </div>
     );
   }
 
   return (
     <form className="order-markdown-editor" onSubmit={(event) => void submit(event)}>
-      <WorkbenchSectionHeader
-        title={editingTitle ?? title}
-        description={description}
-        action={presentation}
-      />
-
-      <div
-        className="order-markdown-editor-controls"
-        data-testid="markdown-editor-controls"
-      >
+      <div className="order-markdown-editor-controls" data-testid="markdown-editor-controls">
+        {presentation}
         {formatting}
         <div className="order-markdown-editor-actions">
-          {toolbarAccessory}
-          {!readOnly ? (
-            <>
-              {toolbarAccessory === undefined ? (
-                <WorkbenchStatus
-                  tone={dirty ? "warning" : "success"}
-                  label={dirty ? "Unsaved" : "Current"}
-                />
-              ) : null}
-              <WorkbenchAction
-                type="submit"
-                label={saving ? "Saving…" : "Save"}
-                tone="primary"
-                loading={saving}
-                disabled={saveDisabled || !dirty || conflicted || saving}
-              />
-              <WorkbenchAction
-                label="Cancel"
-                disabled={saving}
-                onClick={cancel}
-              />
-            </>
-          ) : null}
+          <WorkbenchStatus
+            tone={dirty ? "warning" : "success"}
+            label={dirty ? "Unsaved" : "Current"}
+          />
+          <WorkbenchAction
+            type="submit"
+            label={saving ? "Saving…" : "Save"}
+            tone="primary"
+            loading={saving}
+            disabled={saveDisabled || !dirty || conflicted || saving}
+          />
+          <WorkbenchAction
+            label="Cancel"
+            disabled={saving}
+            onClick={cancel}
+          />
         </div>
       </div>
 
@@ -327,27 +307,23 @@ export const MarkdownEditor = ({
         className={"order-editor-body order-editor-mode-" + presentationMode.toLowerCase()}
         data-testid="markdown-editor-body"
       >
-        {readOnly ? preview : (
-          <>
-            <div
-              className={"order-editor-source-pane" + (sourceVisible ? "" : " order-editor-source-pane-hidden")}
-              aria-hidden={sourceVisible ? undefined : true}
-            >
-              <MarkdownSourceEditor
-                ref={sourceEditorRef}
-                value={buffer}
-                disabled={conflicted || saving}
-                ariaLabel={(editingTitle ?? title) + " Markdown source"}
-                onChange={setBuffer}
-              />
-            </div>
-            {presentationMode !== "EDIT" ? (
-              <div className="order-editor-preview-pane">
-                {preview}
-              </div>
-            ) : null}
-          </>
-        )}
+        <div
+          className={"order-editor-source-pane" + (sourceVisible ? "" : " order-editor-source-pane-hidden")}
+          aria-hidden={sourceVisible ? undefined : true}
+        >
+          <MarkdownSourceEditor
+            ref={sourceEditorRef}
+            value={buffer}
+            disabled={conflicted || saving}
+            ariaLabel={sourceLabel + " Markdown source"}
+            onChange={setBuffer}
+          />
+        </div>
+        {presentationMode !== "EDIT" ? (
+          <div className="order-editor-preview-pane">
+            {preview}
+          </div>
+        ) : null}
       </div>
     </form>
   );

@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { MetadataList, MetadataListItem } from "@astryxdesign/core/MetadataList";
-import { Markdown } from "@astryxdesign/core/Markdown";
 
 import {
   MarkdownTextSchema,
@@ -9,6 +7,7 @@ import {
   type Sha256,
   type WorkItem,
   type WorkItemDocumentGitPathStatus,
+  type WorkItemSchemaCatalogEntry,
 } from "../../src/core/contracts.ts";
 import { artifactDirectEditIsAllowed } from "../../src/core/lifecycle.ts";
 import * as api from "./http.ts";
@@ -20,6 +19,8 @@ import { MarkdownEditor } from "./MarkdownEditor.tsx";
 import { lifecycleArtifactLabel } from "./workbench-presentation.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchConfirmation } from "./primitives/WorkbenchConfirmation.tsx";
+import { WorkbenchDocument } from "./primitives/WorkbenchDocument.tsx";
+import { WorkbenchFacts } from "./primitives/WorkbenchFacts.tsx";
 import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
 import { WorkbenchState } from "./primitives/WorkbenchState.tsx";
 import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
@@ -150,7 +151,19 @@ type DocumentationGitProjection = ReturnType<
   typeof useDocumentationGitProjection
 >;
 
-const DocumentationGitBar = ({
+const documentationGitTone = (
+  dirty: boolean,
+  projection: DocumentationGitProjection,
+): "warning" | "danger" | "success" | "info" =>
+  dirty
+    ? "warning"
+    : projection.statusQuery.isError
+      ? "danger"
+      : projection.changedPaths.length === 0
+        ? "success"
+        : "info";
+
+const DocumentationGitAction = ({
   dirty,
   projection,
   mutationsDisabled = false,
@@ -160,42 +173,35 @@ const DocumentationGitBar = ({
   mutationsDisabled?: boolean;
 }>) => {
   const blockers = projection.statusQuery.data?.blockers ?? [];
-  const tone =
-    dirty
-      ? "warning"
-      : projection.statusQuery.isError
-        ? "danger"
-        : projection.changedPaths.length === 0
-          ? "success"
-          : "info";
-
   return (
-    <section
-      className="order-document-git-region"
-      aria-label="Documentation Git status"
-      data-testid="document-git-controls"
-    >
-      <div className="order-document-git-summary">
-        <span data-testid="document-git-state">
-          <WorkbenchStatus tone={tone} label={projection.statusLabel} />
-        </span>
-        {projection.changedPaths.length === 0 ? null : (
-          <WorkbenchAction
-            label="Save documentation to Git"
-            tone="primary"
-            disabled={
-              mutationsDisabled ||
-              dirty ||
-              projection.statusQuery.data === undefined ||
-              blockers.length > 0 ||
-              projection.commit.isPending
-            }
-            loading={projection.commit.isPending}
-            onClick={() => projection.setReviewOpen(true)}
-          />
-        )}
-      </div>
+    <span data-testid="document-git-controls" className="order-document-git-action">
+      {projection.changedPaths.length === 0 ? null : (
+        <WorkbenchAction
+          label="Save documentation to Git"
+          tone="primary"
+          disabled={
+            mutationsDisabled ||
+            dirty ||
+            projection.statusQuery.data === undefined ||
+            blockers.length > 0 ||
+            projection.commit.isPending
+          }
+          loading={projection.commit.isPending}
+          onClick={() => projection.setReviewOpen(true)}
+        />
+      )}
+    </span>
+  );
+};
 
+const DocumentationGitFeedback = ({
+  projection,
+}: Readonly<{ projection: DocumentationGitProjection }>) => {
+  const blockers = projection.statusQuery.data?.blockers ?? [];
+  return projection.statusQuery.isError ||
+    blockers.length > 0 ||
+    projection.commit.error ? (
+    <div className="order-document-git-feedback">
       {projection.statusQuery.isError ? (
         <WorkbenchNotice
           tone="danger"
@@ -203,7 +209,6 @@ const DocumentationGitBar = ({
           description={errorText(projection.statusQuery.error)}
         />
       ) : null}
-
       {blockers.map((blocker) => (
         <WorkbenchNotice
           key={blocker}
@@ -212,7 +217,6 @@ const DocumentationGitBar = ({
           description={gitBlockerText(blocker)}
         />
       ))}
-
       {projection.commit.error ? (
         <WorkbenchNotice
           tone="danger"
@@ -220,8 +224,8 @@ const DocumentationGitBar = ({
           description={errorText(projection.commit.error)}
         />
       ) : null}
-    </section>
-  );
+    </div>
+  ) : null;
 };
 
 const DocumentationGitReview = ({
@@ -252,33 +256,9 @@ const repositoryPathForGit = (
   selectedRepositoryPath: string | null,
 ): string => selectedRepositoryPath ?? workItem.sourcePath;
 
-const WorkRequestFacts = ({
-  schemaId,
-  projectId,
-  concernIds,
-}: Readonly<{
-  schemaId: string;
-  projectId: string;
-  concernIds: readonly string[];
-}>) => (
-  <dl className="order-document-facts" aria-label="Work request facts">
-    <div>
-      <dt>Work type</dt>
-      <dd>
-        {schemaId.replace("-v1", "").replace("-v2", "")
-          .replace(/^./, (value) => value.toUpperCase())}
-      </dd>
-    </div>
-    <div>
-      <dt>Project</dt>
-      <dd>{projectId}</dd>
-    </div>
-    <div>
-      <dt>Concerns</dt>
-      <dd>{concernIds.length === 0 ? "—" : concernIds.join(", ")}</dd>
-    </div>
-  </dl>
-);
+const humanKindLabel = (
+  kind: WorkItemSchemaCatalogEntry["kind"],
+): string => kind.charAt(0) + kind.slice(1).toLowerCase();
 
 export const SourceDocumentMaterial = ({
   workItem,
@@ -309,6 +289,10 @@ export const SourceDocumentMaterial = ({
     dirty,
     repositoryPathForGit(workItem, null),
   );
+  const schemasQuery = useQuery({
+    queryKey: workbenchQueryKeys.workItemSchemas,
+    queryFn: api.listWorkItemSchemas,
+  });
   const selectedRepositoryPath =
     git.sourceQuery.data?.path ?? workItem.sourcePath;
 
@@ -323,39 +307,61 @@ export const SourceDocumentMaterial = ({
     selectedRepositoryPath,
   ]);
 
-  if (git.sourceQuery.isPending) {
+  if (git.sourceQuery.isPending || schemasQuery.isPending) {
     return (
-      <section className="order-document-screen" data-testid="source-document-material">
-        {sourceReadOnly ? null : (
-          <DocumentationGitBar
-            dirty={dirty}
-            projection={git}
-            mutationsDisabled={mutationsDisabled}
-          />
-        )}
+      <div data-testid="source-document-material">
         <WorkbenchState kind="loading" title="Loading work request…" />
-      </section>
+      </div>
     );
   }
 
-  if (git.sourceQuery.isError || git.sourceQuery.data === undefined) {
+  if (
+    git.sourceQuery.isError ||
+    git.sourceQuery.data === undefined ||
+    schemasQuery.isError ||
+    schemasQuery.data === undefined
+  ) {
     return (
-      <section className="order-document-screen" data-testid="source-document-material">
+      <div data-testid="source-document-material">
         <WorkbenchState
           kind="error"
           title="Work request unavailable"
-          description={errorText(git.sourceQuery.error)}
+          description={errorText(git.sourceQuery.error ?? schemasQuery.error)}
         />
-      </section>
+      </div>
     );
   }
 
+  const sourceSchema = schemasQuery.data.find(
+    (schema) => schema.schemaId === git.sourceQuery.data.metadata.schemaId,
+  );
+  if (sourceSchema === undefined) {
+    return (
+      <div data-testid="source-document-material">
+        <WorkbenchState
+          kind="error"
+          title="Work request schema unavailable"
+          description="The current Work request schema is not present in the governed schema catalog."
+        />
+      </div>
+    );
+  }
+
+  const gitStatus = sourceReadOnly ? (
+    <WorkbenchStatus tone="neutral" label="Read-only supporting material" />
+  ) : (
+    <span data-testid="document-git-state">
+      <WorkbenchStatus
+        tone={documentationGitTone(dirty, git)}
+        label={git.statusLabel}
+      />
+    </span>
+  );
+
   return (
-    <section className="order-document-screen" data-testid="source-document-material">
-      <MarkdownEditor
-        key={"source-" + workItem.id}
+    <div data-testid="source-document-material">
+      <WorkbenchDocument
         title="Work request"
-        editingTitle="WorkItem source"
         description={
           readOnly
             ? "Read-only supporting Work request context."
@@ -363,46 +369,84 @@ export const SourceDocumentMaterial = ({
               ? "Read-only in execution/completed state."
               : "Canonical human-authored work definition."
         }
-        sha256={git.sourceQuery.data.sha256}
-        markdown={git.sourceQuery.data.bodyMarkdown}
-        readOnly={sourceReadOnly}
-        saveDisabled={mutationsDisabled}
-        onDirtyChange={(value) => {
-          setDirty(value);
-          onDirtyChange(value);
-        }}
-        onSave={async (expectedSha256, value) => {
-          try {
-            return await api.saveWorkItemSourceBody(workItem.id, {
-              expectedSha256,
-              bodyMarkdown: value,
-            });
-          } catch (error) {
-            onMutationError?.(error);
-            throw error;
-          } finally {
-            await invalidateWorkbenchMutation(queryClient, workItem.id);
-          }
-        }}
-        toolbarAccessory={
+        status={gitStatus}
+        action={
           sourceReadOnly ? undefined : (
-            <DocumentationGitBar
+            <DocumentationGitAction
               dirty={dirty}
               projection={git}
               mutationsDisabled={mutationsDisabled}
             />
           )
         }
-        viewAside={
-          <WorkRequestFacts
-            schemaId={git.sourceQuery.data.metadata.schemaId}
-            projectId={git.sourceQuery.data.metadata.projectId}
-            concernIds={git.sourceQuery.data.metadata.concernIds}
+        facts={
+          <WorkbenchFacts
+            label="Work request facts"
+            items={[
+              {
+                id: "work-type",
+                label: "Work type",
+                value: humanKindLabel(sourceSchema.kind),
+              },
+              {
+                id: "project",
+                label: "Project",
+                value: git.sourceQuery.data.metadata.projectId,
+              },
+              {
+                id: "concerns",
+                label: "Concerns",
+                value:
+                  git.sourceQuery.data.metadata.concernIds.length === 0
+                    ? "—"
+                    : git.sourceQuery.data.metadata.concernIds.join(", "),
+              },
+              {
+                id: "repository-path",
+                label: "Repository path",
+                value: git.sourceQuery.data.path,
+              },
+              {
+                id: "workitem-documents",
+                label: "WorkItem documents",
+                value: git.workItemDirectory,
+              },
+            ]}
           />
+        }
+        content={
+          <>
+            {sourceReadOnly ? null : <DocumentationGitFeedback projection={git} />}
+            <MarkdownEditor
+              key={"source-" + workItem.id}
+              sourceLabel="WorkItem source"
+              sha256={git.sourceQuery.data.sha256}
+              markdown={git.sourceQuery.data.bodyMarkdown}
+              readOnly={sourceReadOnly}
+              saveDisabled={mutationsDisabled}
+              onDirtyChange={(value) => {
+                setDirty(value);
+                onDirtyChange(value);
+              }}
+              onSave={async (expectedSha256, value) => {
+                try {
+                  return await api.saveWorkItemSourceBody(workItem.id, {
+                    expectedSha256,
+                    bodyMarkdown: value,
+                  });
+                } catch (error) {
+                  onMutationError?.(error);
+                  throw error;
+                } finally {
+                  await invalidateWorkbenchMutation(queryClient, workItem.id);
+                }
+              }}
+            />
+          </>
         }
       />
       {sourceReadOnly ? null : <DocumentationGitReview projection={git} />}
-    </section>
+    </div>
   );
 };
 
@@ -478,9 +522,9 @@ export const LifecycleDocumentMaterial = ({
     contentQuery.isPending
   ) {
     return (
-      <section className="order-document-screen" data-testid="lifecycle-document-material">
+      <div data-testid="lifecycle-document-material">
         <WorkbenchState kind="loading" title="Loading lifecycle document…" />
-      </section>
+      </div>
     );
   }
 
@@ -492,24 +536,24 @@ export const LifecycleDocumentMaterial = ({
       ? artifactsQuery.error ?? contentQuery.error
       : contentQuery.error;
     return (
-      <section className="order-document-screen" data-testid="lifecycle-document-material">
+      <div data-testid="lifecycle-document-material">
         <WorkbenchState
           kind="error"
           title="Lifecycle document unavailable"
           description={errorText(error)}
         />
-      </section>
+      </div>
     );
   }
 
   if (selectedArtifact === null || contentQuery.data === undefined) {
     return (
-      <section className="order-document-screen" data-testid="lifecycle-document-material">
+      <div data-testid="lifecycle-document-material">
         <WorkbenchState
           kind="empty"
           title="Lifecycle document is no longer current"
         />
-      </section>
+      </div>
     );
   }
 
@@ -518,84 +562,108 @@ export const LifecycleDocumentMaterial = ({
     readOnly ||
     mutationsDisabled ||
     !artifactDirectEditIsAllowed(workItem, selectedArtifact);
+  const title = lifecycleArtifactLabel(selectedArtifact.role) + " document";
+  const description = embeddedReadOnly && artifactReadOnly
+    ? "Read-only supporting governed document."
+    : artifactReadOnly
+      ? "Read-only in the current lifecycle state."
+      : "Canonical governed lifecycle document.";
+
+  const gitStatus = artifactReadOnly ? (
+    <WorkbenchStatus tone="neutral" label="Read-only supporting material" />
+  ) : (
+    <span data-testid="document-git-state">
+      <WorkbenchStatus
+        tone={documentationGitTone(dirty, git)}
+        label={git.statusLabel}
+      />
+    </span>
+  );
+
+  const documentContent = markdown === null ? (
+    <WorkbenchNotice
+      tone="warning"
+      title="Lifecycle document is not canonical editable Markdown"
+      description={
+        <span>
+          The exact bytes remain inspection-only and will not be normalized
+          or overwritten.
+          <span className="order-inline-actions">
+            <WorkbenchAction
+              label="Inspect exact bytes"
+              onClick={() => onOpenArtifactEvidence(selectedArtifact.id)}
+            />
+          </span>
+        </span>
+      }
+    />
+  ) : (
+    <>
+      {artifactReadOnly ? null : <DocumentationGitFeedback projection={git} />}
+      <MarkdownEditor
+        key={selectedArtifact.id}
+        sourceLabel={title}
+        sha256={selectedArtifact.sha256}
+        markdown={markdown}
+        readOnly={artifactReadOnly}
+        saveDisabled={mutationsDisabled}
+        onDirtyChange={(value) => {
+          setDirty(value);
+          onDirtyChange(value);
+        }}
+        onSave={async (expectedSha256, value) => {
+          try {
+            return await api.saveArtifactContent(selectedArtifact.id, {
+              expectedSha256,
+              markdown: value,
+            });
+          } catch (error) {
+            onMutationError?.(error);
+            throw error;
+          } finally {
+            await invalidateWorkbenchMutation(queryClient, workItem.id);
+          }
+        }}
+      />
+    </>
+  );
 
   return (
-    <section className="order-document-screen" data-testid="lifecycle-document-material">
-      {markdown === null ? (
-        <WorkbenchNotice
-          tone="warning"
-          title="Lifecycle document is not canonical editable Markdown"
-          description={
-            <span>
-              The exact bytes remain inspection-only and will not be normalized
-              or overwritten.
-              <span className="order-inline-actions">
-                <WorkbenchAction
-                  label="Inspect exact bytes"
-                  onClick={() => onOpenArtifactEvidence(selectedArtifact.id)}
-                />
-                {artifactReadOnly ? null : (
-                  <DocumentationGitBar
-                    dirty={dirty}
-                    projection={git}
-                    mutationsDisabled={mutationsDisabled}
-                  />
-                )}
-              </span>
-            </span>
-          }
-        />
-      ) : embeddedReadOnly && artifactReadOnly ? (
-        <div className="order-document-readonly-body" data-testid="markdown-readonly">
-          <Markdown
-            contentWidth="var(--order-prose-max-width)"
-            contentAlign="start"
-          >
-            {markdown}
-          </Markdown>
-        </div>
-      ) : (
-        <MarkdownEditor
-          key={selectedArtifact.id}
-          title={lifecycleArtifactLabel(selectedArtifact.role) + " document"}
-          description={
-            artifactReadOnly
-              ? "Read-only in the current lifecycle state."
-              : "Canonical governed lifecycle document."
-          }
-          sha256={selectedArtifact.sha256}
-          markdown={markdown}
-          readOnly={artifactReadOnly}
-          onDirtyChange={(value) => {
-            setDirty(value);
-            onDirtyChange(value);
-          }}
-          onSave={async (expectedSha256, value) => {
-            try {
-              return await api.saveArtifactContent(selectedArtifact.id, {
-                expectedSha256,
-                markdown: value,
-              });
-            } catch (error) {
-              onMutationError?.(error);
-              throw error;
-            } finally {
-              await invalidateWorkbenchMutation(queryClient, workItem.id);
-            }
-          }}
-          toolbarAccessory={
-            artifactReadOnly ? undefined : (
-              <DocumentationGitBar
-                dirty={dirty}
-                projection={git}
-                mutationsDisabled={mutationsDisabled}
-              />
-            )
-          }
-        />
-      )}
+    <div data-testid="lifecycle-document-material">
+      <WorkbenchDocument
+        title={title}
+        description={description}
+        status={gitStatus}
+        action={
+          artifactReadOnly ? undefined : (
+            <DocumentationGitAction
+              dirty={dirty}
+              projection={git}
+              mutationsDisabled={mutationsDisabled}
+            />
+          )
+        }
+        facts={
+          <WorkbenchFacts
+            label="Document facts"
+            items={[
+              {
+                id: "repository-path",
+                label: "Repository path",
+                value: selectedArtifact.repositoryPath,
+              },
+              {
+                id: "workitem-documents",
+                label: "WorkItem documents",
+                value: git.workItemDirectory,
+              },
+            ]}
+          />
+        }
+        content={documentContent}
+      />
       {artifactReadOnly ? null : <DocumentationGitReview projection={git} />}
-    </section>
+    </div>
   );
 };
 
