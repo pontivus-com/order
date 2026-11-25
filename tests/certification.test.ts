@@ -1014,6 +1014,8 @@ describe("Order cross-boundary certification", () => {
     expect(markdownEditor).toContain("{toolbarAccessory}");
     expect(documentWorkspace).not.toContain("toolbarAccessory=");
     expect(markdownEditor).not.toContain("viewAside");
+    expect(theme).not.toContain(".order-markdown-document-view-with-aside");
+    expect(theme).not.toContain(".order-markdown-document-view-aside");
     expect(markdownEditor).not.toContain("editingTitle");
     expect(markdownEditor).not.toContain("title: string");
     expect(documentWorkspace).toContain("<WorkbenchDocument");
