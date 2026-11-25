@@ -2510,6 +2510,7 @@ describe("architecture fitness", () => {
     for (const forbiddenP3 of [
       "Review owns currentness, summary/body and decisions",
       "WorkbenchToolbar({ start, end })",
+      "projectContext?: { label, onSelect? }",
       "WorkbenchMasterDetail({ master, detail, masterLabel })",
     ]) {
       if (p3Workbench.includes(forbiddenP3) || p4Workbench.includes(forbiddenP3)) {
@@ -2517,6 +2518,17 @@ describe("architecture fitness", () => {
           "current Workbench authority retains superseded open-ended UI contract: " +
             forbiddenP3,
         );
+      }
+    }
+    for (const requiredP4Toolbar of [
+      "value: ProjectId",
+      "options: readonly ProjectId[]",
+      "navigation: { label: \"Settings\" | \"Work queue\"",
+      "account.readiness",
+      "selected WorkItem may provide static Project context",
+    ]) {
+      if (!p4Workbench.includes(requiredP4Toolbar)) {
+        violations.push("P4 closed application-toolbar contract missing: " + requiredP4Toolbar);
       }
     }
     for (const requiredClosedWorld of [

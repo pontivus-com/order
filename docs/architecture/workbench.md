@@ -1020,9 +1020,18 @@ WorkbenchWorkItemShell({
 ```ts
 WorkbenchToolbar({
   orientation: { productLabel, destinationLabel },
-  projectContext?: { label, onSelect? },
-  account?: { label, href? },
-  settings: { label, href },
+  projectContext?: {
+    value: ProjectId,
+    options: readonly ProjectId[],
+    onChange?: (projectId: ProjectId) => void,
+  },
+  account?: {
+    label: string,
+    readiness?: { label: string, tone: "neutral" | "success" | "warning" | "danger" },
+    href: string,
+    onNavigate?,
+  },
+  navigation: { label: "Settings" | "Work queue", href: string, onNavigate? },
   theme: { value: "system" | "light" | "dark", onChange },
 })
 WorkbenchUtilityLink({ label, detail?, icon?, href, onNavigate? })
@@ -1030,7 +1039,7 @@ WorkbenchIdentity({ navigation, identity, utilities })
 WorkbenchRail({ items })
 ```
 
-Toolbar/identity/rail geometry is primitive-owned. `WorkbenchToolbar` receives only the P3-authorized orientation, optional Project context and exact global utilities; it exposes no generic content slots through which a caller can rebuild another header. `WorkbenchUtilityLink` is navigation-only and renders link semantics; it never converts Settings/account navigation into a command button. `WorkbenchRail.items` carries only generic id/label/state/selected/onSelect presentation; callers cannot set cell width.
+Toolbar/identity/rail geometry is primitive-owned. `WorkbenchToolbar` receives only the P3-authorized orientation, optional Project context and exact global utilities; it exposes no generic content slots through which a caller can rebuild another header. `projectContext.value/options` are exact canonical `ProjectId` values from the configured Project catalog; when `options.length > 1` and `onChange` is present the primitive owns the compact Project selector, otherwise it renders orientation-only Project context without inventing another choice. The selected WorkItem may provide static Project context with no `onChange`, so inspecting a WorkItem can never retarget it across Projects. `account.readiness` is already-humanized status presentation only. `navigation` is the single application utility that is `Settings` outside Settings and `Work queue` inside Settings. `WorkbenchUtilityLink` is navigation-only and renders link semantics; it never converts Settings/account navigation into a command button. `WorkbenchRail.items` carries only generic id/label/state/selected/onSelect presentation; callers cannot set cell width.
 
 ```ts
 WorkbenchSurface({ attention?, material })
