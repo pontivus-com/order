@@ -40,7 +40,7 @@
 | FP-F09 | C03 | REVALIDATION_REQUIRED | P3/P8 — `GW-DOC-MARKDOWN-WORKBENCH-V1`, `GW-DOC-WORKBENCH-UX-V2`, queue diagnostics | Baseline rendered raw diagnostic code. PR #83 head `4f7c55cb848f2e6da74ce5ca6e5208e038cb96c9` now asserts ordinary source diagnostics do **not** contain `INVALID_SOURCE` and do contain path + actionable human reason. | Revalidate on the exact eventual PR #83/merged candidate; do not duplicate the UI change on this branch. |
 | FP-F10 | C03 | REVALIDATION_REQUIRED | P3/P4/P8 — account Settings presentation | Baseline exposed raw blocker/login enums. PR #83 head `4f7c55cb848f2e6da74ce5ca6e5208e038cb96c9` uses `blockerText(...)`, `loginStatusText(...)` and human account status; the raw permanent blocker list is absent. | Revalidate on the exact eventual PR #83/merged candidate; do not duplicate the UI change on this branch. |
 | FP-F11 | C03 | ROUTED | P3/P4/P8 — IA30 productive-stage presentation + IA33 terminal result | Baseline terminal resources mechanically exposed event/role enums. PR #83 head `24f86507df0459b4efb8454d2aa8e98850beaa60` now uses `runRoleLabel(...)` + `Verified implementation evidence`, and certification forbids `candidate.eventTag.replaceAll`, so the IA33 terminal-resource portion is corrected pending revalidation. Shared `STAGE_COMPLETED` presentation still mechanically formats `completion.outcome`. The canonical 0.6.0 PLAN assigns `workbench-presentation.ts`/productive-stage activity and timeline reconstruction to post-signoff IA30; §17A explicitly excludes IA30-IA34 from the current bounded grant. | Revalidate the IA33 terminal correction on the exact eventual PR #83 candidate. Leave the remaining shared-event outcome path routed to IA30 and correct it only after normal sign-off/post-signoff authorization, with product-language + negative raw-enum proof. |
-| FP-D01 | Dependency | REVALIDATION_REQUIRED | `docs/governance/systems-governance.md` | PR #83 independently changes this canonical file for the 0.6.0 campaign. This branch begins from `master` and must not infer those bytes. | Reconcile/re-audit the exact final candidate before C01/C06 closure. |
+| FP-D01 | Dependency | REVALIDATION_REQUIRED | PR #83 0.6.0 campaign foundation + `docs/governance/systems-governance.md` | PR #83 independently changes the canonical systems-governance owner and also owns the campaign rule/sensor that distinguishes pre-delivery G0 ancestry from post-squash default-branch integration. PR #84 run 2786 proves this is its sole remaining architecture blocker: all other architecture checks pass. | Reconcile/re-audit the exact PR #83 result first; then rebase/update PR #84 onto the resulting default-branch foundation and rerun C01/C05/C06 proof. Do not copy the campaign sensor into PR #84. |
 
 ## 4. Canonical corpus inventory
 
@@ -74,16 +74,15 @@ P7/P8 are audited in C06 against the applicable current WorkItem/task and implem
 
 ## 6. Enforcement audit
 
-Current proof is structurally useful but incomplete for semantic noninterference:
+The audit established the following current proof state:
 
-- architecture/certification tests prove module ownership, allowed mutation locations and many technical-detail boundaries;
-- the account certification test proves the shell utility is query-only but does not constrain which `OpenCodeAccountState` facts may influence shell semantics;
-- the account browser test proves mutation blockers affect Settings controls/notices but does not prove the shell result is invariant to those blockers;
-- the queue browser test currently asserts `INVALID_SOURCE`, so it encodes the implementation leak rather than the product-language contract;
-- terminal certification proves the final WorkItem outcome uses `workOutcomeProductLabel`, but does not constrain candidate-resource event/role metadata;
-- architecture tests require every manifest `refs` source to also be selected by `authority.p1-p6`, which contributes to FP-F06/FP-F07 by conflating exact referencability with automatic stage applicability.
+- PR #84 architecture fitness now distinguishes exact reference identity from active authority applicability: retained semantic versions remain exactly referenceable, prior-art `GW-DOC-REF-*` sources are forbidden as default active authority, and the old “every ref must be selected by authority.p1-p6” proposition has been removed;
+- PR #84 core/shell/daemon tests add negative proof that a reference-only source is resolvable but absent from active authority/stage context, and that an exact signed-task ref cannot self-promote a non-material source into execution authority;
+- PR #83 certification now forbids `mutationBlockers` and `Changes blocked` in `OpenCodeAccountControl`; its browser fixture holds a READY active account constant while varying `mutationBlockers: [ACTIVE_RUN]`, proves the shell stays `Ready`, and separately proves Settings mutation admission remains blocked;
+- PR #83 browser/certification coverage already replaces the FP-F09 raw source-diagnostic code and FP-F10 raw account blocker/login status with ordinary human product language;
+- PR #83 terminal-resource presentation uses the canonical human role label and descriptive evidence wording; the remaining shared `STAGE_COMPLETED` outcome path is explicitly routed to post-signoff IA30 and is not authorized in the current bounded grant.
 
-For mechanically checkable semantic boundaries, closure therefore requires:
+The remaining enforcement obligation is exact-candidate verification:
 
 ```text
 authorized facts fixed
@@ -124,5 +123,7 @@ C06 may become COMPLETE only when:
 | Verification | Candidate / run | State | Evidence / disposition |
 |---|---|---|---|
 | V01 — PR metadata preflight | PR #84 head `c39f7d0f46740931a444519e943588083db3d694`, run 2778 / `45548515192` | SUPERSEDED_EVENT | The first PR event carried `Intended release train` rather than the required `Target release` wording. PR #84 body was corrected to `Target release: **0.6.0**`. Re-running the same Actions run still read the immutable original `GITHUB_EVENT_PATH` payload, so it repeated the same preflight failure. The verifier is correct and unchanged. This register update intentionally creates a new PR head/synchronize event so verification can consume the corrected live PR metadata. |
-| V02 — substantive repository gates | PR #84 candidates through `6b49346dc578692dbd03825156440a16c364f4ec` | FAILED_FIXTURE_ONLY | Fresh PR metadata and dependency-lock passed. Typecheck then exposed only newly added test-fixture defects: first malformed nested-fence quoting, then a strict local object assertion. Both were corrected without changing production semantics; next exact head must rerun the full gate chain. |
+| V02 — substantive repository gates | PR #84 candidates through `6b49346dc578692dbd03825156440a16c364f4ec` | SUPERSEDED | Fresh PR metadata and dependency-lock passed. Typecheck exposed only newly added test-fixture defects: malformed nested-fence quoting, then direct casting of JSON text. Both were corrected without changing production semantics. |
+| V03 — PR #84 conformance candidate | PR #84 head `a981ab54533cf949c4bb312011c205a2c4cfcef3`, run 2786 / `45549693735` | BLOCKED_BY_PR83_FOUNDATION_SENSOR | PR metadata, dependency-lock and typecheck PASS. Architecture executes 13 checks: 12 PASS, including canonical documentation ownership, v2 WorkItem hygiene and the new ref/applicability fitness. The sole failure is the master-side 0.6.0 campaign sensor requiring G0 baseline `e4dfcb0fb28eb21ccf174114fa37d5198e915e1f` to remain an ancestor after squash delivery. PR #83 is the canonical in-flight owner of the matching campaign-rule/sensor correction; duplicating it here is prohibited. |
+| V04 — FP-F08 bounded Workbench proof | PR #83 head `24f86507df0459b4efb8454d2aa8e98850beaa60`, run 2780 / `45549049727` | IN_PROGRESS | PR metadata, dependency-lock, typecheck, architecture, unit test, build, current-state diagnostic evidence, bounded IA27/IA28 authorization, release-packager verification and bounded IA27/IA28 rendered evidence all PASS. Full browser is still the remaining running gate; exact final disposition follows that result. |
 
