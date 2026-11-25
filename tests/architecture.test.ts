@@ -2658,6 +2658,32 @@ describe("architecture fitness", () => {
       }
     }
 
+    const priorityZeroTransitions = [
+      "| IA29 | IA31 |",
+      "| IA31 | IA30 |",
+      "| IA30 | P0.4 HUX-09 / IA20+IA26 targeted fidelity proof |",
+      "| P0.4 HUX-09 / IA20+IA26 targeted fidelity proof | IA32 |",
+    ] as const;
+    let previousPriorityZeroTransition = -1;
+    for (const transition of priorityZeroTransitions) {
+      const offset = closeout.indexOf(transition);
+      if (offset < 0) {
+        violations.push("PLAN closeout missing Priority-0 transition: " + transition);
+      } else if (offset <= previousPriorityZeroTransition) {
+        violations.push("PLAN closeout Priority-0 transition order is stale: " + transition);
+      }
+      previousPriorityZeroTransition = offset;
+    }
+    for (const staleTransition of [
+      "| IA29 | IA30 |",
+      "| IA30 | IA31 |",
+      "| IA31 | IA32 |",
+    ]) {
+      if (closeout.includes(staleTransition)) {
+        violations.push("PLAN closeout retains superseded Priority-0 transition: " + staleTransition);
+      }
+    }
+
     const expectedPhasePaths = [...phasePaths].sort();
     const manifestRows = [...plan.matchAll(
       /^\| `(implementation-plan\/[^\`]+)` \| `([0-9a-f]{40})` \|$/gm,
