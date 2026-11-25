@@ -1,22 +1,41 @@
 import type { ReactNode } from "react";
+import {
+  WorkbenchReviewSection,
+  type WorkbenchReviewSectionProps,
+} from "./WorkbenchReviewSection.tsx";
+import {
+  WorkbenchReviewVerdict,
+  type WorkbenchReviewVerdictProps,
+} from "./WorkbenchReviewVerdict.tsx";
+
+export type WorkbenchReviewProps = Readonly<{
+  title: string;
+  description?: string;
+  verdict: WorkbenchReviewVerdictProps;
+  sections: readonly WorkbenchReviewSectionProps[];
+  decisions?: ReactNode;
+}>;
 
 export const WorkbenchReview = ({
-  currentness,
-  summary,
-  body,
+  title,
+  description,
+  verdict,
+  sections,
   decisions,
-}: Readonly<{
-  currentness: ReactNode;
-  summary: ReactNode;
-  body: ReactNode;
-  decisions: ReactNode;
-}>) => (
+}: WorkbenchReviewProps) => (
   <section className="order-workbench-review">
     <header className="order-workbench-review-header">
-      <div className="order-workbench-review-summary">{summary}</div>
-      <div className="order-workbench-review-currentness">{currentness}</div>
+      <h2>{title}</h2>
+      {description === undefined ? null : <p>{description}</p>}
     </header>
-    <div className="order-workbench-review-body">{body}</div>
-    <div className="order-workbench-review-decisions">{decisions}</div>
+    <WorkbenchReviewVerdict {...verdict} />
+    <div className="order-workbench-review-sections">
+      {sections.map((section) => (
+        <WorkbenchReviewSection key={section.id} {...section} />
+      ))}
+    </div>
+    {decisions === undefined ? null : (
+      <div className="order-workbench-review-decisions">{decisions}</div>
+    )}
   </section>
 );
