@@ -854,7 +854,7 @@ The table defines **canonical target responsibilities and semantic APIs**, indep
 |---|---|---|
 | `WorkbenchAppShell` | the one application-global topology over one Astryx `AppShell`; mounted once at the application root and owns the global toolbar plus exactly one current destination slot | no WorkItem-specific identity/rail/context logic; no SideNav merely because AppShell supports it; no arbitrary caller shell geometry; no domain/query logic |
 | `WorkbenchWorkItemShell` | selected-WorkItem structural composition inside `WorkbenchAppShell`: identity, workflow rail, primary workflow destination and optional Context placement | no second AppShell/toolbar; no feature-owned sidebar/columns; no caller breakpoint/width values; no workflow/domain policy |
-| `WorkbenchToolbar` | application/local toolbar grouping, search and compact utilities; provides the shared compact grouping/action language consumed by specialist toolbars | no workflow policy; no arbitrary structural row creation; specialist editors may own domain commands but cannot create uncontrolled stacked toolbar rows |
+| `WorkbenchToolbar` | the closed application-global orientation/context/utility composition plus the shared compact grouping language for specialist toolbars | no arbitrary `start`/`end` ReactNode regions; no workflow policy; no arbitrary structural row creation; specialist editors may own domain commands but cannot create uncontrolled stacked toolbar rows |
 | `WorkbenchUtilityLink` | compact toolbar navigation affordance over Astryx `Link`, with primary label + optional secondary state for destinations such as Settings/account management | navigation only; no command mutation semantics; no feature-owned button chrome or popover/drawer geometry |
 | `WorkbenchIdentity` | stable three-group WorkItem identity row: navigation, identity/status, utilities | no fourth placeholder/action column; no content-driven topology |
 | `WorkbenchRail` | stable equal-cell workflow navigation with constrained-width scrolling | no content/status-derived widths; no wrapping/multi-row lifecycle navigation |
@@ -1018,13 +1018,19 @@ WorkbenchWorkItemShell({
 `WorkbenchAppShell` is mounted exactly once by `app.tsx`; Queue, Settings and the selected WorkItem workspace are destinations inside that one application frame. `WorkbenchWorkItemShell` is mounted only for a selected WorkItem and owns the recurring WorkItem chrome beneath the application shell. Neither API exposes generic `children`, `start`, `left`, `sidebar`, caller-defined columns, width or breakpoint configuration.
 
 ```ts
-WorkbenchToolbar({ start, end })
+WorkbenchToolbar({
+  orientation: { productLabel, destinationLabel },
+  projectContext?: { label, onSelect? },
+  account?: { label, href? },
+  settings: { label, href },
+  theme: { value: "system" | "light" | "dark", onChange },
+})
 WorkbenchUtilityLink({ label, detail?, icon?, href, onNavigate? })
 WorkbenchIdentity({ navigation, identity, utilities })
 WorkbenchRail({ items })
 ```
 
-Toolbar/identity/rail geometry is primitive-owned. `WorkbenchUtilityLink` is navigation-only and renders link semantics; it never converts Settings/account navigation into a command button. `WorkbenchRail.items` carries only generic id/label/state/selected/onSelect presentation; callers cannot set cell width.
+Toolbar/identity/rail geometry is primitive-owned. `WorkbenchToolbar` receives only the P3-authorized orientation, optional Project context and exact global utilities; it exposes no generic content slots through which a caller can rebuild another header. `WorkbenchUtilityLink` is navigation-only and renders link semantics; it never converts Settings/account navigation into a command button. `WorkbenchRail.items` carries only generic id/label/state/selected/onSelect presentation; callers cannot set cell width.
 
 ```ts
 WorkbenchSurface({ attention?, material })
@@ -1070,10 +1076,16 @@ WorkbenchReview({
   sections,
   decisions,
 })
-WorkbenchMasterDetail({ master, detail, masterLabel })
+WorkbenchMasterDetail({
+  master: {
+    label,
+    items: [{ id, label, detail?, state?, selected, onSelect }],
+  },
+  detail,
+})
 ```
 
-Dialogue owns transcript/supporting-activity/composer mechanics but not send eligibility. Its narrow API has no generic header, workflow-state summary or technical-detail slot. OPEN/REQUIRED_INPUT/PROCESSING are interaction classifications used to select transcript/composer/state behavior, not ordinary taxonomy labels to print as primary copy. Raw technical identity routes to explicit WorkItem Context/Evidence. Review owns the outer hierarchy and accepts only its named verdict/section/decision responsibilities; it has no arbitrary `body` slot, selector, attention or technical-detail escape. A Review section may contain approved leaf content or a canonical supporting composition such as `WorkbenchFacts`/`WorkbenchResourceList`, but cannot create another Review hierarchy. Master/detail exposes no master width/collapse/count configuration.
+Dialogue owns transcript/supporting-activity/composer mechanics but not send eligibility. Its narrow API has no generic header, workflow-state summary or technical-detail slot. OPEN/REQUIRED_INPUT/PROCESSING are interaction classifications used to select transcript/composer/state behavior, not ordinary taxonomy labels to print as primary copy. Raw technical identity routes to explicit WorkItem Context/Evidence. Review owns the outer hierarchy and accepts only its named verdict/section/decision responsibilities; it has no arbitrary `body` slot, selector, attention or technical-detail escape. A Review section may contain approved leaf content or a canonical supporting composition such as `WorkbenchFacts`/`WorkbenchResourceList`, but cannot create another Review hierarchy. Master/detail exposes no arbitrary master-content slot and no master width/collapse/count configuration. The master is a scan-efficient item list only; task objective/state and subordinate attempt selection are allowed there, while task contract, blocker/action, validation, chronology, evidence and resources remain detail-owned.
 
 ```ts
 WorkbenchContextPanel({ title, onClose, sections })
@@ -1295,7 +1307,7 @@ The following matrix is exhaustive for the production TSX renderers present on t
 | `ProposalReview.tsx` | Review + ReviewVerdict + ReviewSection + approved DocumentChangeView + Facts/Status/Notice + Action; raw unified diff is not the primary human review surface | bespoke review headings/state blocks; raw CodeBlock diff as the Review body |
 | `ReadinessWorkspace.tsx` | direct Review + ReviewVerdict + ReviewSection + Facts/ResourceList/Status/Notice; REQUIRED_INPUT replaces Review with Dialogue for that turn | generic WorkflowStepFrame composition; generic Readiness material selector; screen-local readiness section/grid grammar |
 | `SignoffReview.tsx` | direct Review + ReviewVerdict + ReviewSection + Facts/ResourceList + approver control + Status/Notice + Action; technical identity routes to Context | generic side index; local/package/task Technical-details disclosures; bespoke approval section/card/action layout |
-| `ExecutionWorkspace.tsx` | MasterDetail + Surface/Attention + Table + Timeline + Status/Notice + ResourceRow/Action; same-task validation expansion may use Disclosure; technical identity routes to Context/Evidence | generic side index; generic Technical-details disclosure; bespoke validation matrix/task detail layout |
+| `ExecutionWorkspace.tsx` | MasterDetail + Surface/Attention + Table + Timeline + Status/Notice + ResourceList/Action; same-task validation expansion may use Disclosure; technical identity routes to Context/Evidence | generic side index; generic Technical-details disclosure; bespoke validation matrix/task detail layout |
 | `EvidenceViewer.tsx` | Surface + SectionHeader + State + approved CodeBlock leaf | bespoke section heading |
 | `TerminalResult.tsx` | Surface + WorkbenchResult + Section + ResourceList + Status + approved Markdown/CodeBlock/peer-view leaves | bespoke result status/heading/section/resource grammar |
 | `WorkItemContext.tsx` | ContextPanel + Section + Facts + Status/Notice + approved MetadataList leaf; selection-aware technical projection for document/Run/proposal/approval/task/execution identities | nested WorkItem Technical-details disclosure; feature-local technical inspector outside Context |
@@ -1377,7 +1389,7 @@ Run/provider plumbing is not a parallel primary information block. The Dialogue 
 2. **Agent activity** — coordinator-owned bounded `AGENT_ACTIVITY_RECORDED` observations, rendered as supporting activity rather than chat;
 3. **Workflow/system** — proposals, conformance, completion/block/failure, evidence and other canonical workflow events.
 
-`WorkbenchDialogue` owns that composition. On wide layouts it keeps a stable conversation region plus a bounded supporting-activity region and an anchored composer. Medium/narrow layouts recompose activity subordinately without creating another navigation rail or hiding the conversation/composer. Provider session id, baseline/context hash and ordinary provider-process status remain inside Technical details. A provider admission/failure appears in primary only as the canonical human-facing blocker/failure.
+`WorkbenchDialogue` owns that composition. On wide layouts it keeps a stable conversation region plus a bounded supporting-activity region and an anchored composer. Medium/narrow layouts recompose activity subordinately without creating another navigation rail or hiding the conversation/composer. Provider session id, baseline/context hash and ordinary provider-process status remain inside the selected WorkItem's explicit Context inspection. A provider admission/failure appears in primary only as the canonical human-facing blocker/failure.
 
 A free-form composer is rendered only for OPEN interaction backed by a visible substantive agent message from that turn. An exact required-input question is itself the reply anchor.
 
@@ -1558,7 +1570,7 @@ This is not a new UI framework or controller layer. These modules remain ordinar
 
 `WorkflowStepFrame.tsx`, `WorkflowStepSummary`, `WorkflowStepIndex`, `PrimaryMaterialFrame` and `WorkflowMaterialSelector.tsx` are deleted and remain absent. There is no compatibility replacement. Pre-signoff screen owners select Document/Dialogue/Review/Evidence/State directly from canonical material/interaction state; supporting attempts/upstream material use only the specifically authorized subordinate resource/timeline/action treatment. Active/historical dialogue uses `WorkbenchDialogue`; feature code supplies transcript/composer content but does not own anchored-composer geometry or responsive dialogue mechanics.
 
-Proposal, Readiness and Approval map into `WorkbenchReview`; they do not reuse a generic side-index simply because documents/tasks exist. Supporting package/history access uses the Review interaction’s explicit `WorkbenchResourceRow`/Action treatment; exact technical identity routes through selected WorkItem Context/Evidence. `WorkbenchDisclosure` remains limited to specifically named same-task semantic expansion and is not a Review material-navigation or technical-inspection owner.
+Proposal, Readiness and Approval map into `WorkbenchReview`; they do not reuse a generic side-index simply because documents/tasks exist. Supporting package/history access uses the Review interaction’s explicit `WorkbenchResourceList`/Action treatment; exact technical identity routes through selected WorkItem Context/Evidence. `WorkbenchDisclosure` remains limited to specifically named same-task semantic expansion and is not a Review material-navigation or technical-inspection owner.
 
 Implementation maps into `WorkbenchMasterDetail`; feature code does not create its own persistent grid columns.
 
@@ -1572,7 +1584,7 @@ Queue uses `WorkbenchTable` and `WorkbenchNotice`; Create WorkItem uses `Workben
 
 The current `Supporting context` disclosure is removed from the leading primary position in pre-signoff activity/document surfaces and is represented only through the interaction-specific subordinate resource/timeline/action access defined in §8.5; no generic material selector or disclosure lane is created.
 
-The current prominent `OpenCode session` block in `ActivityWorkspace` is removed from primary composition. Canonical workflow interaction state owns the visible status; provider diagnostics remain Technical details/evidence unless they are the active blocker.
+The current prominent `OpenCode session` block in `ActivityWorkspace` is removed from primary composition. Canonical workflow interaction state owns the visible status; provider diagnostics remain Context/Evidence-owned unless their human-readable condition is the active blocker.
 
 The owning interaction renders at most one current mutation action. A retryable failed Run must not simultaneously expose both generic Start and Retry controls for the same stage, and no deleted workflow-summary owner may be recreated to arbitrate those actions.
 
@@ -1767,7 +1779,7 @@ The UI remediation is structurally complete only when all of the following are t
 
 **Required behavior:** every rendered Order Workbench service is built from the complete closed primitive vocabulary in §8.12 according to §8.15. Feature/content owners may supply domain content and §8.19 leaves inside primitive slots, but reusable Workbench structure/interaction/visual semantics remain primitive-owned. Semantic slots retain their declared meaning: `WorkbenchSurface.attention` is optional and may contain only the interaction class's genuine current-attention composition.
 
-**Acceptance:** architecture fitness rejects bypass of shell/toolbar/utility/identity/rail/surface/attention/form/selector/dialogue/review/master-detail/Context/task-panel/settings/status/notice/table/timeline/disclosure/confirmation mechanics, rejects undeclared screen grammars, rejects a primary interaction composition nested inside another primary composition, rejects use of the optional attention slot as a generic heading/top-content slot, and additionally rejects generic local Technical-details/Supporting-material-history disclosure owners, adjacent/nested disclosure stacks, TaskPanel implementations without header/body/footer action ownership, and Markdown editor compositions that insert unrelated bands between controls and canvas. Queue/Review/Evidence/Terminal-result renderers must remain free of an outer attention band unless P3 is explicitly amended to give that interaction class such ownership. Review currentness/summary/body/decisions remain inside `WorkbenchReview`; Proposal Review, Readiness and Approval may not be wrapped in `WorkflowStepFrame -> WorkbenchSurface -> WorkbenchAttention`. Any new primitive requires DESIGN authority plus permanent fitness coverage.
+**Acceptance:** architecture fitness rejects bypass of shell/toolbar/utility/identity/rail/surface/attention/form/selector/dialogue/review/master-detail/Context/task-panel/settings/status/notice/table/timeline/disclosure/confirmation mechanics, rejects undeclared screen grammars, rejects a primary interaction composition nested inside another primary composition, rejects use of the optional attention slot as a generic heading/top-content slot, and additionally rejects generic local Technical-details/Supporting-material-history disclosure owners, adjacent/nested disclosure stacks, TaskPanel implementations without header/body/footer action ownership, and Markdown editor compositions that insert unrelated bands between controls and canvas. Queue/Review/Evidence/Terminal-result renderers must remain free of an outer attention band unless P3 is explicitly amended to give that interaction class such ownership. Review verdict/currentness, ordered `WorkbenchReviewSection` content and decisions remain inside `WorkbenchReview`, with no arbitrary body hierarchy; Proposal Review, Readiness and Approval may not be wrapped in `WorkflowStepFrame -> WorkbenchSurface -> WorkbenchAttention`. Any new primitive requires DESIGN authority plus permanent fitness coverage.
 
 ### GW-TR-095-WORKBENCH-RENDERER-COVERAGE
 

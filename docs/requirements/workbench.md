@@ -539,7 +539,19 @@ optional on-demand context
 
 No other persistent outer navigation layer is permitted.
 
-The reviewed wide-layout visual references derived from this owner and the 0.5.0 Phase 2A WorkItem are stored at `docs/references/workbench-ui/README.md`. They are implementation/reference material only: they illustrate this document's required hierarchy and look/feel but do not create a second semantic owner.
+Rendered comparison material is **derived evidence only**. It may demonstrate this owner's current requirements but may not constrain, supplement or override them. A comparison artifact is current only when it records the exact current authority versions it projects; superseded visual packs are historical evidence and must not remain an implementation or acceptance oracle.
+
+#### Application toolbar contract
+
+The application toolbar is the one application-global orientation and utility row. It presents only:
+
+- Order product identity and the current destination meaning;
+- current Project context and a compact Project-switch affordance when more than one configured Project is available;
+- the active OpenCode account entry;
+- Settings navigation; and
+- the application-global System / Light / Dark choice.
+
+These controls remain compact and non-wrapping and do not create another persistent navigation axis. Project switching changes only the selected application Project context; it does not fabricate lifecycle state, retarget a selected WorkItem across Projects, or expose repository roots/internal Project identifiers as ordinary header copy. Order has no separate Team/Workspace domain in current product authority; implementation must not invent one merely to populate the toolbar.
 
 ### 11.1 Stable geometry invariant
 
@@ -691,7 +703,7 @@ The Workbench does not use:
 - persistent elevation/shadow to create hierarchy that should be expressed structurally;
 - badges/chips as a substitute for ordinary readable labels.
 
-Persistent surfaces are separated primarily by spacing, 1px boundaries and information hierarchy. Elevation is reserved for temporary overlays.
+Semantic grouping is expressed primarily by spacing, typography and the bounded anatomy of the owning component. A horizontal rule is **not** a generic section/grouping primitive. A 1px line is permitted only where the canonical composition owns a real structural boundary (for example shell-region separation, table/resource-row separation, an input/control boundary or an overlay boundary). Repeated full-width `border-bottom`/`<hr>` treatment between ordinary semantic sections is prohibited. Elevation is reserved for temporary overlays.
 
 ### 11.8 Semantic color behavior
 
@@ -1675,7 +1687,7 @@ The detailed current-attention/recovery value remains owned by the primary mater
 
 **Required behavior:** every rendered Order Workbench service is classified under exactly one primary interaction-space class from §13; subordinate selection, explicit technical inspection, task-panel and safety/exception behavior use only the declared auxiliary classes and cannot create another persistent layout/navigation/disclosure grammar. Semantic regions are used only for their declared meaning: current-attention content cannot be substituted with a generic heading/status block merely to satisfy a component API.
 
-**Acceptance:** adding a new feature, material type, Run/document/task count, configuration service or technical detail does not create a new screen geometry, generic workflow-summary/material selector or generic disclosure lane by implementation convenience. Supporting/history information retains one interaction-specific resource/timeline/action owner; technical information retains one explicit inspection owner. One selected task/material produces exactly one primary interaction composition: a primary interaction composition may not be wrapped or nested inside another primary composition, and transient Proposal Review/Evidence replace the owning material composition for the duration of explicit review/inspection. Operational scan, Review, Evidence and Terminal result do not fabricate an outer current-attention region when their class contract does not own one; Review currentness/summary/body/decisions remain inside `WorkbenchReview`. Canonical state classifications are not emitted as a generic status tuple or internal enum copy. If none of the §13 classes can express the required interaction, the change returns to DESIGN before implementation.
+**Acceptance:** adding a new feature, material type, Run/document/task count, configuration service or technical detail does not create a new screen geometry, generic workflow-summary/material selector or generic disclosure lane by implementation convenience. Supporting/history information retains one interaction-specific resource/timeline/action owner; technical information retains one explicit inspection owner. One selected task/material produces exactly one primary interaction composition: a primary interaction composition may not be wrapped or nested inside another primary composition, and transient Proposal Review/Evidence replace the owning material composition for the duration of explicit review/inspection. Operational scan, Review, Evidence and Terminal result do not fabricate an outer current-attention region when their class contract does not own one; Review verdict/currentness, ordered semantic sections and decisions remain inside `WorkbenchReview`, with no arbitrary Review body hierarchy. Canonical state classifications are not emitted as a generic status tuple or internal enum copy. If none of the §13 classes can express the required interaction, the change returns to DESIGN before implementation.
 
 ### GW-FR-231-CANONICAL-WORKBENCH-VISUAL-LANGUAGE
 
@@ -1798,7 +1810,7 @@ At minimum, downstream implementation must prove these scenarios end to end:
 43. Every free-form continuation fixture shows the preceding substantive agent message and prior accepted operator/agent turns in the same Dialogue surface; removing that conversational anchor makes the composer unavailable.
 44. Every required-input fixture shows the exact agent question inline with the selected attempt transcript and binds the composer to that question while preserving any additional agent explanation from the same turn.
 45. Agent/user messages remain visually distinguishable from workflow events, operational activity, evidence and technical diagnostics even when all are present for the same attempt.
-46. Every governed surface proves its §11.4A visibility contract in both directions: Primary information is visible by default; Technical/Diagnostic information is absent by default; the authorized Technical details/Context/Evidence/confirmation owner exposes the exact value only after explicit entry; a technical blocker promotes human-readable meaning/action without leaking raw diagnostic identity.
+46. Every governed surface proves its §11.4A visibility contract in both directions: Primary information is visible by default; Technical/Diagnostic information is absent by default; the authorized WorkItem Context/Settings-diagnostics/Evidence/confirmation owner exposes the exact value only after explicit entry; a technical blocker promotes human-readable meaning/action without leaking raw diagnostic identity.
 
 ## 24. Downstream technical-design obligations
 

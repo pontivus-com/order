@@ -334,7 +334,7 @@ ordinary transition       -> --duration-fast / foundation component motion
 
 Rules:
 
-- persistent region separation uses the foundation border role; Workbench structural divisions remain 1px where the owning composition requires a line;
+- semantic grouping is spacing/component-anatomy first; a horizontal line is not a generic section separator. Use the foundation border role only for a real owner-defined structural boundary, table/resource-row separation, control boundary or overlay boundary; repeated full-width section `border-bottom`/`<hr>` grammar is prohibited;
 - pill radius is reserved for actual pill/segmented/status semantics, not arbitrary feature chrome;
 - persistent Workbench surfaces do not use decorative box shadows;
 - temporary overlays use the foundation-owned elevation behavior; feature CSS does not recreate it;
@@ -351,6 +351,7 @@ Component structure is owned by `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`; th
 
 | Component role | Canonical visual treatment |
 |---|---|
+| application toolbar | persistent-surface treatment in both light and dark; brand blue/deep navy is an identity/interaction accent, not a mandatory full-width filled header. Orientation, Project context and global utilities remain one compact row. |
 | primary action | Astryx `Button` primary variant with accent/on-accent foundation treatment, one dominant primary command, and foundation hover/press/loading/focus behavior |
 | secondary action | Astryx secondary variant with foundation surface/border/state behavior and the same size family as peer controls |
 | ghost action | Astryx ghost variant; no feature-restyled chrome |
