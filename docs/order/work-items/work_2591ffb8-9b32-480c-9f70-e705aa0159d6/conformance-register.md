@@ -118,3 +118,11 @@ C06 may become COMPLETE only when:
 - no audit-created shadow specification or duplicate semantic owner exists;
 - no Span runtime/configuration/dependency was added;
 - PR #83 overlap has been reconciled and affected evidence re-established on the exact final candidate.
+
+## 9. Verification register
+
+| Verification | Candidate / run | State | Evidence / disposition |
+|---|---|---|---|
+| V01 — PR metadata preflight | PR #84 head `c39f7d0f46740931a444519e943588083db3d694`, run 2778 / `45548515192` | SUPERSEDED_EVENT | The first PR event carried `Intended release train` rather than the required `Target release` wording. PR #84 body was corrected to `Target release: **0.6.0**`. Re-running the same Actions run still read the immutable original `GITHUB_EVENT_PATH` payload, so it repeated the same preflight failure. The verifier is correct and unchanged. This register update intentionally creates a new PR head/synchronize event so verification can consume the corrected live PR metadata. |
+| V02 — substantive repository gates | fresh head after V01 | PENDING | Require release-metadata preflight, dependency-lock, typecheck, architecture, test, build, release-packager verification and browser on the exact new candidate. |
+
