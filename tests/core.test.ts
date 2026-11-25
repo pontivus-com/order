@@ -821,6 +821,7 @@ describe("functional lifecycle and execution policy", () => {
         "P1-FCIS-EXT": "AGENTS.md",
         "P2-PRODUCT": "docs/product.md",
         "P4-CURRENT": "docs/architecture.md",
+        "P4-REFERENCE-ONLY": "docs/reference-only.md",
       },
       precedence: {
         p4: ["docs/architecture.md", "docs/legacy-architecture.md"],
@@ -884,6 +885,9 @@ describe("functional lifecycle and execution policy", () => {
       )?.[1],
     ).toEqual(["architecture", "test"]);
     expect(resolved.fitnessGateIds).toEqual(["architecture", "test"]);
+    expect(resolved.authorityRefs).not.toContainEqual(
+      ["P4-REFERENCE-ONLY", "docs/reference-only.md"],
+    );
 
     const r2Authority = projectAuthorityForLayers(
       resolved,
