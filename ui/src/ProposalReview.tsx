@@ -33,7 +33,7 @@ export const ProposalReview = ({
   const proposal = proposalEvent?.event.tag === "ARTIFACT_PROPOSAL_CREATED"
     ? proposalEvent.event : null;
   const targetQuery = useQuery({
-    queryKey: ["proposal-target", selection.eventId] as const,
+    queryKey: workbenchQueryKeys.proposalTarget(selection.eventId),
     queryFn: () => api.readProposalTarget(selection.eventId),
     enabled: proposal !== null,
   });
