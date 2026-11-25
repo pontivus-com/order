@@ -380,10 +380,12 @@ export const SourceDocumentMaterial = ({
             />
           )
         }
-        facts={
-          <WorkbenchFacts
-            label="Work request facts"
-            items={[
+        details={{
+          label: "Work request details",
+          content: (
+            <WorkbenchFacts
+              label="Work request details"
+              items={[
               {
                 id: "work-type",
                 label: "Work type",
@@ -412,9 +414,10 @@ export const SourceDocumentMaterial = ({
                 label: "WorkItem documents",
                 value: git.workItemDirectory,
               },
-            ]}
-          />
-        }
+              ]}
+            />
+          ),
+        }}
         content={
           <>
             {sourceReadOnly ? null : <DocumentationGitFeedback projection={git} />}
@@ -644,10 +647,12 @@ export const LifecycleDocumentMaterial = ({
             />
           )
         }
-        facts={
-          <WorkbenchFacts
-            label="Document facts"
-            items={[
+        details={{
+          label: "Document details",
+          content: (
+            <WorkbenchFacts
+              label="Document details"
+              items={[
               {
                 id: "repository-path",
                 label: "Repository path",
@@ -658,9 +663,10 @@ export const LifecycleDocumentMaterial = ({
                 label: "WorkItem documents",
                 value: git.workItemDirectory,
               },
-            ]}
-          />
-        }
+              ]}
+            />
+          ),
+        }}
         content={documentContent}
       />
       {artifactReadOnly ? null : <DocumentationGitReview projection={git} />}
