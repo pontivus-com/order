@@ -10,14 +10,14 @@ This is a fresh adversarial review of the corrected exact package. It establishe
 
 ## Exact reviewed package
 
-**Repository evidence baseline:** `df50f2bf77529484d09e5cc9a9ab4650488c3be7`
+**Repository evidence baseline:** `b6c48fb472e759a5859dffae78b7f99964014302`
 
 **R1 blob:** `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`  
 **R2 blob:** `b44b65a15af709751c6a1d8f0a566285b6e8bcce`  
-**DESIGN blob:** `5f9957c2704cd5657f1a300fc51d6b7eb86e4f07`  
-**PLAN blob:** `08a53478a6d09ab1ecec761648555b7ffc6bfe33`  
+**DESIGN blob:** `47d5b1d5e34d2407e601564dde41eb3fe1825602`  
+**PLAN blob:** `b242e08fcf3516bea3f7abb444f64368fba3e6a0`  
 **P3 Workbench blob:** `ac89ec5a6c7c19d4b70879fefd9ef3c71d76675a`  
-**P4 Workbench blob:** `46f0ed7524329d45b326ecfe2631b25652c7cdc3`  
+**P4 Workbench blob:** `3b58c792a9afd7a8e775d034203b543e0ff540dc`  
 **P4 Workbench Theme blob:** `03dfc6be3600a1128b5639d011f4c0159d3497dd`
 
 Binding governance includes `GW-DOC-SYSTEMS-GOVERNANCE-PYRAMID-V1`, `GW-DOC-LIFECYCLE-CONTEXT-V2`, `GW-DOC-WORKBENCH-UX-V2`, `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`, `GW-DOC-WORKBENCH-THEME-V1`, `GW-DOC-CANONICAL-CONTRACTS-V2` and the current 0.6.0 campaign owner.
@@ -39,7 +39,7 @@ The review challenged the corrected package rather than inheriting any prior R3/
 Unresolved authority conflicts: **NONE**.  
 Missing screen-information decisions: **NONE**.  
 Unowned rendered datum/action classes: **NONE**.  
-Unresolved component API decisions required by the bounded foundation: **NONE**.  
+Unresolved component API decisions required by the bounded foundation: **NONE**. The Toolbar keeps Project ids opaque inside the primitive while callers supply exact canonical ProjectId values.  
 Residual implementation inference required for the bounded foundation: **NONE**.
 
 ## Readiness disposition
