@@ -34,7 +34,7 @@ IA20/IA26 certify component API/consumer/physical-SoC closure in addition to the
 | `implementation-plan/09-a09-provider-settings.md` | `2efdef951cee6d5955392c57f80f1d924537a75b` |
 | `implementation-plan/10-a10-recovery-accessibility.md` | `1ee8fdc4d2aa45e684d444428c054b42c14ec574` |
 | `implementation-plan/11-a11-component-certification.md` | `538fc145f3058277d74496939aa15777317eecd5` |
-| `implementation-plan/12-action-catalog.md` | `72ceefa3d174e5ecd69590dcf5eb432a95e272ee` |
+| `implementation-plan/12-action-catalog.md` | `3b218c47c5aa626423ac0e5a5016544f9297ad9b` |
 | `implementation-plan/13-verification-closeout.md` | `3920e0fc3ec4e47fa13ea7e360e38f4139b44554` |
 
 A source component hash mismatch makes PLAN non-current until this root is regenerated. Directory files contain no `order-tasks` block and own no independent lifecycle state or executable action definition.
@@ -1448,9 +1448,9 @@ This ledger records direct operator findings from rendered 0.6.0 review. It is *
 
 | Phase | Required C19-F09 realization | Current audit disposition |
 |---|---|---|
-| IA29 | Work request/editable/read-only document consumers are fully owned by `WorkbenchDocument`; structured subordinate context uses `WorkbenchFacts` only in the DESIGN-authorized named same-task disclosure; Markdown specialist owns only editor mechanics. | **INCOMPLETE / RE-PROVE** — HUX-01/HUX-02/HUX-07/HUX-05 remain blocking. Prior IA29 completion claims are superseded by rendered evidence. |
-| IA30 | productive Research/Requirements/DESIGN/PLAN renderers route directly to Document/Dialogue/Evidence/State and contain no recurring feature-owned section/context/card grammar. | **INCOMPLETE** — current feature-local productive-stage grammar remains evidence of C19-F09. |
-| IA31 | Proposal/Readiness/Approval use the closed Review schema: one ReviewVerdict, DESIGN-declared ReviewSections, Facts only for classified structured facts, ResourceList for repeated resources, DocumentChangeView for proposal document mutation; no local Review hierarchy. | **INCOMPLETE / RE-PROVE** — HUX-03/HUX-04/HUX-08 remain blocking; current provisional bytes require exact SURF-to-component audit before acceptance. |
+| **IA29** | Work request/editable/read-only document consumers are fully owned by `WorkbenchDocument`; structured subordinate context uses `WorkbenchFacts` only in the DESIGN-authorized named same-task disclosure; Markdown specialist owns only editor mechanics. | **INCOMPLETE / RE-PROVE** — HUX-01/HUX-02/HUX-07/HUX-05 remain blocking. Prior IA29 completion claims are superseded by rendered evidence. |
+| **IA30** | productive Research/Requirements/DESIGN/PLAN renderers route directly to Document/Dialogue/Evidence/State and contain no recurring feature-owned section/context/card grammar. | **INCOMPLETE** — current feature-local productive-stage grammar remains evidence of C19-F09. |
+| **IA31** | Proposal/Readiness/Approval use the closed Review schema: one ReviewVerdict, DESIGN-declared ReviewSections, Facts only for classified structured facts, ResourceList for repeated resources, DocumentChangeView for proposal document mutation; no local Review hierarchy. | **INCOMPLETE / RE-PROVE** — HUX-03/HUX-04/HUX-08 remain blocking; current provisional bytes require exact SURF-to-component audit before acceptance. |
 | **IA32** | Implementation detail uses MasterDetail + Section/Facts/ResourceList; no local `order-implementation-*` section/list/card system recreates semantic anatomy. | **NOT COMPLETE** — current renderer still owns recurring section/list anatomy. |
 | **IA33** | Complete uses `WorkbenchResult` + canonical Section/ResourceList; no local terminal-result hierarchy owns outcome/resources/content grouping. | **NOT COMPLETE** — current renderer still owns local terminal section grammar. |
 | **IA34** | Settings/account/model/repository surfaces use SettingsLayout + Section/Facts/ResourceList/Form owners; no feature-local pane/resource/facts/diagnostic grouping except the one authorized diagnostics owner. | **NOT COMPLETE** — current renderers still own substantial recurring pane/section/resource anatomy. |
