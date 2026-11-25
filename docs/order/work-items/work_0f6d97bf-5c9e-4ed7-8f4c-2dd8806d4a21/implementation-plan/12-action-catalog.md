@@ -366,9 +366,9 @@ The IA27-IA34 union remains exactly **37 unique SURF rows** with no duplicate or
 **Binding operator findings:** HUX-06; HUX-05 applies to productive-stage surface grammar. These findings remain blocking until fresh rendered proof is explicitly accepted.
 
 **Solution:** SD24.  
-**Owner dispositions:** `PreSignoffStageWorkspace.tsx` and `RunEventTimeline.tsx` = `DECOMPOSE_REFACTOR` where they own recurring section/timeline grammar; `ActivityWorkspace.tsx`/`ActivityComposer.tsx` = fresh `CONFORMING_NO_EDIT` or bounded migration only after P4 audit. Proposal Review is deliberately excluded until IA31 so WorkbenchReview can cut over with its complete consumer set.  
+**Owner dispositions:** `PreSignoffStageWorkspace.tsx` and `RunEventTimeline.tsx` = `DECOMPOSE_REFACTOR` where they own recurring section/timeline grammar; `ActivityWorkspace.tsx`/`ActivityComposer.tsx` = fresh `CONFORMING_NO_EDIT` or bounded migration only after P4 audit. Proposal Review is deliberately excluded from IA30 because its complete consumer-atomic Review cutover is owned by the preceding Priority-0 IA31 step; IA30 may preserve routing to that owner but may not redesign or wrap it.  
 **Required mutation:** route non-Proposal canonical productive-stage states directly to WorkbenchDocument/Dialogue/Evidence/State. Consume the post-signoff ResourceList cutover where repeated resources occur. Preserve Proposal selection/routing but do not change `ProposalReview.tsx` or WorkbenchReview in this phase.  
-**Proof:** all IA30-owned SURF rows PASS; no generic frame/selector or local recurring section/resource grammar in those rows; continuous Dialogue behavior and Context/Evidence inspection remain correct; Proposal Review is unchanged and explicitly unaccepted until IA31.
+**Proof:** all IA30-owned SURF rows PASS; no generic frame/selector or local recurring section/resource grammar in those rows; continuous Dialogue behavior and Context/Evidence inspection remain correct; Proposal Review remains byte/ownership-stable from the accepted IA31 cutover and IA30 introduces no alternate wrapper, selector or local Review grammar.
 
 ## IA31 — destructively rebuild Proposal, Readiness and Approval Review composition
 
