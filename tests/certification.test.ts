@@ -474,6 +474,11 @@ describe("Order cross-boundary certification", () => {
     expect(theme).not.toContain("!important");
     expect(theme).not.toContain("[data-testid=");
     expect(theme).toContain(".order-workbench-toolbar {");
+    const toolbarRule = theme.match(/\.order-workbench-toolbar\s*\{([^}]*)\}/)?.[1] ?? "";
+    expect(toolbarRule).toContain("background: var(--color-background-surface)");
+    expect(toolbarRule).toContain("color: var(--color-text-primary)");
+    expect(toolbarRule).toContain("border-bottom: 1px solid var(--color-border-emphasized)");
+    expect(theme).not.toContain('.order-workbench-toolbar [role="radio"]');
     expect(theme).toContain(".order-workbench-destination {");
     expect(theme).not.toContain(".order-toolbar {");
     expect(theme).not.toContain(".order-application-toolbar");
