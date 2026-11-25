@@ -17,7 +17,7 @@ import {
 } from "../core/contracts.ts";
 import { resolveConcernIds } from "../core/governance.ts";
 import { sha256Text } from "./runtime.ts";
-import { proveRepositoryRoot } from "./repository.ts";
+import { proveRepositoryRoot, readWorkingTreeFile } from "./repository.ts";
 
 const authorityLayers = ["p1", "p2", "p3", "p4", "p5", "p6"] as const;
 
@@ -114,12 +114,14 @@ export const validateProjectManifestResolution = async (
   manifest: ProjectManifest,
 ): Promise<void> => {
   const sources = await resolveAuthoritySources(repositoryRoot, manifest);
-  const allAuthority = new Set(authorityLayers.flatMap((layer) => sources[layer]));
 
   for (const [authorityRef, source] of Object.entries(manifest.refs)) {
-    if (!allAuthority.has(source)) {
+    try {
+      readWorkingTreeFile(repositoryRoot, source);
+    } catch (error) {
       throw new TypeError(
-        `AuthorityRef ${authorityRef} source is not selected by authority.p1-p6: ${source}`,
+        `AuthorityRef ${authorityRef} source is not a readable regular repository file: ${source}`,
+        { cause: error },
       );
     }
   }
