@@ -22,9 +22,9 @@ This is a trace/readability view of the one canonical `order-tasks` block in the
 2. **Wave 2 — bounded shell/Context foundation realization:** bounded IA27 consumes the closed SD21/F6B ledger and realizes only the compile-closed AppShell/WorkItem-shell/Context/responsive/theme + Section/Facts slice and required-absent generic owners. Breaking APIs with later consumers remain unchanged **except** the application-only `WorkbenchToolbar` cutover, whose complete current consumer set is migrated atomically: `app.tsx` consumes the closed application API and `MarkdownEditor.tsx` is dependency-decoupled into its already-authorized Markdown-P3 specialist editor-control region. That narrow dependency migration does not accept IA29; no compatibility path is introduced.
 3. **Wave 3 — fresh Queue/Create/account-utility consumer revalidation + bounded foundation acceptance:** IA11, IA12, IA28 consume that IA27 bounded slice. The Toolbar breaking checkpoint includes the IA28-local Queue search dependency migration from `WorkbenchToolbarSearch` to the DESIGN-authorized Astryx `TextInput` Operational-scan leaf so the obsolete Toolbar export can be deleted without a bridge. Queue/Create production bytes may otherwise remain only after fresh authority proof. The grant stops after evidence review; IA29 remains blocked until explicit normal sign-off.
 4. **Post-signoff IA27 completion — shared resource collection atomic cutover:** after normal sign-off and before IA29, create `WorkbenchResourceList`, atomically migrate every current `WorkbenchResourceRow` caller, then narrow `WorkbenchResourceRow`. The candidate must typecheck at the same checkpoint; no caller is left on the old API.
-5. **Wave 4 — Work request/document/editor reconstruction:** IA13, IA14, IA29 create/cut over WorkbenchDocument/Facts/Section with the complete Document consumer set.
-6. **Wave 5 — productive pre-signoff-stage reconstruction excluding Proposal Review:** IA15, IA30 reconstruct R1/R2/DESIGN/PLAN Document/Dialogue/Evidence/State routing and activity/timeline behavior; Proposal Review remains untouched until the atomic Review cutover.
-7. **Wave 6 — atomic Proposal/Readiness/Approval Review reconstruction:** IA16, IA17, IA31 create ReviewVerdict/ReviewSection/DocumentChangeView and destructively replace WorkbenchReview in the same change set that migrates **all** current Review consumers: ProposalReview, ReadinessWorkspace and SignoffReview.
+5. **Wave 4 / P0.1 — Work request/document/editor reconstruction:** IA13, IA14, IA29 create/cut over WorkbenchDocument/Facts/Section with the complete Document consumer set and close HUX-01/HUX-02/HUX-05/HUX-07.
+6. **Wave 5 / P0.2 — atomic Proposal/Readiness/Approval Review reconstruction:** IA16, IA17, IA31 create ReviewVerdict/ReviewSection/DocumentChangeView and destructively replace WorkbenchReview in the same change set that migrates **all** current Review consumers: ProposalReview, ReadinessWorkspace and SignoffReview; close HUX-03/HUX-04/HUX-05/HUX-08.
+7. **Wave 6 / P0.3 — productive pre-signoff-stage reconstruction excluding Proposal Review:** IA15, IA30 reconstruct R1/R2/DESIGN/PLAN Document/Dialogue/Evidence/State routing and activity/timeline behavior, remove historical/current-owner composition collisions and close HUX-05/HUX-06/HUX-08. Proposal Review is already owned by the completed IA31 atomic Review cutover and IA30 may not redesign it.
 8. **Wave 7 — Implementation reconstruction:** IA32 consumes Section/Facts/ResourceList inside the canonical MasterDetail topology.
 9. **Wave 8 — Complete/Evidence reconstruction:** IA19, IA33 create/cut over WorkbenchResult with TerminalResult; Complete consumes Section/ResourceList, Evidence remains the exact-byte owner.
 10. **Wave 9 — Settings/account-management/configuration reconstruction:** IA18, IA34 consumes Section/Facts/ResourceList while preserving one Settings diagnostics owner.
@@ -259,6 +259,28 @@ Before any bounded Wave 2/3 UI mutation, the exact corrected P4/DESIGN/PLAN pack
 **Post-signoff IA27 completion:** after explicit normal sign-off and before IA29, create ResourceList, migrate **all** current direct ResourceRow consumers to ResourceList/canonical Row usage, narrow ResourceRow in the same change set, and prove type/API/consumer closure. No consumer may remain compiled against the superseded Row API.
 
 **Proof:** bounded checkpoint proves Section/Facts/Context API closure, required-absent owners, shell/Context consumer allowlists, one AppShell/WorkItemShell/responsive/Context owner, accessibility/focus/theme and IA27 SURF rows. Post-signoff completion separately proves ResourceList/ResourceRow exact API closure and all-caller migration. Neither checkpoint claims Review/Document/Result cutover before its owning phase.
+
+### Priority-0 operator-rejected semantic-UI remediation tranche
+
+This tranche is the immediate implementation priority after the corrected P3/P4/DESIGN/P7 package is revalidated. It exists because the rendered evidence proved that the already-governing C19-F09 intermediate semantic-component architecture was not actually completed on the surfaces the operator repeatedly rejected.
+
+**Priority law:**
+- this tranche preempts IA32-IA34 and any non-blocking polish/refactor;
+- no later screen-family work may be used to defer, hide or amortize these defects;
+- each step starts from the complete DESIGN SURF information inventory and records the exact `datum/action -> P3 class -> semantic component -> placement/visibility/action` mapping before JSX mutation;
+- no feature-local substitute grammar, generic prose slab or “close enough” component wrapper is permitted;
+- each step ends with targeted wide/narrow rendered proof and HUX disposition before advancing;
+- a failure in the shared component owner is fixed at that owner and re-proven across its complete consumer set rather than patched screen-by-screen.
+
+| Priority | Owning phase | Blocking operator findings | Required correction before advance |
+|---|---|---|---|
+| **P0.1** | IA29 | HUX-01, HUX-02, HUX-05, HUX-07 | Finish the Document intermediate schema exactly: Work request/editable/read-only lifecycle documents are owned by `WorkbenchDocument`; Markdown/editor is first dominant content; `Work request context` / `Document location` are subordinate named disclosures using `WorkbenchFacts`; narrow editor controls remain readable; Document-family geometry follows the flat semantic grammar. |
+| **P0.2** | IA31 | HUX-03, HUX-04, HUX-05, HUX-08 | Finish the Review intermediate schema exactly: one `WorkbenchReview` + one `WorkbenchReviewVerdict` + DESIGN-declared `WorkbenchReviewSection` children; repeated package/task/evidence/history objects use `WorkbenchResourceList`; Proposal uses `DocumentChangeView` with visible in-context change marks and exact diff secondary; Approval task detail remains Review detail rather than inventing a second independent Review hierarchy. |
+| **P0.3** | IA30 | HUX-05, HUX-06, HUX-08 | Remove the remaining productive-stage feature grammar and current-action collision: R1/R2/DESIGN/PLAN route directly to Document/Dialogue/Evidence/State; historical/current-owner return remains bounded navigation and cannot create a competing header/attention composition; local productive card/context grammar is deleted. |
+| **P0 exit** | IA20 + IA26 targeted proof | HUX-01 through HUX-08 | Certification proves semantic ownership rather than import/name presence, targeted exact-candidate rendered evidence shows the corrected rejected surfaces, and every HUX row reaches explicit operator `ACCEPTED`. Only then may IA32-IA34 resume. |
+
+**Ordering rationale:** IA29 lands first because IA30 and Approval supporting-document inspection consume the Document owner. IA31 follows because the rejected Review/Proposal/Approval surfaces are independent of the remaining IA30 productive-stage reconstruction once the Document owner is correct. IA30 then removes the historical/current-attention and productive-stage substitute grammar. This is an execution-priority change only; it does not change the 37-SURF ownership partition or the P4 semantic-component responsibilities.
+
 
 ### Exact IA27-IA34 rendered face ownership
 
