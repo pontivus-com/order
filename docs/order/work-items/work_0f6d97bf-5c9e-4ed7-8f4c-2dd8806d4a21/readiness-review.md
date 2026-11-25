@@ -10,14 +10,14 @@ This is a fresh adversarial review of the corrected exact package. It establishe
 
 ## Exact reviewed package
 
-**Repository evidence baseline:** `c55b2d29931a12aeba46660c52a5aec5da6ce4ea`
+**Repository evidence baseline:** `470d553418dad75ee0884d4fe4033f2a780ced13`
 
 **R1 blob:** `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`  
 **R2 blob:** `b44b65a15af709751c6a1d8f0a566285b6e8bcce`  
-**DESIGN blob:** `0b229ff261e2ce141c0867412c541edcfd1b24fe`  
-**PLAN blob:** `f395e8347d6280dc7cf9c79dc1ac2bd28f69e4f6`  
+**DESIGN blob:** `753a0477cc2cd9bfbd198e8af3c91c1409cb3aaa`  
+**PLAN blob:** `f538f199396c0cbc4576b72bd7eecfe90a8c4d30`  
 **P3 Workbench blob:** `ac89ec5a6c7c19d4b70879fefd9ef3c71d76675a`  
-**P4 Workbench blob:** `3d7c325e131992abc2e02f4fbac578154467cf59`  
+**P4 Workbench blob:** `5b41cd6ef09964a836bf6bd9975f3cff50167049`  
 **P4 Workbench Theme blob:** `03dfc6be3600a1128b5639d011f4c0159d3497dd`
 
 Binding governance includes `GW-DOC-SYSTEMS-GOVERNANCE-PYRAMID-V1`, `GW-DOC-LIFECYCLE-CONTEXT-V2`, `GW-DOC-WORKBENCH-UX-V2`, `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`, `GW-DOC-WORKBENCH-THEME-V1`, `GW-DOC-CANONICAL-CONTRACTS-V2` and the current 0.6.0 campaign owner.
@@ -34,6 +34,8 @@ The review challenged the corrected package rather than inheriting any prior R3/
 - **Implementation exactness:** PASS. PLAN assigns one action owner, preserves consumer-atomic cutovers and makes any rendered datum/action without a DESIGN row, any missing applicable DESIGN row or any new recurring component concern a blocking upstream return.
 - **Bounded-realization ordering:** PASS. Under `GW-DOC-SYSTEMS-GOVERNANCE-PYRAMID-V1`, only the PLAN-declared IA27 shell/Context + IA28 acceptance tranche can receive a separate operator grant before normal sign-off. ResourceList/Review/Document/Result and IA29+ remain unavailable.
 - **Current implementation as authority:** REJECTED. Existing JSX/CSS/tests/screenshots remain evidence only and cannot narrow the target or create preservation/compatibility requirements.
+
+- **Toolbar module responsibility: PASS.** Application Toolbar has no specialist/search responsibility; Markdown and Queue dependencies are explicitly migrated in the same bounded compile-atomic checkpoint without expanding their later acceptance scope.
 
 ## Findings
 
