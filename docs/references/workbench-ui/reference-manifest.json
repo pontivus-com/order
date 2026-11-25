@@ -11,7 +11,7 @@
     "p4": {
       "id": "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
       "path": "docs/architecture/workbench.md",
-      "blob": "4366cc2c79c22262438f0a3e66889c61b4fd5c40"
+      "blob": "46f0ed7524329d45b326ecfe2631b25652c7cdc3"
     },
     "theme": {
       "id": "GW-DOC-WORKBENCH-THEME-V1",
@@ -21,7 +21,7 @@
     "design": {
       "id": "work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21/DESIGN",
       "path": "docs/order/work-items/work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21/solution-design.md",
-      "blob": "62b0500b961e2b35f8fecfe6aa478e6517216bf8"
+      "blob": "5f9957c2704cd5657f1a300fc51d6b7eb86e4f07"
     }
   },
   "fixturePolicy": {
