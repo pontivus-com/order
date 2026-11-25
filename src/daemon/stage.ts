@@ -1106,6 +1106,22 @@ const requireCurrentProposalDecision = (
   return decision;
 };
 
+export const readArtifactProposalTarget = (
+  runtime: CoordinatorRuntime,
+  proposalEventId: RunEventId,
+): Uint8Array => {
+  const proposal = getRunEvent(runtime, proposalEventId);
+  if (proposal.event.tag !== "ARTIFACT_PROPOSAL_CREATED") {
+    throw new TypeError("proposalEventId does not identify an artifact proposal");
+  }
+  if (proposal.event.baseSha256 === null) {
+    return new Uint8Array();
+  }
+  const run = getRun(runtime, proposal.runId);
+  const workItem = getWorkItem(runtime, run.workItemId);
+  return readWorkingTreeFile(workItem.repositoryRoot, proposal.event.targetPath);
+};
+
 const adoptArtifactProposalUnlocked = async (
   runtime: CoordinatorRuntime,
   proposalEventId: RunEventId,
