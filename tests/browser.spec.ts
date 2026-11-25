@@ -1244,11 +1244,19 @@ test("global OpenCode account utility switches, renames, signs in, blocks during
   await expect(trigger).toContainText("No account");
 
   state = OpenCodeAccountStateSchema.parse({
-    ...state,
+    accounts: [{
+      id: "cred_blocked_mutation",
+      label: "blocked-mutation@example.com",
+      active: true,
+      status: { status: "READY" },
+    }],
+    activeAccountId: "cred_blocked_mutation",
     mutationBlockers: ["ACTIVE_RUN"],
   });
   await page.reload();
-  await expect(trigger).toBeVisible();
+  await expect(trigger).toContainText("blocked-mutation@example.com");
+  await expect(trigger).toContainText("Ready");
+  await expect(trigger).not.toContainText("Changes blocked");
   await expect(page.getByTestId("settings-opencode"))
     .toContainText("Finish or cancel active agent work before changing the OpenCode account.");
   await expect(page.getByRole("button", { name: "Add account" })).toBeDisabled();
