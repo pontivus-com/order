@@ -458,10 +458,13 @@ const captureRenderedAcceptance = async (
   if (declaredReference === undefined) {
     throw new TypeError("rendered evidence surface is missing from reference manifest: " + entry.surface);
   }
-  const acceptanceTarget = diagnosticCurrentState
-    ? target
-    : declaredReference.captureScope === "full-workbench" ? undefined : target;
+  const acceptanceTarget = huxPriorityOnly
+    ? undefined
+    : diagnosticCurrentState
+      ? target
+      : declaredReference.captureScope === "full-workbench" ? undefined : target;
   if (!diagnosticCurrentState &&
+      !huxPriorityOnly &&
       declaredReference.captureScope === "component-reference" &&
       acceptanceTarget === undefined) {
     throw new TypeError("component-reference acceptance requires an explicit governed locator: " + entry.surface);
@@ -478,9 +481,11 @@ const captureRenderedAcceptance = async (
       animations: "disabled",
     });
   }
-  const captureScope = diagnosticCurrentState
-    ? entry.captureScope ?? (target === undefined ? "full application viewport" : "explicit locator crop")
-    : declaredReference.captureScope;
+  const captureScope = huxPriorityOnly
+    ? "full application viewport"
+    : diagnosticCurrentState
+      ? entry.captureScope ?? (target === undefined ? "full application viewport" : "explicit locator crop")
+      : declaredReference.captureScope;
   const captured = {
     ...entry,
     captureScope,
