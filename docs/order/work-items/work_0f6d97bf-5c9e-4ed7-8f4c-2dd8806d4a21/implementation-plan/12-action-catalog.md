@@ -182,6 +182,8 @@ Before any bounded Wave 2/3 UI mutation, the exact corrected P4/DESIGN/PLAN pack
 
 ## IA20 — exhaustive renderer classification certification
 
+**Binding intermediate-layer finding:** C19-F09/C20-F11/G-F38. Certification must prove semantic ownership, not component-name presence: wrapping feature-authored hierarchy in a canonical outer component is a failure.
+
 **Solution:** SD16.  
 **Owner:** `tests/certification.test.ts`.  
 **Required mutation:** check complete production renderer coverage against canonical P4 §8.17 and certify the P4/F6B semantic-component boundary: required-new component modules exist with only allowlisted consumers; `WorkbenchReview` has no arbitrary `body` escape; repeated resources route through `WorkbenchResourceList`; Document/Result/Review/Context consumers do not recreate Section/Facts/resource/review grammar in feature-local structural CSS/JSX; forbidden generic workflow owners remain absent; no production renderer is unclassified or nests/synthesizes another primary composition.
@@ -357,6 +359,8 @@ The IA27-IA34 union remains exactly **37 unique SURF rows** with no duplicate or
 
 ## IA32 — destructively rebuild Implementation on canonical semantic components
 
+**Binding intermediate-layer finding:** C19-F09/G-F38 plus HUX-08. IA32 is not complete while `ExecutionWorkspace.tsx` or its feature CSS owns recurring task-contract/section/facts/resource anatomy that P4 assigns to MasterDetail/Section/Facts/ResourceList.
+
 **Solution:** SD26.  
 **Owner:** `ExecutionWorkspace.tsx` = `DESTRUCTIVE_REPLACEMENT` presentation composition.  
 **Required mutation:** purge the old stacked/card/task-detail presentation and fresh-author canonical MasterDetail using Section/Facts/ResourceList for task detail, supporting history/resources and validation grouping. Preserve canonical execution/query/mutation owners; technical task/approval/plan/Run/baseline/context/provider identity routes to Context; exact evidence bytes route to Evidence. Same-task validation expansion alone may use Disclosure.  
@@ -364,12 +368,16 @@ The IA27-IA34 union remains exactly **37 unique SURF rows** with no duplicate or
 
 ## IA33 — destructively rebuild Complete/Evidence and consume refactored Context
 
+**Binding intermediate-layer finding:** C19-F09/G-F38 plus HUX-08. IA33 is not complete while `TerminalResult.tsx` owns recurring outcome/section/resource hierarchy instead of `WorkbenchResult` + canonical Section/ResourceList.
+
 **Solution:** SD27 plus IA19 product-language projection.  
 **Owner dispositions:** `TerminalResult.tsx` = `DESTRUCTIVE_REPLACEMENT`; `EvidenceViewer.tsx` = fresh audit then `BOUNDED_RESIDUAL` only if required; WorkItem Context foundation migration is IA27-owned and consumed here.  
 **Required mutation:** create `WorkbenchResult` and atomically migrate `TerminalResult` so Complete becomes one attention-free Surface containing one WorkbenchResult: canonical product-facing status/outcome, ordered Sections, ResourceList for repeated resources, permitted result action. Remove local terminal section/resource/status grammar and generic container-taxonomy headings. Evidence remains the one exact-byte primary surface and replaces rather than nests.  
 **Proof:** candidate/non-candidate/linked-remediation + Evidence rows PASS; no synthetic attention, duplicated outcome, local result/resource grammar, internal enum/event identity or nested primary Surface.
 
 ## IA34 — destructively rebuild Settings/account/configuration presentation
+
+**Binding intermediate-layer finding:** C19-F09/G-F38 plus HUX-08. IA34 is not complete while Settings/account/model/repository renderers own recurring pane/section/facts/resource grammar outside SettingsLayout/Section/Facts/ResourceList/Form and the one authorized diagnostics owner.
 
 **Solution:** SD28 plus IA18 semantic inputs.  
 **Owners:** `SettingsWorkspace.tsx`, `OpenCodeAccountSettings.tsx` = `DESTRUCTIVE_REPLACEMENT` presentation composition.  
