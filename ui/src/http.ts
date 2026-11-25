@@ -339,6 +339,15 @@ export const signOffWorkItem = async (
     }),
   ));
 
+export const readProposalTarget = async (
+  proposalEventId: RunEventId,
+): Promise<Uint8Array> =>
+  new Uint8Array(await (
+    await request(
+      `/api/run-events/${encodeURIComponent(proposalEventId)}/proposal-target`,
+    )
+  ).arrayBuffer());
+
 export const adoptProposal = async (
   proposalEventId: RunEventId,
 ): Promise<ArtifactRef> =>
