@@ -7,10 +7,10 @@ This decomposition is revalidated under C19-F09/C20-F11 after the prior G4-G6 cl
 ## Exact upstream package
 
 - R1 `research.md`: `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`.
-- R2 `requirements.md`: `20fa0daac53d6fcf016eb8c4ec7d94647e281fe6`.
-- DESIGN `solution-design.md`: `3376afea70f120d012b48452e381c05b05791c59` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 76-path forecast.
+- R2 `requirements.md`: `b44b65a15af709751c6a1d8f0a566285b6e8bcce`.
+- DESIGN `solution-design.md`: `62b0500b961e2b35f8fecfe6aa478e6517216bf8` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 76-path forecast.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `9c2ec83a9552b7583f90e91080c014df4d6870df`.
-- P3 `GW-DOC-WORKBENCH-UX-V2`: `865800890eaf8da1e7fa581e092aa8b9d072eab9` — §11.4A/§12/§13/§14 own semantic information classes, state-is-not-interface behavior, direct primary interaction composition, no generic workflow-material selector, continuous Dialogue semantics, Terminal-result primacy, singular technical inspection, task anatomy and composition invariants.
+- P3 `GW-DOC-WORKBENCH-UX-V2`: `ac89ec5a6c7c19d4b70879fefd9ef3c71d76675a` — §11.4A/§12/§13/§14 own semantic information classes, state-is-not-interface behavior, direct primary interaction composition, no generic workflow-material selector, continuous Dialogue semantics, Terminal-result primacy, singular technical inspection, task anatomy and composition invariants.
 - P3 `GW-DOC-MARKDOWN-WORKBENCH-V1`: `1cc5a28eff8d180f88106d89990f7b89aa27a132` — §17.4 owns one compact Markdown editor-control region, overflow-before-wrap formatting and control→canvas adjacency.
 - P4 `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`: `4366cc2c79c22262438f0a3e66889c61b4fd5c40` — sole permanent owner of structural + semantic Workbench component responsibilities/APIs, consumer boundaries, composition laws and remediation disposition semantics.
 - P4 `GW-DOC-WORKBENCH-THEME-V1`: `03dfc6be3600a1128b5639d011f4c0159d3497dd` — owns the corrected semantic-disclosure, technical-inspection and task-panel visual roles.
