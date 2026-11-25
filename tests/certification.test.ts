@@ -2517,7 +2517,9 @@ describe("0.6.0 Wave 4 Workbench and product-language certification", () => {
     expect(approval).toContain('label: "Ready for sign-off"');
     expect(approval).not.toContain('data-testid="approval-readiness-summary"');
     expect(approval).not.toContain("WorkbenchDisclosure");
-    expect(approval).toContain('aria-label="Package material"');
+    expect(approval).toContain('title: "Package documents"');
+    expect(approval).toContain('title: currentApproval ? "Signed tasks" : "Approved tasks"');
+    expect(approval).not.toContain('aria-label="Package material"');
     expect(readiness).not.toContain("embeddedReadOnly");
     expect(readiness).not.toContain("READY_FOR_SIGNOFF");
 
