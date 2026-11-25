@@ -415,6 +415,8 @@ describe("Order cross-boundary certification", () => {
       "WorkbenchResourceList.tsx",
       "WorkbenchResourceRow.tsx",
       "WorkbenchReview.tsx",
+      "WorkbenchReviewSection.tsx",
+      "WorkbenchReviewVerdict.tsx",
       "WorkbenchSection.tsx",
       "WorkbenchSectionHeader.tsx",
       "WorkbenchSettingsLayout.tsx",
@@ -537,9 +539,18 @@ describe("Order cross-boundary certification", () => {
     expect(taskPanel).not.toContain("calc(");
 
     const reviewPrimitive = read("ui/src/primitives/WorkbenchReview.tsx");
+    expect(reviewPrimitive).toContain("WorkbenchReviewVerdict");
+    expect(reviewPrimitive).toContain("WorkbenchReviewSection");
+    expect(reviewPrimitive).toContain("verdict: WorkbenchReviewVerdictProps");
+    expect(reviewPrimitive).toContain("sections: readonly WorkbenchReviewSectionProps[]");
+    expect(reviewPrimitive).not.toContain("body: ReactNode");
     expect(reviewPrimitive).not.toContain("technicalDetails");
     expect(reviewPrimitive).not.toContain("WorkbenchDisclosure");
     expect(reviewPrimitive).not.toContain("selector");
+    const reviewVerdict = read("ui/src/primitives/WorkbenchReviewVerdict.tsx");
+    const reviewSection = read("ui/src/primitives/WorkbenchReviewSection.tsx");
+    expect(reviewVerdict).toContain("WorkbenchStatus");
+    expect(reviewSection).toContain("WorkbenchSectionHeader");
 
     const surfacePrimitive = read("ui/src/primitives/WorkbenchSurface.tsx");
     expect(surfacePrimitive).toContain("attention?: ReactNode");
@@ -758,6 +769,8 @@ describe("Order cross-boundary certification", () => {
       "ReadinessWorkspace.tsx",
       "SignoffReview.tsx",
     ]);
+    expect(consumersOf("WorkbenchReviewSection")).toEqual([]);
+    expect(consumersOf("WorkbenchReviewVerdict")).toEqual([]);
     expect(consumersOf("WorkbenchSelector")).toEqual([]);
     expect(
       existsSync(join(root, "ui", "src", "primitives", "WorkbenchSelector.tsx")),
@@ -783,6 +796,8 @@ describe("Order cross-boundary certification", () => {
     ]);
     expect(consumersOf("WorkbenchFacts")).toEqual([
       "DocumentWorkspace.tsx",
+      "ProposalReview.tsx",
+      "SignoffReview.tsx",
       "WorkItemContext.tsx",
     ]);
     const contextPanel = read("ui/src/primitives/WorkbenchContextPanel.tsx");
@@ -912,12 +927,31 @@ describe("Order cross-boundary certification", () => {
 
     const readiness = read("ui/src/ReadinessWorkspace.tsx");
     expect(readiness).toContain("WorkbenchReview");
-    expect(readiness).toContain("requiredInputOwnsAttention || historicalRunSelected");
+    expect(readiness).toContain("requiredInputOwnsAttention ||");
     expect(readiness).toContain('material.kind === "EVIDENCE"');
     expect(readiness).toContain('material.kind === "SUPPORTING_DOCUMENT"');
-    expect(readiness).not.toContain("order-review-readiness-attention");
+    expect(readiness).toContain('title: "Package documents"');
+    expect(readiness).toContain('title: "Readiness attempts"');
+    expect(readiness).not.toContain("order-review-readiness-");
+    expect(readiness).not.toContain("currentness={");
+    expect(readiness).not.toContain("summary={");
+    expect(readiness).not.toContain("body={");
     expect(readiness).not.toContain("<WorkflowStepFrame");
     expect(readiness).not.toContain("<WorkbenchAttention");
+
+    const proposalReview = read("ui/src/ProposalReview.tsx");
+    const documentChangeView = read("ui/src/DocumentChangeView.tsx");
+    expect(proposalReview).toContain("DocumentChangeView");
+    expect(proposalReview).toContain("WorkbenchFacts");
+    expect(proposalReview).not.toContain("@astryxdesign/core/CodeBlock");
+    expect(proposalReview).not.toContain("order-proposal-diff");
+    expect(proposalReview).not.toContain("order-proposal-facts");
+    expect(documentChangeView).toContain("Current document");
+    expect(documentChangeView).toContain("Proposed document");
+    expect(documentChangeView).toContain('label="View exact diff"');
+    expect(documentChangeView).toContain("<CodeBlock");
+    expect(documentChangeView.indexOf("order-document-change-comparison"))
+      .toBeLessThan(documentChangeView.indexOf('label="View exact diff"'));
 
     const proposal = read("ui/src/PreSignoffStageWorkspace.tsx");
     expect(proposal).toContain('if (material.kind === "PROPOSAL") return primary;');
@@ -937,17 +971,23 @@ describe("Order cross-boundary certification", () => {
 
     const approval = read("ui/src/SignoffReview.tsx");
     expect(approval).toContain("WorkbenchReview");
+    expect(approval).toContain("WorkbenchFacts");
+    expect(approval).toContain("WorkbenchResourceList");
     expect(approval).toContain("packageStale?: boolean");
-    expect(approval).toContain("Prior governed package material remains inspection-only");
     expect(approval).toContain(
       "historicalArtifact={packageStale ? selectedArtifact : undefined}",
     );
     expect(approval).toContain("embeddedReadOnly={packageStale}");
+    expect(approval).toContain('label="Back to Approval"');
+    expect(approval).not.toContain("order-review-approval-");
+    expect(approval).not.toContain("MetadataList");
     expect(approval).not.toContain('label="Task technical details"');
     expect(approval).not.toContain("<WorkflowStepFrame");
     expect(approval).not.toContain("<WorkbenchAttention");
     expect(approval).not.toContain("<dt>Task id</dt>");
     expect(approval).not.toContain("<dt>Approval id</dt>");
+    expect(approval).not.toContain('label={"Open "');
+    expect(approval).not.toContain('label="Open ');
 
     const workspace = read("ui/src/WorkItemWorkspace.tsx");
     expect(workspace).toContain("packageStale={packageStaleOwner !== null}");
@@ -1020,14 +1060,21 @@ describe("Order cross-boundary certification", () => {
     expect(markdownEditor).not.toContain("title: string");
     expect(documentWorkspace).toContain("<WorkbenchDocument");
     expect(documentWorkspace).toContain("<WorkbenchFacts");
+    expect(documentWorkspace).toContain('label: "Work request details"');
+    expect(documentWorkspace).toContain('label: "Document details"');
+    expect(documentWorkspace).not.toContain("facts={");
     expect(documentWorkspace).not.toContain("WorkRequestFacts");
     expect(documentWorkspace).not.toContain("order-document-facts");
     expect(documentWorkspace).not.toContain("MetadataList");
     expect(documentWorkspace).not.toContain("metadata.schemaId.replace");
     const documentPrimitive = read("ui/src/primitives/WorkbenchDocument.tsx");
     expect(documentPrimitive).toContain("title: string");
-    expect(documentPrimitive).toContain("facts?: ReactNode");
+    expect(documentPrimitive).toContain("details?: Readonly");
+    expect(documentPrimitive).toContain("WorkbenchDisclosure");
+    expect(documentPrimitive).not.toContain("facts?: ReactNode");
     expect(documentPrimitive).toContain("content: ReactNode");
+    expect(documentPrimitive.indexOf("order-workbench-document-content"))
+      .toBeLessThan(documentPrimitive.indexOf("order-workbench-document-details"));
 
     const table = read("ui/src/primitives/WorkbenchTable.tsx");
     expect(table).toContain('overflowWrap: "normal"');
@@ -1075,6 +1122,11 @@ describe("Order cross-boundary certification", () => {
       ".order-evidence-code-bytes",
       ".order-markdown-document-view-header",
       ".order-markdown-document-view-actions",
+      ".order-workbench-document-facts",
+      ".order-review-readiness-",
+      ".order-review-approval-",
+      ".order-proposal-diff",
+      ".order-proposal-facts",
       ".order-settings-workspace",
       ".order-settings-page-heading",
       ".order-settings-content",
@@ -1108,6 +1160,8 @@ describe("Order cross-boundary certification", () => {
 
     const documentViewRule = theme.match(/\.order-markdown-document-view\s*\{([^}]*)\}/)?.[1] ?? "";
     expect(documentViewRule).not.toMatch(/(?:^|\s)(?:background|border|border-radius)\s*:/);
+    const reviewRule = theme.match(/\.order-workbench-review\s*\{([^}]*)\}/)?.[1] ?? "";
+    expect(reviewRule).not.toMatch(/(?:^|\s)(?:background|border|border-radius)\s*:/);
 
     const editorRule = theme.match(/\.order-markdown-editor\s*\{([^}]*)\}/)?.[1] ?? "";
     expect(editorRule).toContain("grid-template-rows: auto auto minmax(0, 1fr);");
