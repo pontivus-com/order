@@ -637,6 +637,7 @@ describe("Order cross-boundary certification", () => {
       "ActivityComposer.tsx",
       "ActivityWorkspace.tsx",
       "CreateWorkItem.tsx",
+      "DocumentChangeView.tsx",
       "DocumentWorkspace.tsx",
       "EvidenceViewer.tsx",
       "ExecutionWorkspace.tsx",
@@ -1840,7 +1841,8 @@ describe("Order cross-boundary certification", () => {
     expect(preSignoff).not.toContain('"Supporting material and history"');
     expect(preSignoff).not.toContain("WorkbenchDisclosure");
     expect(readiness).toContain("WorkbenchResourceList");
-    expect(readiness).toContain("Evidence / attempt history");
+    expect(readiness).toContain('title: "Evidence"');
+    expect(readiness).toContain('title: "Readiness attempts"');
 
     // Implementation retains its canonical task master/detail topology while
     // attempt/history navigation uses explicit resource actions.
@@ -2501,16 +2503,19 @@ describe("0.6.0 Wave 4 Workbench and product-language certification", () => {
     const activity = read("ui/src/ActivityWorkspace.tsx");
     const preSignoff = read("ui/src/PreSignoffStageWorkspace.tsx");
     expect(activity).not.toContain("Open for continuation");
-    expect(preSignoff).not.toContain(">Related material<");
+    expect(preSignoff).toContain("<WorkbenchSection");
+    expect(preSignoff).toContain('title="Related material"');
     expect(preSignoff).not.toContain('aria-label="Related workflow material"');
-    expect(preSignoff).toContain('aria-label="Supporting workflow material"');
+    expect(preSignoff).not.toContain('aria-label="Supporting workflow material"');
 
     expect(readiness).toContain('event.event.completion.stage === "R3"');
     expect(readiness).toContain("readinessOutcomeLabel(outcome)");
-    expect(readiness).toContain('data-testid="readiness-verdict"');
+    expect(readiness).toContain("WorkbenchReview");
+    expect(readiness).toContain("verdict={{");
     expect(readiness).not.toContain("Derived from governed readiness-review material when present");
-    expect(approval).toContain('data-testid="approval-readiness-summary"');
-    expect(approval).toContain('label="Ready for sign-off"');
+    expect(approval).toContain("WorkbenchReview");
+    expect(approval).toContain('label: "Ready for sign-off"');
+    expect(approval).not.toContain('data-testid="approval-readiness-summary"');
     expect(approval).not.toContain("WorkbenchDisclosure");
     expect(approval).toContain('aria-label="Package material"');
     expect(readiness).not.toContain("embeddedReadOnly");
@@ -2716,6 +2721,7 @@ describe("public release delivery certification", () => {
     expect(
       [...ci.matchAll(/^\s*uses:\s*(\S+)\s*$/gm)].map((match) => match[1]),
     ).toEqual([
+      "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
       "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
       "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
       "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
