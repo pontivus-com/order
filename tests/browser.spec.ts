@@ -42,10 +42,23 @@ if (![
 const diagnosticCurrentState = renderedEvidenceKind === "diagnostic_current_state";
 
 const diagnosticPhase = process.env.PONTIVUS_ORDER_DIAGNOSTIC_PHASE ?? null;
+const huxPriorityOnly = process.env.PONTIVUS_ORDER_HUX_PRIORITY_ONLY === "1";
+const huxPriorityCaptureIds = new Set([
+  "ia26-work-request-step-wide-light",
+  "ia26-source-document-editor-narrow-light",
+  "ia26-lifecycle-document-editor-wide-light",
+  "ia26-lifecycle-document-readonly-wide-light",
+  "ia26-proposal-review-wide-light",
+  "ia26-readiness-review-wide-light",
+  "ia26-approval-wide-light",
+  "ia26-approval-task-wide-light",
+] as const);
 const renderedDiagnosticPhases = ["IA34", "IA29", "IA30", "IA31", "IA32", "IA33"] as const;
 type RenderedDiagnosticPhase = typeof renderedDiagnosticPhases[number];
 const runRenderedPhase = (phase: RenderedDiagnosticPhase): boolean =>
-  !diagnosticCurrentState || diagnosticPhase === phase;
+  huxPriorityOnly
+    ? phase === "IA29" || phase === "IA30" || phase === "IA31"
+    : !diagnosticCurrentState || diagnosticPhase === phase;
 
 type ReferenceViewportClass = "wide" | "narrow";
 type ReferenceTheme = "light" | "dark" | "system";
@@ -2644,6 +2657,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     entry: RenderedAcceptanceInput,
     target?: Locator,
   ): Promise<void> => {
+    if (huxPriorityOnly && !huxPriorityCaptureIds.has(entry.id as never)) return;
     entries.push(await captureRenderedAcceptance(page, entry, target));
   };
   const light = { width: 1440, height: 900 } as const;
@@ -3019,11 +3033,11 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   const sourceMaterial = page.getByTestId("source-document-material");
   await expect(sourceMaterial.getByTestId("workbench-document")).toHaveCount(1);
   const workRequestDetails = sourceMaterial.getByRole("button", {
-    name: "Work request details",
+    name: "Work request context",
     exact: true,
   });
   await expect(workRequestDetails).toBeVisible();
-  await expect(sourceMaterial.getByLabel("Work request details")).not.toBeVisible();
+  await expect(sourceMaterial.getByLabel("Work request context")).not.toBeVisible();
   const workRequestDocument = sourceMaterial.getByTestId("markdown-document-view");
   await expect(workRequestDocument).toBeVisible();
   const [documentBox, detailsBox] = await Promise.all([
@@ -3036,13 +3050,13 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     expect(documentBox.y).toBeLessThan(detailsBox.y);
   }
   await workRequestDetails.click();
-  await expect(sourceMaterial.getByLabel("Work request details")).toContainText("Work type");
-  await expect(sourceMaterial.getByLabel("Work request details")).toContainText("Project");
-  await expect(sourceMaterial.getByLabel("Work request details")).toContainText("Concerns");
-  await expect(sourceMaterial.getByLabel("Work request details")).toContainText("Repository path");
-  await expect(sourceMaterial.getByLabel("Work request details")).toContainText("WorkItem documents");
+  await expect(sourceMaterial.getByLabel("Work request context")).toContainText("Work type");
+  await expect(sourceMaterial.getByLabel("Work request context")).toContainText("Project");
+  await expect(sourceMaterial.getByLabel("Work request context")).toContainText("Concerns");
+  await expect(sourceMaterial.getByLabel("Work request context")).toContainText("Repository path");
+  await expect(sourceMaterial.getByLabel("Work request context")).toContainText("WorkItem documents");
   await workRequestDetails.click();
-  await expect(sourceMaterial.getByLabel("Work request details")).not.toBeVisible();
+  await expect(sourceMaterial.getByLabel("Work request context")).not.toBeVisible();
   await expect(sourceMaterial).not.toContainText("schemaId");
   await expect(sourceMaterial.getByText("Requested outcome", { exact: true }))
     .toBeVisible({ timeout: 15_000 });
@@ -3326,14 +3340,14 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   const planMaterial = page.getByTestId("lifecycle-document-material");
   await expect(planMaterial.getByTestId("workbench-document")).toHaveCount(1);
   const documentDetails = planMaterial.getByRole("button", {
-    name: "Document details",
+    name: "Document location",
     exact: true,
   });
   await expect(documentDetails).toBeVisible();
-  await expect(planMaterial.getByLabel("Document details")).not.toBeVisible();
+  await expect(planMaterial.getByLabel("Document location")).not.toBeVisible();
   await documentDetails.click();
-  await expect(planMaterial.getByLabel("Document details")).toContainText("Repository path");
-  await expect(planMaterial.getByLabel("Document details")).toContainText("WorkItem documents");
+  await expect(planMaterial.getByLabel("Document location")).toContainText("Repository path");
+  await expect(planMaterial.getByLabel("Document location")).toContainText("WorkItem documents");
   await documentDetails.click();
   const planEditor = await openMarkdownEditor(page, "Implementation plan document Markdown source");
   await capture({
@@ -3590,10 +3604,15 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   }, page.getByTestId("stage-run-material"));
   await backToQueue(page);
 
+  }
+
+  if (runRenderedPhase("IA31")) {
+  // IA31 — atomic Proposal, Readiness and Approval Review.
   await openWorkItem(page, "Proposal review");
   const proposal = page.getByTestId("proposal-review-workspace");
   await expect(proposal.getByTestId("document-change-view")).toBeVisible();
   await expect(proposal.getByLabel("Proposed document")).toBeVisible();
+  await expect(proposal.getByTestId("document-change-region").first()).toBeVisible();
   await expect(proposal.getByRole("button", { name: "View exact diff", exact: true })).toBeVisible();
   await expect(proposal.locator("pre")).toHaveCount(0);
   await capture({
@@ -3697,9 +3716,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   }, page.getByTestId("proposal-review-workspace"));
   await backToQueue(page);
 
-  }
 
-  if (runRenderedPhase("IA31")) {
   // IA31 — direct Readiness and Approval Review plus task detail.
   await openWorkItem(page, "Awaiting sign-off");
   await selectWorkflowStep(page, "Readiness review");
@@ -3766,8 +3783,13 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }, approval);
   await page.setViewportSize(light);
-  await openDisclosureResource(page, "Package material", "Inspect task: Prove the browser candidate surface");
-  const approvalTask = page.getByTestId("approval-task-detail");
+  await approval.getByRole("button", {
+    name: "View task Prove the browser candidate surface",
+    exact: true,
+  }).click();
+  await expect(approval.getByText("Prove the browser candidate surface", { exact: true }))
+    .toBeVisible();
+  const approvalTask = page.getByTestId("review-workspace");
   await capture({
     id: "ia26-approval-task-wide-light",
     workItemKind: "CHANGE",
@@ -4065,6 +4087,17 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   ) as { candidateSha: string; entries: RenderedAcceptanceEntry[] };
   expect(manifest.candidateSha).toBe(renderedAcceptanceCandidateSha);
   const allEntries = manifest.entries;
+  if (huxPriorityOnly) {
+    expect(allEntries.map((entry) => entry.id).sort())
+      .toEqual([...huxPriorityCaptureIds].sort());
+    for (const entry of allEntries) {
+      expect(entry.reference.manifestPath).toBe(referenceManifestPath);
+      expect(entry.reference.sourcePath).toBe(referenceAtlasPath);
+      expect(referenceSurfaceById.has(entry.reference.surface)).toBe(true);
+    }
+    expect(runtimeErrors).toEqual([]);
+    return;
+  }
   const requiredSurfaces = [
     "SURF-APP-001",
     "SURF-CONF-ARCHIVE-001",
