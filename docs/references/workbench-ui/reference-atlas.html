@@ -61,8 +61,194 @@ const screen=document.querySelector('[data-surf="'+CSS.escape(surf)+'"]')||docum
 screen.classList.add("active");
 const theme=q.get("theme")||"light";
 if(theme==="dark"||(theme==="system"&&matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.classList.add("dark");
-const state=q.get("state")||(specs[surf]?.defaultState||"default");
+const requestedState=q.get("state");
+const allowedStates=specs[surf]?.states||["default"];
+const state=allowedStates.includes(requestedState)?requestedState:(specs[surf]?.defaultState||"default");
 screen.dataset.state=state;
+
+const setText=(selector,value)=>{const el=screen.querySelector(selector);if(el)el.textContent=value;};
+const setDisabled=(selector,value=true)=>{const el=screen.querySelector(selector);if(el)el.disabled=value;};
+const stateNotice=(message)=>{
+  const main=screen.querySelector("main");
+  if(!main)return;
+  const note=document.createElement("div");
+  note.className="notice state-notice";
+  note.textContent=message;
+  const anchor=main.querySelector(".pagehead,.dochead,.review,.result,.detail,.conversation,.taskpanel,.settings section");
+  if(anchor&&anchor.parentElement===main)main.insertBefore(note,anchor);
+  else main.prepend(note);
+};
+const lastButton=()=>screen.querySelector(".decisions .primary,.panelfoot .primary,.dialogactions .danger");
+
+if(surf==="SURF-APP-001"&&state==="readiness-blocked"){
+  setText(".notice","Setup required · configure repository, OpenCode account and model before productive work.");
+}
+if(surf==="SURF-QUEUE-001"){
+  const tbody=screen.querySelector("tbody");
+  if(state==="empty"&&tbody)tbody.innerHTML='<tr><td colspan="4">No WorkItems in the selected Project.</td></tr>';
+  if(state==="no-match"&&tbody)tbody.innerHTML='<tr><td colspan="4">No WorkItems match the current search and archive filters.</td></tr>';
+  if(state==="source-diagnostic"){
+    stateNotice("A configured source cannot be reconciled. Fix docs/order/work-items/example/work-request.md, then refresh sources.");
+    if(tbody)tbody.innerHTML='<tr><td>Source recovery required</td><td>Change</td><td>Work request</td><td>Blocked</td></tr>';
+  }
+}
+if(surf==="SURF-CREATE-001"&&state==="linked-remediation"){
+  stateNotice("Linked remediation · derived from completed Audit “Workbench authority audit”. The new WorkItem remains separately governed.");
+}
+if(surf==="SURF-SET-001"&&state==="readiness-blocked"){
+  stateNotice("Productive setup is incomplete. Resolve the named repository/account/model blocker from its owning Settings section.");
+}
+if(surf==="SURF-SET-REPO-ADD-001"&&state==="error"){
+  stateNotice("Repository validation failed. The repository was not connected.");
+}
+if(surf==="SURF-SET-REPO-MOVE-001"&&state==="conflict"){
+  stateNotice("Move blocked: the destination contains conflicting governed WorkItem documents. No files were changed.");
+}
+if(surf==="SURF-SET-OC-LOGIN-001"){
+  if(state==="processing")stateNotice("Waiting for OpenCode authorization…");
+  if(state==="success")stateNotice("OpenCode sign-in completed. The saved account is ready.");
+  if(state==="error")stateNotice("OpenCode sign-in failed. Retry from this task; no account was activated.");
+}
+if(surf==="SURF-WI-001"){
+  if(state==="current-action")stateNotice("Current action: resolve the documentation authority conflict before progressing.");
+  if(state==="blocked")stateNotice("Blocked: the current governing package is stale. Return to the owning lifecycle stage.");
+}
+if(surf==="SURF-WI-CONTEXT-001"){
+  const first=screen.querySelector(".facts dd");
+  if(first)first.textContent=state==="run"?"Selected Research Run":state==="proposal"?"Selected proposal":state==="approval"?"Selected Approval":state==="task"?"Selected Execution task":"Selected governed document";
+}
+if(["SURF-STEP-WR-001","SURF-STEP-DESIGN-001","SURF-STEP-PLAN-001","SURF-MAT-SOURCE-001","SURF-MAT-DOC-001","SURF-MAT-DOC-RO-001"].includes(surf)){
+  if(state==="read-only"||state==="historical"){
+    setDisabled(".actions .primary");
+    stateNotice("Read-only governed material. Return to the current owner to make a new governed change.");
+  }
+  if(state==="preview")setText(".actions .primary","Return to edit");
+  if(state==="split")stateNotice("Split mode · source and rendered preview remain one document task.");
+  if(state==="dirty")stateNotice("Unsaved changes · Save or Cancel before changing destination/material.");
+  if(state==="stale")stateNotice("This material is stale against newer governing authority. Refresh or return to its owner before progression.");
+}
+if(["SURF-STEP-R1-001","SURF-STEP-R2-001","SURF-MAT-ACTIVITY-001"].includes(surf)){
+  if(state==="required-input"){
+    setText(".status","Input required");
+    setText(".message.agent p","Which canonical owner should receive this durable decision?");
+    const input=screen.querySelector(".composer input");if(input)input.value="Answer the question above";
+    setText(".composer .primary","Submit answer");
+  }
+  if(state==="processing"){
+    setText(".status","Processing");
+    const input=screen.querySelector(".composer input");if(input){input.value="Processing current turn…";input.disabled=true;}
+    setDisabled(".composer .primary");
+  }
+  if(state==="blocked"){
+    setText(".status","Blocked");
+    stateNotice("The stage cannot continue until the governing conflict is resolved. Provider mechanics remain in Context.");
+    setText(".composer .primary","Retry");
+  }
+}
+if(surf==="SURF-STEP-R3-001"){
+  if(state==="return"){
+    setText(".verdict strong","Return required");
+    setText(".verdict span","Defective owner identified");
+    setText(".decisions .primary","Return to owning stage");
+    stateNotice("Readiness found a material package defect; do not sign off this package.");
+  }
+  if(state==="required-input"){
+    const main=screen.querySelector("main");
+    if(main)main.innerHTML='<section class="conversation"><div class="pagehead"><div><h1>Readiness review</h1><p>Required input temporarily replaces Review for this turn.</p></div><span class="status">Input required</span></div><div class="message agent"><strong>Reviewer</strong><p>Confirm which canonical authority owns the unresolved package decision.</p></div><div class="composer"><input value="Answer the question above" readonly><button class="primary">Submit answer</button></div></section>';
+  }
+}
+if(surf==="SURF-STEP-APPROVAL-001"){
+  if(state==="stale"){
+    setText(".verdict strong","Stale package");
+    setText(".verdict span","Return required");
+    setText(".decisions .primary","Sign-off unavailable");
+    setDisabled(".decisions .primary");
+    stateNotice("The package changed after readiness. Exact sign-off is unavailable until the owning stage produces a new current package.");
+  }
+  if(state==="signoff"){
+    setText(".verdict strong","Signed");
+    setText(".verdict span","Exact package approved");
+    setText(".decisions .primary","Signed");
+    setDisabled(".decisions .primary");
+  }
+}
+if(surf==="SURF-MAT-PROPOSAL-001"){
+  if(state==="applying"){
+    setText(".verdict strong","Applying governed change");
+    setDisabled(".decisions .primary");
+    setDisabled(".decisions button");
+  }
+  if(state==="failed"){
+    setText(".verdict strong","Proposal failed");
+    setText(".verdict span","Decision not applied");
+    setText(".decisions .primary","Retry adoption");
+    stateNotice("The proposal mutation failed. The governed target remains unchanged.");
+  }
+}
+if(["SURF-STEP-EXEC-001","SURF-MAT-EXEC-TASK-001"].includes(surf)){
+  if(state==="ready"){
+    setText(".attention strong","Ready to start current task");
+    setText(".attention p","The exact approved task is current and has no active Run.");
+    setText(".attention .primary","Start current task");
+    setText(".detail .status","Ready");
+  }
+  if(state==="running"){
+    setText(".attention strong","Current task is running");
+    setText(".attention p","Builder activity is in progress under the signed task.");
+    setText(".attention .primary","Cancel Run");
+    setText(".detail .status","Running");
+  }
+  if(state==="blocked"){
+    setText(".attention strong","Blocked by governing authority");
+    setText(".attention p","Resolve the named blocker without widening signed task authority.");
+    setText(".attention .primary","Open blocker owner");
+    setText(".detail .status","Blocked");
+  }
+  if(state==="validation-recorded"){
+    setText(".attention strong","Validation recorded");
+    setText(".attention p","Inspect the current validation boundary and recorded results before continuing.");
+    setText(".attention .primary","Review validation");
+    setText(".detail .status","Validation recorded");
+  }
+  if(state==="historical-selection"){
+    const items=screen.querySelectorAll(".masteritem");items.forEach(x=>x.classList.remove("current"));if(items[1])items[1].classList.add("current");
+    setText(".attention strong","Current execution owner remains Rebuild Workbench foundation");
+    setText(".attention p","A historical task is selected for inspection; selection does not retarget the current action.");
+    setText(".attention .primary","Return to current task");
+    setText(".detail .status","Historical selection");
+  }
+}
+if(surf==="SURF-STEP-COMPLETE-001"){
+  if(state==="verified-result"){
+    setText(".resulthead h1","Verified result");
+    setText(".resulthead p","The WorkItem completed without producing an executed delivery candidate.");
+  }
+  if(state==="linked-remediation"){
+    setText(".resulthead h1","Verified result");
+    setText(".resulthead p","The completed Investigation/Audit identifies follow-up work that must begin as a new governed WorkItem.");
+    setText(".result .primary","Create linked remediation");
+  }
+}
+if(surf==="SURF-MAT-EVIDENCE-001"){
+  if(state==="code")setText(".code","const evidence = { exact: true, source: \"runtime artifact\" };\n// Explicit inspection surface");
+  if(state==="error"){
+    setText(".code","Evidence could not be read.\nThe runtime error remains bounded to this inspection surface.");
+    stateNotice("Evidence unavailable. Return to the owning task or retry the explicit inspection.");
+  }
+}
+if(surf==="SURF-MAT-APPROVAL-TASK-001"&&state==="historical"){
+  setText(".verdict span","Historical task");
+  stateNotice("Historical execution state is inspectable but does not change the exact package currently eligible for sign-off.");
+}
+if(surf==="SURF-CONF-ARCHIVE-001"&&state==="restore"){
+  setText(".dialog h1","Restore WorkItem");
+  setText(".dialogactions .danger","Restore");
+}
+if(surf==="SURF-CONF-DOC-GIT-001"&&state==="blocked"){
+  stateNotice("Documentation commit blocked: repository-local Git identity is missing. Saved working-tree bytes remain intact.");
+  const b=lastButton();if(b)b.disabled=true;
+}
+
 document.title=surf+" · "+state+" · Order 0.6.0 reference";
 </script>
 </body>
