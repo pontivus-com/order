@@ -4,83 +4,203 @@ import { Markdown } from "@astryxdesign/core/Markdown";
 import { WorkbenchDisclosure } from "./primitives/WorkbenchDisclosure.tsx";
 import { WorkbenchState } from "./primitives/WorkbenchState.tsx";
 
+type ProposedLine = Readonly<{
+  text: string;
+  changed: boolean;
+  removedBefore: number;
+}>;
+
+type ProposedSegment = Readonly<{
+  id: string;
+  changed: boolean;
+  markdown: string;
+  removedLines: number;
+}>;
+
 const applyUnifiedDiff = (
   currentMarkdown: string,
   unifiedDiff: string,
-): string | null => {
+): readonly ProposedLine[] | null => {
   const source = currentMarkdown.split("\n");
-  const output: string[] = [];
+  const output: ProposedLine[] = [];
   let sourceIndex = 0;
   let inHunk = false;
   let sawHunk = false;
+  let pendingRemoved = 0;
+
+  const flushRemoved = (): void => {
+    if (pendingRemoved === 0) return;
+    output.push({ text: "", changed: true, removedBefore: pendingRemoved });
+    pendingRemoved = 0;
+  };
 
   for (const line of unifiedDiff.split("\n")) {
     if (line.startsWith("@@")) {
+      flushRemoved();
       const match = /^@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@/.exec(line);
       if (match === null) return null;
       const oldStart = Number(match[1]);
       const targetIndex = Math.max(0, oldStart - 1);
       if (targetIndex < sourceIndex) return null;
       while (sourceIndex < targetIndex && sourceIndex < source.length) {
-        output.push(source[sourceIndex] ?? "");
+        output.push({
+          text: source[sourceIndex] ?? "",
+          changed: false,
+          removedBefore: 0,
+        });
         sourceIndex += 1;
       }
       inHunk = true;
       sawHunk = true;
       continue;
     }
+
     if (!inHunk || line.startsWith("--- ") || line.startsWith("+++ ")) continue;
     if (line === "\\ No newline at end of file" || line.length === 0) continue;
 
     const marker = line[0];
     const text = line.slice(1);
+
     if (marker === " ") {
-      output.push(source[sourceIndex] ?? text);
+      flushRemoved();
+      output.push({
+        text: source[sourceIndex] ?? text,
+        changed: false,
+        removedBefore: 0,
+      });
       sourceIndex += 1;
       continue;
     }
+
     if (marker === "-") {
+      pendingRemoved += 1;
       sourceIndex += 1;
       continue;
     }
+
     if (marker === "+") {
-      output.push(text);
+      output.push({
+        text,
+        changed: true,
+        removedBefore: pendingRemoved,
+      });
+      pendingRemoved = 0;
       continue;
     }
+
+    return null;
   }
 
   if (!sawHunk) return null;
+  flushRemoved();
+
   while (sourceIndex < source.length) {
-    output.push(source[sourceIndex] ?? "");
+    output.push({
+      text: source[sourceIndex] ?? "",
+      changed: false,
+      removedBefore: 0,
+    });
     sourceIndex += 1;
   }
-  return output.join("\n");
+
+  return output;
 };
 
-const DocumentPreview = ({
-  label,
-  markdown,
-  proposed,
-}: Readonly<{
-  label: string;
-  markdown: string;
-  proposed: boolean;
-}>) => (
-  <section
-    className="order-document-change-document"
-    data-proposed={proposed ? "true" : "false"}
-    aria-label={label}
-  >
-    <header><h4>{label}</h4></header>
-    {markdown.trim().length === 0 ? (
-      <WorkbenchState kind="empty" title={proposed ? "Empty proposed document" : "New document"} />
-    ) : (
-      <Markdown contentWidth="var(--order-prose-max-width)" contentAlign="start">
-        {markdown}
-      </Markdown>
-    )}
-  </section>
-);
+const proposedSegments = (
+  lines: readonly ProposedLine[],
+): readonly ProposedSegment[] => {
+  const segments: ProposedSegment[] = [];
+
+  for (const line of lines) {
+    const previous = segments.at(-1);
+    const startsChangedRegion =
+      line.changed &&
+      (
+        previous === undefined ||
+        !previous.changed ||
+        line.removedBefore > 0
+      );
+    const canAppend =
+      previous !== undefined &&
+      previous.changed === line.changed &&
+      !startsChangedRegion;
+
+    if (canAppend) {
+      segments[segments.length - 1] = {
+        ...previous,
+        markdown:
+          previous.markdown.length === 0
+            ? line.text
+            : previous.markdown + "\n" + line.text,
+      };
+      continue;
+    }
+
+    segments.push({
+      id: "segment-" + segments.length,
+      changed: line.changed,
+      markdown: line.text,
+      removedLines: line.removedBefore,
+    });
+  }
+
+  return segments;
+};
+
+const ProposedDocument = ({
+  lines,
+}: Readonly<{ lines: readonly ProposedLine[] }>) => {
+  const segments = proposedSegments(lines);
+
+  return (
+    <section
+      className="order-document-change-proposed"
+      aria-label="Proposed document"
+    >
+      <header className="order-document-change-heading">
+        <h4>Proposed document</h4>
+      </header>
+      <div className="order-document-change-content">
+        {segments.map((segment) =>
+          segment.changed ? (
+            <section
+              className="order-document-change-region"
+              data-testid="document-change-region"
+              key={segment.id}
+            >
+              <div className="order-document-change-region-label">
+                <strong>Changed</strong>
+                {segment.removedLines === 0 ? null : (
+                  <span>
+                    {segment.removedLines} removed line
+                    {segment.removedLines === 1 ? "" : "s"}
+                  </span>
+                )}
+              </div>
+              {segment.markdown.trim().length === 0 ? null : (
+                <Markdown
+                  contentWidth="var(--order-prose-max-width)"
+                  contentAlign="start"
+                >
+                  {segment.markdown}
+                </Markdown>
+              )}
+            </section>
+          ) : segment.markdown.trim().length === 0 ? null : (
+            <div className="order-document-change-context" key={segment.id}>
+              <Markdown
+                contentWidth="var(--order-prose-max-width)"
+                contentAlign="start"
+              >
+                {segment.markdown}
+              </Markdown>
+            </div>
+          ),
+        )}
+      </div>
+    </section>
+  );
+};
 
 export const DocumentChangeView = ({
   currentMarkdown,
@@ -89,21 +209,18 @@ export const DocumentChangeView = ({
   currentMarkdown: string;
   unifiedDiff: string;
 }>) => {
-  const proposedMarkdown = applyUnifiedDiff(currentMarkdown, unifiedDiff);
+  const proposed = applyUnifiedDiff(currentMarkdown, unifiedDiff);
 
   return (
     <div className="order-document-change-view" data-testid="document-change-view">
-      {proposedMarkdown === null ? (
+      {proposed === null ? (
         <WorkbenchState
           kind="error"
           title="Proposed document could not be reconstructed"
           description="The exact patch remains available below for inspection."
         />
       ) : (
-        <div className="order-document-change-comparison">
-          <DocumentPreview label="Current document" markdown={currentMarkdown} proposed={false} />
-          <DocumentPreview label="Proposed document" markdown={proposedMarkdown} proposed />
-        </div>
+        <ProposedDocument lines={proposed} />
       )}
       <WorkbenchDisclosure
         label="View exact diff"
