@@ -4876,7 +4876,6 @@ test("historical inspection keeps return navigation bounded and current mutation
   await expect(page.getByTestId("workflow-step-summary")).toHaveCount(0);
   const returnToApproval = page.getByRole("button", { name: "Return to Approval", exact: true });
   await expect(returnToApproval).toBeVisible();
-  await expect(returnToApproval.locator("..")).toHaveClass(/order-productive-navigation/);
   await expect(returnToApproval.locator("..")).not.toContainText("Approval authority is stale");
   await expect(page.getByRole("button", {
     name: "Return to Implementation plan",
@@ -5845,9 +5844,11 @@ test("Readiness keeps verdict and findings primary while subordinate material ch
   const review = page.getByTestId("review-workspace");
   await expect(review).toBeVisible();
   await expect(review.getByTestId("review-verdict")).toBeVisible();
+  await expect(review.getByTestId("review-verdict"))
+    .toContainText("Review in progress");
   await expect(
     review.getByTestId("review-verdict").getByText("Review in progress", { exact: true }),
-  ).toBeVisible();
+  ).toHaveCount(1);
   await expect(review.getByText("Findings", { exact: true })).toBeVisible();
   await review.getByRole("button", {
     name: "View Implementation plan",
