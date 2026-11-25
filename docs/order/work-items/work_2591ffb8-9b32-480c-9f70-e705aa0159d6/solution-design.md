@@ -214,115 +214,81 @@ A repository-wide audit cannot pre-authorize unknown production mutations.
 **Rejected:** broad `src/**` or `ui/**` remediation permission. Material findings are either addressed by an exact later plan amendment or separately governed WorkItem.
 
 
-## Post-audit remediation design
+## Post-audit disposition design
 
 ### R1 — Correct lower-layer documentation ownership
 
 FP-F04 and FP-F05 are documentation-owner defects, not new behavior.
 
-- `GW-DOC-SYSTEM-BRIEF-V1` keeps the P2 product intent that Order carries untrusted work through governed definition, explicit authorization where implementation is required, independent validation and a verified terminal result. The exact WorkItem stages and post-sign-off execution sequence are removed from P2 and referenced to `GW-DOC-WORK-LIFECYCLE-V1` / `GW-DOC-VALIDATION-STANDARD-V1`.
-- `GW-DOC-TECHNICAL-DECISIONS-V1` D19 keeps the consequential decision that saved-account selection is installation-global and OpenCode owns credentials/active-account state. Its browser-location statement is corrected to conform to `GW-FR-073`, `GW-FR-091` and `GW-FR-095`: the application shell exposes active-account identity/status and one Settings entry point; Settings owns listing and Add/Switch/Rename/Remove management.
+- `GW-DOC-SYSTEM-BRIEF-V1` keeps the P2 product intent that Order carries untrusted work through governed definition, explicit authorization where implementation is required, independent validation and a verified terminal result. Exact WorkItem stages and post-sign-off execution sequence remain at their P3/validation owners.
+- `GW-DOC-TECHNICAL-DECISIONS-V1` D19 keeps the consequential saved-account/credential decision while conforming to `GW-FR-073`, `GW-FR-091` and `GW-FR-095`: the application shell exposes active-account identity/readiness and one Settings entry point; Settings owns listing and Add/Switch/Rename/Remove management.
 
 No P2/P3/P5 semantic owner changes.
 
-### R2 — Separate reference identity from active authority applicability
+### R2 — Reuse the current reachable-authority / material-authority split
 
-FP-F06/FP-F07 are caused by one P6/implementation conflation:
+FP-F06/FP-F07 were raised from a stale `master` realization. Current PR #83 already contains the governed G-F13/C22-F02 correction and is the canonical implementation to preserve.
 
-```text
-refs identity registry
-      == currently forced to ==
-authority.p1-p6 active source set
-      == therefore ==
-every exact ref source is injected into ordinary stage context
-```
-
-The corrected model is:
+The existing design is:
 
 ```text
-[refs]
-  exact stable/versioned identity -> exact repository file
-  grants: resolvability only
-  does not grant: applicability
-
-[authority].p1-p6
-  current governing source selectors
-  grants: ordinary stage applicability for stages that consume that layer
-
-[concerns]/verification/current lifecycle artifacts
-  additional already-governed applicability paths
-
-task acceptanceRefs/authorityRefs
-  exact identity requirements
-  admissible at R3 only when the resolved source is already material through
-  one of the governing applicability paths above
+reachable authority graph
+  = exact project P1-P6 source universe
+  = stable + retained versioned identities + precedence/default/override/extension resolution
+                         |
+                         | stage/template/upstream-ref/P1-rule/concern applicability
+                         v
+material stage authority
+  = minimum-sufficient subset for this stage/schema
+  = only this subset is materialized into productive context/freshness
 ```
 
-This uses the existing manifest carriers. No `references` section, ref DTO, layer annotation, inferred document classifier or parallel registry is added.
+This directly realizes the semantic-lifecycle rule:
 
-#### P6 contract correction
+- **reachability is not semantic use**;
+- a retained version can remain exactly reachable without influencing a current-v2 stage;
+- an explicit historical schema pin can select the retained version when that version is the authorized meaning;
+- concern authority and explicit upstream references can make an otherwise non-material reachable source applicable;
+- the productive projection is derived from canonical authority and does not become another authority owner.
 
-`GW-DOC-CANONICAL-CONTRACTS-V2 §14` changes only these semantics:
+The current implementation owner is `src/daemon/authority.ts::applicableAuthorityPaths(...)` plus the existing project-authority projection functions. It is reused **without PR #84 mutation**.
 
-1. a `refs` source is an exact repository file identity and need not be selected by `authority.p1-p6`;
-2. presence in `refs` does not make that source governing/applicable;
-3. manifest resolution proves a ref source is an existing regular in-repository file;
-4. stage authority projection continues to expose only refs whose source is in the resolved active authority set;
-5. a task ref is valid for sign-off only if its resolved source path is already part of the R3 material set. This prevents an exact but non-applicable historical/evidence ref from becoming authority by being named in P7.
+Current permanent proof already establishes:
 
-This preserves P3 minimum-sufficient context while retaining exact historical/versioned navigation.
+1. reachable same-layer authority and precedence exist before provider inference;
+2. unrelated selected P2 sources are absent from R1 material context;
+3. current `change-v2` materializes current lifecycle-context authority and excludes retained v1;
+4. historical `change-v1` materializes the retained v1 lifecycle-context authority;
+5. unresolved pinned template authority blocks before provider use;
+6. architecture fitness keeps retained semantic versions reachable beside the current owner and keeps every exact ref source inside the reachable authority graph.
 
-#### Order self-manifest correction
+Therefore PR #84 must not:
+- remove retained/reference-fact owners from `authority.p1-p6`;
+- change P6 so refs can escape the reachable graph;
+- add a second materiality rule in signed-task validation;
+- alter the G-F13/C22-F02 tests merely to satisfy the stale baseline finding.
 
-The root manifest keeps all canonical stable/versioned `GW-DOC-*` mappings required for exact identity but removes from ordinary active authority:
+### R3 — Workbench semantic findings remain with the 0.6.0 owner
 
-- `docs/governance/repository-delivery.v1.md`;
-- `docs/requirements/specification-standard.v1.md`;
-- `docs/requirements/lifecycle-context.v1.md`;
-- `docs/requirements/work-item-documents.v1.md`;
-- `docs/architecture/technical-architecture.v1.md`;
-- `docs/references/external-facts.v1-2026-11-12.md`;
-- `docs/contracts/canonical-contracts.v1.md`;
-- `docs/references/openspec.md`;
-- `docs/references/spec-kit.md`;
-- `docs/references/kiro-specs.md`;
-- `docs/references/bmad.md`.
+On audited PR #83 head `24f86507df0459b4efb8454d2aa8e98850beaa60`:
 
-The current owners remain selected. The removed sources remain in `[refs]` and remain readable as historical/reference evidence.
+- FP-F08 is corrected with genuine noninterference proof: `mutationBlockers` remains Settings-owned and cannot affect shell account readiness;
+- FP-F09 is corrected: ordinary Queue diagnostics use path + actionable human reason rather than raw `INVALID_SOURCE`;
+- FP-F10 is corrected: ordinary account state/blocker presentation is humanized;
+- the IA33 terminal-resource portion of FP-F11 is corrected through canonical role/product wording.
 
-#### Implementation ownership
+The remaining shared `STAGE_COMPLETED` outcome presentation path belongs to `workbench-presentation.ts` / productive-stage activity and therefore to post-signoff IA30. Current §17A authorization explicitly excludes IA30-IA34. This WorkItem records the dependency and does not mutate it.
 
-- `src/shell/project.ts` owns manifest/source-resolution validation. It stops requiring every ref to be active authority and instead verifies every ref resolves to a readable regular repository file through the existing repository-read boundary.
-- `src/core/governance.ts` already projects `ResolvedProjectAuthority.authorityRefs` only for refs whose source is in the resolved active source set; preserve this behavior and prove it with a negative fixture.
-- `src/daemon/authority.ts::validateTaskDefinitions` adds the exact materiality check: resolved task refs must occur in the current R3 closure/material path set before sign-off. It does not itself materialize or promote a reference-only source.
-- no storage, HTTP, WorkItem, ArtifactRef or task schema changes.
+### R4 — Permanent proof for the new P0/P1 principles
 
-### R3 — Workbench findings remain with the 0.6.0 owner
+The new permanent rule is added at the existing systems-governance owner; no new P1 id or separate "functional pyramid" specification is created.
 
-The exact PR #83 head audited during this WorkItem already contains corrections for:
+Mechanical proof should remain narrow:
 
-- FP-F09: raw `INVALID_SOURCE` is absent from ordinary queue diagnostics and browser proof checks human actionable meaning;
-- FP-F10: account blocker/login status is humanized;
-- FP-F11 terminal-resource role/event metadata: terminal resources use `runRoleLabel` and ordinary descriptive copy.
-
-PR #83 still has FP-F08: `OpenCodeAccountControl` reads `mutationBlockers` and changes shell readiness to `Changes blocked`. Its certification/browser proof does not establish noninterference.
-
-The shared `STAGE_COMPLETED` event presentation still mechanically formats `completion.outcome`; this remains part of FP-F11 until the owning Workbench presentation contract is revalidated/corrected.
-
-This branch therefore does not edit those Workbench files. C06 depends on the exact eventual PR #83 candidate closing FP-F08 and the remaining FP-F11 presentation path, and on revalidation of FP-F09/FP-F10/terminal FP-F11 after merge/reconciliation.
-
-### R4 — Fitness design
-
-Permanent proof for FP-F06/FP-F07 is:
-
-- shell test: an existing exact ref outside active authority validates and resolves; a missing/non-regular ref source fails manifest resolution;
-- core test: an inactive exact ref is absent from `ResolvedProjectAuthority.authorityRefs`;
-- daemon test: an inactive ref is absent from ordinary stage context/prompt;
-- daemon/R3 test: a signed task ref whose source is exact but not material is rejected before sign-off;
-- architecture fitness: canonical stable/versioned refs still point to their exact owners; it no longer requires every ref to be active authority or retained versions to be co-selected with the current owner.
-
-The architecture sensor continues to check duplicate concern IDs, stable/current owner resolution and versioned exact-owner resolution. It must not encode the old identity==applicability conflation.
-
+- the canonical owner must continue to expose the stable `GW-P1-CANONICAL-OWNERSHIP`, `GW-P1-EXPLICIT-FLOW` and `GW-P1-DOC-CANONICALITY` ids;
+- architecture fitness may prove the new proposition-placement and semantic-lifecycle sections remain at that owner and no sibling permanent document claims that ownership;
+- product/architecture-specific allowed-field sets remain owned by their P3/P4/DESIGN contracts, not copied into a global test list;
+- consumer-specific negative/noninterference tests are added at the consumer owner when a mechanically checkable leakage risk exists, as demonstrated by FP-F08.
 
 ## Compatibility/preservation
 
