@@ -3010,6 +3010,71 @@ describe("daemon control plane", () => {
     expect(output.v1Error).toBeNull();
   }, 30_000);
 
+  it("rejects a signed task ref that resolves exactly but is not material authority", () => {
+    const repository = createRepository();
+    writeFileSync(join(repository, "docs", "reference-only.md"), "# reference only\n");
+    const manifestPath = join(repository, "pontivus-order.toml");
+    const manifestText = readFileSync(manifestPath, "utf8").replace(
+      "[refs]\n",
+      '[refs]\nACTIVE = "AGENTS.md"\nREFERENCE-ONLY = "docs/reference-only.md"\n',
+    );
+    writeFileSync(manifestPath, manifestText);
+
+    const output = bunEval(`
+      const authority = await import("./src/daemon/authority.ts");
+      const project = await import("./src/shell/project.ts");
+      const repositoryRoot = ${JSON.stringify(repository)};
+      const manifest = await project.loadValidatedProjectManifest(repositoryRoot);
+      const task = (ref) => new TextEncoder().encode(
+        "# plan\\n\\n\\`\\`\\`order-tasks\\n" +
+        JSON.stringify({
+          version: 1,
+          tasks: [{
+            id: "T1",
+            objective: "make the target correct",
+            dependsOn: [],
+            scope: ["src/target.ts"],
+            exclusions: [],
+            acceptanceRefs: [ref],
+            changeSurface: ["src/target.ts"],
+            gateIds: ["test"],
+            authorityRefs: [ref],
+            concernIds: ["shell"],
+          }],
+        }) +
+        "\\n\\`\\`\\`\\n",
+      );
+      let inactiveError = null;
+      try {
+        await authority.validateTaskDefinitions(
+          { repositoryRoot, schemaId: "change-v2" },
+          manifest,
+          [{ repositoryPath: "AGENTS.md" }],
+          task("REFERENCE-ONLY"),
+        );
+      } catch (error) {
+        inactiveError = error instanceof Error ? error.message : String(error);
+      }
+      let activeError = null;
+      try {
+        await authority.validateTaskDefinitions(
+          { repositoryRoot, schemaId: "change-v2" },
+          manifest,
+          [{ repositoryPath: "AGENTS.md" }],
+          task("ACTIVE"),
+        );
+      } catch (error) {
+        activeError = error instanceof Error ? error.message : String(error);
+      }
+      console.log(JSON.stringify({ inactiveError, activeError }));
+    `) as { inactiveError: string | null; activeError: string | null };
+
+    expect(output.inactiveError).toBe(
+      "signed task references non-material authority: REFERENCE-ONLY",
+    );
+    expect(output.activeError).toBeNull();
+  }, 30_000);
+
   it("normalizes approval identity before daemon persistence", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-approval-identity-");
@@ -5345,6 +5410,7 @@ describe("daemon control plane", () => {
     writeFileSync(join(repository, "docs", "principles.md"), "# project principles\n");
     writeFileSync(join(repository, "docs", "product-a.md"), "# product A\n");
     writeFileSync(join(repository, "docs", "product-b.md"), "# product B\n");
+    writeFileSync(join(repository, "docs", "reference-only.md"), "# reference only\n");
     const manifest = fixtureManifest
       .replace(
         'p1 = ["AGENTS.md"]',
@@ -5360,6 +5426,7 @@ describe("daemon control plane", () => {
           "[refs]",
           'P1-STRICT = "docs/principles.md"',
           'P1-FCIS-EXT = "AGENTS.md"',
+          'REFERENCE-ONLY = "docs/reference-only.md"',
           "",
           "[precedence]",
           'p2 = ["docs/product-b.md", "docs/product-a.md"]',
@@ -5455,6 +5522,10 @@ describe("daemon control plane", () => {
         promptUsesResolvedP2Order:
           prompt.indexOf("docs/product-b.md") <
           prompt.indexOf("docs/product-a.md"),
+        promptHasReferenceOnly: prompt.includes("reference only"),
+        contextHasReferenceOnly: resolved.context.artifacts.some(
+          (artifact) => artifact.repositoryPath === "docs/reference-only.md",
+        ),
         blockedBeforeRun,
       }));
       database.close();
@@ -5466,6 +5537,8 @@ describe("daemon control plane", () => {
       fitness: string[];
       promptHasProjection: boolean;
       promptUsesResolvedP2Order: boolean;
+      promptHasReferenceOnly: boolean;
+      contextHasReferenceOnly: boolean;
       blockedBeforeRun: boolean;
     };
 
@@ -5481,6 +5554,8 @@ describe("daemon control plane", () => {
     expect(output.fitness).toEqual(["architecture", "test"]);
     expect(output.promptHasProjection).toBe(true);
     expect(output.promptUsesResolvedP2Order).toBe(true);
+    expect(output.promptHasReferenceOnly).toBe(false);
+    expect(output.contextHasReferenceOnly).toBe(false);
     expect(output.blockedBeforeRun).toBe(true);
   }, 30_000);
 
