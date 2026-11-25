@@ -50,6 +50,29 @@ R1 confirmed that Order already has the material structure: layer ownership, can
 - Any material defect outside the signed/approved remediation surface is recorded and returned to the appropriate governed WorkItem/plan rather than mutated opportunistically.
 - The open PR #83 overlap is revalidated against its eventual merged bytes before this exercise claims final closure.
 
+
+## Post-audit remediation requirements
+
+C02/C03 established the exact defects below. These are consequences of the existing authority above; they do not introduce new product intent.
+
+| Remediation requirement | Disposition | Canonical owner |
+|---|---|---|
+| P2/P5 documents must not restate or contradict exact P3 lifecycle/account-management semantics. | REFERENCE | `GW-P1-DOC-CANONICALITY`, `GW-DOC-WORK-LIFECYCLE-V1`, `GW-DOC-INSTALLATION-READINESS-V1` |
+| The project `refs` registry must remain exact identity→source resolution without itself granting stage applicability. Historical/versioned and evidence-only refs may remain resolvable without becoming ordinary current stage authority. | REFERENCE | `GW-P1-EXPLICIT-FLOW`, `GW-P1-AUTHORITY-BEFORE-INFERENCE`, `GW-DOC-LIFECYCLE-CONTEXT-V2` |
+| `authority.p1-p6` must select the current governing sources intended for ordinary stage projection; retained semantic versions and prior-art evidence are not injected merely because they remain referenceable. | REFERENCE | `GW-DOC-LIFECYCLE-CONTEXT-V2`, `GW-DOC-PROJECT-GOVERNANCE-INTEGRATION-V1` |
+| A signed task may rely on an `acceptanceRef`/`authorityRef` only when the exact referenced source is already in the current material context/closure through an authorized applicability path. Exact ref resolution alone is insufficient. | REFERENCE | `GW-DOC-LIFECYCLE-CONTEXT-V2`, `GW-DOC-CANONICAL-CONTRACTS-V2` |
+| The separate 0.6.0 campaign remains the implementation owner for overlapping Workbench reconstruction. This WorkItem must not create a competing UI implementation; it records/revalidates FP-F08-F11 against the exact PR #83 candidate and blocks closure while a finding remains open. | LOCAL |  |
+
+Additional acceptance:
+
+- `pontivus-order.toml [refs]` continues to resolve every stable/current and retained versioned canonical identifier required by `GW-P1-DOC-CANONICALITY`.
+- The active `[authority]` sets no longer select retained V1 semantic owners or the OpenSpec/Spec Kit/Kiro/BMAD prior-art reference documents.
+- Project-manifest validation verifies exact ref sources remain valid repository files without requiring them to be active authority.
+- `ResolvedProjectAuthority.authorityRefs` continues to expose only refs whose sources are actually in the resolved active layer set.
+- R3 signed-task validation rejects an exact task ref whose source is not already part of the material context/closure.
+- A reference-only source does not appear in a normal stage prompt solely because it exists in `[refs]`.
+- No second reference registry, authority carrier, DTO family, or inferred layer classifier is introduced.
+
 ## Scope/exclusions
 
 In scope:
