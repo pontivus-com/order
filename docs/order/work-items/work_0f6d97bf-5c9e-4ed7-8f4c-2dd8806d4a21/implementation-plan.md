@@ -6,7 +6,7 @@
 
 This file is the single deterministic P7 artifact and sole normative execution authority for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. The directory `implementation-plan/` is only its maintainable authoring decomposition. The complete source content is compiled below and this root becomes executable only after the canonical campaign gates and operator sign-off bind these exact bytes.
 
-This PLAN is regenerated for C19-F09/C20-F11 from current R2 `8d296ce85127084ce4296ef254256312c78aec20`, corrected P4 Workbench `4366cc2c79c22262438f0a3e66889c61b4fd5c40` and corrected DESIGN `f54ead6381f2ffe77e26e0f31022f008c93de26e`. Historical PLAN structure, implementation/UI/tests, prior 68-path forecasts, RZ16 acceptance and prior sign-off are evidence only.
+This PLAN is regenerated for C19-F09/C20-F11 from current R2 `20fa0daac53d6fcf016eb8c4ec7d94647e281fe6`, corrected P4 Workbench `4366cc2c79c22262438f0a3e66889c61b4fd5c40` and corrected DESIGN `3376afea70f120d012b48452e381c05b05791c59`. Historical PLAN structure, implementation/UI/tests, prior 68-path forecasts, RZ16 acceptance and prior sign-off are evidence only.
 
 This PLAN carries no campaign gate state and no implementation authority by itself. Campaign §17A/§18 exclusively govern current gates, bounded authorization and sign-off; these exact PLAN bytes remain a candidate until those controls establish the required authorization.
 
@@ -22,18 +22,18 @@ IA20/IA26 certify component API/consumer/physical-SoC closure in addition to the
 
 | Source component | Git blob |
 |---|---|
-| `implementation-plan/00-governance.md` | `6203216adfcdd5b631d4d0dece6f118799d06174` |
-| `implementation-plan/01-a01-lifecycle-product.md` | `86c16bc92eef00e0576e01f80211877761435d9b` |
-| `implementation-plan/02-a02-governance-intake.md` | `c33106d7b7758c7faf002ebcafbbfad6135f61c7` |
-| `implementation-plan/03-a03-queue-source.md` | `b8048aa8689f64f88236d60c6091105ad5f6cc73` |
-| `implementation-plan/04-a04-workbench-research.md` | `8e3c0eeb026bfbe59b4e1732723914bdc25a11d1` |
-| `implementation-plan/05-a05-requirements-design.md` | `4c57f1499c4d311e73e1583bf663e3f32b2489be` |
-| `implementation-plan/06-a06-plan-readiness.md` | `1ba2b61b25df6990c8f31e384c7c97b160f778ec` |
-| `implementation-plan/07-a07-approval-execution.md` | `a96638af4dc5010628ead9bff663a819b485a26a` |
-| `implementation-plan/08-a08-complete-materials.md` | `cb64ef6796b69402abed78eec317414f2866df96` |
-| `implementation-plan/09-a09-provider-settings.md` | `f562001d148a776d1e576ed5d47c5bc72a1ef5c3` |
-| `implementation-plan/10-a10-recovery-accessibility.md` | `b18fd0d4cbf0fb540d1c243826233c68b6d98619` |
-| `implementation-plan/11-a11-component-certification.md` | `bfe6ffbbe63fd6001e14c13e6020a6456a561451` |
+| `implementation-plan/00-governance.md` | `7f3061571aafe7d40ebffdbfadf5f054fe23d4e9` |
+| `implementation-plan/01-a01-lifecycle-product.md` | `c265f7cb753beb43ef6060ce73116c428a2a454d` |
+| `implementation-plan/02-a02-governance-intake.md` | `031aace60a2e693dbf5730329c005e8a191557d3` |
+| `implementation-plan/03-a03-queue-source.md` | `caec4191254142445c7a531d8a3e9a7a5f98e2db` |
+| `implementation-plan/04-a04-workbench-research.md` | `7e139b51e53761913326c8ebbac50ca418ddfcb7` |
+| `implementation-plan/05-a05-requirements-design.md` | `b0e588f348a8fe519bc0ff5711a19e2f96f0206a` |
+| `implementation-plan/06-a06-plan-readiness.md` | `b75e6f774faf80adbca084b2e7b24f48f1a36549` |
+| `implementation-plan/07-a07-approval-execution.md` | `e8165c745d8321fd2784763547e6b3ff4d0b17d8` |
+| `implementation-plan/08-a08-complete-materials.md` | `360d388bf4f16b977d3f4f2e8231a65466a179d3` |
+| `implementation-plan/09-a09-provider-settings.md` | `7ad764ce5097460e43defe7cba36f71fb713e925` |
+| `implementation-plan/10-a10-recovery-accessibility.md` | `bbf17d95946e822155b2418ef66139425769d6d9` |
+| `implementation-plan/11-a11-component-certification.md` | `26682dfd661731cdb39343f5deb2cef4cf89e051` |
 | `implementation-plan/12-action-catalog.md` | `dafbf13a170cc37340909848ea4a8d55054fe94e` |
 | `implementation-plan/13-verification-closeout.md` | `89ee78e74427582c3887564659f3a1959567ff8f` |
 
@@ -167,8 +167,8 @@ This decomposition is revalidated under C19-F09/C20-F11 after the prior G4-G6 cl
 ##### Exact upstream package
 
 - R1 `research.md`: `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`.
-- R2 `requirements.md`: `8d296ce85127084ce4296ef254256312c78aec20`.
-- DESIGN `solution-design.md`: `f54ead6381f2ffe77e26e0f31022f008c93de26e` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 76-path forecast.
+- R2 `requirements.md`: `20fa0daac53d6fcf016eb8c4ec7d94647e281fe6`.
+- DESIGN `solution-design.md`: `3376afea70f120d012b48452e381c05b05791c59` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 76-path forecast.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `9c2ec83a9552b7583f90e91080c014df4d6870df`.
 - P3 `GW-DOC-WORKBENCH-UX-V2`: `865800890eaf8da1e7fa581e092aa8b9d072eab9` — §11.4A/§12/§13/§14 own semantic information classes, state-is-not-interface behavior, direct primary interaction composition, no generic workflow-material selector, continuous Dialogue semantics, Terminal-result primacy, singular technical inspection, task anatomy and composition invariants.
 - P3 `GW-DOC-MARKDOWN-WORKBENCH-V1`: `1cc5a28eff8d180f88106d89990f7b89aa27a132` — §17.4 owns one compact Markdown editor-control region, overflow-before-wrap formatting and control→canvas adjacency.
@@ -264,7 +264,7 @@ Because the current T1 candidate sets `scope` equal to the same exact 76-path `c
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C01 + C21.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `8d296ce85127084ce4296ef254256312c78aec20`; current DESIGN `469539382fe3d86f98eff8b760437a642f367afd`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `20fa0daac53d6fcf016eb8c4ec7d94647e281fe6`; current DESIGN `3376afea70f120d012b48452e381c05b05791c59`.
 
 ##### Stable requirement execution dispositions
 
@@ -320,7 +320,7 @@ Package atoms in phase: **1**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C22 + C02.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `8d296ce85127084ce4296ef254256312c78aec20`; current DESIGN `469539382fe3d86f98eff8b760437a642f367afd`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `20fa0daac53d6fcf016eb8c4ec7d94647e281fe6`; current DESIGN `3376afea70f120d012b48452e381c05b05791c59`.
 
 ##### Stable requirement execution dispositions
 
@@ -372,7 +372,7 @@ Package atoms in phase: **4**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C03 + C04.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `8d296ce85127084ce4296ef254256312c78aec20`; current DESIGN `469539382fe3d86f98eff8b760437a642f367afd`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `20fa0daac53d6fcf016eb8c4ec7d94647e281fe6`; current DESIGN `3376afea70f120d012b48452e381c05b05791c59`.
 
 ##### Stable requirement execution dispositions
 
@@ -441,7 +441,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C05 + C06.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `8d296ce85127084ce4296ef254256312c78aec20`; current DESIGN `469539382fe3d86f98eff8b760437a642f367afd`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `20fa0daac53d6fcf016eb8c4ec7d94647e281fe6`; current DESIGN `3376afea70f120d012b48452e381c05b05791c59`.
 
 ##### Stable requirement execution dispositions
 
@@ -510,7 +510,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C07 + C08.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `8d296ce85127084ce4296ef254256312c78aec20`; current DESIGN `469539382fe3d86f98eff8b760437a642f367afd`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `20fa0daac53d6fcf016eb8c4ec7d94647e281fe6`; current DESIGN `3376afea70f120d012b48452e381c05b05791c59`.
 
 ##### Stable requirement execution dispositions
 
@@ -555,7 +555,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C09 + C10.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `8d296ce85127084ce4296ef254256312c78aec20`; current DESIGN `469539382fe3d86f98eff8b760437a642f367afd`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `20fa0daac53d6fcf016eb8c4ec7d94647e281fe6`; current DESIGN `3376afea70f120d012b48452e381c05b05791c59`.
 
 ##### Stable requirement execution dispositions
 
@@ -599,7 +599,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C11 + C12.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `8d296ce85127084ce4296ef254256312c78aec20`; current DESIGN `469539382fe3d86f98eff8b760437a642f367afd`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `20fa0daac53d6fcf016eb8c4ec7d94647e281fe6`; current DESIGN `3376afea70f120d012b48452e381c05b05791c59`.
 
 ##### Stable requirement execution dispositions
 
@@ -654,7 +654,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C13 + C14.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `8d296ce85127084ce4296ef254256312c78aec20`; current DESIGN `469539382fe3d86f98eff8b760437a642f367afd`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `20fa0daac53d6fcf016eb8c4ec7d94647e281fe6`; current DESIGN `3376afea70f120d012b48452e381c05b05791c59`.
 
 ##### Stable requirement execution dispositions
 
@@ -703,7 +703,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C15 + C16.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `8d296ce85127084ce4296ef254256312c78aec20`; current DESIGN `469539382fe3d86f98eff8b760437a642f367afd`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `20fa0daac53d6fcf016eb8c4ec7d94647e281fe6`; current DESIGN `3376afea70f120d012b48452e381c05b05791c59`.
 
 ##### Stable requirement execution dispositions
 
@@ -766,7 +766,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C17 + C18.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `8d296ce85127084ce4296ef254256312c78aec20`; current DESIGN `469539382fe3d86f98eff8b760437a642f367afd`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `20fa0daac53d6fcf016eb8c4ec7d94647e281fe6`; current DESIGN `3376afea70f120d012b48452e381c05b05791c59`.
 
 ##### Stable requirement execution dispositions
 
@@ -813,7 +813,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C19 + C20.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `8d296ce85127084ce4296ef254256312c78aec20`; current DESIGN `469539382fe3d86f98eff8b760437a642f367afd`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `20fa0daac53d6fcf016eb8c4ec7d94647e281fe6`; current DESIGN `3376afea70f120d012b48452e381c05b05791c59`.
 
 ##### Stable requirement execution dispositions
 
