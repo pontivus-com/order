@@ -3614,7 +3614,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   await expect(proposal.getByLabel("Proposed document")).toBeVisible();
   await expect(proposal.getByTestId("document-change-region").first()).toBeVisible();
   await expect(proposal.getByRole("button", { name: "View exact diff", exact: true })).toBeVisible();
-  await expect(proposal.locator("pre")).toHaveCount(0);
+  await expect(proposal.locator("pre")).toBeHidden();
   await capture({
     id: "ia26-proposal-review-wide-light",
     workItemKind: "CHANGE",
