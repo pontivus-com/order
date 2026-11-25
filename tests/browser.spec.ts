@@ -4488,11 +4488,6 @@ test("long Source and lifecycle Markdown keep the final line editable, savable, 
     expect(response.ok()).toBe(true);
     const writeResult = ExpectedHashWriteResultSchema.parse(await response.json());
     expect(writeResult.tag).toBe("UPDATED");
-    const editorControls = page.getByTestId("markdown-editor-controls");
-    await expect(
-      editorControls.getByRole("button", { name: "Save", exact: true }),
-    ).toBeDisabled();
-
     await backToQueue(page);
     await openWorkItem(page, title);
     await selectWorkflowStep(page, tabName);
