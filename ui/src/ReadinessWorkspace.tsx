@@ -21,6 +21,7 @@ import { StageRunMaterial } from "./ActivityWorkspace.tsx";
 import { ReadOnlyLifecycleDocumentMaterial } from "./DocumentWorkspace.tsx";
 import { EvidenceViewer } from "./EvidenceViewer.tsx";
 import {
+  eventEvidence,
   lifecycleArtifactLabel,
   materialPresentationStateLabel,
   readinessOutcomeLabel,
@@ -139,6 +140,41 @@ export const ReadinessWorkspace = ({
     readinessMarkdown === null
       ? null
       : readinessFindingsMarkdown(readinessMarkdown);
+
+  const readinessDocument =
+    readinessArtifact === null
+      ? (
+        <WorkbenchState
+          kind="empty"
+          title="Readiness review is in progress"
+          description="The governed readiness document will appear here when available."
+        />
+      )
+      : readinessContentQuery.isPending
+        ? <WorkbenchState kind="loading" title="Loading readiness review…" />
+        : readinessContentQuery.isError
+          ? (
+            <WorkbenchState
+              kind="error"
+              title="Readiness review unavailable"
+              description="The governed readiness document could not be loaded."
+            />
+          )
+          : readinessMarkdown === null
+            ? (
+              <WorkbenchState
+                kind="error"
+                title="Readiness review is not valid UTF-8 Markdown"
+              />
+            )
+            : (
+              <Markdown
+                contentWidth="var(--order-prose-max-width)"
+                contentAlign="start"
+              >
+                {readinessMarkdown}
+              </Markdown>
+            );
 
   const stageRuns = [...runs]
     .filter((run) => run.role === "STAGE" && run.stage === "R3")
@@ -334,24 +370,7 @@ export const ReadinessWorkspace = ({
       ? "Review in progress"
       : materialPresentationStateLabel(materialState);
 
-  const packageItems = [
-    ...(readinessArtifact === null
-      ? []
-      : [{
-        id: "review-" + readinessArtifact.id,
-        label: "Readiness review",
-        detail: currentness,
-        action: (
-          <WorkbenchAction
-            label="View Readiness review"
-            icon={<WorkbenchIcon name="document" />}
-            iconOnly
-            tone="ghost"
-            onClick={() => onOpenArtifactEvidence(readinessArtifact.id)}
-          />
-        ),
-      }]),
-    ...packageArtifacts.map((artifact) => ({
+  const packageItems = packageArtifacts.map((artifact) => ({
       id: "package-" + artifact.id,
       label: lifecycleArtifactLabel(artifact.role),
       detail: "Governed package document",
@@ -368,8 +387,39 @@ export const ReadinessWorkspace = ({
             })}
         />
       ),
-    })),
-  ];
+    }));
+
+  const evidenceItems = stageRuns.flatMap((run) => {
+    const evidence = runEvents
+      .filter((event) => event.runId === run.id)
+      .flatMap((event) => eventEvidence(event));
+    const unique = [...new Map(
+      evidence.map((reference) => [reference.relativePath, reference] as const),
+    ).values()];
+    return unique.map((reference, index) => ({
+      id: "evidence-" + run.id + "-" + index,
+      label:
+        "Evidence " +
+        (index + 1) +
+        " · Attempt " +
+        run.attempt,
+      detail: reference.mediaType,
+      action: (
+        <WorkbenchAction
+          label={"Inspect evidence " + (index + 1) + " from Readiness attempt " + run.attempt}
+          icon={<WorkbenchIcon name="evidence" />}
+          iconOnly
+          tone="ghost"
+          onClick={() =>
+            onOpenEvidence({
+              kind: "EVIDENCE",
+              runId: run.id,
+              relativePath: reference.relativePath,
+            })}
+        />
+      ),
+    }));
+  });
 
   const attemptItems = stageRuns.map((run) => ({
     id: "attempt-" + run.id,
@@ -414,11 +464,23 @@ export const ReadinessWorkspace = ({
             ),
           },
           {
+            id: "readiness-document",
+            title: "Readiness review",
+            content: readinessDocument,
+          },
+          {
             id: "package",
             title: "Package documents",
             content: packageItems.length === 0
               ? <WorkbenchState kind="empty" title="No package documents" />
               : <WorkbenchResourceList items={packageItems} />,
+          },
+          {
+            id: "evidence",
+            title: "Evidence",
+            content: evidenceItems.length === 0
+              ? <WorkbenchState kind="empty" title="No readiness evidence" />
+              : <WorkbenchResourceList items={evidenceItems} />,
           },
           {
             id: "attempts",
