@@ -4,41 +4,48 @@
 
 ## Readiness verdict
 
-`BLOCKED`.
+`READY_FOR_SIGNOFF`.
 
-The previously recorded `READY_FOR_SIGNOFF` verdict was bound to superseded Workbench P3/P4 and R2/DESIGN/PLAN bytes. G-F31 materially changed the authority/package/reference graph, so that verdict is not current evidence and cannot authorize implementation.
+This is a fresh adversarial review of the corrected exact package. It establishes readiness for the next governed decision. It does not itself sign the package, authorize ordinary T1 execution, merge or release.
 
-This artifact records only the invalidation boundary. It does **not** perform the fresh adversarial R3 that is required after the campaign's functional, technical, PLAN and ALIGN revalidation completes.
+## Exact reviewed package
 
-## Exact current package awaiting revalidation
-
-**Repository evidence baseline:** `36a06050d1d00ffc9c8cfe50b9e0285863acc45d`
+**Repository evidence baseline:** `df50f2bf77529484d09e5cc9a9ab4650488c3be7`
 
 **R1 blob:** `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`  
-**R2 blob:** `20fa0daac53d6fcf016eb8c4ec7d94647e281fe6`  
-**DESIGN blob:** `3376afea70f120d012b48452e381c05b05791c59`  
-**PLAN blob:** `6dfd36156e2712a43af0d09b88d9da3ce2d1a004`  
-**P3 Workbench blob:** `865800890eaf8da1e7fa581e092aa8b9d072eab9`  
-**P4 Workbench blob:** `4366cc2c79c22262438f0a3e66889c61b4fd5c40`  
+**R2 blob:** `b44b65a15af709751c6a1d8f0a566285b6e8bcce`  
+**DESIGN blob:** `5f9957c2704cd5657f1a300fc51d6b7eb86e4f07`  
+**PLAN blob:** `08a53478a6d09ab1ecec761648555b7ffc6bfe33`  
+**P3 Workbench blob:** `ac89ec5a6c7c19d4b70879fefd9ef3c71d76675a`  
+**P4 Workbench blob:** `46f0ed7524329d45b326ecfe2631b25652c7cdc3`  
 **P4 Workbench Theme blob:** `03dfc6be3600a1128b5639d011f4c0159d3497dd`
 
-Binding governance includes `GW-DOC-SYSTEMS-GOVERNANCE-PYRAMID-V1`, `GW-DOC-LIFECYCLE-CONTEXT-V2`, `GW-DOC-WORKBENCH-UX-V2`, `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`, `GW-DOC-WORKBENCH-THEME-V1` and `GW-DOC-CANONICAL-CONTRACTS-V2`.
+Binding governance includes `GW-DOC-SYSTEMS-GOVERNANCE-PYRAMID-V1`, `GW-DOC-LIFECYCLE-CONTEXT-V2`, `GW-DOC-WORKBENCH-UX-V2`, `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`, `GW-DOC-WORKBENCH-THEME-V1`, `GW-DOC-CANONICAL-CONTRACTS-V2` and the current 0.6.0 campaign owner.
 
-## Blocking reason
+## Adversarial challenge
 
-Current campaign evidence has not yet freshly proved the corrected exact package. In particular:
+The review challenged the corrected package rather than inheriting any prior R3/RZ/implementation verdict.
 
-- affected R2/DESIGN/PLAN pair audits must be rerun against the current bytes;
-- ALIGN-A01-A11/H1 must be rerun against the current exact package;
-- documentation/reference fitness must pass with the 37-SURF universe derived from DESIGN and the reference manifest bound to the exact current P3/P4/theme/DESIGN blobs;
-- only then may an independent R3 challenge the current package for readiness.
+- **Authority/countermanding documents:** PASS. The live documentation scan found no current normative source authorizing the superseded arbitrary Review body, local generic Technical-details owner, old SVG oracle, open Toolbar slots or implementation-derived screen schema. Residual old language in R1 is explicitly historical defect evidence.
+- **Screen-information closure:** PASS. DESIGN contains exactly 37 registered and 37 detailed governed SURFs with 294 explicit datum/action rows. Every rendered datum/action must map to one row; an unenumerated typed field is unauthorized merely because the client has it; a missing applicable row is a DESIGN defect, not an implementation choice.
+- **Foundation component closure:** PASS. P4 closes application Toolbar input to product/destination, exact ProjectId context/choices, humanized account readiness, Settings/Work-queue navigation and theme. Selected WorkItem Project context is static and cannot be retargeted. Review, Context and other semantic compositions retain their named responsibilities without arbitrary body/technical escape slots.
+- **Reference authority:** PASS. The active comparison corpus is non-authoritative, is bound to the exact P3/P4/theme/DESIGN blobs and cannot add fields, states or layout semantics.
+- **Implementation exactness:** PASS. PLAN assigns one action owner, preserves consumer-atomic cutovers and makes any rendered datum/action without a DESIGN row, any missing applicable DESIGN row or any new recurring component concern a blocking upstream return.
+- **Bounded-realization ordering:** PASS. Under `GW-DOC-SYSTEMS-GOVERNANCE-PYRAMID-V1`, only the PLAN-declared IA27 shell/Context + IA28 acceptance tranche can receive a separate operator grant before normal sign-off. ResourceList/Review/Document/Result and IA29+ remain unavailable.
+- **Current implementation as authority:** REJECTED. Existing JSX/CSS/tests/screenshots remain evidence only and cannot narrow the target or create preservation/compatibility requirements.
 
-The retired 0.5.0 SVG corpus and all RZ16-RZ19 visual verdicts are historical evidence only. They are not product/design authority and cannot satisfy current rendered acceptance.
+## Findings
 
-## Downstream consequence
+Unresolved authority conflicts: **NONE**.  
+Missing screen-information decisions: **NONE**.  
+Unowned rendered datum/action classes: **NONE**.  
+Unresolved component API decisions required by the bounded foundation: **NONE**.  
+Residual implementation inference required for the bounded foundation: **NONE**.
 
-No production UI reconstruction, post-signoff component cutover, IA29+ work, merge or release is authorized from this artifact. The next admissible work is campaign revalidation of the corrected documentation/reference package.
+## Readiness disposition
+
+The exact package is materially complete and internally consistent for the governed next decision. The only admissible pre-sign-off implementation is a separately authorized bounded IA27 shell/Context realization followed by IA28 evidence acceptance. Discovery of a missing schema row, countermanding authority or foundation API defect invalidates this readiness and returns to the owning layer.
 
 ## Final disposition
 
-`BLOCKED` pending fresh campaign revalidation and a new exact-package R3.
+`READY_FOR_SIGNOFF`.
