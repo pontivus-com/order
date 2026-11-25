@@ -3,6 +3,7 @@ import type {
   ArtifactRefId,
   EvidencePath,
   OpenCodeAccountLoginAttemptId,
+  RunEventId,
   RunId,
   WorkItemId,
 } from "../../src/core/contracts.ts";
@@ -44,6 +45,8 @@ export const workbenchQueryKeys = {
     ["artifacts", workItemId] as const,
   runEvents: (runId: RunId | null) =>
     ["runEvents", runId] as const,
+  proposalTarget: (proposalEventId: RunEventId | null) =>
+    ["proposalTarget", proposalEventId] as const,
   artifactContent: (artifactId: ArtifactRefId | null) =>
     ["artifactContent", artifactId] as const,
   evidence: (runId: RunId | null, relativePath: EvidencePath | null) =>
