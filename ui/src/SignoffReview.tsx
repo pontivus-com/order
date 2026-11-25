@@ -15,7 +15,6 @@ import { ReadOnlyLifecycleDocumentMaterial } from "./DocumentWorkspace.tsx";
 import { invalidateWorkbenchMutation } from "./query-keys.ts";
 import { lifecycleArtifactLabel } from "./workbench-presentation.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
-import { WorkbenchFacts } from "./primitives/WorkbenchFacts.tsx";
 import { WorkbenchIcon } from "./primitives/WorkbenchIcon.tsx";
 import { WorkbenchReview } from "./primitives/WorkbenchReview.tsx";
 import { WorkbenchResourceList } from "./primitives/WorkbenchResourceList.tsx";
@@ -37,9 +36,6 @@ const packageDocumentRoles = new Set<ArtifactRef["role"]>([
   "R3",
 ]);
 
-const compactValue = (values: readonly string[]): string =>
-  values.length === 0 ? "None" : values.join(", ");
-
 const resourceItems = (
   prefix: string,
   values: readonly string[],
@@ -48,24 +44,25 @@ const resourceItems = (
   label: value,
 }));
 
+const taskStateLabel = (task: SignedTaskDefinition | ExecutionTask): string | null => {
+  if (!("state" in task)) return null;
+  switch (task.state) {
+    case "TODO":
+      return "Not started";
+    case "RUNNING":
+      return "In progress";
+    case "CANDIDATE_DONE":
+      return "Candidate ready";
+    case "ALREADY_SATISFIED":
+      return "Already satisfied";
+    case "BLOCKED":
+      return "Blocked";
+  }
+};
+
 const taskDetailSections = (
   task: SignedTaskDefinition | ExecutionTask,
 ) => [
-  {
-    id: "task-facts",
-    title: "Task contract",
-    content: (
-      <WorkbenchFacts
-        label="Signed task contract"
-        items={[
-          { id: "depends-on", label: "Depends on", value: compactValue(task.dependsOn) },
-          { id: "gates", label: "Gates", value: compactValue(task.gateIds) },
-          { id: "concerns", label: "Concerns", value: compactValue(task.concernIds) },
-          { id: "acceptance", label: "Acceptance", value: compactValue(task.acceptanceRefs) },
-        ]}
-      />
-    ),
-  },
   {
     id: "scope",
     title: "Scope",
@@ -87,12 +84,22 @@ const taskDetailSections = (
     ),
   },
   {
-    id: "change-surface",
-    title: "Expected change surface",
+    id: "acceptance",
+    title: "Acceptance",
     content: (
       <WorkbenchResourceList
-        items={resourceItems("change", task.changeSurface)}
-        empty={<WorkbenchState kind="empty" title="No forecast entries" />}
+        items={resourceItems("acceptance", task.acceptanceRefs)}
+        empty={<WorkbenchState kind="empty" title="No acceptance references" />}
+      />
+    ),
+  },
+  {
+    id: "gates",
+    title: "Gates",
+    content: (
+      <WorkbenchResourceList
+        items={resourceItems("gate", task.gateIds)}
+        empty={<WorkbenchState kind="empty" title="No gates" />}
       />
     ),
   },
@@ -103,6 +110,36 @@ const taskDetailSections = (
       <WorkbenchResourceList
         items={resourceItems("authority", task.authorityRefs)}
         empty={<WorkbenchState kind="empty" title="No authority references" />}
+      />
+    ),
+  },
+  {
+    id: "concerns",
+    title: "Concerns",
+    content: (
+      <WorkbenchResourceList
+        items={resourceItems("concern", task.concernIds)}
+        empty={<WorkbenchState kind="empty" title="No concerns" />}
+      />
+    ),
+  },
+  {
+    id: "dependencies",
+    title: "Dependencies",
+    content: (
+      <WorkbenchResourceList
+        items={resourceItems("dependency", task.dependsOn)}
+        empty={<WorkbenchState kind="empty" title="No dependencies" />}
+      />
+    ),
+  },
+  {
+    id: "change-surface",
+    title: "Expected change surface",
+    content: (
+      <WorkbenchResourceList
+        items={resourceItems("change", task.changeSurface)}
+        empty={<WorkbenchState kind="empty" title="No forecast entries" />}
       />
     ),
   },
@@ -161,13 +198,11 @@ export const SignoffReview = ({
     selection.kind === "DOCUMENT"
       ? packageArtifacts.find((artifact) => artifact.id === selection.artifactId) ?? null
       : null;
-  const selectedCurrentTask =
-    selection.kind === "TASK" && currentApproval
-      ? currentTasks.find((task) => task.id === selection.taskId) ?? null
-      : null;
-  const selectedHistoricalTask =
-    selection.kind === "TASK" && !currentApproval
-      ? tasks.find((task) => task.id === selection.taskId) ?? null
+  const selectedTask =
+    selection.kind === "TASK"
+      ? currentApproval
+        ? currentTasks.find((task) => task.id === selection.taskId) ?? null
+        : tasks.find((task) => task.id === selection.taskId) ?? null
       : null;
 
   useEffect(() => {
@@ -233,9 +268,10 @@ export const SignoffReview = ({
   if (selection.kind === "DOCUMENT") {
     return (
       <div data-testid="review-workspace">
-        <div className="order-inline-actions">
+        <div className="order-review-navigation">
           <WorkbenchAction
             label="Back to Approval"
+            icon={<WorkbenchIcon name="back" />}
             tone="ghost"
             onClick={() => setSelection({ kind: "OVERVIEW" })}
           />
@@ -256,36 +292,10 @@ export const SignoffReview = ({
     );
   }
 
-  const selectedTask =
-    selection.kind === "TASK"
-      ? currentApproval
-        ? selectedCurrentTask
-        : selectedHistoricalTask
-      : null;
-
-  if (selection.kind === "TASK") {
+  if (selection.kind === "TASK" && selectedTask === null) {
     return (
       <div data-testid="review-workspace">
-        {selectedTask === null ? (
-          <WorkbenchState kind="empty" title="Signed task is no longer available" />
-        ) : (
-          <WorkbenchReview
-            title={selectedTask.objective}
-            description={currentApproval ? "Signed implementation task" : "Approved task history"}
-            verdict={{
-              label: currentApproval ? "Included in current package" : "Approved",
-              tone: currentApproval ? "info" : "success",
-            }}
-            sections={taskDetailSections(selectedTask)}
-            decisions={
-              <WorkbenchAction
-                label="Back to Approval"
-                tone="ghost"
-                onClick={() => setSelection({ kind: "OVERVIEW" })}
-              />
-            }
-          />
-        )}
+        <WorkbenchState kind="empty" title="Signed task is no longer available" />
       </div>
     );
   }
@@ -384,56 +394,84 @@ export const SignoffReview = ({
       )
       : undefined;
 
+  const taskState = selectedTask === null ? null : taskStateLabel(selectedTask);
+  const selectedTaskDescription =
+    selectedTask === null
+      ? undefined
+      : taskState === null
+        ? selectedTask.objective
+        : selectedTask.objective + " · " + taskState;
+
+  const sections =
+    selectedTask === null
+      ? [
+        {
+          id: "tasks",
+          title: currentApproval ? "Signed tasks" : "Approved tasks",
+          content: (
+            <WorkbenchResourceList
+              items={taskItems}
+              empty={<WorkbenchState kind="empty" title="No signed tasks" />}
+            />
+          ),
+        },
+        {
+          id: "documents",
+          title: "Package documents",
+          content: (
+            <WorkbenchResourceList
+              items={documentItems}
+              empty={<WorkbenchState kind="empty" title="No package documents" />}
+            />
+          ),
+        },
+        ...(reviewNotice === undefined
+          ? []
+          : [{
+            id: "notice",
+            title: "Status",
+            content: reviewNotice,
+          }]),
+        ...(signoff.error === null
+          ? []
+          : [{
+            id: "signoff-error",
+            title: "Sign-off failed",
+            content: (
+              <WorkbenchErrorState
+                title="Sign-off failed"
+                description={signoff.error instanceof Error
+                  ? signoff.error.message
+                  : String(signoff.error)}
+              />
+            ),
+          }]),
+      ]
+      : [...taskDetailSections(selectedTask)];
+
+  const decisions =
+    selectedTask === null
+      ? reviewAction ?? approvalDecision
+      : (
+        <WorkbenchAction
+          label="Back to Approval"
+          icon={<WorkbenchIcon name="back" />}
+          tone="ghost"
+          onClick={() => setSelection({ kind: "OVERVIEW" })}
+        />
+      );
+
   return (
     <div data-testid="review-workspace">
       <WorkbenchReview
         title="Approval"
-        description={currentApproval ? "Authorize the current governed package." : undefined}
+        description={
+          selectedTaskDescription ??
+          (currentApproval ? "Authorize the current governed package." : undefined)
+        }
         verdict={verdict}
-        sections={[
-          {
-            id: "tasks",
-            title: currentApproval ? "Signed tasks" : "Approved tasks",
-            content: (
-              <WorkbenchResourceList
-                items={taskItems}
-                empty={<WorkbenchState kind="empty" title="No signed tasks" />}
-              />
-            ),
-          },
-          {
-            id: "documents",
-            title: "Package documents",
-            content: (
-              <WorkbenchResourceList
-                items={documentItems}
-                empty={<WorkbenchState kind="empty" title="No package documents" />}
-              />
-            ),
-          },
-          ...(reviewNotice === undefined
-            ? []
-            : [{
-              id: "notice",
-              title: "Status",
-              content: reviewNotice,
-            }]),
-          ...(signoff.error === null
-            ? []
-            : [{
-              id: "signoff-error",
-              title: "Sign-off failed",
-              content: (
-                <WorkbenchErrorState
-                  title="Sign-off failed"
-                  description={signoff.error instanceof Error
-                    ? signoff.error.message
-                    : String(signoff.error)}
-                />
-              ),
-            }]),
-        ]}
-        decisions={reviewAction ?? approvalDecision}
+        sections={sections}
+        decisions={decisions}
       />
     </div>
   );
