@@ -10,14 +10,14 @@ This is a fresh adversarial review of the corrected exact package. It establishe
 
 ## Exact reviewed package
 
-**Repository evidence baseline:** `470d553418dad75ee0884d4fe4033f2a780ced13`
+**Repository evidence baseline:** `cdc3972ee3b0634df1d21b3c3862f410df72c651`
 
 **R1 blob:** `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`  
 **R2 blob:** `b44b65a15af709751c6a1d8f0a566285b6e8bcce`  
-**DESIGN blob:** `753a0477cc2cd9bfbd198e8af3c91c1409cb3aaa`  
-**PLAN blob:** `f538f199396c0cbc4576b72bd7eecfe90a8c4d30`  
+**DESIGN blob:** `1ddc191301952e12094019e5b04eae7686340eeb`  
+**PLAN blob:** `fa54ab652b26fe54d1da7810d29742cf05c232de`  
 **P3 Workbench blob:** `ac89ec5a6c7c19d4b70879fefd9ef3c71d76675a`  
-**P4 Workbench blob:** `5b41cd6ef09964a836bf6bd9975f3cff50167049`  
+**P4 Workbench blob:** `6253e4b8fec2071d5ec888faeb682337891ad718`  
 **P4 Workbench Theme blob:** `03dfc6be3600a1128b5639d011f4c0159d3497dd`
 
 Binding governance includes `GW-DOC-SYSTEMS-GOVERNANCE-PYRAMID-V1`, `GW-DOC-LIFECYCLE-CONTEXT-V2`, `GW-DOC-WORKBENCH-UX-V2`, `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`, `GW-DOC-WORKBENCH-THEME-V1`, `GW-DOC-CANONICAL-CONTRACTS-V2` and the current 0.6.0 campaign owner.
@@ -36,6 +36,8 @@ The review challenged the corrected package rather than inheriting any prior R3/
 - **Current implementation as authority:** REJECTED. Existing JSX/CSS/tests/screenshots remain evidence only and cannot narrow the target or create preservation/compatibility requirements.
 
 - **Toolbar module responsibility: PASS.** Application Toolbar has no specialist/search responsibility; Markdown and Queue dependencies are explicitly migrated in the same bounded compile-atomic checkpoint without expanding their later acceptance scope.
+
+- **Account utility ownership: PASS.** The account query/humanization adapter is non-rendering; WorkbenchToolbar is the sole account navigation/status renderer.
 
 ## Findings
 
