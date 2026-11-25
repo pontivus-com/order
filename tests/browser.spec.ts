@@ -664,12 +664,20 @@ const openWorkflowResource = async (
   page: Page,
   label: string,
 ): Promise<void> => {
-  const action = page.getByRole("button", {
+  const viewAction = page.getByRole("button", {
+    name: "View " + label,
+    exact: true,
+  });
+  if (await viewAction.isVisible().catch(() => false)) {
+    await viewAction.click();
+    return;
+  }
+  const openAction = page.getByRole("button", {
     name: "Open " + label,
     exact: true,
   });
-  await expect(action).toBeVisible();
-  await action.click();
+  await expect(openAction).toBeVisible();
+  await openAction.click();
 };
 
 const selectWorkflowMaterial = openWorkflowResource;
