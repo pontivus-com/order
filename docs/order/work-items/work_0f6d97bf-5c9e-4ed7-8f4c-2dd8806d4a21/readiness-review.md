@@ -8,14 +8,16 @@
 
 This is a fresh adversarial review of the corrected exact package. It establishes readiness for the next governed decision. It does not itself sign the package, authorize ordinary T1 execution, merge or release.
 
+The current revalidation includes the Proposal Review phase-owner correction that makes the DESIGN SURF registry agree with the already-governing G-F30/P7 consumer-atomic Review cutover (`SURF-MAT-PROPOSAL-001` -> IA31). This is an authority-alignment correction only: it changes no P2/P3 product semantics, component API, 37-SURF cardinality, T1 scope, or verification obligation.
+
 ## Exact reviewed package
 
 **Repository evidence baseline:** `cdc3972ee3b0634df1d21b3c3862f410df72c651`
 
 **R1 blob:** `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`  
 **R2 blob:** `b44b65a15af709751c6a1d8f0a566285b6e8bcce`  
-**DESIGN blob:** `1ddc191301952e12094019e5b04eae7686340eeb`  
-**PLAN blob:** `fa54ab652b26fe54d1da7810d29742cf05c232de`  
+**DESIGN blob:** `dc70911aa79b4c3eca909597782db29b1a4ce537`  
+**PLAN blob:** `91914c6ecf4590923fbc7e0bfd35f6429d653ee6`  
 **P3 Workbench blob:** `ac89ec5a6c7c19d4b70879fefd9ef3c71d76675a`  
 **P4 Workbench blob:** `6253e4b8fec2071d5ec888faeb682337891ad718`  
 **P4 Workbench Theme blob:** `03dfc6be3600a1128b5639d011f4c0159d3497dd`
