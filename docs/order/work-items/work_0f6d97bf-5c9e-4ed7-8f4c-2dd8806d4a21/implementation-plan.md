@@ -6,7 +6,7 @@
 
 This file is the single deterministic P7 artifact and sole normative execution authority for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. The directory `implementation-plan/` is only its maintainable authoring decomposition. The complete source content is compiled below and this root becomes executable only after the canonical campaign gates and operator sign-off bind these exact bytes.
 
-This PLAN is regenerated for C19-F09/C20-F11 from current R2 `20fa0daac53d6fcf016eb8c4ec7d94647e281fe6`, corrected P4 Workbench `4366cc2c79c22262438f0a3e66889c61b4fd5c40` and corrected DESIGN `3376afea70f120d012b48452e381c05b05791c59`. Historical PLAN structure, implementation/UI/tests, prior 68-path forecasts, RZ16 acceptance and prior sign-off are evidence only.
+This PLAN is regenerated for C19-F09/C20-F11 from current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`, corrected P4 Workbench `4366cc2c79c22262438f0a3e66889c61b4fd5c40` and corrected DESIGN `62b0500b961e2b35f8fecfe6aa478e6517216bf8`. Historical PLAN structure, implementation/UI/tests, prior 68-path forecasts, RZ16 acceptance and prior sign-off are evidence only.
 
 This PLAN carries no campaign gate state and no implementation authority by itself. Campaign §17A/§18 exclusively govern current gates, bounded authorization and sign-off; these exact PLAN bytes remain a candidate until those controls establish the required authorization.
 
@@ -22,20 +22,20 @@ IA20/IA26 certify component API/consumer/physical-SoC closure in addition to the
 
 | Source component | Git blob |
 |---|---|
-| `implementation-plan/00-governance.md` | `7f3061571aafe7d40ebffdbfadf5f054fe23d4e9` |
-| `implementation-plan/01-a01-lifecycle-product.md` | `c265f7cb753beb43ef6060ce73116c428a2a454d` |
-| `implementation-plan/02-a02-governance-intake.md` | `031aace60a2e693dbf5730329c005e8a191557d3` |
-| `implementation-plan/03-a03-queue-source.md` | `caec4191254142445c7a531d8a3e9a7a5f98e2db` |
-| `implementation-plan/04-a04-workbench-research.md` | `7e139b51e53761913326c8ebbac50ca418ddfcb7` |
-| `implementation-plan/05-a05-requirements-design.md` | `b0e588f348a8fe519bc0ff5711a19e2f96f0206a` |
-| `implementation-plan/06-a06-plan-readiness.md` | `b75e6f774faf80adbca084b2e7b24f48f1a36549` |
-| `implementation-plan/07-a07-approval-execution.md` | `e8165c745d8321fd2784763547e6b3ff4d0b17d8` |
-| `implementation-plan/08-a08-complete-materials.md` | `360d388bf4f16b977d3f4f2e8231a65466a179d3` |
-| `implementation-plan/09-a09-provider-settings.md` | `7ad764ce5097460e43defe7cba36f71fb713e925` |
-| `implementation-plan/10-a10-recovery-accessibility.md` | `bbf17d95946e822155b2418ef66139425769d6d9` |
-| `implementation-plan/11-a11-component-certification.md` | `26682dfd661731cdb39343f5deb2cef4cf89e051` |
-| `implementation-plan/12-action-catalog.md` | `dafbf13a170cc37340909848ea4a8d55054fe94e` |
-| `implementation-plan/13-verification-closeout.md` | `89ee78e74427582c3887564659f3a1959567ff8f` |
+| `implementation-plan/00-governance.md` | `fbcae99966ee196c4059b871af695f449dddbd18` |
+| `implementation-plan/01-a01-lifecycle-product.md` | `35afb5547945c0edce278cf2f22b559dd9c756ec` |
+| `implementation-plan/02-a02-governance-intake.md` | `bc84e8e3784619160bc690ce97b86c3698e1477e` |
+| `implementation-plan/03-a03-queue-source.md` | `841f15cde896a81038893b16005786e9b9f0f887` |
+| `implementation-plan/04-a04-workbench-research.md` | `6bee653539589565df40528ac24ce44a11d27297` |
+| `implementation-plan/05-a05-requirements-design.md` | `7bd57fdfe527dd15721de8235b846114df85b7fe` |
+| `implementation-plan/06-a06-plan-readiness.md` | `684e72a2e3f0cb0742a00c53bf783e3be448fe86` |
+| `implementation-plan/07-a07-approval-execution.md` | `5cb87c3e56b97cbf4a6fd697a8db723c47289932` |
+| `implementation-plan/08-a08-complete-materials.md` | `d3f91889a265be17b9586543ebde6f61615a63a6` |
+| `implementation-plan/09-a09-provider-settings.md` | `111ab18f023049dc2751d350b12c4c41acf857ac` |
+| `implementation-plan/10-a10-recovery-accessibility.md` | `dfe42c32ad8240271f39b591d152e276a4b02b56` |
+| `implementation-plan/11-a11-component-certification.md` | `2f427e3960dd7e0153f9b10370f1e95b35a03da9` |
+| `implementation-plan/12-action-catalog.md` | `1e5fc316d669400544c9dd222c6074d02edc45d7` |
+| `implementation-plan/13-verification-closeout.md` | `6b9c66440b0583ab96329740f22e07010123a230` |
 
 A source component hash mismatch makes PLAN non-current until this root is regenerated. Directory files contain no `order-tasks` block and own no independent lifecycle state or executable action definition.
 
@@ -167,10 +167,10 @@ This decomposition is revalidated under C19-F09/C20-F11 after the prior G4-G6 cl
 ##### Exact upstream package
 
 - R1 `research.md`: `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`.
-- R2 `requirements.md`: `20fa0daac53d6fcf016eb8c4ec7d94647e281fe6`.
-- DESIGN `solution-design.md`: `3376afea70f120d012b48452e381c05b05791c59` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 76-path forecast.
+- R2 `requirements.md`: `b44b65a15af709751c6a1d8f0a566285b6e8bcce`.
+- DESIGN `solution-design.md`: `62b0500b961e2b35f8fecfe6aa478e6517216bf8` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 76-path forecast.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `9c2ec83a9552b7583f90e91080c014df4d6870df`.
-- P3 `GW-DOC-WORKBENCH-UX-V2`: `865800890eaf8da1e7fa581e092aa8b9d072eab9` — §11.4A/§12/§13/§14 own semantic information classes, state-is-not-interface behavior, direct primary interaction composition, no generic workflow-material selector, continuous Dialogue semantics, Terminal-result primacy, singular technical inspection, task anatomy and composition invariants.
+- P3 `GW-DOC-WORKBENCH-UX-V2`: `ac89ec5a6c7c19d4b70879fefd9ef3c71d76675a` — §11.4A/§12/§13/§14 own semantic information classes, state-is-not-interface behavior, direct primary interaction composition, no generic workflow-material selector, continuous Dialogue semantics, Terminal-result primacy, singular technical inspection, task anatomy and composition invariants.
 - P3 `GW-DOC-MARKDOWN-WORKBENCH-V1`: `1cc5a28eff8d180f88106d89990f7b89aa27a132` — §17.4 owns one compact Markdown editor-control region, overflow-before-wrap formatting and control→canvas adjacency.
 - P4 `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`: `4366cc2c79c22262438f0a3e66889c61b4fd5c40` — sole permanent owner of structural + semantic Workbench component responsibilities/APIs, consumer boundaries, composition laws and remediation disposition semantics.
 - P4 `GW-DOC-WORKBENCH-THEME-V1`: `03dfc6be3600a1128b5639d011f4c0159d3497dd` — owns the corrected semantic-disclosure, technical-inspection and task-panel visual roles.
@@ -264,7 +264,7 @@ Because the current T1 candidate sets `scope` equal to the same exact 76-path `c
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C01 + C21.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `20fa0daac53d6fcf016eb8c4ec7d94647e281fe6`; current DESIGN `3376afea70f120d012b48452e381c05b05791c59`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`; current DESIGN `62b0500b961e2b35f8fecfe6aa478e6517216bf8`.
 
 ##### Stable requirement execution dispositions
 
@@ -320,7 +320,7 @@ Package atoms in phase: **1**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C22 + C02.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `20fa0daac53d6fcf016eb8c4ec7d94647e281fe6`; current DESIGN `3376afea70f120d012b48452e381c05b05791c59`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`; current DESIGN `62b0500b961e2b35f8fecfe6aa478e6517216bf8`.
 
 ##### Stable requirement execution dispositions
 
@@ -372,7 +372,7 @@ Package atoms in phase: **4**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C03 + C04.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `20fa0daac53d6fcf016eb8c4ec7d94647e281fe6`; current DESIGN `3376afea70f120d012b48452e381c05b05791c59`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`; current DESIGN `62b0500b961e2b35f8fecfe6aa478e6517216bf8`.
 
 ##### Stable requirement execution dispositions
 
@@ -441,7 +441,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C05 + C06.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `20fa0daac53d6fcf016eb8c4ec7d94647e281fe6`; current DESIGN `3376afea70f120d012b48452e381c05b05791c59`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`; current DESIGN `62b0500b961e2b35f8fecfe6aa478e6517216bf8`.
 
 ##### Stable requirement execution dispositions
 
@@ -510,7 +510,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C07 + C08.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `20fa0daac53d6fcf016eb8c4ec7d94647e281fe6`; current DESIGN `3376afea70f120d012b48452e381c05b05791c59`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`; current DESIGN `62b0500b961e2b35f8fecfe6aa478e6517216bf8`.
 
 ##### Stable requirement execution dispositions
 
@@ -555,7 +555,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C09 + C10.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `20fa0daac53d6fcf016eb8c4ec7d94647e281fe6`; current DESIGN `3376afea70f120d012b48452e381c05b05791c59`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`; current DESIGN `62b0500b961e2b35f8fecfe6aa478e6517216bf8`.
 
 ##### Stable requirement execution dispositions
 
@@ -599,7 +599,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C11 + C12.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `20fa0daac53d6fcf016eb8c4ec7d94647e281fe6`; current DESIGN `3376afea70f120d012b48452e381c05b05791c59`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`; current DESIGN `62b0500b961e2b35f8fecfe6aa478e6517216bf8`.
 
 ##### Stable requirement execution dispositions
 
@@ -654,7 +654,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C13 + C14.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `20fa0daac53d6fcf016eb8c4ec7d94647e281fe6`; current DESIGN `3376afea70f120d012b48452e381c05b05791c59`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`; current DESIGN `62b0500b961e2b35f8fecfe6aa478e6517216bf8`.
 
 ##### Stable requirement execution dispositions
 
@@ -703,7 +703,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C15 + C16.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `20fa0daac53d6fcf016eb8c4ec7d94647e281fe6`; current DESIGN `3376afea70f120d012b48452e381c05b05791c59`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`; current DESIGN `62b0500b961e2b35f8fecfe6aa478e6517216bf8`.
 
 ##### Stable requirement execution dispositions
 
@@ -766,7 +766,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C17 + C18.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `20fa0daac53d6fcf016eb8c4ec7d94647e281fe6`; current DESIGN `3376afea70f120d012b48452e381c05b05791c59`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`; current DESIGN `62b0500b961e2b35f8fecfe6aa478e6517216bf8`.
 
 ##### Stable requirement execution dispositions
 
@@ -813,7 +813,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C19 + C20.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `20fa0daac53d6fcf016eb8c4ec7d94647e281fe6`; current DESIGN `3376afea70f120d012b48452e381c05b05791c59`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`; current DESIGN `62b0500b961e2b35f8fecfe6aa478e6517216bf8`.
 
 ##### Stable requirement execution dispositions
 
@@ -1210,7 +1210,7 @@ The IA27-IA34 union remains exactly **37 unique SURF rows** with no duplicate or
 - fail evidence generation when a required surface/state/reference/scope mapping is missing or duplicated, fixture state is wrong, runtime errors occur, capture is absent/empty, or coverage is incomplete. Evidence generation success is **not** acceptance success; IA24 remains blocked until the explicit three-dimension review ledger has zero FAIL.
 
 **Acceptance review:** the Actions artifact is evidence, not authority. Every manifest row must receive an explicit `PASS` or `FAIL` against three independent dimensions before IA24:
-1. **schema/information fidelity** — required Primary information is present and correctly named/grouped/prioritized; Technical/Diagnostic information is absent from the ordinary surface; the authorized WorkItem Context/Settings-diagnostics/Evidence/confirmation owner exposes exactly its owned value only after explicit entry; close/return restores the ordinary hierarchy without losing current attention;
+1. **schema/information fidelity** — every rendered datum/action maps to exactly one current DESIGN `SURF-*` contract row for that surface/state; every applicable DESIGN row is realized with the declared source/class/placement/disclosure rule; required Primary information is present and correctly named/grouped/prioritized; Supporting/Operational information is present only where explicitly authorized; Technical/Diagnostic information is absent from the ordinary surface; the authorized WorkItem Context/Settings-diagnostics/Evidence/confirmation owner exposes exactly its owned value only after explicit entry; close/return restores the ordinary hierarchy without losing current attention. Any rendered datum/action without a DESIGN row, or any missing applicable row, is `FAIL` and returns upstream to DESIGN rather than being inferred in implementation;
 2. **UX/interaction fidelity** — the owning interaction grammar, current-attention owner, semantic-slot meaning, exactly-one-primary-composition invariant, action precedence, navigation/material hierarchy, state/recovery semantics and responsive composition match current authority; Queue/Review/Evidence/Terminal result do not gain synthetic outer attention, Proposal Review/Readiness/Approval remain direct `WorkbenchReview` primary compositions, and transient Proposal Review/Evidence replace rather than nest;
 3. **visual/UI fidelity** — hierarchy, density, spacing, alignment, geometry, typography, component consistency, affordances, truncation/wrapping, overlays and theme behavior materially conform to current authority and the authority-bound derived comparison reference for the same SURF/state/scope.
 
@@ -1371,7 +1371,7 @@ The GitHub Actions artifact is then reviewed row by row. Automated capture/cover
 
 Every manifest row records three independent verdicts:
 
-- `schema_information`: all authority-required Primary information is present with correct labels/grouping/hierarchy/prominence; generic workflow-state/material chrome and raw typed/technical vocabulary are absent from ordinary UI; singular Context/Settings-diagnostics/Evidence ownership and correct return behavior are preserved;
+- `schema_information`: every rendered datum/action maps to exactly one current DESIGN `SURF-*` row and every applicable DESIGN row is realized with its declared source/class/placement/disclosure rule; all authority-required Primary information is present with correct labels/grouping/hierarchy/prominence; Supporting/Operational information appears only where explicitly authorized; generic workflow-state/material chrome and raw typed/technical vocabulary are absent from ordinary UI; singular Context/Settings-diagnostics/Evidence ownership and correct return behavior are preserved. An unmapped rendered datum/action or missing applicable DESIGN row is `FAIL` and returns upstream to DESIGN rather than being inferred by implementation;
 - `ux_interaction`: the direct owning interaction class is correct; required-absent WorkflowStepFrame/WorkflowMaterialSelector equivalents are absent; Dialogue remains continuous across OPEN/REQUIRED_INPUT/PROCESSING turns; Review/Evidence/Terminal primaries are not wrapped/nested; current-attention/action precedence, recovery and responsive composition conform;
 - `visual_ui`: rendered hierarchy, density, spacing, alignment, geometry, typography, component consistency, affordances, clipping/wrapping, overlays and theme behavior materially conform.
 
