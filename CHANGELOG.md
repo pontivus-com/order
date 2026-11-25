@@ -8,6 +8,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Changed
 
+- Revalidate the corrected 0.6.0 R2/DESIGN/PLAN package through fresh pair audits, vertical ALIGN and adversarial R3 after repairing the Workbench proof inputs; the exact package is READY_FOR_SIGNOFF while implementation authorization, HUX acceptance and later IA32-IA34 completion remain separately governed.
+
 - Repair the live 0.6.0 Workbench documentation/reference graph before further UI implementation: remove stale Review/technical-inspection contradictions from canonical P3/P4, close the application toolbar and Implementation master APIs, make Project context and non-generic boundary grammar explicit, replace the 41-file 0.5.0 SVG oracle with a deterministic 37-SURF authority-bound reference atlas/manifest, bind reference fitness to exact P3/P4/theme/DESIGN blobs, and reopen stale campaign/readiness acceptance for fresh revalidation.
 
 - Regovern the 0.6.0 Workbench after the semantic-component audit: make P4 the sole component/API owner, add the missing Section/Facts/ResourceList/ReviewVerdict/ReviewSection/Document/Result composition layer and contextual Proposal change view, regenerate DESIGN/PLAN to a 76-path candidate with one IA-definition owner, and invalidate stale G4-G6/ALIGN/RZ16/sign-off conclusions until fresh revalidation.
