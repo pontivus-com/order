@@ -1299,20 +1299,6 @@ describe("architecture fitness", () => {
       }
     }
 
-    const manifestAuthorityBody =
-      manifest.match(/\[authority\]\r?\n([\s\S]*?)(?=\r?\n\[|$)/)?.[1] ?? "";
-    const authorityPatterns = ["p1", "p2", "p3", "p4", "p5", "p6"].flatMap((layer) => [
-      ...(manifestAuthorityBody.match(new RegExp("^" + layer + "\\s*=\\s*\\[(.*)\\]\\s*$", "m"))?.[1]
-        ?.matchAll(/"([^"]+)"/g) ?? []),
-    ].map((match) => match[1]).filter((value): value is string => value !== undefined));
-    for (const [authorityRef, sourcePath] of refs) {
-      if (!authorityPatterns.some((pattern) => matchesGlob(sourcePath, pattern))) {
-        violations.push(
-          `${authorityRef}: manifest ref source must be selected by authority.p1-p6: ${sourcePath}`,
-        );
-      }
-    }
-
     for (const metadata of concernByPath.values()) {
       if (
         !retainedSemanticVersionPath(metadata.path) &&
@@ -1371,20 +1357,14 @@ describe("architecture fitness", () => {
           continue;
         }
         if (retainedSemanticVersionPath(authorityPath)) {
-          const currentPath = currentOwnerByStable.get(metadata.stableId);
-          if (currentPath === undefined) {
-            violations.push(
-              `${authorityPath}: retained semantic-version authority must have a current canonical owner for ${metadata.stableId}`,
-            );
-            continue;
-          }
-          const currentSelectedInLayer = [...match[1].matchAll(/"([^"]+)"/g)]
-            .some((candidate) => candidate[1] === currentPath);
-          if (!currentSelectedInLayer) {
-            violations.push(
-              `${authorityPath}: retained semantic-version authority must be selected beside current owner ${currentPath} in the same authority layer`,
-            );
-          }
+          violations.push(
+            `${authorityPath}: retained semantic-version owner must remain exactly referenceable, not default active authority in the current Order manifest`,
+          );
+        }
+        if (metadata.stableId.startsWith("GW-DOC-REF-")) {
+          violations.push(
+            `${authorityPath}: prior-art reference-fact owner must remain reference material, not default active project authority`,
+          );
         }
       }
     }
