@@ -5771,6 +5771,12 @@ describe("daemon control plane", () => {
         rationale: "This base will become stale",
       });
       fs.writeFileSync(repositoryRoot + "/" + productPath, "# external change\\n");
+      let staleReadError = null;
+      try {
+        coord.readArtifactProposalTarget(runtime, stale.id);
+      } catch (error) {
+        staleReadError = error instanceof Error ? error.message : String(error);
+      }
       let staleError = null;
       try {
         await coord.adoptArtifactProposal(runtime, stale.id);
@@ -5790,6 +5796,7 @@ describe("daemon control plane", () => {
             event.event.proposalEventId === proposal.id &&
             event.event.disposition === "ADOPTED"
           ),
+        staleReadError,
         staleError,
         adoptionRequests: events.filter((event) =>
           event.event.tag === "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED"
@@ -5800,6 +5807,7 @@ describe("daemon control plane", () => {
     `) as {
       adopted: { role: string; layer: string; path: string };
       contentAfterFirstAdoption: boolean;
+      staleReadError: string | null;
       staleError: string | null;
       adoptionRequests: number;
       stage: string;
@@ -5811,6 +5819,7 @@ describe("daemon control plane", () => {
       path: "docs/product.md",
     });
     expect(output.contentAfterFirstAdoption).toBe(true);
+    expect(output.staleReadError).toContain("baseSha256 is stale");
     expect(output.staleError).toContain("baseSha256 is stale");
     expect(output.adoptionRequests).toBe(1);
     expect(output.stage).toBe("R2");
