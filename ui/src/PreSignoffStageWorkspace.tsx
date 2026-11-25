@@ -14,7 +14,7 @@ import {
   type EvidenceSelection, type ProposalSelection, type WorkflowMaterial,
 } from "./workbench-presentation.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
-import { WorkbenchResourceRow } from "./primitives/WorkbenchResourceRow.tsx";
+import { WorkbenchResourceList } from "./primitives/WorkbenchResourceList.tsx";
 import { WorkbenchState } from "./primitives/WorkbenchState.tsx";
 
 export type SharedPreSignoffStage = "R1" | "R2" | "DESIGN" | "PLAN";
@@ -106,17 +106,14 @@ export const PreSignoffStageWorkspace = ({
   );
   const supportingMaterial=supportingResources.length===0 ? undefined : (
     <section className="order-productive-supporting" aria-label="Supporting workflow material">
-      <div className="order-resource-list">
-        {supportingResources.map((item)=>(
-          <WorkbenchResourceRow
-            key={item.id}
-            label={item.label}
-            detail={[item.description,item.statusLabel].filter(Boolean).join(" · ") || undefined}
-            actionLabel={"Open "+item.label}
-            onOpen={item.onSelect}
-          />
-        ))}
-      </div>
+      <WorkbenchResourceList
+        items={supportingResources.map((item)=>({
+          id: item.id,
+          label: item.label,
+          detail: [item.description,item.statusLabel].filter(Boolean).join(" · ") || undefined,
+          action: <WorkbenchAction label={"Open "+item.label} tone="ghost" onClick={item.onSelect} />,
+        }))}
+      />
     </section>
   );
 

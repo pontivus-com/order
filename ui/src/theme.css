@@ -679,8 +679,7 @@
 .order-review-approval-overview,
 .order-review-approval-task,
 .order-review-approval-task-sections,
-.order-review-approval-authorization,
-.order-review-approval-resources {
+.order-review-approval-authorization {
   min-width: 0;
   display: grid;
   gap: var(--spacing-3);
@@ -806,7 +805,7 @@
 .order-activity-technical dd,.order-proposal-facts dd,.order-proposal-technical dd{min-width:0;margin:0;overflow-wrap:anywhere}
 .order-proposal-diff{min-width:0}.order-proposal-diff h3{margin-top:0}
 .order-proposal-decisions{margin-inline-start:auto;display:flex;align-items:center;gap:var(--spacing-2)}
-.order-workflow-event-history,.order-workflow-event-evidence,.order-workflow-event-technical{min-width:0;display:grid;gap:var(--spacing-2)}
+.order-workflow-event-history,.order-workflow-event-technical{min-width:0;display:grid;gap:var(--spacing-2)}
 .order-workflow-event-technical pre{max-width:100%;overflow:auto;font-family:var(--font-family-code);font-size:var(--order-font-size-technical-xs)}
 
 
@@ -1180,10 +1179,6 @@
   border-top: 1px solid var(--color-border-emphasized);
 }
 
-.order-resource-list {
-  display: grid;
-  gap: var(--spacing-1);
-}
 .order-section-heading {
   display: flex;
   align-items: flex-start;

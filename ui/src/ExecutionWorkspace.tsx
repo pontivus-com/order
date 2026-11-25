@@ -34,7 +34,7 @@ import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchAttention } from "./primitives/WorkbenchAttention.tsx";
 import { WorkbenchDisclosure } from "./primitives/WorkbenchDisclosure.tsx";
 import { WorkbenchMasterDetail } from "./primitives/WorkbenchMasterDetail.tsx";
-import { WorkbenchResourceRow } from "./primitives/WorkbenchResourceRow.tsx";
+import { WorkbenchResourceList } from "./primitives/WorkbenchResourceList.tsx";
 import { WorkbenchSectionHeader } from "./primitives/WorkbenchSectionHeader.tsx";
 import { WorkbenchState } from "./primitives/WorkbenchState.tsx";
 import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
@@ -506,37 +506,39 @@ export const ExecutionWorkspace = ({
             {taskRuns.length === 0 ? (
               <WorkbenchState kind="empty" title="No attempts yet" />
             ) : (
-              <div className="order-resource-list">
-                {taskRuns.map((run) => (
-                  <WorkbenchResourceRow
-                    key={run.id}
-                    label={runRoleLabel(run.role) + " · Attempt " + run.attempt}
-                    detail={
-                      new Date(run.startedAt).toLocaleString() +
-                      " · " +
-                      runStatusLabel(run.status)
-                    }
-                    actionLabel={
-                      "Open " +
-                      runRoleLabel(run.role) +
-                      " · Attempt " +
-                      run.attempt
-                    }
-                    leading={
-                      <WorkbenchStatus
-                        tone={runTone(run)}
-                        label={runStatusLabel(run.status)}
-                      />
-                    }
-                    onOpen={() =>
-                      onSelectMaterial({
-                        kind: "EXECUTION_TASK",
-                        taskId: selectedTask.id,
-                        runId: run.id,
-                      })}
-                  />
-                ))}
-              </div>
+              <WorkbenchResourceList
+                items={taskRuns.map((run) => ({
+                  id: run.id,
+                  label: runRoleLabel(run.role) + " · Attempt " + run.attempt,
+                  detail:
+                    new Date(run.startedAt).toLocaleString() +
+                    " · " +
+                    runStatusLabel(run.status),
+                  meta: (
+                    <WorkbenchStatus
+                      tone={runTone(run)}
+                      label={runStatusLabel(run.status)}
+                    />
+                  ),
+                  action: (
+                    <WorkbenchAction
+                      label={
+                        "Open " +
+                        runRoleLabel(run.role) +
+                        " · Attempt " +
+                        run.attempt
+                      }
+                      tone="ghost"
+                      onClick={() =>
+                        onSelectMaterial({
+                          kind: "EXECUTION_TASK",
+                          taskId: selectedTask.id,
+                          runId: run.id,
+                        })}
+                    />
+                  ),
+                }))}
+              />
             )}
           </section>
         )}
@@ -660,25 +662,28 @@ export const ExecutionWorkspace = ({
           {artifacts.length === 0 ? (
             <WorkbenchState kind="empty" title="No governed implementation material" />
           ) : (
-            <div className="order-resource-list">
-              {artifacts.map((artifact) => {
+            <WorkbenchResourceList
+              items={artifacts.map((artifact) => {
                 const label = lifecycleArtifactLabel(artifact.role);
-                return (
-                  <WorkbenchResourceRow
-                    key={artifact.id}
-                    label={label}
-                    detail="Read-only governed implementation material"
-                    actionLabel={"Open " + label}
-                    onOpen={() =>
-                      onOpenEvidence({
-                        kind: "ARTIFACT",
-                        artifactId: artifact.id,
-                        label: label + ": " + artifact.repositoryPath,
-                      })}
-                  />
-                );
+                return {
+                  id: artifact.id,
+                  label,
+                  detail: "Read-only governed implementation material",
+                  action: (
+                    <WorkbenchAction
+                      label={"Open " + label}
+                      tone="ghost"
+                      onClick={() =>
+                        onOpenEvidence({
+                          kind: "ARTIFACT",
+                          artifactId: artifact.id,
+                          label: label + ": " + artifact.repositoryPath,
+                        })}
+                    />
+                  ),
+                };
               })}
-            </div>
+            />
           )}
         </section>
       </section>

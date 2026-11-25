@@ -20,7 +20,7 @@ import { invalidateWorkbenchMutation } from "./query-keys.ts";
 import { lifecycleArtifactLabel } from "./workbench-presentation.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchReview } from "./primitives/WorkbenchReview.tsx";
-import { WorkbenchResourceRow } from "./primitives/WorkbenchResourceRow.tsx";
+import { WorkbenchResourceList } from "./primitives/WorkbenchResourceList.tsx";
 import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
 import {
   WorkbenchErrorState,
@@ -289,50 +289,60 @@ export const SignoffReview = ({
       aria-label="Package material"
     >
       <h3>Package material</h3>
-      <div className="order-review-approval-resources">
-        <WorkbenchResourceRow
-          label="Approval overview"
-          detail={
-            packageStale
+      <WorkbenchResourceList
+        items={[
+          {
+            id: "approval-overview",
+            label: "Approval overview",
+            detail: packageStale
               ? "Stale package history and recovery context"
               : currentApproval
                 ? "Exact current package and authorization"
-                : "Reached Approval history"
-          }
-          actionLabel="Open approval overview"
-          onOpen={() => setSelection({ kind: "OVERVIEW" })}
-        />
-        {packageArtifacts.map((artifact) => (
-          <WorkbenchResourceRow
-            key={artifact.id}
-            label={lifecycleArtifactLabel(artifact.role)}
-            detail="Read-only governed package material"
-            actionLabel={"Open " + lifecycleArtifactLabel(artifact.role)}
-            onOpen={() =>
-              setSelection({
-                kind: "DOCUMENT",
-                artifactId: artifact.id,
-              })}
-          />
-        ))}
-        {(currentApproval ? currentTasks : tasks).map((task) => (
-          <WorkbenchResourceRow
-            key={task.id}
-            label={task.objective}
-            detail={
-              currentApproval
-                ? "Signed implementation task"
-                : "Approved historical task"
-            }
-            actionLabel={"Inspect task: " + task.objective}
-            onOpen={() =>
-              setSelection({
-                kind: "TASK",
-                taskId: task.id,
-              })}
-          />
-        ))}
-      </div>
+                : "Reached Approval history",
+            action: (
+              <WorkbenchAction
+                label="Open approval overview"
+                tone="ghost"
+                onClick={() => setSelection({ kind: "OVERVIEW" })}
+              />
+            ),
+          },
+          ...packageArtifacts.map((artifact) => ({
+            id: "artifact:" + artifact.id,
+            label: lifecycleArtifactLabel(artifact.role),
+            detail: "Read-only governed package material",
+            action: (
+              <WorkbenchAction
+                label={"Open " + lifecycleArtifactLabel(artifact.role)}
+                tone="ghost"
+                onClick={() =>
+                  setSelection({
+                    kind: "DOCUMENT",
+                    artifactId: artifact.id,
+                  })}
+              />
+            ),
+          })),
+          ...(currentApproval ? currentTasks : tasks).map((task) => ({
+            id: "task:" + task.id,
+            label: task.objective,
+            detail: currentApproval
+              ? "Signed implementation task"
+              : "Approved historical task",
+            action: (
+              <WorkbenchAction
+                label={"Inspect task: " + task.objective}
+                tone="ghost"
+                onClick={() =>
+                  setSelection({
+                    kind: "TASK",
+                    taskId: task.id,
+                  })}
+              />
+            ),
+          })),
+        ]}
+      />
     </section>
   );
 
@@ -454,25 +464,27 @@ export const SignoffReview = ({
     return (
       <section className="order-review-approval-overview">
         <h3>Signed task meaning / scope / gates</h3>
-        <div className="order-review-approval-resources">
-          {currentTasks.map((task) => (
-            <WorkbenchResourceRow
-              key={task.id}
-              label={task.objective}
-              detail={
-                task.scope.length +
-                " scope item" +
-                (task.scope.length === 1 ? "" : "s") +
-                " · " +
-                task.gateIds.length +
-                " gate" +
-                (task.gateIds.length === 1 ? "" : "s")
-              }
-              actionLabel={"Inspect signed task: " + task.objective}
-              onOpen={() => setSelection({ kind: "TASK", taskId: task.id })}
-            />
-          ))}
-        </div>
+        <WorkbenchResourceList
+          items={currentTasks.map((task) => ({
+            id: "signed-task:" + task.id,
+            label: task.objective,
+            detail:
+              task.scope.length +
+              " scope item" +
+              (task.scope.length === 1 ? "" : "s") +
+              " · " +
+              task.gateIds.length +
+              " gate" +
+              (task.gateIds.length === 1 ? "" : "s"),
+            action: (
+              <WorkbenchAction
+                label={"Inspect signed task: " + task.objective}
+                tone="ghost"
+                onClick={() => setSelection({ kind: "TASK", taskId: task.id })}
+              />
+            ),
+          }))}
+        />
         <section>
           <h3>Governed documents</h3>
           <p>

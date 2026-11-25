@@ -21,7 +21,7 @@ import {
   type EvidenceSelection,
 } from "./workbench-presentation.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
-import { WorkbenchResourceRow } from "./primitives/WorkbenchResourceRow.tsx";
+import { WorkbenchResourceList } from "./primitives/WorkbenchResourceList.tsx";
 import { WorkbenchSectionHeader } from "./primitives/WorkbenchSectionHeader.tsx";
 import { WorkbenchState } from "./primitives/WorkbenchState.tsx";
 import { WorkbenchSurface } from "./primitives/WorkbenchSurface.tsx";
@@ -197,32 +197,31 @@ export const TerminalResult = ({
               description="The verified task and attempt history remains available under Implementation."
             />
           ) : (
-            <div className="order-resource-list">
-              {uniqueCandidateEvidence.map((candidate, index) => {
+            <WorkbenchResourceList
+              items={uniqueCandidateEvidence.map((candidate, index) => {
                 const label =
                   runRoleLabel(candidate.role) +
                   " evidence " +
                   (index + 1);
-                return (
-                  <WorkbenchResourceRow
-                    key={
-                      candidate.runId +
-                      ":" +
-                      candidate.proof.relativePath
-                    }
-                    label={label}
-                    detail="Verified implementation evidence"
-                    actionLabel={"Open " + label}
-                    onOpen={() =>
-                      onOpenEvidence({
-                        kind: "EVIDENCE",
-                        runId: candidate.runId,
-                        relativePath: candidate.proof.relativePath,
-                      })}
-                  />
-                );
+                return {
+                  id: candidate.runId + ":" + candidate.proof.relativePath,
+                  label,
+                  detail: "Verified implementation evidence",
+                  action: (
+                    <WorkbenchAction
+                      label={"Open " + label}
+                      tone="ghost"
+                      onClick={() =>
+                        onOpenEvidence({
+                          kind: "EVIDENCE",
+                          runId: candidate.runId,
+                          relativePath: candidate.proof.relativePath,
+                        })}
+                    />
+                  ),
+                };
               })}
-            </div>
+            />
           )}
         </section>
       ) : null}

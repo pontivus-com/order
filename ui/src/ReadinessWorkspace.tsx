@@ -29,7 +29,7 @@ import {
   type WorkflowMaterial,
 } from "./workbench-presentation.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
-import { WorkbenchResourceRow } from "./primitives/WorkbenchResourceRow.tsx";
+import { WorkbenchResourceList } from "./primitives/WorkbenchResourceList.tsx";
 import { WorkbenchReview } from "./primitives/WorkbenchReview.tsx";
 import { WorkbenchState } from "./primitives/WorkbenchState.tsx";
 import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
@@ -468,21 +468,24 @@ export const ReadinessWorkspace = ({
                     </section>
                   </div>
                   {relatedItems.filter((item) => item.selected !== true).length === 0 ? null : (
-                    <div className="order-resource-list">
-                      {relatedItems
+                    <WorkbenchResourceList
+                      items={relatedItems
                         .filter((item) => item.selected !== true)
-                        .map((item) => (
-                          <WorkbenchResourceRow
-                            key={item.id}
-                            label={item.label}
-                            detail={[item.description, item.statusLabel]
-                              .filter(Boolean)
-                              .join(" · ") || undefined}
-                            actionLabel={"Open " + item.label}
-                            onOpen={item.onSelect}
-                          />
-                        ))}
-                    </div>
+                        .map((item) => ({
+                          id: item.id,
+                          label: item.label,
+                          detail: [item.description, item.statusLabel]
+                            .filter(Boolean)
+                            .join(" · ") || undefined,
+                          action: (
+                            <WorkbenchAction
+                              label={"Open " + item.label}
+                              tone="ghost"
+                              onClick={item.onSelect}
+                            />
+                          ),
+                        }))}
+                    />
                   )}
                 </section>
 

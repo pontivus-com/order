@@ -1,20 +1,22 @@
 import { ListItem } from "@astryxdesign/core/List";
 import type { ReactNode } from "react";
-import { WorkbenchAction } from "./WorkbenchAction.tsx";
+
+export type WorkbenchResourceItem = Readonly<{
+  id: string;
+  label: string;
+  detail?: ReactNode;
+  meta?: ReactNode;
+  action?: ReactNode;
+}>;
 
 export const WorkbenchResourceRow = ({
-  label, detail, actionLabel = "Open", onOpen, leading,
-}: Readonly<{
-  label: string;
-  detail?: string;
-  actionLabel?: string;
-  onOpen: () => void;
-  leading?: ReactNode;
-}>) => (
+  id, label, detail, meta, action,
+}: WorkbenchResourceItem) => (
   <ListItem
+    itemKey={id}
     label={label}
     description={detail}
-    startContent={leading}
-    endContent={<WorkbenchAction label={actionLabel} tone="ghost" onClick={onOpen} />}
+    startContent={meta}
+    endContent={action}
   />
 );

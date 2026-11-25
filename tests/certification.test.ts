@@ -409,6 +409,7 @@ describe("Order cross-boundary certification", () => {
       "WorkbenchMasterDetail.tsx",
       "WorkbenchNotice.tsx",
       "WorkbenchRail.tsx",
+      "WorkbenchResourceList.tsx",
       "WorkbenchResourceRow.tsx",
       "WorkbenchReview.tsx",
       "WorkbenchSection.tsx",
@@ -798,7 +799,7 @@ describe("Order cross-boundary certification", () => {
     expect(consumersOf("WorkbenchRail")).toEqual([
       "WorkflowRail.tsx",
     ]);
-    expect(consumersOf("WorkbenchResourceRow")).toEqual([
+    expect(consumersOf("WorkbenchResourceList")).toEqual([
       "ExecutionWorkspace.tsx",
       "PreSignoffStageWorkspace.tsx",
       "ReadinessWorkspace.tsx",
@@ -806,6 +807,21 @@ describe("Order cross-boundary certification", () => {
       "SignoffReview.tsx",
       "TerminalResult.tsx",
     ]);
+    expect(consumersOf("WorkbenchResourceRow")).toEqual([]);
+    const resourceList = read("ui/src/primitives/WorkbenchResourceList.tsx");
+    const resourceRow = read("ui/src/primitives/WorkbenchResourceRow.tsx");
+    expect(resourceList).toContain("@astryxdesign/core/List");
+    expect(resourceList).toContain("./WorkbenchResourceRow.tsx");
+    expect(resourceRow).toContain("itemKey={id}");
+    expect(resourceRow).not.toContain("WorkbenchAction");
+    const resourceTheme = read("ui/src/theme.css");
+    for (const obsoleteResourceSelector of [
+      ".order-resource-list",
+      ".order-review-approval-resources",
+      ".order-workflow-event-evidence",
+    ]) {
+      expect(resourceTheme).not.toContain(obsoleteResourceSelector);
+    }
     expect(consumersOf("WorkbenchSectionHeader")).toEqual([
       "ActivityWorkspace.tsx",
       "EvidenceViewer.tsx",
@@ -1736,16 +1752,19 @@ describe("Order cross-boundary certification", () => {
       expect(source).not.toContain("PrimaryMaterialFrame");
       expect(source).not.toContain('data-testid="workflow-step-index"');
     }
-    expect(preSignoff).toContain("WorkbenchResourceRow");
+    expect(preSignoff).toContain("WorkbenchResourceList");
     expect(preSignoff).not.toContain('"Supporting material and history"');
     expect(preSignoff).not.toContain("WorkbenchDisclosure");
-    expect(readiness).toContain("WorkbenchResourceRow");
+    expect(readiness).toContain("WorkbenchResourceList");
     expect(readiness).toContain("Evidence / attempt history");
 
     // Implementation retains its canonical task master/detail topology while
     // attempt/history navigation uses explicit resource actions.
     expect(implementation).toContain("WorkbenchMasterDetail");
-    expect(implementation).toContain("WorkbenchResourceRow");
+    expect(implementation).toContain("WorkbenchResourceList");
+    for (const source of [preSignoff, readiness, approval, implementation]) {
+      expect(source).not.toContain("order-resource-list");
+    }
   });
 
   it("keeps the one-command productive installer purpose-built and bootstrap-only", () => {
