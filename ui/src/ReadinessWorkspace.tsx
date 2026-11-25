@@ -332,7 +332,7 @@ export const ReadinessWorkspace = ({
 
   const currentness =
     materialState === null
-      ? "Review in progress"
+      ? undefined
       : materialPresentationStateLabel(materialState);
 
   const packageItems = packageArtifacts.map((artifact) => ({
