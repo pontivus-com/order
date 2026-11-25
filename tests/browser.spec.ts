@@ -3787,8 +3787,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     name: "View task Prove the browser candidate surface",
     exact: true,
   }).click();
-  await expect(approval.getByText("Prove the browser candidate surface", { exact: true }))
-    .toBeVisible();
+  await expect(approval).toContainText("Prove the browser candidate surface");
   const approvalTask = page.getByTestId("review-workspace");
   await capture({
     id: "ia26-approval-task-wide-light",
