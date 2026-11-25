@@ -35,7 +35,7 @@ IA20/IA26 certify component API/consumer/physical-SoC closure in addition to the
 | `implementation-plan/10-a10-recovery-accessibility.md` | `1ee8fdc4d2aa45e684d444428c054b42c14ec574` |
 | `implementation-plan/11-a11-component-certification.md` | `538fc145f3058277d74496939aa15777317eecd5` |
 | `implementation-plan/12-action-catalog.md` | `6a416b20686e315acff0c78f8a2ec38ee11b0828` |
-| `implementation-plan/13-verification-closeout.md` | `6d6da4e1b82af632f3e0d451a55dfe649edfdbda` |
+| `implementation-plan/13-verification-closeout.md` | `9431acc1e3c30b6334d7630c0e4f363c5bbc59d3` |
 
 A source component hash mismatch makes PLAN non-current until this root is regenerated. Directory files contain no `order-tasks` block and own no independent lifecycle state or executable action definition.
 
@@ -1594,9 +1594,10 @@ T1 carries the same six logical gate IDs through final validation. During the li
 | bounded IA27 | IA28 | Compile-closed shell/Context proof is complete: Section/Facts exist, ContextPanel + WorkItemContext are atomically cut over, required-absent generic owners remain zero, shell/header/responsive/theme consumer allowlists pass, and IA27 SURF rows PASS. Review/Resource/Document/Result breaking APIs remain untouched. |
 | IA28 | **HUMAN EVIDENCE ACCEPTANCE → HUMAN SIGN-OFF; then post-signoff IA27 completion** | Fresh Queue/Create/application-shell proof against the bounded IA27 candidate + actual production-browser captures independently PASS `schema_information`, `ux_interaction`, `visual_ui`, `component_ownership` and bounded-foundation realization. Current R3/G6 `READY_FOR_SIGNOFF` is the prerequisite for this tranche. The bounded grant terminates here. |
 | post-signoff IA27 completion | IA29 | ResourceList is created, every current ResourceRow caller is migrated, ResourceRow is narrowed in the same typecheck-clean checkpoint, and no superseded Row API consumer remains. |
-| IA29 | IA30 | WorkbenchDocument/Facts/Section composition proof; required repository/document/Git supporting facts visible; no screen-local document-facts/aside grammar, generic workflow chrome, duplicate heading or technical leakage; all IA29 rows PASS. |
-| IA30 | IA31 | direct Document/Dialogue/Evidence/State resolution for productive stages excluding Proposal Review; continuous Dialogue semantics; all IA30-owned rows PASS; Proposal Review remains unchanged/unaccepted. |
-| IA31 | IA32 | Proposal/Readiness/Approval atomically cut over the single WorkbenchReview API with ReviewVerdict + ReviewSections/Facts/ResourceList; Proposal uses DocumentChangeView with raw diff secondary; no local `order-review-*` structural grammar, whole-R3-under-Findings duplication, raw enum or selector; all IA31 rows PASS. |
+| IA29 | IA31 | WorkbenchDocument/Facts/Section composition proof; required repository/document/Git supporting facts visible; no screen-local document-facts/aside grammar, generic workflow chrome, duplicate heading or technical leakage; all IA29 rows PASS. |
+| IA31 | IA30 | Proposal/Readiness/Approval atomically cut over the single WorkbenchReview API with ReviewVerdict + ReviewSections/Facts/ResourceList; Proposal uses DocumentChangeView with raw diff secondary; no local `order-review-*` structural grammar, whole-R3-under-Findings duplication, raw enum or selector; all IA31 rows PASS. |
+| IA30 | P0.4 HUX-09 / IA20+IA26 targeted fidelity proof | direct Document/Dialogue/Evidence/State resolution for productive stages excluding Proposal Review; continuous Dialogue semantics; all IA30-owned rows PASS; the IA31 Review owner remains unchanged. |
+| P0.4 HUX-09 / IA20+IA26 targeted fidelity proof | IA32 | Same-SURF/state/theme/viewport comparison for the ten operator-rejected captures records no unexplained material hierarchy, density, spacing, alignment, typography, Facts/ResourceList/Review-section/decision, action-prominence, content-measure or responsive divergence; HUX-01 through HUX-09 are explicitly operator `ACCEPTED`. |
 | IA32 | IA33 | Implementation purge/rebuild proof + canonical MasterDetail/Section/Facts/ResourceList ownership + both IA32 rows PASS; no local recurring card/section/resource grammar. |
 | IA33 | IA34 | Complete uses WorkbenchResult/Section/ResourceList and Evidence remains exact-byte owner; no local terminal/resource grammar; all IA33 rows PASS. |
 | IA34 | IA20-IA23 integrated certification | Settings uses Section/Facts/ResourceList with one diagnostics owner; all eleven IA34 rows PASS; 37/37 IA27-IA34 SURF union complete. |
