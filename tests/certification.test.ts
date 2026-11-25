@@ -137,7 +137,9 @@ describe("Order cross-boundary certification", () => {
     expect(queue).not.toContain("navigator.clipboard");
     expect(queue).toContain('label="New work item"');
     expect(queue).toContain('label={refreshPending ? "Refreshing…" : "Refresh sources"}');
-    expect(queue).toContain("<WorkbenchToolbarSearch");
+    expect(queue).toContain('from "@astryxdesign/core/TextInput"');
+    expect(queue).toContain('data-testid="workbench-search"');
+    expect(queue).not.toContain("WorkbenchToolbarSearch");
     expect(queue).toContain('data-testid="source-diagnostics"');
     expect(queue).toContain("<WorkbenchSurface");
     const applicationShell = read("ui/src/app.tsx");
@@ -447,10 +449,16 @@ describe("Order cross-boundary certification", () => {
     expect(appShell).not.toContain("order-workbench-app-destination");
     expect(appShell).not.toContain("<Drawer");
     expect(toolbar).toContain('className="order-workbench-toolbar"');
-    expect(toolbar).toContain('className="order-workbench-toolbar-primary"');
-    expect(toolbar).toContain('className="order-workbench-toolbar-secondary"');
+    expect(toolbar).toContain('className="order-workbench-toolbar-main"');
+    expect(toolbar).toContain('className="order-workbench-toolbar-project"');
+    expect(toolbar).toContain('className="order-workbench-toolbar-utilities"');
+    expect(toolbar).not.toContain("WorkbenchToolbarGroup");
+    expect(toolbar).not.toContain("WorkbenchToolbarSearch");
+    expect(toolbar).not.toContain("start:");
+    expect(toolbar).not.toContain("end:");
     expect(toolbar).not.toContain('className="order-toolbar"');
-    expect(application).toContain('className="order-application-orientation"');
+    expect(application).toContain("<WorkbenchToolbar");
+    expect(application).not.toContain('className="order-application-orientation"');
     expect(application).not.toContain('className="order-brand"');
     expect(application).not.toContain('className="order-theme-control"');
     expect(workItemShell).toContain("<Layout");
@@ -842,14 +850,10 @@ describe("Order cross-boundary certification", () => {
       "RunEventTimeline.tsx",
     ]);
     expect(consumersOf("WorkbenchToolbar")).toEqual([
-      "MarkdownEditor.tsx",
-      "WorkItemQueue.tsx",
       "app.tsx",
     ]);
     expect(consumersOf("WorkbenchUtilityLink")).toEqual([
-      "OpenCodeAccountControl.tsx",
       "SettingsWorkspace.tsx",
-      "app.tsx",
     ]);
   });
 
@@ -1068,7 +1072,7 @@ describe("Order cross-boundary certification", () => {
     expect(documentViewRule).not.toMatch(/(?:^|\s)(?:background|border|border-radius)\s*:/);
 
     const editorRule = theme.match(/\.order-markdown-editor\s*\{([^}]*)\}/)?.[1] ?? "";
-    expect(editorRule).toContain("grid-template-rows: auto auto auto auto minmax(0, 1fr);");
+    expect(editorRule).toContain("grid-template-rows: auto auto auto minmax(0, 1fr);");
 
     const formattingToolbarRule =
       theme.match(/\.order-markdown-format-toolbar\s*\{([^}]*)\}/)?.[1] ?? "";
@@ -1661,7 +1665,10 @@ describe("Order cross-boundary certification", () => {
 
     expect(accountControl).toContain("useQuery");
     expect(accountControl).not.toContain("useMutation");
-    expect(accountControl).toContain("onOpenSettings");
+    expect(accountControl).toContain("useOpenCodeAccountControl");
+    expect(accountControl).not.toContain("onOpenSettings");
+    expect(accountControl).not.toContain("WorkbenchUtilityLink");
+    expect(accountControl).not.toContain("WorkbenchStatus");
     expect(accountSettings).toContain("useMutation");
     expect(accountSettings).toContain("api.activateOpenCodeAccount");
     expect(accountSettings).toContain("api.renameOpenCodeAccount");

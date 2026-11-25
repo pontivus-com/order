@@ -131,6 +131,7 @@ export const App = () => {
   const [workspaceDirty, setWorkspaceDirty] = useState(false);
   const [pendingDestination, setPendingDestination] = useState<ApplicationDestination | undefined>(undefined);
   const originatingRowId = useRef<WorkItemId | null>(null);
+  const queueProjectInitialized = useRef(false);
 
   const workItemsQuery = useQuery({ queryKey: workbenchQueryKeys.workItems, queryFn: api.listWorkItems });
   const archivedWorkItemsQuery = useQuery({
@@ -187,8 +188,12 @@ export const App = () => {
       : workItems.find((item) => item.id === derivedFromWorkItemId) ?? null;
 
   useEffect(() => {
-    if (projectId.length === 0 && projectsQuery.data?.length) {
-      setProjectId(firstProjectId(projectsQuery.data));
+    if (!projectsQuery.data?.length) return;
+    const first = firstProjectId(projectsQuery.data);
+    if (projectId.length === 0) setProjectId(first);
+    if (!queueProjectInitialized.current) {
+      queueProjectInitialized.current = true;
+      setQueueProjectId((current) => current.length === 0 ? first : current);
     }
   }, [projectId, projectsQuery.data]);
 
@@ -371,14 +376,16 @@ export const App = () => {
   const projectOptions = (projectsQuery.data ?? []).map(
     (project) => project.projectId,
   );
-  const toolbarProjectId = selectedWorkItem?.projectId ?? projectId;
+  const toolbarProjectId =
+    selectedWorkItem?.projectId ??
+    (queueProjectId.length > 0 ? queueProjectId : null);
   const toolbar = (
     <WorkbenchToolbar
       orientation={{
         productLabel: "Order",
         destinationLabel: applicationDestination,
       }}
-      projectContext={toolbarProjectId.length === 0
+      projectContext={toolbarProjectId === null
         ? undefined
         : {
           value: toolbarProjectId,

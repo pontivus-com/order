@@ -109,8 +109,8 @@
   overscroll-behavior-inline: contain;
 }
 .order-workbench-toolbar-project {
-  width: min(14rem, 28vw);
-  min-width: 9rem;
+  width: var(--order-master-width);
+  min-width: min-content;
 }
 .order-workbench-project-context {
   min-width: 0;
@@ -1293,7 +1293,7 @@
   height: 100%;
   min-height: 0;
   display: grid;
-  grid-template-rows: auto auto auto auto minmax(0, 1fr);
+  grid-template-rows: auto auto auto minmax(0, 1fr);
   border: 1px solid var(--color-border-emphasized);
   border-radius: var(--radius-container);
   background: var(--color-background-surface);

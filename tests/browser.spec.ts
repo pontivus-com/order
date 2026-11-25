@@ -3019,7 +3019,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   expect(narrowFormattingOverflow.scrollWidth)
     .toBeGreaterThanOrEqual(narrowFormattingOverflow.clientWidth);
   const narrowEditorActionRegion = page.locator(
-    "form.order-markdown-editor .order-workbench-toolbar-secondary",
+    "form.order-markdown-editor .order-markdown-editor-actions",
   );
   const narrowEditorActionOverflow = await narrowEditorActionRegion.evaluate((node) => ({
     scrollWidth: node.scrollWidth,

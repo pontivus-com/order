@@ -1088,7 +1088,11 @@ describe("architecture fitness", () => {
     expect(projectConfig).toContain("rollbackWorkItemsRootMigration");
 
     expect(accountUtility).toContain("useQuery");
+    expect(accountUtility).toContain("useOpenCodeAccountControl");
     expect(accountUtility).not.toContain("useMutation");
+    expect(accountUtility).not.toContain("WorkbenchUtilityLink");
+    expect(accountUtility).not.toContain("WorkbenchStatus");
+    expect(application).toContain("useOpenCodeAccountControl");
     expect(accountUtility).not.toContain("api.activateOpenCodeAccount");
     expect(accountUtility).not.toContain("api.renameOpenCodeAccount");
     expect(accountUtility).not.toContain("api.removeOpenCodeAccount");
