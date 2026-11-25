@@ -330,10 +330,12 @@ export const ReadinessWorkspace = ({
     return <div data-testid="review-workspace">{selectedSecondary}</div>;
   }
 
-  const currentness =
+  const materialCurrentness =
     materialState === null
       ? undefined
       : materialPresentationStateLabel(materialState);
+  const currentness =
+    materialCurrentness === verdict ? undefined : materialCurrentness;
 
   const packageItems = packageArtifacts.map((artifact) => ({
       id: "package-" + artifact.id,
