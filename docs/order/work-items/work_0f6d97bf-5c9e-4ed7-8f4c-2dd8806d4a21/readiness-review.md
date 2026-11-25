@@ -2,11 +2,15 @@
 
 # Order 0.6.0 readiness review
 
-## Readiness verdict
+## Current status
 
-`READY_FOR_SIGNOFF`.
+**SUPERSEDED — NO CURRENT R3 VERDICT.**
 
-This is a fresh adversarial review of the corrected exact package. It establishes readiness for the next governed decision. It does not itself sign the package, authorize ordinary T1 execution, merge or release.
+The prior readiness review below applied only to the exact package recorded in this document. G-F38 and subsequent material P3/P4/DESIGN/P7 edits invalidate that package under lifecycle-context governance. The campaign gate register now owns current state: G3-G5A require fresh revalidation and G6 is INVALIDATED. A new R3 review is required after those gates are re-established.
+
+## Superseded readiness verdict
+
+The prior exact package was assessed as READY_FOR_SIGNOFF. That disposition is historical evidence only and must not be used as current execution/sign-off authority.
 
 The current revalidation includes the Proposal Review phase-owner correction that makes the DESIGN SURF registry agree with the already-governing G-F30/P7 consumer-atomic Review cutover (`SURF-MAT-PROPOSAL-001` -> IA31). This is an authority-alignment correction only: it changes no P2/P3 product semantics, component API, 37-SURF cardinality, T1 scope, or verification obligation.
 
@@ -51,8 +55,8 @@ Residual implementation inference required for the bounded foundation: **NONE**.
 
 ## Readiness disposition
 
-The exact package is materially complete and internally consistent for the governed next decision. The only admissible pre-sign-off implementation is a separately authorized bounded IA27 shell/Context realization followed by IA28 evidence acceptance. Discovery of a missing schema row, countermanding authority or foundation API defect invalidates this readiness and returns to the owning layer.
+Historical only. The exact package reviewed here has been superseded. G-F38 proves that the C19-F09 intermediate semantic-component architecture was not completely realized in the affected renderer families, and the subsequent authority/PLAN corrections require fresh G3-G5A alignment before another adversarial R3 can be issued.
 
 ## Final disposition
 
-`READY_FOR_SIGNOFF`.
+**SUPERSEDED / REVALIDATION REQUIRED. No current READY_FOR_SIGNOFF authority exists.**
