@@ -1,0 +1,1024 @@
+{
+  "schemaVersion": 1,
+  "status": "active-derived-comparison-evidence",
+  "semanticAuthority": false,
+  "authority": {
+    "p3": {
+      "id": "GW-DOC-WORKBENCH-UX-V2",
+      "path": "docs/requirements/workbench.md",
+      "blob": "865800890eaf8da1e7fa581e092aa8b9d072eab9"
+    },
+    "p4": {
+      "id": "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+      "path": "docs/architecture/workbench.md",
+      "blob": "4366cc2c79c22262438f0a3e66889c61b4fd5c40"
+    },
+    "theme": {
+      "id": "GW-DOC-WORKBENCH-THEME-V1",
+      "path": "docs/architecture/workbench-theme.md",
+      "blob": "03dfc6be3600a1128b5639d011f4c0159d3497dd"
+    },
+    "design": {
+      "id": "work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21/DESIGN",
+      "path": "docs/order/work-items/work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21/solution-design.md",
+      "blob": "f54ead6381f2ffe77e26e0f31022f008c93de26e"
+    }
+  },
+  "fixturePolicy": {
+    "kind": "canonical-semantic-placeholder",
+    "rule": "Reference fixtures demonstrate authority-defined composition only. They must not be cited as persisted Runs, findings, proposals, approvals, validation results, evidence, deployment state, or terminal outcomes.",
+    "runtimeEvidence": false
+  },
+  "source": "docs/references/workbench-ui/reference-atlas.html",
+  "query": "?surf=<SURF-ID>&state=<declared-state>&theme=light|dark|system",
+  "viewportClasses": {
+    "wide": 1440,
+    "narrow": 760
+  },
+  "surfaces": [
+    {
+      "id": "SURF-APP-001",
+      "interactionClass": "app",
+      "source": "reference-atlas.html",
+      "selector": "[data-surf=\"SURF-APP-001\"]",
+      "captureScope": "full-workbench",
+      "states": [
+        "default",
+        "readiness-blocked"
+      ],
+      "viewports": [
+        "wide",
+        "narrow"
+      ],
+      "themes": [
+        "light",
+        "dark",
+        "system"
+      ],
+      "authority": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "current DESIGN"
+      ]
+    },
+    {
+      "id": "SURF-QUEUE-001",
+      "interactionClass": "queue",
+      "source": "reference-atlas.html",
+      "selector": "[data-surf=\"SURF-QUEUE-001\"]",
+      "captureScope": "full-workbench",
+      "states": [
+        "populated",
+        "empty",
+        "no-match",
+        "source-diagnostic"
+      ],
+      "viewports": [
+        "wide",
+        "narrow"
+      ],
+      "themes": [
+        "light",
+        "dark",
+        "system"
+      ],
+      "authority": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "current DESIGN"
+      ]
+    },
+    {
+      "id": "SURF-CREATE-001",
+      "interactionClass": "form",
+      "source": "reference-atlas.html",
+      "selector": "[data-surf=\"SURF-CREATE-001\"]",
+      "captureScope": "full-workbench",
+      "states": [
+        "ordinary",
+        "linked-remediation"
+      ],
+      "viewports": [
+        "wide",
+        "narrow"
+      ],
+      "themes": [
+        "light",
+        "dark",
+        "system"
+      ],
+      "authority": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "current DESIGN"
+      ]
+    },
+    {
+      "id": "SURF-SET-001",
+      "interactionClass": "settings",
+      "source": "reference-atlas.html",
+      "selector": "[data-surf=\"SURF-SET-001\"]",
+      "captureScope": "full-workbench",
+      "states": [
+        "ready",
+        "readiness-blocked"
+      ],
+      "viewports": [
+        "wide",
+        "narrow"
+      ],
+      "themes": [
+        "light",
+        "dark",
+        "system"
+      ],
+      "authority": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "current DESIGN"
+      ]
+    },
+    {
+      "id": "SURF-SET-REPO-001",
+      "interactionClass": "settings",
+      "source": "reference-atlas.html",
+      "selector": "[data-surf=\"SURF-SET-REPO-001\"]",
+      "captureScope": "full-workbench",
+      "states": [
+        "default"
+      ],
+      "viewports": [
+        "wide",
+        "narrow"
+      ],
+      "themes": [
+        "light",
+        "dark",
+        "system"
+      ],
+      "authority": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "current DESIGN"
+      ]
+    },
+    {
+      "id": "SURF-SET-REPO-ADD-001",
+      "interactionClass": "form",
+      "source": "reference-atlas.html",
+      "selector": "[data-surf=\"SURF-SET-REPO-ADD-001\"]",
+      "captureScope": "full-workbench",
+      "states": [
+        "default",
+        "error"
+      ],
+      "viewports": [
+        "wide",
+        "narrow"
+      ],
+      "themes": [
+        "light",
+        "dark",
+        "system"
+      ],
+      "authority": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "current DESIGN"
+      ]
+    },
+    {
+      "id": "SURF-SET-REPO-MOVE-001",
+      "interactionClass": "form",
+      "source": "reference-atlas.html",
+      "selector": "[data-surf=\"SURF-SET-REPO-MOVE-001\"]",
+      "captureScope": "full-workbench",
+      "states": [
+        "default",
+        "conflict"
+      ],
+      "viewports": [
+        "wide",
+        "narrow"
+      ],
+      "themes": [
+        "light",
+        "dark",
+        "system"
+      ],
+      "authority": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "current DESIGN"
+      ]
+    },
+    {
+      "id": "SURF-SET-OC-001",
+      "interactionClass": "settings",
+      "source": "reference-atlas.html",
+      "selector": "[data-surf=\"SURF-SET-OC-001\"]",
+      "captureScope": "full-workbench",
+      "states": [
+        "default"
+      ],
+      "viewports": [
+        "wide",
+        "narrow"
+      ],
+      "themes": [
+        "light",
+        "dark",
+        "system"
+      ],
+      "authority": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "current DESIGN"
+      ]
+    },
+    {
+      "id": "SURF-SET-OC-RENAME-001",
+      "interactionClass": "form",
+      "source": "reference-atlas.html",
+      "selector": "[data-surf=\"SURF-SET-OC-RENAME-001\"]",
+      "captureScope": "full-workbench",
+      "states": [
+        "default"
+      ],
+      "viewports": [
+        "wide",
+        "narrow"
+      ],
+      "themes": [
+        "light",
+        "dark",
+        "system"
+      ],
+      "authority": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "current DESIGN"
+      ]
+    },
+    {
+      "id": "SURF-SET-OC-ADD-001",
+      "interactionClass": "form",
+      "source": "reference-atlas.html",
+      "selector": "[data-surf=\"SURF-SET-OC-ADD-001\"]",
+      "captureScope": "full-workbench",
+      "states": [
+        "default"
+      ],
+      "viewports": [
+        "wide",
+        "narrow"
+      ],
+      "themes": [
+        "light",
+        "dark",
+        "system"
+      ],
+      "authority": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "current DESIGN"
+      ]
+    },
+    {
+      "id": "SURF-SET-OC-LOGIN-001",
+      "interactionClass": "form",
+      "source": "reference-atlas.html",
+      "selector": "[data-surf=\"SURF-SET-OC-LOGIN-001\"]",
+      "captureScope": "full-workbench",
+      "states": [
+        "ready",
+        "processing",
+        "success",
+        "error"
+      ],
+      "viewports": [
+        "wide",
+        "narrow"
+      ],
+      "themes": [
+        "light",
+        "dark",
+        "system"
+      ],
+      "authority": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "current DESIGN"
+      ]
+    },
+    {
+      "id": "SURF-SET-MODEL-001",
+      "interactionClass": "settings",
+      "source": "reference-atlas.html",
+      "selector": "[data-surf=\"SURF-SET-MODEL-001\"]",
+      "captureScope": "full-workbench",
+      "states": [
+        "default"
+      ],
+      "viewports": [
+        "wide",
+        "narrow"
+      ],
+      "themes": [
+        "light",
+        "dark",
+        "system"
+      ],
+      "authority": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "current DESIGN"
+      ]
+    },
+    {
+      "id": "SURF-WI-001",
+      "interactionClass": "workitem",
+      "source": "reference-atlas.html",
+      "selector": "[data-surf=\"SURF-WI-001\"]",
+      "captureScope": "full-workbench",
+      "states": [
+        "default",
+        "current-action",
+        "blocked"
+      ],
+      "viewports": [
+        "wide",
+        "narrow"
+      ],
+      "themes": [
+        "light",
+        "dark",
+        "system"
+      ],
+      "authority": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "current DESIGN"
+      ]
+    },
+    {
+      "id": "SURF-WI-CONTEXT-001",
+      "interactionClass": "context",
+      "source": "reference-atlas.html",
+      "selector": "[data-surf=\"SURF-WI-CONTEXT-001\"]",
+      "captureScope": "full-workbench",
+      "states": [
+        "document",
+        "run",
+        "proposal",
+        "approval",
+        "task"
+      ],
+      "viewports": [
+        "wide",
+        "narrow"
+      ],
+      "themes": [
+        "light",
+        "dark",
+        "system"
+      ],
+      "authority": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "current DESIGN"
+      ]
+    },
+    {
+      "id": "SURF-STEP-WR-001",
+      "interactionClass": "document",
+      "source": "reference-atlas.html",
+      "selector": "[data-surf=\"SURF-STEP-WR-001\"]",
+      "captureScope": "full-workbench",
+      "states": [
+        "active",
+        "read-only",
+        "stale"
+      ],
+      "viewports": [
+        "wide",
+        "narrow"
+      ],
+      "themes": [
+        "light",
+        "dark",
+        "system"
+      ],
+      "authority": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "current DESIGN"
+      ]
+    },
+    {
+      "id": "SURF-STEP-R1-001",
+      "interactionClass": "dialogue",
+      "source": "reference-atlas.html",
+      "selector": "[data-surf=\"SURF-STEP-R1-001\"]",
+      "captureScope": "full-workbench",
+      "states": [
+        "open",
+        "required-input",
+        "processing",
+        "blocked"
+      ],
+      "viewports": [
+        "wide",
+        "narrow"
+      ],
+      "themes": [
+        "light",
+        "dark",
+        "system"
+      ],
+      "authority": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "current DESIGN"
+      ]
+    },
+    {
+      "id": "SURF-STEP-R2-001",
+      "interactionClass": "dialogue",
+      "source": "reference-atlas.html",
+      "selector": "[data-surf=\"SURF-STEP-R2-001\"]",
+      "captureScope": "full-workbench",
+      "states": [
+        "open",
+        "required-input",
+        "processing",
+        "blocked"
+      ],
+      "viewports": [
+        "wide",
+        "narrow"
+      ],
+      "themes": [
+        "light",
+        "dark",
+        "system"
+      ],
+      "authority": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "current DESIGN"
+      ]
+    },
+    {
+      "id": "SURF-STEP-DESIGN-001",
+      "interactionClass": "document",
+      "source": "reference-atlas.html",
+      "selector": "[data-surf=\"SURF-STEP-DESIGN-001\"]",
+      "captureScope": "full-workbench",
+      "states": [
+        "active",
+        "read-only",
+        "stale"
+      ],
+      "viewports": [
+        "wide",
+        "narrow"
+      ],
+      "themes": [
+        "light",
+        "dark",
+        "system"
+      ],
+      "authority": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "current DESIGN"
+      ]
+    },
+    {
+      "id": "SURF-STEP-PLAN-001",
+      "interactionClass": "document",
+      "source": "reference-atlas.html",
+      "selector": "[data-surf=\"SURF-STEP-PLAN-001\"]",
+      "captureScope": "full-workbench",
+      "states": [
+        "active",
+        "read-only",
+        "stale"
+      ],
+      "viewports": [
+        "wide",
+        "narrow"
+      ],
+      "themes": [
+        "light",
+        "dark",
+        "system"
+      ],
+      "authority": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "current DESIGN"
+      ]
+    },
+    {
+      "id": "SURF-STEP-R3-001",
+      "interactionClass": "review",
+      "source": "reference-atlas.html",
+      "selector": "[data-surf=\"SURF-STEP-R3-001\"]",
+      "captureScope": "full-workbench",
+      "states": [
+        "ready",
+        "return",
+        "required-input"
+      ],
+      "viewports": [
+        "wide",
+        "narrow"
+      ],
+      "themes": [
+        "light",
+        "dark",
+        "system"
+      ],
+      "authority": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "current DESIGN"
+      ]
+    },
+    {
+      "id": "SURF-STEP-APPROVAL-001",
+      "interactionClass": "review",
+      "source": "reference-atlas.html",
+      "selector": "[data-surf=\"SURF-STEP-APPROVAL-001\"]",
+      "captureScope": "full-workbench",
+      "states": [
+        "current",
+        "stale",
+        "signoff"
+      ],
+      "viewports": [
+        "wide",
+        "narrow"
+      ],
+      "themes": [
+        "light",
+        "dark",
+        "system"
+      ],
+      "authority": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "current DESIGN"
+      ]
+    },
+    {
+      "id": "SURF-STEP-EXEC-001",
+      "interactionClass": "master",
+      "source": "reference-atlas.html",
+      "selector": "[data-surf=\"SURF-STEP-EXEC-001\"]",
+      "captureScope": "full-workbench",
+      "states": [
+        "ready",
+        "running",
+        "blocked",
+        "validation-recorded",
+        "historical-selection"
+      ],
+      "viewports": [
+        "wide",
+        "narrow"
+      ],
+      "themes": [
+        "light",
+        "dark",
+        "system"
+      ],
+      "authority": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "current DESIGN"
+      ]
+    },
+    {
+      "id": "SURF-STEP-COMPLETE-001",
+      "interactionClass": "result",
+      "source": "reference-atlas.html",
+      "selector": "[data-surf=\"SURF-STEP-COMPLETE-001\"]",
+      "captureScope": "full-workbench",
+      "states": [
+        "verified-candidate",
+        "verified-result",
+        "linked-remediation"
+      ],
+      "viewports": [
+        "wide",
+        "narrow"
+      ],
+      "themes": [
+        "light",
+        "dark",
+        "system"
+      ],
+      "authority": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "current DESIGN"
+      ]
+    },
+    {
+      "id": "SURF-MAT-SOURCE-001",
+      "interactionClass": "document",
+      "source": "reference-atlas.html",
+      "selector": "[data-surf=\"SURF-MAT-SOURCE-001\"]",
+      "captureScope": "full-workbench",
+      "states": [
+        "edit",
+        "preview",
+        "split",
+        "dirty"
+      ],
+      "viewports": [
+        "wide",
+        "narrow"
+      ],
+      "themes": [
+        "light",
+        "dark",
+        "system"
+      ],
+      "authority": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "current DESIGN"
+      ]
+    },
+    {
+      "id": "SURF-MAT-DOC-001",
+      "interactionClass": "document",
+      "source": "reference-atlas.html",
+      "selector": "[data-surf=\"SURF-MAT-DOC-001\"]",
+      "captureScope": "full-workbench",
+      "states": [
+        "edit",
+        "preview",
+        "split",
+        "stale"
+      ],
+      "viewports": [
+        "wide",
+        "narrow"
+      ],
+      "themes": [
+        "light",
+        "dark",
+        "system"
+      ],
+      "authority": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "current DESIGN"
+      ]
+    },
+    {
+      "id": "SURF-MAT-DOC-RO-001",
+      "interactionClass": "document",
+      "source": "reference-atlas.html",
+      "selector": "[data-surf=\"SURF-MAT-DOC-RO-001\"]",
+      "captureScope": "full-workbench",
+      "states": [
+        "current",
+        "historical"
+      ],
+      "viewports": [
+        "wide",
+        "narrow"
+      ],
+      "themes": [
+        "light",
+        "dark",
+        "system"
+      ],
+      "authority": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "current DESIGN"
+      ]
+    },
+    {
+      "id": "SURF-MAT-ACTIVITY-001",
+      "interactionClass": "dialogue",
+      "source": "reference-atlas.html",
+      "selector": "[data-surf=\"SURF-MAT-ACTIVITY-001\"]",
+      "captureScope": "full-workbench",
+      "states": [
+        "open",
+        "required-input",
+        "processing",
+        "blocked"
+      ],
+      "viewports": [
+        "wide",
+        "narrow"
+      ],
+      "themes": [
+        "light",
+        "dark",
+        "system"
+      ],
+      "authority": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "current DESIGN"
+      ]
+    },
+    {
+      "id": "SURF-MAT-PROPOSAL-001",
+      "interactionClass": "review",
+      "source": "reference-atlas.html",
+      "selector": "[data-surf=\"SURF-MAT-PROPOSAL-001\"]",
+      "captureScope": "full-workbench",
+      "states": [
+        "pending",
+        "applying",
+        "failed"
+      ],
+      "viewports": [
+        "wide",
+        "narrow"
+      ],
+      "themes": [
+        "light",
+        "dark",
+        "system"
+      ],
+      "authority": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "current DESIGN"
+      ]
+    },
+    {
+      "id": "SURF-MAT-EVIDENCE-001",
+      "interactionClass": "evidence",
+      "source": "reference-atlas.html",
+      "selector": "[data-surf=\"SURF-MAT-EVIDENCE-001\"]",
+      "captureScope": "full-workbench",
+      "states": [
+        "text",
+        "code",
+        "error"
+      ],
+      "viewports": [
+        "wide",
+        "narrow"
+      ],
+      "themes": [
+        "light",
+        "dark",
+        "system"
+      ],
+      "authority": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "current DESIGN"
+      ]
+    },
+    {
+      "id": "SURF-MAT-APPROVAL-TASK-001",
+      "interactionClass": "review-detail",
+      "source": "reference-atlas.html",
+      "selector": "[data-surf=\"SURF-MAT-APPROVAL-TASK-001\"]",
+      "captureScope": "component-reference",
+      "states": [
+        "current",
+        "historical"
+      ],
+      "viewports": [
+        "wide",
+        "narrow"
+      ],
+      "themes": [
+        "light",
+        "dark",
+        "system"
+      ],
+      "authority": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "current DESIGN"
+      ]
+    },
+    {
+      "id": "SURF-MAT-EXEC-TASK-001",
+      "interactionClass": "master",
+      "source": "reference-atlas.html",
+      "selector": "[data-surf=\"SURF-MAT-EXEC-TASK-001\"]",
+      "captureScope": "full-workbench",
+      "states": [
+        "current",
+        "historical",
+        "blocked",
+        "validation-recorded"
+      ],
+      "viewports": [
+        "wide",
+        "narrow"
+      ],
+      "themes": [
+        "light",
+        "dark",
+        "system"
+      ],
+      "authority": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "current DESIGN"
+      ]
+    },
+    {
+      "id": "SURF-CONF-DIRTY-DEST-001",
+      "interactionClass": "confirm",
+      "source": "reference-atlas.html",
+      "selector": "[data-surf=\"SURF-CONF-DIRTY-DEST-001\"]",
+      "captureScope": "component-reference",
+      "states": [
+        "default"
+      ],
+      "viewports": [
+        "wide",
+        "narrow"
+      ],
+      "themes": [
+        "light",
+        "dark",
+        "system"
+      ],
+      "authority": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "current DESIGN"
+      ]
+    },
+    {
+      "id": "SURF-CONF-DIRTY-MATERIAL-001",
+      "interactionClass": "confirm",
+      "source": "reference-atlas.html",
+      "selector": "[data-surf=\"SURF-CONF-DIRTY-MATERIAL-001\"]",
+      "captureScope": "component-reference",
+      "states": [
+        "default"
+      ],
+      "viewports": [
+        "wide",
+        "narrow"
+      ],
+      "themes": [
+        "light",
+        "dark",
+        "system"
+      ],
+      "authority": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "current DESIGN"
+      ]
+    },
+    {
+      "id": "SURF-CONF-ARCHIVE-001",
+      "interactionClass": "confirm",
+      "source": "reference-atlas.html",
+      "selector": "[data-surf=\"SURF-CONF-ARCHIVE-001\"]",
+      "captureScope": "component-reference",
+      "states": [
+        "archive",
+        "restore"
+      ],
+      "viewports": [
+        "wide",
+        "narrow"
+      ],
+      "themes": [
+        "light",
+        "dark",
+        "system"
+      ],
+      "authority": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "current DESIGN"
+      ]
+    },
+    {
+      "id": "SURF-CONF-DOC-GIT-001",
+      "interactionClass": "confirm",
+      "source": "reference-atlas.html",
+      "selector": "[data-surf=\"SURF-CONF-DOC-GIT-001\"]",
+      "captureScope": "component-reference",
+      "states": [
+        "default",
+        "blocked"
+      ],
+      "viewports": [
+        "wide",
+        "narrow"
+      ],
+      "themes": [
+        "light",
+        "dark",
+        "system"
+      ],
+      "authority": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "current DESIGN"
+      ]
+    },
+    {
+      "id": "SURF-CONF-REPO-DISCONNECT-001",
+      "interactionClass": "confirm",
+      "source": "reference-atlas.html",
+      "selector": "[data-surf=\"SURF-CONF-REPO-DISCONNECT-001\"]",
+      "captureScope": "component-reference",
+      "states": [
+        "default"
+      ],
+      "viewports": [
+        "wide",
+        "narrow"
+      ],
+      "themes": [
+        "light",
+        "dark",
+        "system"
+      ],
+      "authority": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "current DESIGN"
+      ]
+    },
+    {
+      "id": "SURF-CONF-OC-REMOVE-001",
+      "interactionClass": "confirm",
+      "source": "reference-atlas.html",
+      "selector": "[data-surf=\"SURF-CONF-OC-REMOVE-001\"]",
+      "captureScope": "component-reference",
+      "states": [
+        "default"
+      ],
+      "viewports": [
+        "wide",
+        "narrow"
+      ],
+      "themes": [
+        "light",
+        "dark",
+        "system"
+      ],
+      "authority": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "current DESIGN"
+      ]
+    }
+  ]
+}
