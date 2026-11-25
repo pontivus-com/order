@@ -32,16 +32,7 @@ import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchResourceList } from "./primitives/WorkbenchResourceList.tsx";
 import { WorkbenchReview } from "./primitives/WorkbenchReview.tsx";
 import { WorkbenchState } from "./primitives/WorkbenchState.tsx";
-import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
-
-type ReadinessResourceItem = Readonly<{
-  id: string;
-  label: string;
-  description?: string;
-  statusLabel?: string;
-  selected: boolean;
-  onSelect: () => void;
-}>;
+import { WorkbenchIcon } from "./primitives/WorkbenchIcon.tsx";
 
 const packageRoles = new Set<ArtifactRef["role"]>([
   "R1",
@@ -209,43 +200,6 @@ export const ReadinessWorkspace = ({
       ? artifacts.find((artifact) => artifact.id === material.artifactId) ?? null
       : null;
 
-  const relatedItems: ReadinessResourceItem[] = [
-    ...(readinessArtifact === null
-      ? []
-      : [{
-        id: "review-" + readinessArtifact.id,
-        label: "Readiness review document",
-        description: "Inspect the exact governed R3 material",
-        statusLabel:
-          materialState === null
-            ? "Review in progress"
-            : materialPresentationStateLabel(materialState),
-        selected: false,
-        onSelect: () => onOpenArtifactEvidence(readinessArtifact.id),
-      }]),
-    ...stageRuns.map((run) => ({
-      id: "attempt-" + run.id,
-      label: "Readiness attempt " + run.attempt,
-      description: new Date(run.startedAt).toLocaleString(),
-      statusLabel: runStatusLabel(run.status),
-      selected: material.kind === "STAGE_RUN" && material.runId === run.id,
-      onSelect: () => onSelectMaterial({ kind: "STAGE_RUN", runId: run.id }),
-    })),
-    ...packageArtifacts.map((artifact) => ({
-      id: "package-" + artifact.id,
-      label: lifecycleArtifactLabel(artifact.role),
-      description: "Read-only governed package material",
-      selected:
-        material.kind === "SUPPORTING_DOCUMENT" &&
-        material.artifactId === artifact.id,
-      onSelect: () =>
-        onSelectMaterial({
-          kind: "SUPPORTING_DOCUMENT",
-          artifactId: artifact.id,
-        }),
-    })),
-  ];
-
   const reviewMaterial =
     readinessArtifact === null
       ? (
@@ -349,7 +303,11 @@ export const ReadinessWorkspace = ({
 
   if (
     selectedSecondary !== null &&
-    (requiredInputOwnsAttention || historicalRunSelected)
+    (
+      requiredInputOwnsAttention ||
+      historicalRunSelected ||
+      material.kind === "SUPPORTING_DOCUMENT"
+    )
   ) {
     return (
       <div data-testid="review-workspace">
@@ -367,142 +325,111 @@ export const ReadinessWorkspace = ({
     );
   }
 
-  if (
-    selectedSecondary !== null &&
-    material.kind === "EVIDENCE"
-  ) {
-    return (
-      <div data-testid="review-workspace">
-        {selectedSecondary}
-      </div>
-    );
+  if (selectedSecondary !== null && material.kind === "EVIDENCE") {
+    return <div data-testid="review-workspace">{selectedSecondary}</div>;
   }
 
-  const currentness = (
-    <WorkbenchStatus
-      tone={
-        materialState?.tag === "STALE"
-          ? "warning"
-          : materialState?.tag === "CURRENT" ||
-              materialState?.tag === "SIGNED_LOCKED"
-            ? "success"
-            : "info"
-      }
-      label={
-        materialState === null
-          ? "Review in progress"
-          : materialPresentationStateLabel(materialState)
-      }
-    />
-  );
+  const currentness =
+    materialState === null
+      ? "Review in progress"
+      : materialPresentationStateLabel(materialState);
+
+  const packageItems = [
+    ...(readinessArtifact === null
+      ? []
+      : [{
+        id: "review-" + readinessArtifact.id,
+        label: "Readiness review",
+        detail: currentness,
+        action: (
+          <WorkbenchAction
+            label="View Readiness review"
+            icon={<WorkbenchIcon name="document" />}
+            iconOnly
+            tone="ghost"
+            onClick={() => onOpenArtifactEvidence(readinessArtifact.id)}
+          />
+        ),
+      }]),
+    ...packageArtifacts.map((artifact) => ({
+      id: "package-" + artifact.id,
+      label: lifecycleArtifactLabel(artifact.role),
+      detail: "Governed package document",
+      action: (
+        <WorkbenchAction
+          label={"View " + lifecycleArtifactLabel(artifact.role)}
+          icon={<WorkbenchIcon name="document" />}
+          iconOnly
+          tone="ghost"
+          onClick={() =>
+            onSelectMaterial({
+              kind: "SUPPORTING_DOCUMENT",
+              artifactId: artifact.id,
+            })}
+        />
+      ),
+    })),
+  ];
+
+  const attemptItems = stageRuns.map((run) => ({
+    id: "attempt-" + run.id,
+    label: "Attempt " + run.attempt,
+    detail: runStatusLabel(run.status) + " · " + new Date(run.startedAt).toLocaleString(),
+    action: (
+      <WorkbenchAction
+        label={"View Readiness attempt " + run.attempt}
+        icon={<WorkbenchIcon name="dialogue" />}
+        iconOnly
+        tone="ghost"
+        onClick={() => onSelectMaterial({ kind: "STAGE_RUN", runId: run.id })}
+      />
+    ),
+  }));
 
   return (
     <div data-testid="review-workspace">
       <WorkbenchReview
-            currentness={currentness}
-            summary={
-              <div>
-                <h2>Readiness review</h2>
-                <p>Independent verdict and findings govern whether Approval may begin.</p>
-              </div>
-            }
-            body={
-              <div className="order-review-readiness-body">
+        title="Readiness review"
+        description="Independent package readiness."
+        verdict={{
+          label: verdict,
+          description: verdictDescription,
+          tone: verdictTone,
+          currentness,
+        }}
+        sections={[
+          {
+            id: "findings",
+            title: outcome?.startsWith("RETURN_TO_")
+              ? "Findings and return owner"
+              : "Findings",
+            content: (
+              <>
                 {reviewNotice}
-                <section
-                  className="order-review-readiness-verdict"
-                  data-testid="readiness-verdict"
-                  aria-label="Readiness verdict"
-                >
-                  <div>
-                    <strong>Readiness verdict</strong>
-                    <span>
-                      {verdictDescription}
-                    </span>
-                  </div>
-                  <WorkbenchStatus
-                    tone={verdictTone}
-                    label={verdict}
-                  />
-                </section>
-
-                <section
-                  className="order-review-readiness-findings"
-                  aria-label="Readiness findings"
-                >
-                  <h3>{outcome?.startsWith("RETURN_TO_") ? "Findings / return owner" : "Findings"}</h3>
-                  {outcome?.startsWith("RETURN_TO_") ? (
-                    <p className="order-review-readiness-return-owner">
-                      {readinessOutcomeLabel(outcome)}
-                    </p>
-                  ) : null}
-                  {reviewMaterial}
-                </section>
-
-                <section
-                  className="order-review-readiness-support"
-                  aria-label="Readiness package coherence and history"
-                >
-                  <div className="order-review-readiness-support-grid">
-                    <section>
-                      <h3>Package material needed to understand the verdict</h3>
-                      <p>
-                        {packageArtifacts.length === 0
-                          ? "No governed package material is currently available."
-                          : packageArtifacts.length +
-                            " reached/current governed package document" +
-                            (packageArtifacts.length === 1 ? "" : "s") +
-                            " available for read-only inspection."}
-                      </p>
-                    </section>
-                    <section>
-                      <h3>Evidence / attempt history</h3>
-                      <p>
-                        {stageRuns.length === 0
-                          ? "No Readiness attempt history is currently available."
-                          : stageRuns.length +
-                            " Readiness attempt" +
-                            (stageRuns.length === 1 ? "" : "s") +
-                            " available. Sign-off is never available in Readiness."}
-                      </p>
-                    </section>
-                  </div>
-                  {relatedItems.filter((item) => item.selected !== true).length === 0 ? null : (
-                    <WorkbenchResourceList
-                      items={relatedItems
-                        .filter((item) => item.selected !== true)
-                        .map((item) => ({
-                          id: item.id,
-                          label: item.label,
-                          detail: [item.description, item.statusLabel]
-                            .filter(Boolean)
-                            .join(" · ") || undefined,
-                          action: (
-                            <WorkbenchAction
-                              label={"Open " + item.label}
-                              tone="ghost"
-                              onClick={item.onSelect}
-                            />
-                          ),
-                        }))}
-                    />
-                  )}
-                </section>
-
-                {material.kind === "SUPPORTING_DOCUMENT" &&
-                selectedSecondary !== null ? (
-                  <section
-                    className="order-review-readiness-selected"
-                    aria-label="Selected Readiness supporting material"
-                  >
-                    <h3>Selected supporting material</h3>
-                    {selectedSecondary}
-                  </section>
+                {outcome?.startsWith("RETURN_TO_") ? (
+                  <strong>{readinessOutcomeLabel(outcome)}</strong>
                 ) : null}
-              </div>
-            }
-            decisions={reviewAction ?? <></>}
-          />
+                {reviewMaterial}
+              </>
+            ),
+          },
+          {
+            id: "package",
+            title: "Package documents",
+            content: packageItems.length === 0
+              ? <WorkbenchState kind="empty" title="No package documents" />
+              : <WorkbenchResourceList items={packageItems} />,
+          },
+          {
+            id: "attempts",
+            title: "Readiness attempts",
+            content: attemptItems.length === 0
+              ? <WorkbenchState kind="empty" title="No readiness attempts" />
+              : <WorkbenchResourceList items={attemptItems} />,
+          },
+        ]}
+        decisions={reviewAction}
+      />
     </div>
   );
 };
