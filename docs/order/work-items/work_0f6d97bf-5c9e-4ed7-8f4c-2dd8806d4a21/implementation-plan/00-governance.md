@@ -10,10 +10,10 @@ This decomposition is revalidated under C19-F09/C20-F11 after the prior G4-G6 cl
 - R2 `requirements.md`: `e1e53c493f405610f6f73d3e8b83084b91e7db9e`.
 - DESIGN `solution-design.md`: `44cc163332906514ec3cfeb5f181aedb8b989237` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 76-path forecast.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `9c2ec83a9552b7583f90e91080c014df4d6870df`.
-- P3 `GW-DOC-WORKBENCH-UX-V2`: `d47173839201c68937bdb4c840d0273dec5bcffc` — §11.4A/§12/§13/§14 own semantic information classes, state-is-not-interface behavior, direct primary interaction composition, no generic workflow-material selector, continuous Dialogue semantics, Terminal-result primacy, singular technical inspection, task anatomy and composition invariants.
+- P3 `GW-DOC-WORKBENCH-UX-V2`: `865800890eaf8da1e7fa581e092aa8b9d072eab9` — §11.4A/§12/§13/§14 own semantic information classes, state-is-not-interface behavior, direct primary interaction composition, no generic workflow-material selector, continuous Dialogue semantics, Terminal-result primacy, singular technical inspection, task anatomy and composition invariants.
 - P3 `GW-DOC-MARKDOWN-WORKBENCH-V1`: `1cc5a28eff8d180f88106d89990f7b89aa27a132` — §17.4 owns one compact Markdown editor-control region, overflow-before-wrap formatting and control→canvas adjacency.
-- P4 `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`: `9f05647f14fa43309d46457f30d66ca48b0b182f` — sole permanent owner of structural + semantic Workbench component responsibilities/APIs, consumer boundaries, composition laws and remediation disposition semantics.
-- P4 `GW-DOC-WORKBENCH-THEME-V1`: `43b81a61291841d827a47f392e0149ace5c8351f` — owns the corrected semantic-disclosure, technical-inspection and task-panel visual roles.
+- P4 `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`: `4366cc2c79c22262438f0a3e66889c61b4fd5c40` — sole permanent owner of structural + semantic Workbench component responsibilities/APIs, consumer boundaries, composition laws and remediation disposition semantics.
+- P4 `GW-DOC-WORKBENCH-THEME-V1`: `03dfc6be3600a1128b5639d011f4c0159d3497dd` — owns the corrected semantic-disclosure, technical-inspection and task-panel visual roles.
 - P6 `GW-DOC-CANONICAL-CONTRACTS-V2`: `71f829cff8824db18194689eccdec83da6f5d19f`.
 - SD13 checkpoint and SD10 scope/forecast/V4-V6 realization are consumed only because current DESIGN positively proves those canonical capabilities; T1 does not reimplement them.
 
@@ -85,8 +85,8 @@ The implementation rule is exact:
 
 - Primary information is visible without entering Context/Technical details;
 - Supporting/Operational information remains subordinate and cannot create another persistent navigation axis;
-- Technical information is absent from the ordinary surface and appears only through the authorized local Technical details or explicit Context owner;
-- Diagnostic/console detail is absent from ordinary UX and appears only through an already-authorized Technical/Context/Evidence inspection surface where legitimate inspection requires it;
+- Technical information is absent from the ordinary surface and appears only through the authorized WorkItem Context, Settings-diagnostics, Evidence or confirmation owner;
+- Diagnostic/console detail is absent from ordinary UX and appears only through an already-authorized Context/Settings-diagnostics/Evidence inspection surface where legitimate inspection requires it;
 - when a technical condition blocks progress, only its human-readable meaning/consequence/action is promoted; raw code/path/hash/session/payload remains technical/evidence-owned;
 - exact mutation-consent facts may become decision-primary only inside the owning confirmation;
 - responsive recomposition never changes classification/default visibility.

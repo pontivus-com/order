@@ -423,7 +423,7 @@ The replacement implementation law is destructive:
 1. UI primitives and approved non-screen content mechanisms are retained as reusable implementation capability.
 2. The old application/screen composition is removed before the replacement screen is authored.
 3. No old screen JSX/DOM hierarchy, field grouping, table-column selection, card/panel arrangement, control placement, screen-local CSS, responsive branch or visual hierarchy is presumed correct or copied forward.
-4. Replacement screen structure is derived only from the current functional contract, current P4/P5/P6 authority and the reviewed SVG composition where it is not superseded.
+4. Replacement screen structure is derived only from the current functional contract, current P4/P5/P6 authority and this package's current DESIGN. Derived visual references are comparison evidence only and may not supply missing structure or override those owners.
 5. Existing underlying query/mutation/domain code may be reused only through its canonical owner. Logic embedded only inside an old screen is not automatically reusable; it must be re-derived or extracted only when its non-visual responsibility is independently authorized and contains no screen-composition policy.
 6. A replacement is nonconforming if it can be described as the old screen with renamed classes, new wrappers, changed spacing, different tokens or rearranged cards.
 7. Every replacement screen must have a fresh screen-information-schema review and rendered comparison before its task may close.

@@ -64,7 +64,7 @@ SD20 exact-pin OpenCode proof is a mandatory IA23 precondition to IA26 and IA24:
 
 ### Pre-Approval structural-sensor correction
 
-The permanent package sensor is pre-signoff campaign material, not signed implementation surface. Before G5/G5A/R3 may return to PASS it must validate the current **76-path** DESIGN forecast against the exact one-task PLAN `changeSurface`; exactly one task candidate with empty `dependsOn`; the seven required-new semantic primitives plus `DocumentChangeView`; the P4/F6B disposition set; one application-shell, WorkItem-shell, Context and structural-responsive owner; exact IA27-IA34 owner/SURF allocation; and zero duplicate/shadow IA definitions outside `12-action-catalog.md`. It derives the 37-surface universe from `docs/references/workbench-ui/README.md` without creating another semantic registry.
+The permanent package sensor is pre-signoff campaign material, not signed implementation surface. Before G5/G5A/R3 may return to PASS it must validate the current **76-path** DESIGN forecast against the exact one-task PLAN `changeSurface`; exactly one task candidate with empty `dependsOn`; the seven required-new semantic primitives plus `DocumentChangeView`; the P4/F6B disposition set; one application-shell, WorkItem-shell, Context and structural-responsive owner; exact IA27-IA34 owner/SURF allocation; and zero duplicate/shadow IA definitions outside `12-action-catalog.md`. It derives the 37-surface universe directly from current `solution-design.md`; the derived reference manifest must match that universe but cannot define it.
 
 This sensor correction is campaign/package fitness only: `tests/architecture.test.ts` remains outside signed implementation tasks. Re-run architecture and root/modular compilation checks on the corrected package before G5 may return to PASS.
 
@@ -106,7 +106,7 @@ The bounded lane is not a waiver, test skip or alternate browser gate. It exists
 
 SD21/F6B's closed ledger plus IA27 implementation/disposition evidence, semantic checks, browser proof and `SURF-WI-001` render establish **foundation readiness**, not product acceptance. Foundation correctness must be demonstrated through a real consumer screen family.
 
-IA28 is therefore the first acceptance test for the Workbench foundation. Before IA29 may begin, the exact IA28 candidate must produce actual browser-rendered evidence for `SURF-APP-001`, `SURF-QUEUE-001` and `SURF-CREATE-001`, covering the Queue/application shell, Queue states, application notices/readiness, Create WorkItem, linked remediation and active-account utility states required by the IA28 face ledger. This evidence is produced only after R3/G6 `READY_FOR_SIGNOFF` by the bounded phase-local lane above and is reviewed for the subsequent human evidence-acceptance/sign-off decision even when the ordinary browser suite remains red solely on explicitly later-phase obligations; such red results remain recorded blockers and cannot be reclassified as pass. The review uses current P3/P4/DESIGN/theme authority as normative truth and the paired `docs/references/workbench-ui/*.svg` files as derived visual comparison material.
+IA28 is therefore the first acceptance test for the Workbench foundation. Before IA29 may begin, the exact IA28 candidate must produce actual browser-rendered evidence for `SURF-APP-001`, `SURF-QUEUE-001` and `SURF-CREATE-001`, covering the Queue/application shell, Queue states, application notices/readiness, Create WorkItem, linked remediation and active-account utility states required by the IA28 face ledger. This evidence is produced only after R3/G6 `READY_FOR_SIGNOFF` by the bounded phase-local lane above and is reviewed for the subsequent human evidence-acceptance/sign-off decision even when the ordinary browser suite remains red solely on explicitly later-phase obligations; such red results remain recorded blockers and cannot be reclassified as pass. The review uses current P3/P4/DESIGN/theme authority as normative truth and only authority-bound reference entries whose manifest pins those exact owners as derived visual comparison material.
 
 The reviewer must record for every IA28 SURF row:
 
@@ -127,7 +127,7 @@ Only this checkpoint accepts the bounded shell/Context foundation slice. It does
 
 ## Final exhaustive rendered 0.6.0 UX/UI acceptance — IA26
 
-The exact PR merge candidate must pass a dedicated GitHub Actions rendered-acceptance step before IA24 closeout. This step uses the existing Playwright production Workbench harness and the reviewed derived SVG pack at `docs/references/workbench-ui/README.md`; it does not create a second visual specification.
+The exact PR merge candidate must pass a dedicated GitHub Actions rendered-acceptance step before IA24 closeout. This step uses the existing Playwright production Workbench harness and the authority-bound derived comparison corpus at `docs/references/workbench-ui/reference-manifest.json`; it does not create a second visual specification.
 
 ### Evidence generation contract
 
@@ -153,7 +153,7 @@ Every manifest row records three independent verdicts:
 - `ux_interaction`: the direct owning interaction class is correct; required-absent WorkflowStepFrame/WorkflowMaterialSelector equivalents are absent; Dialogue remains continuous across OPEN/REQUIRED_INPUT/PROCESSING turns; Review/Evidence/Terminal primaries are not wrapped/nested; current-attention/action precedence, recovery and responsive composition conform;
 - `visual_ui`: rendered hierarchy, density, spacing, alignment, geometry, typography, component consistency, affordances, clipping/wrapping, overlays and theme behavior materially conform.
 
-Each dimension is `PASS` or `FAIL`; no `PARTIAL`, aggregate-only pass or unreviewed row may reach IA24. An unexplained material divergence from the SVG/reference composition is `FAIL`. A divergence required by newer current authority is `PASS` only when the exact superseding authority is recorded.
+Each dimension is `PASS` or `FAIL`; no `PARTIAL`, aggregate-only pass or unreviewed row may reach IA24. An unexplained material divergence from the same-scope authority-bound reference composition is `FAIL`. A divergence required by newer current authority is `PASS` only when the exact superseding authority is recorded.
 
 Any failed row blocks closeout, opens remediation at the defective implementation/authority owner, and requires a fresh exact-candidate GitHub Actions capture and review for the affected row after correction. Existing semantic/browser tests remain mandatory and cannot be replaced by screenshot acceptance.
 
