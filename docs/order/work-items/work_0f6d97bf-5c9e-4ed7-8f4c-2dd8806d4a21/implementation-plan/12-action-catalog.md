@@ -314,6 +314,8 @@ The IA27-IA34 union remains exactly **37 unique SURF rows** with no duplicate or
 
 ## IA29 — reconstruct Work request and governed Document composition
 
+**Binding operator findings:** HUX-01, HUX-02, HUX-07; HUX-05 applies to the Document family visual grammar. These findings remain blocking until fresh rendered proof is explicitly accepted.
+
 **Solution:** SD23.  
 **Owner dispositions:** `DocumentWorkspace.tsx` = `DECOMPOSE_REFACTOR`; `MarkdownEditor.tsx` = `DECOMPOSE_REFACTOR` at its outer Document composition/API boundary while preserving its specialist editing mechanics. Its earlier bounded removal of the invalid application-Toolbar dependency is a prerequisite dependency delta only and carries no IA29 PASS.  
 **Required mutation:** create `WorkbenchDocument` and atomically migrate its complete Work request/editable/read-only consumer set to that one canonical Document composition. Governed Markdown/editor content follows document identity/currentness/actions immediately. Work type/Project/Concerns/repository path/WorkItem document directory remain available through `WorkbenchFacts` only inside one specifically named same-task details disclosure placed after the primary content and closed by default; compact Git state/action remains adjacent to the document action. Remove local `WorkRequestFacts`/aside/`dl` layout ownership, any always-open metadata slab and any generic workflow chrome. Remove MarkdownEditor structural props that exist only to host feature-owned document layout; retain one compact editor-control region and direct control→canvas adjacency. Technical identity remains Context-owned.  
@@ -321,12 +323,16 @@ The IA27-IA34 union remains exactly **37 unique SURF rows** with no duplicate or
 
 ## IA30 — reconstruct productive stages excluding Proposal Review
 
+**Binding operator findings:** HUX-06; HUX-05 applies to productive-stage surface grammar. These findings remain blocking until fresh rendered proof is explicitly accepted.
+
 **Solution:** SD24.  
 **Owner dispositions:** `PreSignoffStageWorkspace.tsx` and `RunEventTimeline.tsx` = `DECOMPOSE_REFACTOR` where they own recurring section/timeline grammar; `ActivityWorkspace.tsx`/`ActivityComposer.tsx` = fresh `CONFORMING_NO_EDIT` or bounded migration only after P4 audit. Proposal Review is deliberately excluded until IA31 so WorkbenchReview can cut over with its complete consumer set.  
 **Required mutation:** route non-Proposal canonical productive-stage states directly to WorkbenchDocument/Dialogue/Evidence/State. Consume the post-signoff ResourceList cutover where repeated resources occur. Preserve Proposal selection/routing but do not change `ProposalReview.tsx` or WorkbenchReview in this phase.  
 **Proof:** all IA30-owned SURF rows PASS; no generic frame/selector or local recurring section/resource grammar in those rows; continuous Dialogue behavior and Context/Evidence inspection remain correct; Proposal Review is unchanged and explicitly unaccepted until IA31.
 
-## IA31 — destructively rebuild Readiness and Approval Review composition
+## IA31 — destructively rebuild Proposal, Readiness and Approval Review composition
+
+**Binding operator findings:** HUX-03, HUX-04; HUX-05 applies to Review-family visual grammar. HUX-08 is the cross-cutting no-slab/component-ownership constraint. These findings remain blocking until fresh rendered proof is explicitly accepted.
 
 **Solution:** SD25 plus IA16/IA17 semantic inputs.  
 **Owners:** `ProposalReview.tsx`, `ReadinessWorkspace.tsx`, `SignoffReview.tsx` = `DESTRUCTIVE_REPLACEMENT` of Review presentation composition; new `WorkbenchReviewVerdict.tsx`, `WorkbenchReviewSection.tsx` and `DocumentChangeView.tsx` = `REQUIRED_NEW`; existing `WorkbenchReview.tsx` = `DESTRUCTIVE_REPLACEMENT`. Domain/query/mutation semantics are reused only where independently conforming.  
@@ -354,6 +360,8 @@ The IA27-IA34 union remains exactly **37 unique SURF rows** with no duplicate or
 **Required mutation:** rebuild operator-first Settings using Section/Facts/ResourceList plus canonical Form/fields. Required repository roots/context facts remain default-visible Supporting information; task-required exact values become Primary only in the active task; all remaining technical provider/config identity is grouped under the single Settings diagnostics owner. Remove feature-local card/row/section systems and per-section technical disclosures.  
 **Proof:** all eleven IA34 rows PASS wide/narrow/theme; canonical component ownership, one diagnostics owner, required facts/active inputs and destructive confirmations are correct.
 ## IA26 — rendered 0.6.0 UX/UI acceptance evidence
+
+**Binding human-review prerequisite:** every HUX-* row in the operator UI findings ledger must be ACCEPTED. Mechanical evidence generation, browser success and row-level machine checks cannot substitute for that explicit human disposition.
 
 **Solution/authority:** existing SD16-SD18 verification and Workbench realization, current `GW-DOC-WORKBENCH-UX`, `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`, `GW-DOC-WORKBENCH-THEME-V1`, and current DESIGN SD21-SD30. The authority-bound comparison corpus under `docs/references/workbench-ui/` is downstream evidence only and is valid only when its manifest pins these exact current owners.  
 **Owners/anchors:** `tests/browser.spec.ts` for deterministic rendered-state capture and coverage assertions; `.github/workflows/ci.yml` for exact-candidate execution and evidence publication; `tests/certification.test.ts` for the exact CI supply-chain rule permitting only the pinned first-party artifact uploader required by this acceptance path.  
