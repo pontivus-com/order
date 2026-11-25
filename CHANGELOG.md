@@ -30,6 +30,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Fixed
 
+- Correct the 0.6.0 Priority-0 proof inputs before visual-fidelity work: make all Document-class reference fixtures document-first with closed subordinate Work request/location context, correct the canonical verification progression to IA29 → IA31 → IA30 → HUX-09 fidelity acceptance, and add permanent architecture/certification guards against either stale proof shape returning.
+
 - Complete the final 0.6.0 Workbench interaction and responsive remediation: keep Retry/Resume recovery actions inside the owning Dialogue state, return proposal review to its owning attempt, remove duplicate Research-document actions, and keep Markdown Save/Cancel fully visible at narrow widths while formatting controls absorb horizontal overflow.
 
 - Reopen IA27/IA28 after bounded rendered evidence proves the application-global header still uses the superseded UX/UI renderer: require destructive re-authorship of the AppShell/Toolbar/header selector realization from current authority, add a read-only 37-surface plus active-state diagnostic corpus before fresh production authorization, invalidate the superseded RZ14 grant, and keep IA29+ blocked until renewed PLAN/alignment closure and exact-package authorization.
