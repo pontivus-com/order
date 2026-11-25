@@ -4861,7 +4861,8 @@ test("historical inspection preserves current attention reason, return and curre
   await expect(page.getByTestId("workflow-step-summary")).toHaveCount(0);
   const returnToApproval = page.getByRole("button", { name: "Return to Approval", exact: true });
   await expect(returnToApproval).toBeVisible();
-  await expect(returnToApproval.locator("..")).toContainText("Approval authority is stale");
+  await expect(returnToApproval.locator("..")).toHaveClass(/order-productive-navigation/);
+  await expect(returnToApproval.locator("..")).not.toContainText("Approval authority is stale");
   await expect(page.getByRole("button", {
     name: "Return to Implementation plan",
     exact: true,
@@ -5487,14 +5488,15 @@ test("all nine workflow steps keep their canonical summary/material grammar and 
       if (step === "Readiness review") {
         await expect(page.getByRole("button", { name: "Return to Approval", exact: true })).toBeVisible();
       } else {
-        await expect(review).toContainText("Awaiting authorization");
+        await expect(review).toContainText("Ready for sign-off");
         await expect(page.getByRole("button", { name: "Return to Approval" })).toHaveCount(0);
       }
     } else {
       await expect(page.locator(".order-workbench-attention")).toHaveCount(0);
       const returnToApproval = page.getByRole("button", { name: "Return to Approval" });
       await expect(returnToApproval).toBeVisible();
-      await expect(returnToApproval.locator("..")).toContainText("Approval is ready for your action");
+      await expect(returnToApproval.locator("..")).toHaveClass(/order-productive-navigation/);
+      await expect(returnToApproval.locator("..")).not.toContainText("Approval is ready for your action");
       await expect(page.getByTestId("workflow-step-summary")).toHaveCount(0);
       await expect(page.getByTestId("primary-material-frame")).toHaveCount(0);
       await expect(page.getByTestId("workflow-step-workspace")).toBeVisible();
@@ -5938,8 +5940,8 @@ test("proposal decisions are primary, mutation-safe, and Approval keeps sign-off
   const approvalReview = page.getByTestId("review-workspace");
   await expect(approvalReview).toBeVisible();
   await expect(page.getByTestId("workflow-step-summary")).toHaveCount(0);
-  await expect(approvalReview).toContainText("Awaiting authorization");
-  await expect(approvalReview.getByTestId("approval-readiness-summary"))
+  await expect(approvalReview).toContainText("Ready for sign-off");
+  await expect(approvalReview.getByTestId("review-verdict"))
     .toContainText("Ready for sign-off");
   await expect(approvalReview.getByTestId("signoff-package-hash")).toHaveCount(0);
   await page.getByRole("button", { name: "Context", exact: true }).click();
@@ -5949,28 +5951,28 @@ test("proposal decisions are primary, mutation-safe, and Approval keeps sign-off
   await expect(page.getByTestId("workflow-step-index")).toHaveCount(0);
   await page.getByRole("button", { name: "Close context", exact: true }).click();
 
-  await openDisclosureResource(
-    page,
-    "Package material",
-    "Open Implementation plan",
-  );
+  await approvalReview.getByRole("button", {
+    name: "View Implementation plan",
+    exact: true,
+  }).click();
   await expect(page.getByTestId("markdown-readonly")).toBeVisible();
-  await expect(page.getByLabel("Approved by")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Sign off exact package" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Back to Approval", exact: true })).toBeVisible();
+  await expect(page.getByLabel("Approved by")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Sign off exact package" })).toHaveCount(0);
   await expect(page.getByTestId("document-git-controls")).toHaveCount(0);
+  await page.getByRole("button", { name: "Back to Approval", exact: true }).click();
 
-  await openDisclosureResource(
-    page,
-    "Package material",
-    "Inspect task: Prove the browser candidate surface",
-  );
-  const approvalTaskDetail = page.getByTestId("approval-task-detail");
+  await approvalReview.getByRole("button", {
+    name: "View task Prove the browser candidate surface",
+    exact: true,
+  }).click();
+  const approvalTaskDetail = page.getByTestId("review-workspace");
   await expect(approvalTaskDetail)
     .toContainText("Prove the browser candidate surface");
   await expect(approvalTaskDetail).toContainText("Gates");
   await expect(approvalTaskDetail).toContainText("Scope");
   await expect(approvalTaskDetail).toContainText("Exclusions");
-  await expect(approvalTaskDetail).toContainText("Change surface");
+  await expect(approvalTaskDetail).toContainText("Expected change surface");
   await expect(approvalTaskDetail).toContainText("Authority");
   await expect(approvalTaskDetail.getByText("Task id", { exact: true })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Task technical details", exact: true })).toHaveCount(0);
@@ -6367,12 +6369,11 @@ test("candidate Complete surface and reached Implementation expose V0-V7, exact 
     .toContainText("Approved package history");
   await expect(page.getByTestId("workflow-step-index")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Sign off exact package" })).toHaveCount(0);
-  await openDisclosureResource(
-    page,
-    "Package material",
-    "Inspect task: Prove the browser candidate surface",
-  );
-  await expect(page.getByTestId("approval-task-detail"))
+  await page.getByTestId("review-workspace").getByRole("button", {
+    name: "View task Prove the browser candidate surface",
+    exact: true,
+  }).click();
+  await expect(page.getByTestId("review-workspace"))
     .toContainText("Prove the browser candidate surface");
 
   await selectWorkflowStep(page, "Implementation");
