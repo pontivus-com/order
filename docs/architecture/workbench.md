@@ -863,7 +863,7 @@ The table defines **canonical target responsibilities and semantic APIs**, indep
 | `WorkbenchSectionHeader` | heading/description/local-action atom used by an owning semantic section or specialist renderer | no independent section boundary, page/surface topology or feature-local spacing system |
 | `WorkbenchSection` | one bounded semantic content section: optional heading/description/local action plus one leaf-content region, with canonical section spacing/boundary behavior | no arbitrary panel variants, caller geometry, nested section system or competing primary-action owner |
 | `WorkbenchFacts` | compact structured label/value facts whose visibility/classification has already been decided by P3/DESIGN; owns shared fact rhythm, wrapping and emphasis rules | no domain derivation, no technical-detail promotion, no arbitrary card chrome, no use as a substitute for Context/Evidence |
-| `WorkbenchDocument` | complete Document-class composition: document identity/currentness/action, optional DESIGN-authorized supporting facts, and exactly one governed document/editor content owner | no generic workflow summary/material selector; no second outer document heading; no technical-inspection lane; no caller-defined side layout; editor controls remain owned by the specialist editor |
+| `WorkbenchDocument` | complete Document-class composition: document identity/currentness/action, exactly one governed document/editor content owner, and an optional specifically named same-task details disclosure after the primary content | no generic workflow summary/material selector; no always-open metadata/facts slab before content; no second outer document heading; no technical-inspection lane; no caller-defined side layout; editor controls remain owned by the specialist editor |
 | `WorkbenchResult` | complete Terminal-result composition: product-facing outcome/status, optional summary, ordered semantic sections/resources and permitted result action | no synthetic attention wrapper, generic container-taxonomy headings, internal enum/event identity or caller-defined result topology |
 | `WorkbenchSelector` | bounded subordinate single-selection only where the owning interaction DESIGN explicitly requires peer selection; uses Astryx `Selector` with the declared secondary/adaptive treatment | no generic workflow-material/history role; no Review currentness/navigation role; no stage-orientation role; no speculative consumer; item count never changes surrounding topology; every production consumer is allowlisted by the renderer matrix |
 | `WorkbenchDialogue` | transcript scrolling, one bounded supporting-activity region, anchored composer region, focus/keyboard continuity and empty/pending slots | no generic header/technical-detail slots; no Run/RunEvent/query ownership; no input-admission policy |
@@ -1055,8 +1055,8 @@ WorkbenchDocument({
   description?,
   status?,
   action?,
-  facts?,
   content,
+  details?: { label, content },
 })
 WorkbenchResult({
   title,
