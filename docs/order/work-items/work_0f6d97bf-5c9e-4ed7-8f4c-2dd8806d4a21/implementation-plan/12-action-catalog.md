@@ -263,6 +263,8 @@ Before any bounded Wave 2/3 UI mutation, the exact corrected P4/DESIGN/PLAN pack
 
 ### Binding operator UI findings — human acceptance ledger
 
+**Upstream provenance:** every HUX row below is a concrete rendered/implementation manifestation of the already-governing `C19-F09` intermediate semantic-component/composition finding and its `C20-F11` governance/acceptance closure. The HUX ledger does **not** create a second architecture. `C19-F09` remains the root technical finding: feature renderers may not own recurring Review/facts/resource/Document/Result anatomy. `C20-F11` remains the proof/governance finding: prior PASS/acceptance cannot establish completion of that architecture. HUX rows preserve the operator-observed instances until the owning IA phase proves the exact DESIGN/P4 mapping and receives explicit rendered acceptance.
+
 This ledger records direct operator findings from rendered 0.6.0 review. It is **binding P7 acceptance input**, not commentary and not implementation advice. These rows exist specifically so repeated human review findings cannot disappear between implementation passes, test rewrites or regenerated evidence.
 
 **State law:**
@@ -285,6 +287,20 @@ This ledger records direct operator findings from rendered 0.6.0 review. It is *
 | HUX-08 | No screen may replace the granular information/component contract with undifferentiated prose. Every information area must be projected into the canonical semantic owner defined by DESIGN/P4; implementation does not invent ad-hoc slabs. | all 37 governed SURF-* rows, with immediate blocking focus on IA29-IA31 rejected surfaces | enforce the closed mapping canonical datum/action -> P3 class -> DESIGN row -> semantic component owner -> exact composition position; Section/Facts/ResourceList/ReviewVerdict/ReviewSection/Document/Dialogue/Evidence/Result are mandatory where assigned. | “slab text”, explanatory copy used as structure, local recurring section/facts/resource/review grammar, component wrappers whose arbitrary ReactNode body lets the feature rebuild the UI hierarchy | IA20 certification + each owning implementation phase + IA26 | OPEN_BLOCKING globally until all affected phase proofs and final IA26 ledger have zero unresolved human findings |
 
 **No-loss rule:** IA29, IA30 and IA31 may not be recorded complete while any finding owned by that phase remains OPEN_BLOCKING or PROOF_REQUIRED. IA26 final acceptance additionally requires every HUX-* row to be ACCEPTED. The implementation team must reference the relevant HUX-* ids in commits/tests/proof notes for the corrected surfaces so a future session can trace each rendered correction back to the exact operator finding.
+
+**C19-F09 implementation-completion matrix:** the intermediate semantic layer is complete only when every applicable consumer has stopped owning the recurring anatomy assigned to the canonical component. A component import or wrapper is not completion.
+
+| Phase | Required C19-F09 realization | Current audit disposition |
+|---|---|---|
+| IA29 | Work request/editable/read-only document consumers are fully owned by `WorkbenchDocument`; structured subordinate context uses `WorkbenchFacts` only in the DESIGN-authorized named same-task disclosure; Markdown specialist owns only editor mechanics. | **INCOMPLETE / RE-PROVE** — HUX-01/HUX-02/HUX-07/HUX-05 remain blocking. Prior IA29 completion claims are superseded by rendered evidence. |
+| IA30 | productive Research/Requirements/DESIGN/PLAN renderers route directly to Document/Dialogue/Evidence/State and contain no recurring feature-owned section/context/card grammar. | **INCOMPLETE** — current feature-local productive-stage grammar remains evidence of C19-F09. |
+| IA31 | Proposal/Readiness/Approval use the closed Review schema: one ReviewVerdict, DESIGN-declared ReviewSections, Facts only for classified structured facts, ResourceList for repeated resources, DocumentChangeView for proposal document mutation; no local Review hierarchy. | **INCOMPLETE / RE-PROVE** — HUX-03/HUX-04/HUX-08 remain blocking; current provisional bytes require exact SURF-to-component audit before acceptance. |
+| IA32 | Implementation detail uses MasterDetail + Section/Facts/ResourceList; no local `order-implementation-*` section/list/card system recreates semantic anatomy. | **NOT COMPLETE** — current renderer still owns recurring section/list anatomy. |
+| IA33 | Complete uses `WorkbenchResult` + canonical Section/ResourceList; no local terminal-result hierarchy owns outcome/resources/content grouping. | **NOT COMPLETE** — current renderer still owns local terminal section grammar. |
+| IA34 | Settings/account/model/repository surfaces use SettingsLayout + Section/Facts/ResourceList/Form owners; no feature-local pane/resource/facts/diagnostic grouping except the one authorized diagnostics owner. | **NOT COMPLETE** — current renderers still own substantial recurring pane/section/resource anatomy. |
+
+**Completion test:** for every affected SURF row, review the complete datum/action inventory and record exactly one chain `canonical datum/action -> P3 class -> DESIGN SURF row -> canonical semantic component -> exact placement/visibility/action`. If the feature renderer must invent recurring hierarchy, grouping, resource grammar, responsive behavior, border/background/radius or explanatory prose to make the information understandable, the C19-F09 realization is not complete and the phase cannot PASS.
+
 
 
 The 37 governed `SURF-*` rows declared by current `solution-design.md` remain partitioned exactly once across IA27-IA34. G-F30 changes only physical cutover timing and moves Proposal Review acceptance to IA31 so the WorkbenchReview API can change atomically with all Review consumers.
