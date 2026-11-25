@@ -12,14 +12,14 @@ R1 confirmed that Order already has the material structure: layer ownership, can
 
 | Requirement | Disposition | Canonical owner |
 |---|---|---|
-| Normative propositions have one owning pyramid layer and lower layers derive from, rather than become, higher authority. | DELTA | GW-DOC-SYSTEMS-GOVERNANCE-PYRAMID-V1 |
-| Lower-layer restatement does not create authority; downstream material cites the canonical owner and owns only its local consequence. | REFERENCE | GW-P1-DOC-CANONICALITY |
-| A semantic fact has one canonical meaning/owner and an expressly authorized lifecycle of production, transformation, decision use, consumption, presentation and mutation; structural field availability alone does not authorize semantic use. | DELTA | GW-DOC-SYSTEMS-GOVERNANCE-PYRAMID-V1 |
+| Normative propositions have one owning pyramid layer and lower layers derive from, rather than become, higher authority. | LOCAL |  |
+| Lower-layer documentation references the canonical concern and owns only its local consequence. | REFERENCE | GW-DOC-PROJECT-GOVERNANCE-INTEGRATION-V1 |
+| A semantic fact has one canonical meaning/owner and an expressly authorized lifecycle of production, transformation, decision use, consumption, presentation and mutation; structural field availability alone does not authorize semantic use. | LOCAL |  |
 | Runtime context remains a minimum sufficient projection over canonical authority and unresolved higher authority returns upstream. | REFERENCE | GW-DOC-LIFECYCLE-CONTEXT-V2 |
-| Equivalent semantic DTO/domain/persistence/UI copies remain prohibited and canonical contracts stay singular. | REFERENCE | GW-DOC-CANONICAL-CONTRACTS-V2 |
+| Equivalent semantic copies remain prohibited and canonical semantic ownership is preserved through project governance integration. | REFERENCE | GW-DOC-PROJECT-GOVERNANCE-INTEGRATION-V1 |
 | The conformance exercise has one WorkItem-local current-state register and routes findings to their actual owner without silently repairing them in the audit. | LOCAL |  |
-| Mechanically checkable semantic-boundary propositions receive proportionate positive and negative/noninterference proof without creating a second specification in tests. | LOCAL |  |
-| Span MCP runtime integration, Functional Pyramid participation/configuration and Span-specific governance carriers remain out of scope. | REFERENCE | GW-DOC-TECHNICAL-DECISIONS-V1 |
+| Mechanically checkable semantic-boundary propositions receive proportionate positive and negative/noninterference proof without creating a second specification in tests. | REFERENCE | GW-DOC-VALIDATION-STANDARD-V1 |
+| Span MCP runtime integration, Functional Pyramid participation/configuration and Span-specific governance carriers remain out of scope. | LOCAL |  |
 
 ## Required observable outcome/delta
 
@@ -57,10 +57,11 @@ C02/C03 established the exact defects below. These are consequences of the exist
 
 | Remediation requirement | Disposition | Canonical owner |
 |---|---|---|
-| P2/P5 documents must not restate or contradict exact P3 lifecycle/account-management semantics. | REFERENCE | `GW-P1-DOC-CANONICALITY`, `GW-DOC-WORK-LIFECYCLE-V1`, `GW-DOC-INSTALLATION-READINESS-V1` |
-| The project `refs` registry must remain exact identity→source resolution without itself granting stage applicability. Historical/versioned and evidence-only refs may remain resolvable without becoming ordinary current stage authority. | REFERENCE | `GW-P1-EXPLICIT-FLOW`, `GW-P1-AUTHORITY-BEFORE-INFERENCE`, `GW-DOC-LIFECYCLE-CONTEXT-V2` |
-| `authority.p1-p6` must select the current governing sources intended for ordinary stage projection; retained semantic versions and prior-art evidence are not injected merely because they remain referenceable. | REFERENCE | `GW-DOC-LIFECYCLE-CONTEXT-V2`, `GW-DOC-PROJECT-GOVERNANCE-INTEGRATION-V1` |
-| A signed task may rely on an `acceptanceRef`/`authorityRef` only when the exact referenced source is already in the current material context/closure through an authorized applicability path. Exact ref resolution alone is insufficient. | REFERENCE | `GW-DOC-LIFECYCLE-CONTEXT-V2`, `GW-DOC-CANONICAL-CONTRACTS-V2` |
+| The P2 System Brief must not restate the exact P3 WorkItem lifecycle. | REFERENCE | GW-DOC-WORK-LIFECYCLE-V1 |
+| P5 account-control wording must not contradict the P3 shell-versus-Settings account-management boundary. | REFERENCE | GW-DOC-INSTALLATION-READINESS-V1 |
+| The project `refs` registry remains exact identity→source resolution without itself granting stage applicability; reference-only material is omitted from ordinary stage context. | REFERENCE | GW-DOC-LIFECYCLE-CONTEXT-V2 |
+| Active authority projection selects only sources applicable to the current governed stage; retained semantic versions and prior-art evidence are not injected merely because they remain referenceable. | REFERENCE | GW-DOC-LIFECYCLE-CONTEXT-V2 |
+| A signed task may rely on an `acceptanceRef`/`authorityRef` only when the exact referenced source is already in the current material context/closure through an authorized applicability path. Exact ref resolution alone is insufficient. | REFERENCE | GW-DOC-LIFECYCLE-CONTEXT-V2 |
 | The separate 0.6.0 campaign remains the implementation owner for overlapping Workbench reconstruction. This WorkItem must not create a competing UI implementation; it records/revalidates FP-F08-F11 against the exact PR #83 candidate and blocks closure while a finding remains open. | LOCAL |  |
 
 Additional acceptance:
