@@ -8,7 +8,6 @@ import {
   lifecycleArtifactLabel, proposalDispositionFor, type ProposalSelection,
 } from "./workbench-presentation.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
-import { WorkbenchFacts } from "./primitives/WorkbenchFacts.tsx";
 import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
 import { WorkbenchReview } from "./primitives/WorkbenchReview.tsx";
 import { WorkbenchState } from "./primitives/WorkbenchState.tsx";
@@ -89,26 +88,14 @@ export const ProposalReview = ({
         verdict={verdict}
         sections={[
           {
-            id: "proposal-context",
-            title: "Change",
-            content: (
-              <WorkbenchFacts
-                label="Proposal"
-                items={[
-                  {
-                    id: "target",
-                    label: "Document",
-                    value: lifecycleArtifactLabel(proposal.role),
-                  },
-                  {
-                    id: "rationale",
-                    label: "Rationale",
-                    value: proposal.rationale,
-                    emphasis: "strong",
-                  },
-                ]}
-              />
-            ),
+            id: "target",
+            title: "Target",
+            content: <p>{lifecycleArtifactLabel(proposal.role)}</p>,
+          },
+          {
+            id: "rationale",
+            title: "Rationale",
+            content: <p>{proposal.rationale}</p>,
           },
           {
             id: "proposed-document",
