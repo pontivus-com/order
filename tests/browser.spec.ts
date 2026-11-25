@@ -4262,8 +4262,9 @@ test("queue filtering composes archive dataset, project and search exactly once"
   });
 
   await authenticate(page, request);
-  await expect(rowFor(page, "Matrix active other")).toBeVisible();
+  await expect(rowFor(page, "Matrix active other")).toHaveCount(0);
   await expect(rowFor(page, "Matrix archived other")).toHaveCount(0);
+  await expect(rowFor(page, "Change work type")).toBeVisible();
 
   await page.getByRole("link", { name: "Settings", exact: true }).click();
   const repositories = page.getByTestId("settings-repositories");
