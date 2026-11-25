@@ -2521,8 +2521,8 @@ describe("architecture fitness", () => {
       }
     }
     for (const requiredP4Toolbar of [
-      "value: ProjectId",
-      "options: readonly ProjectId[]",
+      "value: string",
+      "options: readonly string[]",
       "navigation: { label: \"Settings\" | \"Work queue\"",
       "account.readiness",
       "selected WorkItem may provide static Project context",
