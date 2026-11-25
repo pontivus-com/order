@@ -332,8 +332,9 @@ export const SourceDocumentMaterial = ({
     );
   }
 
+  const source = git.sourceQuery.data;
   const sourceSchema = schemasQuery.data.find(
-    (schema) => schema.schemaId === git.sourceQuery.data.metadata.schemaId,
+    (schema) => schema.schemaId === source.metadata.schemaId,
   );
   if (sourceSchema === undefined) {
     return (
@@ -391,20 +392,20 @@ export const SourceDocumentMaterial = ({
               {
                 id: "project",
                 label: "Project",
-                value: git.sourceQuery.data.metadata.projectId,
+                value: source.metadata.projectId,
               },
               {
                 id: "concerns",
                 label: "Concerns",
                 value:
-                  git.sourceQuery.data.metadata.concernIds.length === 0
+                  source.metadata.concernIds.length === 0
                     ? "—"
-                    : git.sourceQuery.data.metadata.concernIds.join(", "),
+                    : source.metadata.concernIds.join(", "),
               },
               {
                 id: "repository-path",
                 label: "Repository path",
-                value: git.sourceQuery.data.path,
+                value: source.path,
               },
               {
                 id: "workitem-documents",
@@ -420,8 +421,8 @@ export const SourceDocumentMaterial = ({
             <MarkdownEditor
               key={"source-" + workItem.id}
               sourceLabel="WorkItem source"
-              sha256={git.sourceQuery.data.sha256}
-              markdown={git.sourceQuery.data.bodyMarkdown}
+              sha256={source.sha256}
+              markdown={source.bodyMarkdown}
               readOnly={sourceReadOnly}
               saveDisabled={mutationsDisabled}
               onDirtyChange={(value) => {
