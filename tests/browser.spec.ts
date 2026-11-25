@@ -1562,10 +1562,10 @@ test("Approval consumes the real typed stale authority owner and returns to the 
   await expect(page.getByTestId("workflow-step-summary")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Return to Implementation plan", exact: true })).toBeVisible();
   await expect(page.getByTestId("review-workspace")).toContainText(
-    "Sign-off not completed · workflow returned upstream",
+    "Returned before sign-off",
   );
   await expect(page.getByTestId("review-workspace")).toContainText(
-    "no sign-off authority was created",
+    "Approval history",
   );
   await expect(
     page.getByRole("button", { name: "Sign off exact package" }),
@@ -4830,7 +4830,7 @@ test("completed pre-signoff history never suppresses the canonical next-stage ac
   }
 });
 
-test("historical inspection preserves current attention reason, return and current action", async ({
+test("historical inspection keeps return navigation bounded and current mutations on the current owner", async ({
   page,
   request,
 }) => {
@@ -4851,7 +4851,7 @@ test("historical inspection preserves current attention reason, return and curre
       exact: true,
     });
     await expect(returnToCurrent).toBeVisible();
-    await expect(returnToCurrent.locator("..")).toContainText(attentionText);
+    await expect(returnToCurrent.locator("..")).not.toContainText(attentionText);
     if (currentAction !== null) {
       await expect(page.getByRole("button", {
         name: currentAction,
@@ -4941,7 +4941,7 @@ test("canonical Run feedback remains visible in the owning workflow context with
   await expect(page.locator(".order-workbench-attention")).toHaveCount(0);
   const returnToPlan = page.getByRole("button", { name: "Return to Implementation plan", exact: true });
   await expect(returnToPlan).toBeVisible();
-  await expect(returnToPlan.locator("..")).toContainText("Implementation plan requires recovery");
+  await expect(returnToPlan.locator("..")).not.toContainText("Implementation plan requires recovery");
   await expect(
     page.getByText("Technical diagnostics available", { exact: true }),
   ).toBeVisible();
@@ -5508,7 +5508,6 @@ test("all nine workflow steps keep their canonical summary/material grammar and 
       await expect(page.locator(".order-workbench-attention")).toHaveCount(0);
       const returnToApproval = page.getByRole("button", { name: "Return to Approval" });
       await expect(returnToApproval).toBeVisible();
-      await expect(returnToApproval.locator("..")).toHaveClass(/order-productive-navigation/);
       await expect(returnToApproval.locator("..")).not.toContainText("Approval is ready for your action");
       await expect(page.getByTestId("workflow-step-summary")).toHaveCount(0);
       await expect(page.getByTestId("primary-material-frame")).toHaveCount(0);
@@ -5559,7 +5558,7 @@ test("OPEN continuation keeps the agent anchor visible and admits exactly one cu
   await expect(composer.getByLabel("Message input")).toBeEditable();
   await expect(composer).not.toContainText("Continue current work");
   await expect(composer.getByText("Answer the question above", { exact: true })).toHaveCount(0);
-  await expect(detail.getByText("Repository-backed Research material", { exact: true })).toBeVisible();
+  await expect(detail.getByRole("heading", { name: "Research document", exact: true })).toBeVisible();
   await expect(detail.getByRole("button", { name: "Open Research document", exact: true })).toBeVisible();
   await expect(page.getByTestId("proposal-review-workspace")).toHaveCount(0);
 });
@@ -5766,7 +5765,7 @@ test("Readiness verdict follows typed R3 outcome independently from material cur
     await selectWorkflowStep(page, "Readiness review");
     const review = page.getByTestId("review-workspace");
     await expect(
-      review.getByTestId("readiness-verdict").getByText(verdict, { exact: true }),
+      review.getByTestId("review-verdict").getByText(verdict, { exact: true }),
     ).toBeVisible();
     await backToQueue(page);
   }
@@ -5774,14 +5773,14 @@ test("Readiness verdict follows typed R3 outcome independently from material cur
   await openWorkItem(page, "Readiness blocked");
   await expect(
     page.getByTestId("review-workspace")
-      .getByTestId("readiness-verdict")
+      .getByTestId("review-verdict")
       .getByText("Blocked", { exact: true }),
   ).toBeVisible();
   await backToQueue(page);
 
   await openWorkItem(page, "Readiness blocked after prior ready");
   const blockedAfterPriorReady = page.getByTestId("review-workspace")
-    .getByTestId("readiness-verdict");
+    .getByTestId("review-verdict");
   await expect(blockedAfterPriorReady.getByText("Blocked", { exact: true }))
     .toBeVisible();
   await expect(
@@ -5793,7 +5792,7 @@ test("Readiness verdict follows typed R3 outcome independently from material cur
   await selectWorkflowStep(page, "Readiness review");
   await expect(
     page.getByTestId("review-workspace")
-      .getByTestId("readiness-verdict")
+      .getByTestId("review-verdict")
       .getByText("Ready for sign-off", { exact: true }),
   ).toBeVisible();
   await backToQueue(page);
@@ -5803,7 +5802,7 @@ test("Readiness verdict follows typed R3 outcome independently from material cur
   await selectWorkflowStep(page, "Readiness review");
   const staleReview = page.getByTestId("review-workspace");
   await expect(
-    staleReview.getByTestId("readiness-verdict")
+    staleReview.getByTestId("review-verdict")
       .getByText("Ready for sign-off", { exact: true }),
   ).toBeVisible();
   await expect(staleReview.getByText("Stale", { exact: true })).toBeVisible();
@@ -5825,7 +5824,7 @@ test("Readiness required input exposes the exact current question without sign-o
   const readinessComposer = page.getByTestId("activity-composer");
   await expect(readinessComposer).toBeVisible();
   await expect(page.getByTestId("stage-run-material")).toBeVisible();
-  await expect(page.getByTestId("readiness-verdict")).toHaveCount(0);
+  await expect(page.getByTestId("review-verdict")).toHaveCount(0);
   await expect(readinessComposer.getByLabel("Message input")).toBeVisible();
   await expect(readinessComposer).not.toContainText("Answer the question above");
   await expect(readinessComposer.getByLabel("Message input")).toBeEditable();
@@ -5843,15 +5842,25 @@ test("Readiness keeps verdict and findings primary while subordinate material ch
   await openWorkItem(page, "Readiness ready after Plan");
   const review = page.getByTestId("review-workspace");
   await expect(review).toBeVisible();
-  await expect(review.getByText("Readiness verdict", { exact: true })).toBeVisible();
+  await expect(review.getByTestId("review-verdict")).toBeVisible();
   await expect(
-    review.getByTestId("readiness-verdict").getByText("Review in progress", { exact: true }),
+    review.getByTestId("review-verdict").getByText("Review in progress", { exact: true }),
   ).toBeVisible();
   await expect(review.getByText("Findings", { exact: true })).toBeVisible();
-  await openWorkflowResource(page, "Implementation plan");
-  await expect(review.getByText("Readiness verdict", { exact: true })).toBeVisible();
+  await review.getByRole("button", {
+    name: "View Implementation plan",
+    exact: true,
+  }).click();
+  await expect(review.getByTestId("review-verdict")).toHaveCount(0);
+  await expect(review.getByTestId("markdown-readonly")).toBeVisible();
+  const backToReadiness = review.getByRole("button", {
+    name: "Back to Readiness review",
+    exact: true,
+  });
+  await expect(backToReadiness).toBeVisible();
+  await backToReadiness.click();
+  await expect(review.getByTestId("review-verdict")).toBeVisible();
   await expect(review.getByText("Findings", { exact: true })).toBeVisible();
-  await expect(review.getByText("Selected supporting material", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Sign off exact package" })).toHaveCount(0);
 });
 
@@ -5865,15 +5874,17 @@ test("proposal decisions are primary, mutation-safe, and Approval keeps sign-off
   await expect(page.getByTestId("workflow-step-summary")).toHaveCount(0);
   const proposalReview = page.getByTestId("proposal-review-workspace");
   await expect(proposalReview).toContainText("Pending review");
-  const proposalDiff = page.getByTestId("proposal-review-diff");
   await expect(proposalReview).toBeVisible();
-  await expect(proposalDiff).toBeVisible();
-  const proposalReviewBox = await proposalReview.boundingBox();
-  const proposalDiffBox = await proposalDiff.boundingBox();
-  expect(proposalReviewBox).not.toBeNull();
-  expect(proposalDiffBox).not.toBeNull();
-  expect(proposalDiffBox!.width).toBeGreaterThan(proposalReviewBox!.width * 0.85);
-  await expect(proposalReview.getByText("Proposed document diff", { exact: true })).toBeVisible();
+  const documentChange = proposalReview.getByTestId("document-change-view");
+  await expect(documentChange).toBeVisible();
+  await expect(documentChange.getByTestId("document-change-region").first()).toBeVisible();
+  const exactDiff = documentChange.getByRole("button", {
+    name: "View exact diff",
+    exact: true,
+  });
+  await expect(exactDiff).toBeVisible();
+  await expect(exactDiff).toHaveAttribute("aria-expanded", "false");
+  await expect(documentChange.locator("pre")).toBeHidden();
   await expect(proposalReview.getByTestId("activity-composer")).toHaveCount(0);
   await expect(proposalReview.getByLabel("Message input")).toHaveCount(0);
 
@@ -6035,7 +6046,7 @@ test("historical pre-signoff inspection returns to the current owner before offe
   await expect(page.getByTestId("workflow-step-summary")).toHaveCount(0);
   const returnToRequirements = page.getByRole("button", { name: "Return to Requirements", exact: true });
   await expect(returnToRequirements).toBeVisible();
-  await expect(returnToRequirements.locator("..")).toContainText("Requirements is ready for your action");
+  await expect(returnToRequirements.locator("..")).not.toContainText("Requirements is ready for your action");
   await expect(page.getByRole("button", { name: "Start Requirements", exact: true })).toHaveCount(0);
 });
 
@@ -6162,7 +6173,7 @@ test("dirty Markdown navigation is explicit, preserves the buffer when cancelled
   await openWorkItem(page, "Lifecycle editing workbench");
   await selectWorkflowStep(page, "Readiness review");
   await expect(page.getByTestId("review-workspace")).toBeVisible();
-  await expect(page.getByTestId("readiness-verdict")).toBeVisible();
+  await expect(page.getByTestId("review-verdict")).toBeVisible();
   await expect(page.getByTestId("markdown-readonly")).toHaveCount(0);
   await expect(page.getByLabel("Readiness review document Markdown source")).toHaveCount(0);
 
@@ -6379,7 +6390,9 @@ test("candidate Complete surface and reached Implementation expose V0-V7, exact 
 
   await selectWorkflowStep(page, "Approval");
   await expect(page.getByTestId("review-workspace"))
-    .toContainText("Approved package history");
+    .toContainText("Approved");
+  await expect(page.getByTestId("review-workspace"))
+    .toContainText("Approval history");
   await expect(page.getByTestId("workflow-step-index")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Sign off exact package" })).toHaveCount(0);
   await page.getByTestId("review-workspace").getByRole("button", {
