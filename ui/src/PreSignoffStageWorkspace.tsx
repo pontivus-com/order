@@ -117,7 +117,7 @@ export const PreSignoffStageWorkspace = ({
             detail: [item.description,item.statusLabel].filter(Boolean).join(" · ") || undefined,
             action: (
               <WorkbenchAction
-                label={"View "+item.label}
+                label={"Open "+item.label}
                 icon={<WorkbenchIcon name={item.id.startsWith("run-") ? "dialogue" : "document"} />}
                 iconOnly
                 tone="ghost"
@@ -140,7 +140,7 @@ export const PreSignoffStageWorkspace = ({
       }
       action={
         <WorkbenchAction
-          label="View Research document"
+          label="Open Research document"
           icon={<WorkbenchIcon name="document" />}
           iconOnly
           tone="ghost"
