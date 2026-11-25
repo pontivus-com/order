@@ -453,12 +453,15 @@ export const SignoffReview = ({
     selectedTask === null
       ? reviewAction ?? approvalDecision
       : (
-        <WorkbenchAction
-          label="Back to Approval"
-          icon={<WorkbenchIcon name="back" />}
-          tone="ghost"
-          onClick={() => setSelection({ kind: "OVERVIEW" })}
-        />
+        <>
+          <WorkbenchAction
+            label="Back to Approval"
+            icon={<WorkbenchIcon name="back" />}
+            tone="ghost"
+            onClick={() => setSelection({ kind: "OVERVIEW" })}
+          />
+          {currentApproval ? approvalDecision : null}
+        </>
       );
 
   return (
