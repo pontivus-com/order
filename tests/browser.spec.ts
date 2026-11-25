@@ -3018,11 +3018,31 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   }
   const sourceMaterial = page.getByTestId("source-document-material");
   await expect(sourceMaterial.getByTestId("workbench-document")).toHaveCount(1);
-  await expect(sourceMaterial.getByLabel("Work request facts")).toContainText("Work type");
-  await expect(sourceMaterial.getByLabel("Work request facts")).toContainText("Project");
-  await expect(sourceMaterial.getByLabel("Work request facts")).toContainText("Concerns");
-  await expect(sourceMaterial.getByLabel("Work request facts")).toContainText("Repository path");
-  await expect(sourceMaterial.getByLabel("Work request facts")).toContainText("WorkItem documents");
+  const workRequestDetails = sourceMaterial.getByRole("button", {
+    name: "Work request details",
+    exact: true,
+  });
+  await expect(workRequestDetails).toBeVisible();
+  await expect(sourceMaterial.getByLabel("Work request details")).not.toBeVisible();
+  const workRequestDocument = sourceMaterial.getByTestId("markdown-document-view");
+  await expect(workRequestDocument).toBeVisible();
+  const [documentBox, detailsBox] = await Promise.all([
+    workRequestDocument.boundingBox(),
+    workRequestDetails.boundingBox(),
+  ]);
+  expect(documentBox).not.toBeNull();
+  expect(detailsBox).not.toBeNull();
+  if (documentBox !== null && detailsBox !== null) {
+    expect(documentBox.y).toBeLessThan(detailsBox.y);
+  }
+  await workRequestDetails.click();
+  await expect(sourceMaterial.getByLabel("Work request details")).toContainText("Work type");
+  await expect(sourceMaterial.getByLabel("Work request details")).toContainText("Project");
+  await expect(sourceMaterial.getByLabel("Work request details")).toContainText("Concerns");
+  await expect(sourceMaterial.getByLabel("Work request details")).toContainText("Repository path");
+  await expect(sourceMaterial.getByLabel("Work request details")).toContainText("WorkItem documents");
+  await workRequestDetails.click();
+  await expect(sourceMaterial.getByLabel("Work request details")).not.toBeVisible();
   await expect(sourceMaterial).not.toContainText("schemaId");
   await expect(sourceMaterial.getByText("Requested outcome", { exact: true }))
     .toBeVisible({ timeout: 15_000 });
@@ -3305,8 +3325,16 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   await selectWorkflowStep(page, "Implementation plan");
   const planMaterial = page.getByTestId("lifecycle-document-material");
   await expect(planMaterial.getByTestId("workbench-document")).toHaveCount(1);
-  await expect(planMaterial.getByLabel("Document facts")).toContainText("Repository path");
-  await expect(planMaterial.getByLabel("Document facts")).toContainText("WorkItem documents");
+  const documentDetails = planMaterial.getByRole("button", {
+    name: "Document details",
+    exact: true,
+  });
+  await expect(documentDetails).toBeVisible();
+  await expect(planMaterial.getByLabel("Document details")).not.toBeVisible();
+  await documentDetails.click();
+  await expect(planMaterial.getByLabel("Document details")).toContainText("Repository path");
+  await expect(planMaterial.getByLabel("Document details")).toContainText("WorkItem documents");
+  await documentDetails.click();
   const planEditor = await openMarkdownEditor(page, "Implementation plan document Markdown source");
   await capture({
     id: "ia26-lifecycle-document-editor-wide-light",
@@ -3322,8 +3350,8 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   }, page.locator("form.order-markdown-editor"));
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
   await selectWorkflowStep(page, "Readiness review");
-  await expect(page.getByTestId("readiness-verdict")).toBeVisible();
-  await page.getByRole("button", { name: "Open Implementation plan", exact: true }).click();
+  await expect(page.getByTestId("review-verdict")).toBeVisible();
+  await page.getByRole("button", { name: "View Implementation plan", exact: true }).click();
   const readOnlyMaterial = page.getByTestId("markdown-readonly").first();
   await expect(readOnlyMaterial).toBeVisible();
   await capture({
@@ -3564,6 +3592,10 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
 
   await openWorkItem(page, "Proposal review");
   const proposal = page.getByTestId("proposal-review-workspace");
+  await expect(proposal.getByTestId("document-change-view")).toBeVisible();
+  await expect(proposal.getByLabel("Proposed document")).toBeVisible();
+  await expect(proposal.getByRole("button", { name: "View exact diff", exact: true })).toBeVisible();
+  await expect(proposal.locator("pre")).toHaveCount(0);
   await capture({
     id: "ia26-proposal-review-wide-light",
     workItemKind: "CHANGE",
