@@ -4,6 +4,7 @@ import { join } from "node:path";
 import {
   ArtifactRefSchema,
   ExecutionTaskSchema,
+  ExpectedHashWriteResultSchema,
   InstallationReadinessSchema,
   OpenCodeAccountLoginAttemptSchema,
   OpenCodeAccountStateSchema,
@@ -4483,7 +4484,10 @@ test("long Source and lifecycle Markdown keep the final line editable, savable, 
         /^\/api\/artifacts\/[^/]+\/content$/.test(path);
     });
     await save.click();
-    expect((await saveResponse).ok()).toBe(true);
+    const response = await saveResponse;
+    expect(response.ok()).toBe(true);
+    const writeResult = ExpectedHashWriteResultSchema.parse(await response.json());
+    expect(writeResult.tag).toBe("UPDATED");
     const editorControls = page.getByTestId("markdown-editor-controls");
     await expect(
       editorControls.getByRole("button", { name: "Save", exact: true }),
