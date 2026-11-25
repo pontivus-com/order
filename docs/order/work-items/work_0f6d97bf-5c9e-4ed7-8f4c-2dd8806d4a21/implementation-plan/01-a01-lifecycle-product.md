@@ -2,7 +2,7 @@
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C01 + C21.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`; current DESIGN `753a0477cc2cd9bfbd198e8af3c91c1409cb3aaa`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`; current DESIGN `1ddc191301952e12094019e5b04eae7686340eeb`.
 
 ## Stable requirement execution dispositions
 
