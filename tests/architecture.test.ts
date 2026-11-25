@@ -1014,9 +1014,25 @@ describe("architecture fitness", () => {
         );
       }
     }
-    if (!markdownChrome.includes("toolbarAccessory")) {
+    if (!markdownChrome.includes('className="order-markdown-editor-controls"')) {
       violations.push(
-        "ui/src/MarkdownEditor.tsx must expose the narrow document-control slot",
+        "ui/src/MarkdownEditor.tsx must own the compact Markdown editor-control region",
+      );
+    }
+    for (const forbidden of [
+      "toolbarAccessory",
+      "viewAside",
+      "WorkbenchSectionHeader",
+    ]) {
+      if (markdownChrome.includes(forbidden)) {
+        violations.push(
+          "ui/src/MarkdownEditor.tsx must not expose document-layout ownership: " + forbidden,
+        );
+      }
+    }
+    if (!documentChrome.includes("WorkbenchDocument")) {
+      violations.push(
+        "ui/src/DocumentWorkspace.tsx must compose the canonical WorkbenchDocument owner",
       );
     }
 
