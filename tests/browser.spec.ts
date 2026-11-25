@@ -4474,6 +4474,7 @@ test("long Source and lifecycle Markdown keep the final line editable, savable, 
     await page.keyboard.press("End");
     await page.keyboard.insertText(" persisted");
     await expect(finalLine).toHaveText(marker + " persisted");
+    await expect(page.getByText("Unsaved edits", { exact: true })).toBeVisible();
     const save = page.getByRole("button", { name: "Save", exact: true });
     await expect(save).toBeVisible();
     await expect(page.getByRole("button", { name: "Cancel", exact: true })).toBeVisible();
@@ -4488,6 +4489,7 @@ test("long Source and lifecycle Markdown keep the final line editable, savable, 
     expect(response.ok()).toBe(true);
     const writeResult = ExpectedHashWriteResultSchema.parse(await response.json());
     expect(writeResult.tag).toBe("UPDATED");
+    await expect(page.getByText("Unsaved edits", { exact: true })).toHaveCount(0);
     await backToQueue(page);
     await openWorkItem(page, title);
     await selectWorkflowStep(page, tabName);
