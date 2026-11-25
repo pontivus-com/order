@@ -621,6 +621,8 @@ Attempt history and material selection use one compact step-local selector/contr
 
 Supporting Work request/upstream documents are secondary context. They do not precede the current blocker, required input, proposal decision, active dialogue or current governed document in the primary reading order.
 
+On a Document-class surface, the governed Markdown/document canvas follows document identity/currentness/actions immediately and remains the dominant reading target. Work type, Project, Concerns, repository/document location and comparable source/document orientation facts are subordinate: where the operator may need them during the same document task they are grouped in one specifically named document-details disclosure, closed by default and placed after the primary document content. They may not form an always-open metadata slab ahead of the document. Exact technical identity remains Context-owned, and an individual supporting fact may be promoted only when the current blocker, decision or mutation requires that exact value.
+
 Provider/runtime mechanics such as OpenCode session identity/status are technical detail unless a provider failure is itself the current blocker; the ordinary primary surface uses user-facing workflow state such as Processing, Waiting for you, Failed or Blocked rather than provider-plumbing headings.
 
 This is a binding stability and information-hierarchy requirement.
