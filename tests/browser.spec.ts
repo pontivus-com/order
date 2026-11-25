@@ -45,9 +45,11 @@ const diagnosticPhase = process.env.PONTIVUS_ORDER_DIAGNOSTIC_PHASE ?? null;
 const huxPriorityOnly = process.env.PONTIVUS_ORDER_HUX_PRIORITY_ONLY === "1";
 const huxPriorityCaptureIds = new Set<string>([
   "ia26-work-request-step-wide-light",
+  "ia26-source-document-editor-wide-dark",
   "ia26-source-document-editor-narrow-light",
   "ia26-lifecycle-document-editor-wide-light",
   "ia26-lifecycle-document-readonly-wide-light",
+  "ia26-research-wide-light",
   "ia26-proposal-review-wide-light",
   "ia26-readiness-review-wide-light",
   "ia26-approval-wide-light",
