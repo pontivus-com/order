@@ -67,6 +67,7 @@ import {
   listWorkItems,
   signoffPackageForWorkItem,
   readArtifactContent,
+  readArtifactProposalTarget,
   readReferencedEvidence,
   reconcileSources,
   reconcileWorkItemAuthority,
@@ -938,6 +939,20 @@ const routeApi = async (
       requireKeys(body, []);
       return jsonResponse(await cancelRun(runtime, runId));
     }
+  }
+
+  if (
+    parts[0] === "api" &&
+    parts[1] === "run-events" &&
+    parts[2] &&
+    parts[3] === "proposal-target" &&
+    parts.length === 4 &&
+    request.method === "GET"
+  ) {
+    return rawResponse(readArtifactProposalTarget(
+      runtime,
+      await parseRequest(() => RunEventIdSchema.parse(parts[2])),
+    ));
   }
 
   if (
