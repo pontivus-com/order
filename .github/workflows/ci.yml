@@ -266,6 +266,33 @@ jobs:
       - name: browser
         run: node node_modules/@playwright/test/cli.js test
 
+      - name: Record Priority-0 HUX evidence candidate
+        id: hux_candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Priority-0 HUX rendered evidence
+        env:
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR: ${{ runner.temp }}/order-rendered-hux-priority
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA: ${{ steps.hux_candidate.outputs.sha }}
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_LABEL: "Priority-0 HUX remediation"
+          PONTIVUS_ORDER_RENDERED_EVIDENCE_KIND: "ia26_acceptance"
+          PONTIVUS_ORDER_HUX_PRIORITY_ONLY: "1"
+        run: >-
+          node node_modules/@playwright/test/cli.js test
+          --grep "rendered acceptance IA26 captures downstream Workbench"
+
+      - name: Upload Priority-0 HUX rendered evidence
+        if: ${{ !cancelled() && steps.hux_candidate.outcome == 'success' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: rendered-hux-priority-${{ steps.hux_candidate.outputs.sha }}
+          path: ${{ runner.temp }}/order-rendered-hux-priority
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Record rendered acceptance candidate
         id: rendered_candidate
         shell: bash
