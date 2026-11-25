@@ -77,6 +77,7 @@ import {
 import {
   adoptArtifactProposal,
   reconcilePendingArtifactProposals,
+  readArtifactProposalTarget,
   rejectArtifactProposal,
   startStageRun,
   submitRunInput,
@@ -614,6 +615,7 @@ export {
 } from "./authority.ts";
 export {
   adoptArtifactProposal,
+  readArtifactProposalTarget,
   rejectArtifactProposal,
   startStageRun,
   submitRunInput,
