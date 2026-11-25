@@ -1890,6 +1890,10 @@ describe("Order cross-boundary certification", () => {
     expect(referenceReadme).toContain("active derived comparison evidence");
     expect(referenceReadme).toContain("Git history is the only retained provenance for the superseded 0.5.0 SVG pack");
     expect(referenceReadme).toContain("must never fabricate");
+    const browserEvidence = read("tests/browser.spec.ts");
+    expect(browserEvidence).toContain("reference-manifest.json");
+    expect(browserEvidence).toContain("reference-atlas.html");
+    expect(browserEvidence).not.toMatch(/docs\/references\/workbench-ui\/[^"'\`]+\.svg/);
 
     const workflows = readdirSync(join(root, ".github/workflows"))
       .filter((name) => name.endsWith(".yml") || name.endsWith(".yaml"))

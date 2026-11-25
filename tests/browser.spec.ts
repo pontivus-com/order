@@ -46,6 +46,45 @@ type RenderedDiagnosticPhase = typeof renderedDiagnosticPhases[number];
 const runRenderedPhase = (phase: RenderedDiagnosticPhase): boolean =>
   !diagnosticCurrentState || diagnosticPhase === phase;
 
+type ReferenceViewportClass = "wide" | "narrow";
+type ReferenceTheme = "light" | "dark" | "system";
+
+type ReferenceManifestSurface = Readonly<{
+  id: string;
+  interactionClass: string;
+  source: string;
+  selector: string;
+  captureScope: "full-workbench" | "component-reference";
+  states: readonly string[];
+  viewports: readonly ReferenceViewportClass[];
+  themes: readonly ReferenceTheme[];
+  authority: readonly string[];
+}>;
+
+type ReferenceManifest = Readonly<{
+  schemaVersion: number;
+  status: string;
+  semanticAuthority: false;
+  source: string;
+  query: string;
+  viewportClasses: Readonly<{ wide: number; narrow: number }>;
+  surfaces: readonly ReferenceManifestSurface[];
+}>;
+
+type RenderedAcceptanceReference = Readonly<{
+  manifestPath: string;
+  sourcePath: string;
+  surface: string;
+  state: string | null;
+  selector: string;
+  captureScope: "full-workbench" | "component-reference";
+  viewportClass: ReferenceViewportClass | null;
+  theme: ReferenceTheme;
+  authority: readonly string[];
+  query: string | null;
+  comparisonEligible: boolean;
+}>;
+
 type RenderedAcceptanceEntry = Readonly<{
   id: string;
   workItemKind: "QUEUE" | "CHANGE" | "DEFECT" | "INVESTIGATION" | "AUDIT";
@@ -56,11 +95,204 @@ type RenderedAcceptanceEntry = Readonly<{
   viewport: Readonly<{ width: number; height: number }>;
   theme: "Light" | "Dark" | "System/light" | "System/dark";
   route: string;
-  references: readonly string[];
   authorityRefs: readonly string[];
   captureScope?: string;
+  reference: RenderedAcceptanceReference;
   screenshot: string;
 }>;
+
+type RenderedAcceptanceInput = Omit<
+  RenderedAcceptanceEntry,
+  "reference" | "screenshot"
+>;
+
+const referenceManifestPath =
+  "docs/references/workbench-ui/reference-manifest.json";
+const referenceAtlasPath =
+  "docs/references/workbench-ui/reference-atlas.html";
+const referenceReadmePath =
+  "docs/references/workbench-ui/README.md";
+const referenceManifest = JSON.parse(
+  readFileSync(referenceManifestPath, "utf8"),
+) as ReferenceManifest;
+if (referenceManifest.semanticAuthority !== false) {
+  throw new TypeError("Workbench comparison corpus must remain non-authoritative");
+}
+if (referenceManifest.source !== referenceAtlasPath) {
+  throw new TypeError(
+    "Workbench comparison manifest source must be the current reference atlas",
+  );
+}
+const referenceSurfaceById = new Map(
+  referenceManifest.surfaces.map((surface) => [surface.id, surface] as const),
+);
+
+const canonicalReferenceState = (
+  surface: string,
+  runtimeState: string,
+): string | null => {
+  const declared = referenceSurfaceById.get(surface);
+  if (declared?.states.includes(runtimeState)) return runtimeState;
+  if (surface === "SURF-APP-001") return /readiness|missing-account/.test(runtimeState) ? "readiness-blocked" : "default";
+  if (surface === "SURF-QUEUE-001") {
+    if (runtimeState.includes("source-diagnostic")) return "source-diagnostic";
+    if (runtimeState.includes("no-search")) return "no-match";
+    if (/true-empty|loading/.test(runtimeState)) return "empty";
+    return "populated";
+  }
+  if (surface === "SURF-CREATE-001") return runtimeState.includes("linked") ? "linked-remediation" : "ordinary";
+  if (surface === "SURF-WI-001") {
+    if (runtimeState.includes("blocked")) return "blocked";
+    if (runtimeState.includes("attention")) return "current-action";
+    return "default";
+  }
+  if (surface === "SURF-WI-CONTEXT-001") {
+    if (runtimeState.includes("run")) return "run";
+    if (runtimeState.includes("proposal")) return "proposal";
+    if (runtimeState.includes("approval")) return "approval";
+    if (/task|execution/.test(runtimeState)) return "task";
+    return "document";
+  }
+  if (surface === "SURF-SET-001") return /readiness.*blocked/.test(runtimeState) ? "readiness-blocked" : "ready";
+  if ([
+    "SURF-SET-REPO-001","SURF-SET-OC-001","SURF-SET-OC-RENAME-001",
+    "SURF-SET-OC-ADD-001","SURF-SET-MODEL-001","SURF-CONF-DIRTY-DEST-001",
+    "SURF-CONF-DIRTY-MATERIAL-001","SURF-CONF-REPO-DISCONNECT-001","SURF-CONF-OC-REMOVE-001",
+  ].includes(surface)) return "default";
+  if (surface === "SURF-SET-REPO-ADD-001") return runtimeState.includes("error") ? "error" : "default";
+  if (surface === "SURF-SET-REPO-MOVE-001") return runtimeState.includes("conflict") ? "conflict" : "default";
+  if (surface === "SURF-SET-OC-LOGIN-001") {
+    if (/pending|processing/.test(runtimeState)) return "processing";
+    if (/complete|success/.test(runtimeState)) return "success";
+    if (/failed|expired|cancelled|error/.test(runtimeState)) return "error";
+    if (runtimeState.includes("ready")) return "ready";
+    return null;
+  }
+  if (surface === "SURF-STEP-WR-001") {
+    if (runtimeState.includes("read-only")) return "read-only";
+    if (runtimeState.includes("stale")) return "stale";
+    return "active";
+  }
+  if (surface === "SURF-STEP-R1-001" || surface === "SURF-STEP-R2-001") {
+    if (runtimeState.includes("required-input")) return "required-input";
+    if (runtimeState.includes("processing")) return "processing";
+    if (runtimeState.includes("blocked")) return "blocked";
+    return "open";
+  }
+  if (surface === "SURF-STEP-DESIGN-001" || surface === "SURF-STEP-PLAN-001") {
+    if (runtimeState.includes("read-only")) return "read-only";
+    if (runtimeState.includes("stale")) return "stale";
+    return "active";
+  }
+  if (surface === "SURF-STEP-R3-001") {
+    if (runtimeState.includes("required-input")) return "required-input";
+    if (runtimeState.includes("return")) return "return";
+    return "ready";
+  }
+  if (surface === "SURF-STEP-APPROVAL-001") {
+    if (runtimeState.includes("stale")) return "stale";
+    if (runtimeState.includes("signoff")) return "signoff";
+    return "current";
+  }
+  if (surface === "SURF-STEP-EXEC-001") {
+    if (runtimeState.includes("historical")) return "historical-selection";
+    if (runtimeState.includes("validation")) return "validation-recorded";
+    if (runtimeState.includes("blocked")) return "blocked";
+    if (/processing|running/.test(runtimeState)) return "running";
+    return "ready";
+  }
+  if (surface === "SURF-STEP-COMPLETE-001") {
+    if (/linked|investigation-result/.test(runtimeState)) return "linked-remediation";
+    if (runtimeState.includes("verified-result")) return "verified-result";
+    return "verified-candidate";
+  }
+  if (surface === "SURF-MAT-SOURCE-001") {
+    if (/dirty|canonical-document-changed/.test(runtimeState)) return "dirty";
+    if (runtimeState.includes("split")) return "split";
+    if (/preview|read-view/.test(runtimeState)) return "preview";
+    return "edit";
+  }
+  if (surface === "SURF-MAT-DOC-001") {
+    if (runtimeState.includes("stale")) return "stale";
+    if (runtimeState.includes("split")) return "split";
+    if (runtimeState.includes("preview")) return "preview";
+    return "edit";
+  }
+  if (surface === "SURF-MAT-DOC-RO-001") return runtimeState.includes("historical") ? "historical" : "current";
+  if (surface === "SURF-MAT-ACTIVITY-001") {
+    if (runtimeState.includes("required-input")) return "required-input";
+    if (runtimeState.includes("processing")) return "processing";
+    if (runtimeState.includes("blocked")) return "blocked";
+    if (runtimeState.includes("closed-terminal")) return null;
+    return "open";
+  }
+  if (surface === "SURF-MAT-PROPOSAL-001") {
+    if (runtimeState.includes("adoption-in-progress")) return "applying";
+    if (runtimeState.includes("failed")) return "failed";
+    if (runtimeState.includes("pending-decision")) return "pending";
+    return null;
+  }
+  if (surface === "SURF-MAT-EVIDENCE-001") return "text";
+  if (surface === "SURF-MAT-APPROVAL-TASK-001") return runtimeState.includes("historical") ? "historical" : "current";
+  if (surface === "SURF-MAT-EXEC-TASK-001") {
+    if (runtimeState.includes("historical")) return "historical";
+    if (runtimeState.includes("blocked")) return "blocked";
+    if (runtimeState.includes("validation")) return "validation-recorded";
+    return "current";
+  }
+  if (surface === "SURF-CONF-ARCHIVE-001") return runtimeState.includes("restore") ? "restore" : "archive";
+  if (surface === "SURF-CONF-DOC-GIT-001") return runtimeState.includes("blocked") ? "blocked" : "default";
+  return null;
+};
+
+const referenceTheme = (theme: RenderedAcceptanceInput["theme"]): ReferenceTheme =>
+  theme === "Dark" ? "dark" : theme.startsWith("System/") ? "system" : "light";
+
+const referenceViewportClass = (
+  viewport: RenderedAcceptanceInput["viewport"],
+): ReferenceViewportClass | null =>
+  viewport.width === referenceManifest.viewportClasses.wide
+    ? "wide"
+    : viewport.width <= referenceManifest.viewportClasses.narrow ? "narrow" : null;
+
+const resolveRenderedReference = (
+  entry: RenderedAcceptanceInput,
+  captureScope: string,
+): RenderedAcceptanceReference => {
+  const declared = referenceSurfaceById.get(entry.surface);
+  if (declared === undefined) {
+    throw new TypeError("rendered evidence surface is missing from reference manifest: " + entry.surface);
+  }
+  const state = canonicalReferenceState(entry.surface, entry.state);
+  if (state !== null && !declared.states.includes(state)) {
+    throw new TypeError("rendered evidence reference state is not manifest-declared: " + entry.surface + " / " + state);
+  }
+  const viewportClass = referenceViewportClass(entry.viewport);
+  const theme = referenceTheme(entry.theme);
+  const comparisonEligible =
+    state !== null &&
+    viewportClass !== null &&
+    declared.viewports.includes(viewportClass) &&
+    declared.themes.includes(theme) &&
+    captureScope === declared.captureScope;
+  const query = state === null ? null :
+    "?surf=" + encodeURIComponent(entry.surface) +
+    "&state=" + encodeURIComponent(state) +
+    "&theme=" + encodeURIComponent(theme);
+  return {
+    manifestPath: referenceManifestPath,
+    sourcePath: referenceAtlasPath,
+    surface: declared.id,
+    state,
+    selector: declared.selector,
+    captureScope: declared.captureScope,
+    viewportClass,
+    theme,
+    authority: declared.authority,
+    query,
+    comparisonEligible,
+  };
+};
 
 const writeRenderedAcceptanceEvidence = (
   entries: readonly RenderedAcceptanceEntry[],
@@ -120,42 +352,35 @@ const writeRenderedAcceptanceEvidence = (
   );
   const referenceDir = join(renderedAcceptanceDir, "references");
   mkdirSync(referenceDir, { recursive: true });
-  for (const reference of new Set(merged.flatMap((entry) => entry.references))) {
-    const prefix = "docs/references/workbench-ui/";
-    if (!reference.startsWith(prefix)) {
-      throw new TypeError("rendered acceptance reference is outside the reviewed SVG pack: " + reference);
-    }
-    const name = reference.slice(prefix.length);
-    writeFileSync(join(referenceDir, name), readFileSync(reference));
+  for (const [source, name] of [
+    [referenceManifestPath, "reference-manifest.json"],
+    [referenceAtlasPath, "reference-atlas.html"],
+    [referenceReadmePath, "README.md"],
+  ] as const) {
+    writeFileSync(join(referenceDir, name), readFileSync(source));
   }
-  writeFileSync(
-    join(referenceDir, "README.md"),
-    readFileSync("docs/references/workbench-ui/README.md"),
-  );
 
   writeFileSync(
     join(renderedAcceptanceDir, "index.md"),
     [
       "# Order 0.6.0 rendered acceptance — " + renderedAcceptanceLabel,
       "",
-      "Exact candidate: \`" + renderedAcceptanceCandidateSha + "\`",
+      "Exact candidate: `" + renderedAcceptanceCandidateSha + "`",
       "",
-      "Evidence kind: \`" + renderedEvidenceKind + "\`",
+      "Evidence kind: `" + renderedEvidenceKind + "`",
       "",
       "| Capture | Surface/state | Scope | Reference | Authority |",
       "|---|---|---|---|---|",
       ...merged.map((entry) =>
-        "| \`" + entry.screenshot + "\` | " + entry.surface + " / " + entry.state +
+        "| `" + entry.screenshot + "` | " + entry.surface + " / " + entry.state +
         " | " + (entry.captureScope ?? "viewport") +
-        " | " + entry.references.map((value) => {
-          const name = value.split("/").at(-1) ?? value;
-          return "\`" + value + "\` ([artifact copy](references/" + name + "))";
-        }).join(", ") +
-        " | " + entry.authorityRefs.map((value) => "\`" + value + "\`").join(", ") +
-        " |"
+        " | `" + entry.reference.surface + "` via `reference-manifest.json`" +
+        (entry.reference.state === null ? " (no state-equivalent atlas reference)" : " / `" + entry.reference.state + "`") +
+        (entry.reference.comparisonEligible ? " (scope-valid comparison)" : " (not presented as equivalent)") +
+        " | " + entry.authorityRefs.map((value) => "`" + value + "`").join(", ") + " |"
       ),
       "",
-      "These captures are runtime evidence only. Current canonical authority wins over a derived SVG reference on conflict.",
+      "These captures are runtime evidence only. The authority-bound manifest/atlas is derived comparison evidence; current canonical authority wins on every conflict. A row marked not presented as equivalent is not an acceptance comparison.",
       "",
     ].join("\n"),
   );
@@ -174,19 +399,20 @@ const writeRenderedAcceptanceEvidence = (
       '<html lang="en"><head><meta charset="utf-8">',
       "<title>Order 0.6.0 " + escapeHtml(renderedAcceptanceLabel) + " rendered acceptance</title>",
       "<style>",
-      "body{font-family:system-ui,sans-serif;margin:0;background:#f6f7f9;color:#111827}header{position:sticky;top:0;background:white;border-bottom:1px solid #d1d5db;padding:16px 24px;z-index:2}main{padding:24px;display:grid;gap:24px}.case{background:white;border:1px solid #d1d5db;border-radius:8px;padding:16px}.meta{display:flex;gap:12px;flex-wrap:wrap;margin:8px 0 16px;color:#4b5563}.pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}.visual{border:1px solid #e5e7eb;background:#fff;padding:8px;overflow:auto}.visual img,.visual object{display:block;width:100%;height:auto;min-height:240px}.refs{display:grid;gap:12px}@media(max-width:900px){.pair{grid-template-columns:1fr}}code{font-size:.9em}h2{margin-bottom:4px}",
+      "body{font-family:system-ui,sans-serif;margin:0;background:#f6f7f9;color:#111827}header{position:sticky;top:0;background:white;border-bottom:1px solid #d1d5db;padding:16px 24px;z-index:2}main{padding:24px;display:grid;gap:24px}.case{background:white;border:1px solid #d1d5db;border-radius:8px;padding:16px}.meta{display:flex;gap:12px;flex-wrap:wrap;margin:8px 0 16px;color:#4b5563}.pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}.visual{border:1px solid #e5e7eb;background:#fff;padding:8px;overflow:auto}.visual img,.visual iframe{display:block;width:100%;min-height:520px;border:0}.refs{display:grid;gap:12px}@media(max-width:900px){.pair{grid-template-columns:1fr}}code{font-size:.9em}h2{margin-bottom:4px}",
       "</style></head><body>",
-      "<header><strong>Order 0.6.0 " + escapeHtml(renderedAcceptanceLabel) +
-        "</strong> · exact candidate <code>" +
-        escapeHtml(renderedAcceptanceCandidateSha) + "</code></header>",
+      "<header><strong>Order 0.6.0 " + escapeHtml(renderedAcceptanceLabel) + "</strong> · exact candidate <code>" + escapeHtml(renderedAcceptanceCandidateSha) + "</code></header>",
       "<main>",
       ...merged.map((entry) => {
-        const refs = entry.references.map((value) => {
-          const name = value.split("/").at(-1) ?? value;
-          return '<div class="visual"><strong>Reference: ' + escapeHtml(name) +
-            '</strong><object data="references/' + encodeURIComponent(name) +
-            '" type="image/svg+xml"></object></div>';
-        }).join("");
+        const refs = entry.reference.comparisonEligible && entry.reference.query !== null
+          ? '<div class="visual"><strong>Authority-bound derived reference: ' +
+            escapeHtml(entry.reference.surface + " / " + entry.reference.state) +
+            '</strong><iframe src="references/reference-atlas.html' +
+            escapeHtml(entry.reference.query) +
+            '" title="Derived reference ' + escapeHtml(entry.reference.surface) + '"></iframe></div>'
+          : '<div class="visual"><strong>Reference comparison withheld</strong><p>' +
+            'No state/scope/viewport-equivalent atlas comparison is declared for this capture. ' +
+            'See <code>references/reference-manifest.json</code>; do not infer a target from a fallback image.</p></div>';
         return '<section class="case"><h2>' + escapeHtml(entry.id) + '</h2>' +
           '<div class="meta"><span><code>' + escapeHtml(entry.surface) + '</code></span>' +
           '<span>' + escapeHtml(entry.state) + '</span><span>' +
@@ -203,7 +429,7 @@ const writeRenderedAcceptanceEvidence = (
 
 const captureRenderedAcceptance = async (
   page: Page,
-  entry: Omit<RenderedAcceptanceEntry, "screenshot">,
+  entry: RenderedAcceptanceInput,
   target?: Locator,
 ): Promise<RenderedAcceptanceEntry> => {
   if (renderedAcceptanceDir === undefined) {
@@ -214,22 +440,37 @@ const captureRenderedAcceptance = async (
   await page.evaluate(async () => {
     await document.fonts.ready;
   });
-  if (target === undefined) {
+  const declaredReference = referenceSurfaceById.get(entry.surface);
+  if (declaredReference === undefined) {
+    throw new TypeError("rendered evidence surface is missing from reference manifest: " + entry.surface);
+  }
+  const acceptanceTarget = diagnosticCurrentState
+    ? target
+    : declaredReference.captureScope === "full-workbench" ? undefined : target;
+  if (!diagnosticCurrentState &&
+      declaredReference.captureScope === "component-reference" &&
+      acceptanceTarget === undefined) {
+    throw new TypeError("component-reference acceptance requires an explicit governed locator: " + entry.surface);
+  }
+  if (acceptanceTarget === undefined) {
     await page.screenshot({
       path: join(renderedAcceptanceDir, screenshot),
       fullPage: false,
       animations: "disabled",
     });
   } else {
-    await target.screenshot({
+    await acceptanceTarget.screenshot({
       path: join(renderedAcceptanceDir, screenshot),
       animations: "disabled",
     });
   }
+  const captureScope = diagnosticCurrentState
+    ? entry.captureScope ?? (target === undefined ? "full application viewport" : "explicit locator crop")
+    : declaredReference.captureScope;
   const captured = {
     ...entry,
-    captureScope: entry.captureScope ??
-      (target === undefined ? "full application viewport" : "explicit locator crop"),
+    captureScope,
+    reference: resolveRenderedReference(entry, captureScope),
     screenshot,
   };
   if (diagnosticCurrentState) {
@@ -1559,10 +1800,6 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     viewport: { width: 1440, height: 900 },
     theme: "Light",
     route: "/",
-    references: [
-      "docs/references/workbench-ui/queue.svg",
-      "docs/references/workbench-ui/application-notices-states.svg",
-    ],
     authorityRefs: [
       "GW-DOC-WORKBENCH-UX",
       "GW-DOC-INSTALLATION-READINESS",
@@ -1588,10 +1825,6 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       viewport: { width: 1440, height: 900 },
       theme: "Light",
       route: "/",
-      references: [
-        "docs/references/workbench-ui/application-notices-states.svg",
-        "docs/references/workbench-ui/installation-readiness.svg",
-      ],
       authorityRefs: [
         "GW-DOC-WORKBENCH-UX",
         "GW-DOC-INSTALLATION-READINESS",
@@ -1628,10 +1861,6 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     viewport: { width: 1440, height: 900 },
     theme: "Light",
     route: "/",
-    references: [
-      "docs/references/workbench-ui/installation-readiness.svg",
-      "docs/references/workbench-ui/application-notices-states.svg",
-    ],
     authorityRefs: [
       "GW-DOC-WORKBENCH-UX",
       "GW-DOC-INSTALLATION-READINESS",
@@ -1669,10 +1898,6 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       viewport: { width: 1440, height: 900 },
       theme: "Light",
       route: "/",
-      references: [
-        "docs/references/workbench-ui/installation-readiness.svg",
-        "docs/references/workbench-ui/application-notices-states.svg",
-      ],
       authorityRefs: [
         "GW-DOC-INSTALLATION-READINESS",
         "GW-DOC-WORKBENCH-UX",
@@ -1710,7 +1935,6 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       viewport: { width: 1440, height: 900 },
       theme: "Light",
       route: "/",
-      references: ["docs/references/workbench-ui/application-notices-states.svg"],
       authorityRefs: ["GW-DOC-WORKBENCH-UX"],
       captureScope: "full application viewport",
     }));
@@ -1726,10 +1950,6 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       viewport: { width: 1440, height: 900 },
       theme: "Light",
       route: "/",
-      references: [
-        "docs/references/workbench-ui/queue-states.svg",
-        "docs/references/workbench-ui/application-notices-states.svg",
-      ],
       authorityRefs: ["GW-DOC-WORKBENCH-UX"],
       captureScope: "full application viewport",
     }));
@@ -1767,7 +1987,6 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       viewport: { width: 1440, height: 900 },
       theme: "Light",
       route: "/",
-      references: ["docs/references/workbench-ui/application-notices-states.svg"],
       authorityRefs: ["GW-DOC-WORKBENCH-UX"],
       captureScope: "full application viewport",
     }));
@@ -1812,10 +2031,6 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     viewport: { width: 1440, height: 900 },
     theme: "Light",
     route: "/",
-    references: [
-      "docs/references/workbench-ui/queue-states.svg",
-      "docs/references/workbench-ui/application-notices-states.svg",
-    ],
     authorityRefs: [
       "GW-DOC-WORKBENCH-UX",
       "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM",
@@ -1843,10 +2058,6 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     viewport: { width: 1440, height: 900 },
     theme: "Light",
     route: "/",
-    references: [
-      "docs/references/workbench-ui/queue.svg",
-      "docs/references/workbench-ui/queue-states.svg",
-    ],
     authorityRefs: [
       "GW-DOC-WORKBENCH-UX",
       "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM",
@@ -1898,7 +2109,6 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     viewport: { width: 1440, height: 900 },
     theme: "Light",
     route: "/",
-    references: ["docs/references/workbench-ui/queue-states.svg"],
     authorityRefs: [
       "GW-DOC-WORKBENCH-UX",
       "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM",
@@ -1921,7 +2131,6 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     viewport: { width: 1440, height: 900 },
     theme: "Light",
     route: "/",
-    references: ["docs/references/workbench-ui/queue-states.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }));
   await noMatchSearch.fill("");
@@ -1957,10 +2166,6 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     viewport: { width: 700, height: 800 },
     theme: "Light",
     route: "/",
-    references: [
-      "docs/references/workbench-ui/queue.svg",
-      "docs/references/workbench-ui/responsive-composition.svg",
-    ],
     authorityRefs: [
       "GW-DOC-WORKBENCH-UX",
       "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
@@ -1979,10 +2184,6 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     viewport: { width: 1440, height: 900 },
     theme: "Dark",
     route: "/",
-    references: [
-      "docs/references/workbench-ui/queue.svg",
-      "docs/references/workbench-ui/theme-parity.svg",
-    ],
     authorityRefs: [
       "GW-DOC-WORKBENCH-UX",
       "GW-DOC-WORKBENCH-THEME-V1",
@@ -2001,7 +2202,6 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     viewport: { width: 1440, height: 900 },
     theme: "System/light",
     route: "/",
-    references: ["docs/references/workbench-ui/theme-parity.svg"],
     authorityRefs: [
       "GW-DOC-WORKBENCH-UX",
       "GW-DOC-WORKBENCH-THEME-V1",
@@ -2019,7 +2219,6 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     viewport: { width: 1440, height: 900 },
     theme: "System/dark",
     route: "/",
-    references: ["docs/references/workbench-ui/theme-parity.svg"],
     authorityRefs: [
       "GW-DOC-WORKBENCH-UX",
       "GW-DOC-WORKBENCH-THEME-V1",
@@ -2065,7 +2264,6 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     theme: "Light",
     route: "/",
     captureScope: "production Create dialog only",
-    references: ["docs/references/workbench-ui/create-work-item.svg"],
     authorityRefs: [
       "GW-DOC-WORKBENCH-UX",
       "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM",
@@ -2093,7 +2291,6 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     theme: "Light",
     route: new URL(page.url()).pathname + new URL(page.url()).search,
     captureScope: "production linked-remediation dialog only; terminal descendant excluded",
-    references: ["docs/references/workbench-ui/create-linked-remediation.svg"],
     authorityRefs: [
       "GW-DOC-WORKBENCH-UX",
       "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM",
@@ -2121,10 +2318,6 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     viewport: { width: 1440, height: 900 },
     theme: "Light",
     route: new URL(page.url()).pathname + new URL(page.url()).search,
-    references: [
-      "docs/references/workbench-ui/workitem-shell-controls.svg",
-      "docs/references/workbench-ui/theme-parity.svg",
-    ],
     authorityRefs: [
       "GW-DOC-WORKBENCH-UX",
       "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
@@ -2142,7 +2335,6 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     viewport: { width: 1000, height: 800 },
     theme: "Light",
     route: new URL(page.url()).pathname + new URL(page.url()).search,
-    references: ["docs/references/workbench-ui/responsive-composition.svg"],
     authorityRefs: [
       "GW-DOC-WORKBENCH-UX",
       "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
@@ -2168,10 +2360,6 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     theme: "Light",
     route: new URL(page.url()).pathname + new URL(page.url()).search,
     captureScope: "production WorkItem identity + workflow rail only",
-    references: [
-      "docs/references/workbench-ui/workitem-shell-controls.svg",
-      "docs/references/workbench-ui/responsive-composition.svg",
-    ],
     authorityRefs: [
       "GW-DOC-WORKBENCH-UX",
       "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
@@ -2190,7 +2378,6 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     theme: "Light",
     route: new URL(page.url()).pathname + new URL(page.url()).search,
     captureScope: "production current-attention region only",
-    references: ["docs/references/workbench-ui/current-attention-states.svg"],
     authorityRefs: [
       "GW-DOC-WORKBENCH-UX",
       "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
@@ -2212,7 +2399,6 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     theme: "Light",
     route: new URL(page.url()).pathname + new URL(page.url()).search,
     captureScope: "production WorkItem Context panel only",
-    references: ["docs/references/workbench-ui/workitem-context.svg"],
     authorityRefs: [
       "GW-DOC-WORKBENCH-UX",
       "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
@@ -2238,7 +2424,6 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     viewport: { width: 700, height: 800 },
     theme: "Light",
     route: new URL(page.url()).pathname + new URL(page.url()).search,
-    references: ["docs/references/workbench-ui/responsive-composition.svg"],
     authorityRefs: [
       "GW-DOC-WORKBENCH-UX",
       "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
@@ -2256,10 +2441,6 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     theme: "Light",
     route: new URL(page.url()).pathname + new URL(page.url()).search,
     captureScope: "production WorkItem identity + workflow rail only",
-    references: [
-      "docs/references/workbench-ui/workitem-shell-controls.svg",
-      "docs/references/workbench-ui/responsive-composition.svg",
-    ],
     authorityRefs: [
       "GW-DOC-WORKBENCH-UX",
       "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
@@ -2276,10 +2457,6 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     theme: "Light",
     route: new URL(page.url()).pathname + new URL(page.url()).search,
     captureScope: "production current-attention region only",
-    references: [
-      "docs/references/workbench-ui/current-attention-states.svg",
-      "docs/references/workbench-ui/responsive-composition.svg",
-    ],
     authorityRefs: [
       "GW-DOC-WORKBENCH-UX",
       "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
@@ -2299,7 +2476,6 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     viewport: { width: 1440, height: 900 },
     theme: "Light",
     route: new URL(page.url()).pathname + new URL(page.url()).search,
-    references: ["docs/references/workbench-ui/theme-parity.svg"],
     authorityRefs: [
       "GW-DOC-WORKBENCH-UX",
       "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
@@ -2317,7 +2493,6 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     viewport: { width: 1000, height: 800 },
     theme: "Light",
     route: new URL(page.url()).pathname + new URL(page.url()).search,
-    references: ["docs/references/workbench-ui/responsive-composition.svg"],
     authorityRefs: [
       "GW-DOC-WORKBENCH-UX",
       "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
@@ -2338,7 +2513,6 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     viewport: { width: 700, height: 800 },
     theme: "Light",
     route: new URL(page.url()).pathname + new URL(page.url()).search,
-    references: ["docs/references/workbench-ui/responsive-composition.svg"],
     authorityRefs: [
       "GW-DOC-WORKBENCH-UX",
       "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
@@ -2458,7 +2632,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     return url.pathname + url.search;
   };
   const capture = async (
-    entry: Omit<RenderedAcceptanceEntry, "screenshot">,
+    entry: RenderedAcceptanceInput,
     target?: Locator,
   ): Promise<void> => {
     entries.push(await captureRenderedAcceptance(page, entry, target));
@@ -2488,10 +2662,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
       viewport: light,
       theme: "Light",
       route: routeValue(),
-      references: [
-        "docs/references/workbench-ui/settings-repositories.svg",
-        "docs/references/workbench-ui/theme-parity.svg",
-      ],
       authorityRefs: [
         "GW-DOC-WORKBENCH-UX",
         "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
@@ -2510,10 +2680,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
       viewport: narrow,
       theme: "Light",
       route: routeValue(),
-      references: [
-        "docs/references/workbench-ui/settings-repositories.svg",
-        "docs/references/workbench-ui/responsive-composition.svg",
-      ],
       authorityRefs: [
         "GW-DOC-WORKBENCH-UX",
         "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
@@ -2532,7 +2698,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Light",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/settings-repositories.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-INSTALLATION-READINESS"],
   }, settings);
   await capture({
@@ -2545,7 +2710,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Light",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/settings-repositories.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-PROJECT-GOVERNANCE-INTEGRATION"],
   }, repositories);
 
@@ -2562,7 +2726,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Light",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/settings-repository-add.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }, addRepository);
   await addRepository.getByRole("button", { name: "Cancel add repository" }).click();
@@ -2584,7 +2747,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Light",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/settings-repository-move.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM"],
   }, moveDocuments);
   await moveDocuments.getByRole("button", { name: "Cancel move" }).click();
@@ -2602,7 +2764,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     theme: "Light",
     route: routeValue(),
     captureScope: "production confirmation only",
-    references: ["docs/references/workbench-ui/safety-confirmations.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }, disconnect);
   await disconnect.getByRole("button", { name: "Cancel" }).click();
@@ -2620,7 +2781,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Light",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/settings-opencode.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-OPENCODE-INTEGRATION-V1"],
   }, openCode);
 
@@ -2636,7 +2796,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Light",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/settings-opencode-rename.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-OPENCODE-INTEGRATION-V1"],
   }, renameAccount);
   await renameAccount.getByRole("button", { name: "Cancel rename" }).click();
@@ -2654,7 +2813,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     theme: "Light",
     route: routeValue(),
     captureScope: "production confirmation only",
-    references: ["docs/references/workbench-ui/safety-confirmations.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-OPENCODE-INTEGRATION-V1"],
   }, removeAccount);
   await removeAccount.getByRole("button", { name: "Cancel" }).click();
@@ -2671,7 +2829,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Light",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/settings-opencode-add.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-OPENCODE-INTEGRATION-V1"],
   }, addAccount);
   await addAccount.getByLabel("Account label").fill("ia26@example.com");
@@ -2689,10 +2846,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Light",
     route: routeValue(),
-    references: [
-      "docs/references/workbench-ui/settings-opencode-login.svg",
-      "docs/references/workbench-ui/settings-opencode-login-states.svg",
-    ],
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-OPENCODE-INTEGRATION-V1"],
   }, loginAttempt);
   await loginAttempt.getByRole("button", { name: "Cancel OpenCode sign-in" }).click();
@@ -2720,7 +2873,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
       viewport: light,
       theme: "Light",
       route: routeValue(),
-      references: ["docs/references/workbench-ui/settings-opencode-login-states.svg"],
       authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-OPENCODE-INTEGRATION-V1"],
     }, terminalLogin);
     await terminalLogin.getByRole("button", { name: "Done" }).click();
@@ -2747,7 +2899,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Light",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/settings-model.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-OPENCODE-INTEGRATION-V1"],
   }, modelSettings);
   await page.getByRole("radio", { name: "Dark" }).click();
@@ -2761,7 +2912,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Dark",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/settings-model.svg", "docs/references/workbench-ui/theme-parity.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
   }, modelSettings);
   await page.getByRole("radio", { name: "Light" }).click();
@@ -2778,7 +2928,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Light",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/settings-model.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }, page.getByTestId("settings-diagnostics"));
   await settings.getByRole("button", { name: "Hide settings diagnostics", exact: true }).click();
@@ -2794,10 +2943,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: narrow,
     theme: "Light",
     route: routeValue(),
-    references: [
-      "docs/references/workbench-ui/settings-model.svg",
-      "docs/references/workbench-ui/responsive-composition.svg",
-    ],
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2"],
   }, settings);
   await page.setViewportSize(light);
@@ -2820,10 +2965,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
       viewport: light,
       theme: "Light",
       route: routeValue(),
-      references: [
-        "docs/references/workbench-ui/workitem-shell-controls.svg",
-        "docs/references/workbench-ui/theme-parity.svg",
-      ],
       authorityRefs: [
         "GW-DOC-WORKBENCH-UX",
         "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
@@ -2841,10 +2982,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
       viewport: { width: 1000, height: 800 },
       theme: "Light",
       route: routeValue(),
-      references: [
-        "docs/references/workbench-ui/workitem-shell-controls.svg",
-        "docs/references/workbench-ui/responsive-composition.svg",
-      ],
       authorityRefs: [
         "GW-DOC-WORKBENCH-UX",
         "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
@@ -2862,10 +2999,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
       viewport: narrow,
       theme: "Light",
       route: routeValue(),
-      references: [
-        "docs/references/workbench-ui/workitem-shell-controls.svg",
-        "docs/references/workbench-ui/responsive-composition.svg",
-      ],
       authorityRefs: [
         "GW-DOC-WORKBENCH-UX",
         "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
@@ -2887,7 +3020,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Light",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/work-request.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-MARKDOWN-WORKBENCH-V1"],
   });
   await page.setViewportSize(narrow);
@@ -2903,7 +3035,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: narrow,
     theme: "Light",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/work-request.svg", "docs/references/workbench-ui/responsive-composition.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2"],
   });
   await page.setViewportSize({ width: 1000, height: 800 });
@@ -2917,7 +3048,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: { width: 1000, height: 800 },
     theme: "Light",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/workitem-shell-controls.svg", "docs/references/workbench-ui/responsive-composition.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2"],
   });
   await page.setViewportSize(light);
@@ -2932,7 +3062,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Dark",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/work-request.svg", "docs/references/workbench-ui/theme-parity.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
   });
   await capture({
@@ -2945,7 +3074,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Dark",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/workitem-shell-controls.svg", "docs/references/workbench-ui/theme-parity.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
   }, page.locator(".order-workbench-chrome"));
   await page.getByRole("button", { name: "Context", exact: true }).click();
@@ -2959,7 +3087,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Dark",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/workitem-context.svg", "docs/references/workbench-ui/theme-parity.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
   }, page.getByTestId("work-item-context"));
   await page.getByRole("button", { name: "Close context", exact: true }).click();
@@ -2975,7 +3102,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     theme: "Light",
     route: routeValue(),
     captureScope: "production source document material",
-    references: ["docs/references/workbench-ui/document-authoring.svg"],
     authorityRefs: ["GW-DOC-MARKDOWN-WORKBENCH-V1", "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM"],
   }, sourceMaterial);
 
@@ -2990,7 +3116,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Light",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/document-authoring.svg", "docs/references/workbench-ui/document-states.svg"],
     authorityRefs: ["GW-DOC-MARKDOWN-WORKBENCH-V1"],
   }, page.locator("form.order-markdown-editor"));
   const formattingButtonTops = await page.getByTestId("markdown-format-toolbar")
@@ -3050,11 +3175,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: narrow,
     theme: "Light",
     route: routeValue(),
-    references: [
-      "docs/references/workbench-ui/document-authoring.svg",
-      "docs/references/workbench-ui/document-states.svg",
-      "docs/references/workbench-ui/responsive-composition.svg",
-    ],
     authorityRefs: [
       "GW-DOC-MARKDOWN-WORKBENCH-V1",
       "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
@@ -3073,7 +3193,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Dark",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/document-authoring.svg", "docs/references/workbench-ui/theme-parity.svg"],
     authorityRefs: ["GW-DOC-MARKDOWN-WORKBENCH-V1", "GW-DOC-WORKBENCH-THEME-V1"],
   }, page.locator("form.order-markdown-editor"));
   await page.getByRole("radio", { name: "Light" }).click();
@@ -3090,7 +3209,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Light",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/document-states.svg"],
     authorityRefs: ["GW-DOC-MARKDOWN-WORKBENCH-V1"],
   }, page.locator("form.order-markdown-editor"));
 
@@ -3123,7 +3241,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Light",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/document-states.svg"],
     authorityRefs: ["GW-DOC-MARKDOWN-WORKBENCH-V1"],
   }, page.locator("form.order-markdown-editor"));
   await page.getByRole("button", { name: "Reload current", exact: true }).click();
@@ -3145,7 +3262,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     theme: "Light",
     route: routeValue(),
     captureScope: "production confirmation only",
-    references: ["docs/references/workbench-ui/safety-confirmations.svg"],
     authorityRefs: ["GW-DOC-MARKDOWN-WORKBENCH-V1"],
   }, dirtyMaterial);
   await dirtyMaterial.getByRole("button", { name: "Cancel", exact: true }).click();
@@ -3163,7 +3279,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     theme: "Light",
     route: routeValue(),
     captureScope: "production confirmation only",
-    references: ["docs/references/workbench-ui/safety-confirmations.svg"],
     authorityRefs: ["GW-DOC-MARKDOWN-WORKBENCH-V1"],
   }, dirtyDestination);
   await dirtyDestination.getByRole("button", { name: "Cancel", exact: true }).click();
@@ -3183,7 +3298,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Light",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/document-authoring.svg", "docs/references/workbench-ui/document-states.svg"],
     authorityRefs: ["GW-DOC-MARKDOWN-WORKBENCH-V1"],
   }, page.locator("form.order-markdown-editor"));
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
@@ -3202,7 +3316,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Light",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/document-readonly.svg", "docs/references/workbench-ui/document-states.svg"],
     authorityRefs: ["GW-DOC-MARKDOWN-WORKBENCH-V1"],
   }, readOnlyMaterial);
 
@@ -3228,7 +3341,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     theme: "Dark",
     route: routeValue(),
     captureScope: "production Create dialog only",
-    references: ["docs/references/workbench-ui/create-work-item.svg", "docs/references/workbench-ui/theme-parity.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
   }, create);
   await create.getByRole("button", { name: "Create work item" }).click();
@@ -3247,7 +3359,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     theme: "Light",
     route: routeValue(),
     captureScope: "production confirmation only",
-    references: ["docs/references/workbench-ui/safety-confirmations.svg"],
     authorityRefs: ["GW-DOC-MARKDOWN-WORKBENCH-V1"],
   }, gitConfirm);
   await gitConfirm.getByRole("button", { name: "Cancel", exact: true }).click();
@@ -3265,7 +3376,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     theme: "Light",
     route: routeValue(),
     captureScope: "production confirmation only",
-    references: ["docs/references/workbench-ui/safety-confirmations.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }, archiveConfirm);
   await capture({
@@ -3279,7 +3389,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     theme: "Dark",
     route: routeValue(),
     captureScope: "production confirmation only",
-    references: ["docs/references/workbench-ui/safety-confirmations.svg", "docs/references/workbench-ui/theme-parity.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
   }, archiveConfirm);
   await archiveConfirm.getByRole("button", { name: "Cancel", exact: true }).click();
@@ -3305,7 +3414,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
       viewport: light,
       theme: "Light",
       route: routeValue(),
-      references: ["docs/references/workbench-ui/work-type-variants.svg"],
       authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM"],
     }, source);
     await backToQueue(page);
@@ -3316,12 +3424,12 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   if (runRenderedPhase("IA30")) {
   // IA30 — productive stages, Dialogue and direct Proposal Review.
   const stageCases = [
-    ["Research open continuation", "Research", "SURF-STEP-R1-001", "research.svg"],
-    ["Requirements document visual", "Requirements", "SURF-STEP-R2-001", "requirements.svg"],
-    ["Solution design document visual", "Solution design", "SURF-STEP-DESIGN-001", "solution-design.svg"],
-    ["Implementation plan document visual", "Implementation plan", "SURF-STEP-PLAN-001", "implementation-plan.svg"],
+    ["Research open continuation", "Research", "SURF-STEP-R1-001"],
+    ["Requirements document visual", "Requirements", "SURF-STEP-R2-001"],
+    ["Solution design document visual", "Solution design", "SURF-STEP-DESIGN-001"],
+    ["Implementation plan document visual", "Implementation plan", "SURF-STEP-PLAN-001"],
   ] as const;
-  for (const [title, step, surface, reference] of stageCases) {
+  for (const [title, step, surface] of stageCases) {
     await openWorkItem(page, title);
     await selectWorkflowStep(page, step);
     await page.setViewportSize(light);
@@ -3335,7 +3443,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
       viewport: light,
       theme: "Light",
       route: routeValue(),
-      references: ["docs/references/workbench-ui/" + reference],
       authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2"],
     });
     await page.setViewportSize(narrow);
@@ -3349,7 +3456,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
       viewport: narrow,
       theme: "Light",
       route: routeValue(),
-      references: ["docs/references/workbench-ui/" + reference, "docs/references/workbench-ui/responsive-composition.svg"],
       authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2"],
     });
     await page.setViewportSize(light);
@@ -3365,7 +3471,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
         viewport: light,
         theme: "Light",
         route: routeValue(),
-        references: ["docs/references/workbench-ui/dialogue-states.svg", "docs/references/workbench-ui/research.svg"],
         authorityRefs: ["GW-DOC-WORKBENCH-UX"],
       }, activity);
       await page.getByRole("radio", { name: "Dark" }).click();
@@ -3379,7 +3484,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
         viewport: light,
         theme: "Dark",
         route: routeValue(),
-        references: ["docs/references/workbench-ui/dialogue-states.svg", "docs/references/workbench-ui/theme-parity.svg"],
         authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
       }, activity);
       await page.getByRole("radio", { name: "Light" }).click();
@@ -3399,7 +3503,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Light",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/dialogue-states.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }, requiredInputActivity);
   await backToQueue(page);
@@ -3418,7 +3521,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Light",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/dialogue-states.svg", "docs/references/workbench-ui/current-attention-states.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }, page.getByTestId("stage-run-material"));
   await backToQueue(page);
@@ -3436,7 +3538,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Light",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/dialogue-states.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }, page.getByTestId("stage-run-material"));
   await backToQueue(page);
@@ -3453,7 +3554,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Light",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/proposal-review.svg", "docs/references/workbench-ui/proposal-states.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }, proposal);
   await page.getByRole("radio", { name: "Dark" }).click();
@@ -3467,7 +3567,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Dark",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/proposal-review.svg", "docs/references/workbench-ui/theme-parity.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
   }, proposal);
   await page.getByRole("radio", { name: "Light" }).click();
@@ -3490,10 +3589,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
       viewport: light,
       theme: "Light",
       route: routeValue(),
-      references: [
-        "docs/references/workbench-ui/proposal-states.svg",
-        "docs/references/workbench-ui/current-attention-states.svg",
-      ],
       authorityRefs: ["GW-DOC-WORKBENCH-UX"],
       captureScope: "full application viewport",
     });
@@ -3510,7 +3605,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
       viewport: light,
       theme: "Light",
       route: routeValue(),
-      references: ["docs/references/workbench-ui/proposal-states.svg"],
       authorityRefs: ["GW-DOC-WORKBENCH-UX"],
     }, page.getByTestId("proposal-review-workspace"));
   }
@@ -3532,7 +3626,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Light",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/proposal-states.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }, page.getByTestId("proposal-review-workspace"));
   await backToQueue(page);
@@ -3548,7 +3641,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Light",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/proposal-states.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }, page.getByTestId("proposal-review-workspace"));
   await backToQueue(page);
@@ -3570,7 +3662,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Light",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/readiness-review.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }, readinessReview);
   await page.setViewportSize(narrow);
@@ -3584,7 +3675,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: narrow,
     theme: "Light",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/readiness-review.svg", "docs/references/workbench-ui/responsive-composition.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }, readinessReview);
   await page.setViewportSize(light);
@@ -3605,7 +3695,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Light",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/approval.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }, approval);
   await page.setViewportSize(narrow);
@@ -3622,7 +3711,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: narrow,
     theme: "Light",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/approval.svg", "docs/references/workbench-ui/responsive-composition.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }, approval);
   await page.setViewportSize(light);
@@ -3638,7 +3726,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Light",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/approval-task-detail.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }, approvalTask);
   await page.getByRole("radio", { name: "Dark" }).click();
@@ -3652,7 +3739,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Dark",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/approval-task-detail.svg", "docs/references/workbench-ui/theme-parity.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
   }, approvalTask);
   await page.getByRole("radio", { name: "Light" }).click();
@@ -3669,7 +3755,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Light",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/readiness-review.svg", "docs/references/workbench-ui/dialogue-states.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }, page.getByTestId("review-workspace"));
   await backToQueue(page);
@@ -3690,7 +3775,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Light",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/implementation.svg", "docs/references/workbench-ui/implementation-states.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }, execution);
   await page.getByRole("radio", { name: "Dark" }).click();
@@ -3704,7 +3788,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Dark",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/implementation.svg", "docs/references/workbench-ui/theme-parity.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
   }, execution);
   await page.getByRole("radio", { name: "Light" }).click();
@@ -3718,7 +3801,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Light",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/implementation.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }, page.getByTestId("execution-task-detail"));
   await page.setViewportSize(narrow);
@@ -3732,7 +3814,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: narrow,
     theme: "Light",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/implementation.svg", "docs/references/workbench-ui/responsive-composition.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }, execution);
   await page.setViewportSize(light);
@@ -3751,7 +3832,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Light",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/implementation-states.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }, execution);
   await backToQueue(page);
@@ -3767,7 +3847,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Light",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/implementation-states.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }, page.getByTestId("execution-workspace"));
   await backToQueue(page);
@@ -3788,7 +3867,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Light",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/complete.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }, complete);
   await page.getByRole("radio", { name: "Dark" }).click();
@@ -3802,7 +3880,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Dark",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/complete.svg", "docs/references/workbench-ui/theme-parity.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
   }, complete);
   await page.getByRole("radio", { name: "Light" }).click();
@@ -3817,7 +3894,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: narrow,
     theme: "Light",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/complete.svg", "docs/references/workbench-ui/responsive-composition.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }, complete);
   await page.setViewportSize(light);
@@ -3833,7 +3909,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Light",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/implementation-states.svg", "docs/references/workbench-ui/implementation.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }, page.getByTestId("execution-workspace"));
   await backToQueue(page);
@@ -3849,7 +3924,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Light",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/complete-linked-remediation.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }, page.getByTestId("result-workspace"));
   await backToQueue(page);
@@ -3869,7 +3943,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Light",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/evidence-viewer.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }, evidence);
   await page.getByRole("radio", { name: "Dark" }).click();
@@ -3883,7 +3956,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Dark",
     route: routeValue(),
-    references: ["docs/references/workbench-ui/evidence-viewer.svg", "docs/references/workbench-ui/theme-parity.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
   }, evidence);
   await page.getByRole("radio", { name: "Light" }).click();
@@ -3901,7 +3973,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "Dark",
     route: "/",
-    references: ["docs/references/workbench-ui/queue.svg", "docs/references/workbench-ui/theme-parity.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
   }, page.getByTestId("work-item-queue"));
   await page.getByRole("radio", { name: "System" }).click();
@@ -3916,7 +3987,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "System/light",
     route: "/",
-    references: ["docs/references/workbench-ui/theme-parity.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-THEME-V1"],
   });
   await page.emulateMedia({ colorScheme: "dark" });
@@ -3930,7 +4000,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     viewport: light,
     theme: "System/dark",
     route: "/",
-    references: ["docs/references/workbench-ui/theme-parity.svg"],
     authorityRefs: ["GW-DOC-WORKBENCH-THEME-V1"],
   });
 
@@ -4031,62 +4100,26 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   }
   expect(allEntries.some((entry) => entry.theme === "System/light")).toBe(true);
   expect(allEntries.some((entry) => entry.theme === "System/dark")).toBe(true);
-  expect(allEntries.some((entry) =>
-    entry.viewport.width === 1000 &&
-    entry.references.includes("docs/references/workbench-ui/responsive-composition.svg")
-  )).toBe(true);
+  expect(allEntries.some((entry) => entry.viewport.width === 1000)).toBe(true);
   expect(allEntries.some((entry) =>
     entry.surface === "SURF-MAT-SOURCE-001" &&
     entry.viewport.width === 700 &&
     entry.state === "active-editor-narrow-overflow"
   )).toBe(true);
 
-  const requiredReferencePaths = [
-    "application-notices-states.svg",
-    "approval-task-detail.svg",
-    "approval.svg",
-    "complete-linked-remediation.svg",
-    "complete.svg",
-    "create-linked-remediation.svg",
-    "create-work-item.svg",
-    "current-attention-states.svg",
-    "dialogue-states.svg",
-    "document-authoring.svg",
-    "document-readonly.svg",
-    "document-states.svg",
-    "evidence-viewer.svg",
-    "implementation-plan.svg",
-    "implementation-states.svg",
-    "implementation.svg",
-    "installation-readiness.svg",
-    "proposal-review.svg",
-    "proposal-states.svg",
-    "queue-states.svg",
-    "queue.svg",
-    "readiness-review.svg",
-    "requirements.svg",
-    "research.svg",
-    "responsive-composition.svg",
-    "safety-confirmations.svg",
-    "settings-model.svg",
-    "settings-opencode-add.svg",
-    "settings-opencode-login-states.svg",
-    "settings-opencode-login.svg",
-    "settings-opencode-rename.svg",
-    "settings-opencode.svg",
-    "settings-repositories.svg",
-    "settings-repository-add.svg",
-    "settings-repository-move.svg",
-    "solution-design.svg",
-    "theme-parity.svg",
-    "work-request.svg",
-    "work-type-variants.svg",
-    "workitem-context.svg",
-    "workitem-shell-controls.svg",
-  ].map((name) => "docs/references/workbench-ui/" + name);
-  const capturedReferences = new Set(allEntries.flatMap((entry) => entry.references));
-  for (const reference of requiredReferencePaths) {
-    expect(capturedReferences.has(reference)).toBe(true);
+  expect(referenceManifest.semanticAuthority).toBe(false);
+  expect(referenceManifest.source).toBe(referenceAtlasPath);
+  expect(referenceManifest.surfaces).toHaveLength(37);
+  expect([...new Set(allEntries.map((entry) => entry.reference.surface))].sort())
+    .toEqual(requiredSurfaces);
+  for (const entry of allEntries) {
+    expect(entry.reference.manifestPath).toBe(referenceManifestPath);
+    expect(entry.reference.sourcePath).toBe(referenceAtlasPath);
+    expect(referenceSurfaceById.has(entry.reference.surface)).toBe(true);
+    if (entry.reference.comparisonEligible) {
+      expect(entry.reference.query).not.toBeNull();
+      expect(entry.captureScope).toBe(entry.reference.captureScope);
+    }
   }
 
   for (const kind of ["CHANGE", "DEFECT", "INVESTIGATION", "AUDIT"] as const) {
