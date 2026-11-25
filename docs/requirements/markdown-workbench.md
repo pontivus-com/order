@@ -180,6 +180,8 @@ Each existing lifecycle document exposes at minimum:
 - the editing action when allowed;
 - the relevant conformance/readiness status available from canonical state.
 
+This is an information-availability contract, not an always-visible metadata layout. The exact Markdown/document canvas is the primary Document-class content. Role/currentness/actions may remain in the document header; current path, WorkItem document directory, work kind, Project and Concerns are subordinate same-task orientation facts and, when present on the Document surface, use one specifically named details disclosure closed by default after the document rather than an always-open facts band before it. Git save state/action may remain compactly adjacent to the document action because it directly governs the document persistence task.
+
 Raw ArtifactRef identity/hash information is not required for ordinary navigation. Where existing diagnostic surfaces expose it, it remains read-only and secondary to lifecycle/document navigation.
 
 Run history, questions, evidence and artifact proposals remain inspectable from the WorkItem workspace and remain tied to their canonical Run/RunEvent records.
@@ -256,7 +258,7 @@ Git save is a documentation operation, not implementation authority. It does not
 
 The Git status/action belongs to the selected WorkItem's Documents/workflow context rather than the global application toolbar.
 
-- the Documents surface shows the resolved project-relative WorkItem directory and current Git status;
+- the Documents surface makes the resolved project-relative WorkItem directory available in the named document-details disclosure and keeps current Git status/action compactly adjacent to the governed document action; neither the directory nor a metadata fact band may precede the Markdown canvas;
 - **Save documentation to Git** is a WorkItem-level secondary/primary mutation when repository changes exist, placed near document/workflow state rather than hidden in technical inspection;
 - the confirmation/review material lists exact governed paths and uses Review/safety space when necessary;
 - compact Context may mirror `Saved to Git` / `Not saved to Git`, but it must not become the only place from which the operator can understand or perform the operation.
