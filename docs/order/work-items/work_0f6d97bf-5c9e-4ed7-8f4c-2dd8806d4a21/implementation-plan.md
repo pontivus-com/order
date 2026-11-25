@@ -6,7 +6,7 @@
 
 This file is the single deterministic P7 artifact and sole normative execution authority for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. The directory `implementation-plan/` is only its maintainable authoring decomposition. The complete source content is compiled below and this root becomes executable only after the canonical campaign gates and operator sign-off bind these exact bytes.
 
-This PLAN is regenerated for C19-F09/C20-F11 from current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`, corrected P4 Workbench `3d7c325e131992abc2e02f4fbac578154467cf59` and corrected DESIGN `0b229ff261e2ce141c0867412c541edcfd1b24fe`. Historical PLAN structure, implementation/UI/tests, prior 68-path forecasts, RZ16 acceptance and prior sign-off are evidence only.
+This PLAN is regenerated for C19-F09/C20-F11 from current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`, corrected P4 Workbench `5b41cd6ef09964a836bf6bd9975f3cff50167049` and corrected DESIGN `753a0477cc2cd9bfbd198e8af3c91c1409cb3aaa`. Historical PLAN structure, implementation/UI/tests, prior 68-path forecasts, RZ16 acceptance and prior sign-off are evidence only.
 
 This PLAN carries no campaign gate state and no implementation authority by itself. Campaign §17A/§18 exclusively govern current gates, bounded authorization and sign-off; these exact PLAN bytes remain a candidate until those controls establish the required authorization.
 
@@ -22,19 +22,19 @@ IA20/IA26 certify component API/consumer/physical-SoC closure in addition to the
 
 | Source component | Git blob |
 |---|---|
-| `implementation-plan/00-governance.md` | `f594b660a8b6cafa470835d92279c80ff000e4bf` |
-| `implementation-plan/01-a01-lifecycle-product.md` | `e127815bd39b46a21a14c783726f0b5778df8adb` |
-| `implementation-plan/02-a02-governance-intake.md` | `fb225196255f63c9e521c49dde52ab6cf4d65180` |
-| `implementation-plan/03-a03-queue-source.md` | `ac9109d93ba53e2ed9cb6a3e73ee38c9684be3c7` |
-| `implementation-plan/04-a04-workbench-research.md` | `2446d10ba21c59fd78dcf7b7fc4eaac82da6af25` |
-| `implementation-plan/05-a05-requirements-design.md` | `070e45e1ddd456c9cc3fbd65e7571c634289d30c` |
-| `implementation-plan/06-a06-plan-readiness.md` | `c82615b58d0e4789e32addde0a016def4ef1d065` |
-| `implementation-plan/07-a07-approval-execution.md` | `38b8934123f8024dda848bd04fc1619eeb6ede21` |
-| `implementation-plan/08-a08-complete-materials.md` | `b134b234a16060722314a8e09187642897553f83` |
-| `implementation-plan/09-a09-provider-settings.md` | `beadc321cbd8fdcb93eaa871d65763a6e26899db` |
-| `implementation-plan/10-a10-recovery-accessibility.md` | `8a1546fca4e8b1ce22c04fbdc2cd18f673e94f24` |
-| `implementation-plan/11-a11-component-certification.md` | `15cafc7f99b3f4d2c15a4da842a6503d9213d19e` |
-| `implementation-plan/12-action-catalog.md` | `50763ec4167d8bcda4ad5e5dc53c8fc082b4f399` |
+| `implementation-plan/00-governance.md` | `d979b7b06e4056cc6ba18b3132a3060935fa0cb6` |
+| `implementation-plan/01-a01-lifecycle-product.md` | `dbed92d357b80c77a8e2d06aa688e9c6fa65b748` |
+| `implementation-plan/02-a02-governance-intake.md` | `5d2c82de03dd3b52842e25c3d32446d4a86f9026` |
+| `implementation-plan/03-a03-queue-source.md` | `b8f16e3fc771dd250b8596740fef8845824dddd1` |
+| `implementation-plan/04-a04-workbench-research.md` | `51ac7ee4ef15a78d4e77d62bb8c85f8b599d68e3` |
+| `implementation-plan/05-a05-requirements-design.md` | `ec5520e831374c353e3df4124ea27c5f71f36e17` |
+| `implementation-plan/06-a06-plan-readiness.md` | `6e5f25fee4f62d85984a3a0b80f6752696a9e863` |
+| `implementation-plan/07-a07-approval-execution.md` | `95f8d4a207bc5cb6ec8b91383f903c36bf701a09` |
+| `implementation-plan/08-a08-complete-materials.md` | `f85b004f292e56af44c71346aa807430f99340b4` |
+| `implementation-plan/09-a09-provider-settings.md` | `d8b14b98b53514f2907a762dcc7bdec849fbbd89` |
+| `implementation-plan/10-a10-recovery-accessibility.md` | `f4e5923d55f5e03ac0a5698d94570ffdc7813300` |
+| `implementation-plan/11-a11-component-certification.md` | `14b74179b8416b7a3619fe5630cd2823ac558ba8` |
+| `implementation-plan/12-action-catalog.md` | `d45748fad2e11a15bb664f894625736f8b872216` |
 | `implementation-plan/13-verification-closeout.md` | `6b9c66440b0583ab96329740f22e07010123a230` |
 
 A source component hash mismatch makes PLAN non-current until this root is regenerated. Directory files contain no `order-tasks` block and own no independent lifecycle state or executable action definition.
@@ -168,11 +168,11 @@ This decomposition is revalidated under C19-F09/C20-F11 after the prior G4-G6 cl
 
 - R1 `research.md`: `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`.
 - R2 `requirements.md`: `b44b65a15af709751c6a1d8f0a566285b6e8bcce`.
-- DESIGN `solution-design.md`: `0b229ff261e2ce141c0867412c541edcfd1b24fe` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 76-path forecast.
+- DESIGN `solution-design.md`: `753a0477cc2cd9bfbd198e8af3c91c1409cb3aaa` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 76-path forecast.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `9c2ec83a9552b7583f90e91080c014df4d6870df`.
 - P3 `GW-DOC-WORKBENCH-UX-V2`: `ac89ec5a6c7c19d4b70879fefd9ef3c71d76675a` — §11.4A/§12/§13/§14 own semantic information classes, state-is-not-interface behavior, direct primary interaction composition, no generic workflow-material selector, continuous Dialogue semantics, Terminal-result primacy, singular technical inspection, task anatomy and composition invariants.
 - P3 `GW-DOC-MARKDOWN-WORKBENCH-V1`: `1cc5a28eff8d180f88106d89990f7b89aa27a132` — §17.4 owns one compact Markdown editor-control region, overflow-before-wrap formatting and control→canvas adjacency.
-- P4 `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`: `3d7c325e131992abc2e02f4fbac578154467cf59` — sole permanent owner of structural + semantic Workbench component responsibilities/APIs, consumer boundaries, composition laws and remediation disposition semantics.
+- P4 `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`: `5b41cd6ef09964a836bf6bd9975f3cff50167049` — sole permanent owner of structural + semantic Workbench component responsibilities/APIs, consumer boundaries, composition laws and remediation disposition semantics.
 - P4 `GW-DOC-WORKBENCH-THEME-V1`: `03dfc6be3600a1128b5639d011f4c0159d3497dd` — owns the corrected semantic-disclosure, technical-inspection and task-panel visual roles.
 - P6 `GW-DOC-CANONICAL-CONTRACTS-V2`: `71f829cff8824db18194689eccdec83da6f5d19f`.
 - SD13 checkpoint and SD10 scope/forecast/V4-V6 realization are consumed only because current DESIGN positively proves those canonical capabilities; T1 does not reimplement them.
@@ -264,7 +264,7 @@ Because the current T1 candidate sets `scope` equal to the same exact 76-path `c
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C01 + C21.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`; current DESIGN `0b229ff261e2ce141c0867412c541edcfd1b24fe`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`; current DESIGN `753a0477cc2cd9bfbd198e8af3c91c1409cb3aaa`.
 
 ##### Stable requirement execution dispositions
 
@@ -320,7 +320,7 @@ Package atoms in phase: **1**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C22 + C02.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`; current DESIGN `0b229ff261e2ce141c0867412c541edcfd1b24fe`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`; current DESIGN `753a0477cc2cd9bfbd198e8af3c91c1409cb3aaa`.
 
 ##### Stable requirement execution dispositions
 
@@ -372,7 +372,7 @@ Package atoms in phase: **4**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C03 + C04.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`; current DESIGN `0b229ff261e2ce141c0867412c541edcfd1b24fe`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`; current DESIGN `753a0477cc2cd9bfbd198e8af3c91c1409cb3aaa`.
 
 ##### Stable requirement execution dispositions
 
@@ -441,7 +441,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C05 + C06.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`; current DESIGN `0b229ff261e2ce141c0867412c541edcfd1b24fe`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`; current DESIGN `753a0477cc2cd9bfbd198e8af3c91c1409cb3aaa`.
 
 ##### Stable requirement execution dispositions
 
@@ -510,7 +510,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C07 + C08.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`; current DESIGN `0b229ff261e2ce141c0867412c541edcfd1b24fe`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`; current DESIGN `753a0477cc2cd9bfbd198e8af3c91c1409cb3aaa`.
 
 ##### Stable requirement execution dispositions
 
@@ -555,7 +555,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C09 + C10.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`; current DESIGN `0b229ff261e2ce141c0867412c541edcfd1b24fe`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`; current DESIGN `753a0477cc2cd9bfbd198e8af3c91c1409cb3aaa`.
 
 ##### Stable requirement execution dispositions
 
@@ -599,7 +599,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C11 + C12.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`; current DESIGN `0b229ff261e2ce141c0867412c541edcfd1b24fe`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`; current DESIGN `753a0477cc2cd9bfbd198e8af3c91c1409cb3aaa`.
 
 ##### Stable requirement execution dispositions
 
@@ -654,7 +654,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C13 + C14.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`; current DESIGN `0b229ff261e2ce141c0867412c541edcfd1b24fe`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`; current DESIGN `753a0477cc2cd9bfbd198e8af3c91c1409cb3aaa`.
 
 ##### Stable requirement execution dispositions
 
@@ -703,7 +703,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C15 + C16.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`; current DESIGN `0b229ff261e2ce141c0867412c541edcfd1b24fe`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`; current DESIGN `753a0477cc2cd9bfbd198e8af3c91c1409cb3aaa`.
 
 ##### Stable requirement execution dispositions
 
@@ -766,7 +766,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C17 + C18.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`; current DESIGN `0b229ff261e2ce141c0867412c541edcfd1b24fe`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`; current DESIGN `753a0477cc2cd9bfbd198e8af3c91c1409cb3aaa`.
 
 ##### Stable requirement execution dispositions
 
@@ -813,7 +813,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C19 + C20.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`; current DESIGN `0b229ff261e2ce141c0867412c541edcfd1b24fe`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `b44b65a15af709751c6a1d8f0a566285b6e8bcce`; current DESIGN `753a0477cc2cd9bfbd198e8af3c91c1409cb3aaa`.
 
 ##### Stable requirement execution dispositions
 
@@ -887,7 +887,7 @@ This is a trace/readability view of the one canonical `order-tasks` block in the
 0. **Preflight 0 — DESIGN-positive reuse proof:** IA07-IA08. No production mutation.
 1. **Wave 1 — authority/source/task/runtime corrections:** IA01-IA10 plus IA25 where still unsatisfied.
 2. **Wave 2 — bounded shell/Context foundation realization:** bounded IA27 consumes the closed SD21/F6B ledger and realizes only the compile-closed AppShell/WorkItem-shell/Context/responsive/theme + Section/Facts slice and required-absent generic owners. Breaking APIs with later consumers remain unchanged **except** the application-only `WorkbenchToolbar` cutover, whose complete current consumer set is migrated atomically: `app.tsx` consumes the closed application API and `MarkdownEditor.tsx` is dependency-decoupled into its already-authorized Markdown-P3 specialist editor-control region. That narrow dependency migration does not accept IA29; no compatibility path is introduced.
-3. **Wave 3 — fresh Queue/Create/account-utility consumer revalidation + bounded foundation acceptance:** IA11, IA12, IA28 consume that IA27 bounded slice. Queue/Create production bytes may remain only after fresh authority proof. The grant stops after evidence review; IA29 remains blocked until explicit normal sign-off.
+3. **Wave 3 — fresh Queue/Create/account-utility consumer revalidation + bounded foundation acceptance:** IA11, IA12, IA28 consume that IA27 bounded slice. The Toolbar breaking checkpoint includes the IA28-local Queue search dependency migration from `WorkbenchToolbarSearch` to the DESIGN-authorized Astryx `TextInput` Operational-scan leaf so the obsolete Toolbar export can be deleted without a bridge. Queue/Create production bytes may otherwise remain only after fresh authority proof. The grant stops after evidence review; IA29 remains blocked until explicit normal sign-off.
 4. **Post-signoff IA27 completion — shared resource collection atomic cutover:** after normal sign-off and before IA29, create `WorkbenchResourceList`, atomically migrate every current `WorkbenchResourceRow` caller, then narrow `WorkbenchResourceRow`. The candidate must typecheck at the same checkpoint; no caller is left on the old API.
 5. **Wave 4 — Work request/document/editor reconstruction:** IA13, IA14, IA29 create/cut over WorkbenchDocument/Facts/Section with the complete Document consumer set.
 6. **Wave 5 — productive pre-signoff-stage reconstruction excluding Proposal Review:** IA15, IA30 reconstruct R1/R2/DESIGN/PLAN Document/Dialogue/Evidence/State routing and activity/timeline behavior; Proposal Review remains untouched until the atomic Review cutover.
@@ -1108,6 +1108,7 @@ Before any bounded Wave 2/3 UI mutation, the exact corrected P4/DESIGN/PLAN pack
 | `WorkItemContext.tsx` | `DECOMPOSE_REFACTOR` | bounded IA27 | project selection-aware technical data into Section/Facts; remove recurring local section/facts layout |
 | `WorkbenchToolbar.tsx`, `WorkbenchAppShell.tsx`, application-header composition in `app.tsx`, header-owned `theme.css` selectors | `DESTRUCTIVE_REPLACEMENT` | bounded IA27 | atomically migrate the complete current Toolbar consumer set: `app.tsx` to the closed application-only API and remove superseded header DOM/CSS composition; no `start`/`end`/group compatibility API survives |
 | `MarkdownEditor.tsx` consumption of `WorkbenchToolbar` | `DEPENDENCY_DELTA` only | bounded IA27 consumer-atomic dependency migration | replace only the superseded application Toolbar/group wrapper with the Markdown-P3-owned compact editor-control region, preserving existing formatting/mode/Save/Cancel mechanics and direct controls→canvas adjacency; no WorkbenchDocument/facts/layout reconstruction and no IA29 acceptance |
+| `WorkItemQueue.tsx` consumption of `WorkbenchToolbarSearch` | `DEPENDENCY_DELTA` only | same bounded IA27/IA28 compile-atomic Toolbar cutover | delete the obsolete Toolbar-module search export and render the existing `SURF-QUEUE-001` search/filter through the P4-approved Astryx `TextInput` Operational-scan leaf; preserve query/filter semantics, label/test identity and Queue composition; no additional Queue redesign |
 | `WorkItemWorkspace.tsx` shell integration | `BOUNDED_RESIDUAL` | bounded IA27 | preserve canonical routing/shell ownership; correct title-edit action precedence and consume the new Context API |
 | `WorkbenchLayout.tsx`, `WorkbenchSelector.tsx`, `WorkflowStepFrame.tsx`, `WorkflowMaterialSelector.tsx` responsibilities | `REQUIRED_ABSENT` | bounded IA27 | delete/keep absent with zero aliases, wrappers, CSS shims, hidden DOM or renamed equivalents |
 | `WorkbenchSectionHeader.tsx` and conforming narrow primitives | `CONFORMING_NO_EDIT` after fresh audit | bounded IA27 | retain only after corrected P4 responsibility/API proof; no inherited PASS |
@@ -1118,7 +1119,7 @@ Before any bounded Wave 2/3 UI mutation, the exact corrected P4/DESIGN/PLAN pack
 
 **Not owned by the bounded IA27 checkpoint:** `WorkbenchDocument` and the full `DocumentWorkspace`/`MarkdownEditor` Document/editor reconstruction and acceptance (IA29), `WorkbenchReviewVerdict` / `WorkbenchReviewSection` / destructive `WorkbenchReview` + `DocumentChangeView` (IA31), and `WorkbenchResult` (IA33). The only bounded MarkdownEditor mutation is the compile-atomic removal of its invalid application-Toolbar dependency; all IA29-owned information/layout/API reconstruction remains deferred.
 
-**Bounded IA27 ordered mutation:** create/validate Section/Facts; destructively cut over ContextPanel + WorkItemContext together; keep required-absent generic owners absent; atomically re-author AppShell/Toolbar/header/root integration and migrate the complete Toolbar consumer set by moving MarkdownEditor controls off the application Toolbar into the existing Markdown-owned editor-control region; apply bounded theme selectors and the WorkItemWorkspace shell residual; update only bounded proof. The Markdown dependency migration preserves all IA29 semantics and is not IA29 acceptance. The candidate must pass typecheck/build without otherwise touching IA29-IA34 consumer semantics.
+**Bounded IA27 ordered mutation:** create/validate Section/Facts; destructively cut over ContextPanel + WorkItemContext together; keep required-absent generic owners absent; atomically re-author AppShell/Toolbar/header/root integration and migrate the complete Toolbar-module consumer set by moving MarkdownEditor controls off the application Toolbar into the existing Markdown-owned editor-control region and moving Queue search off `WorkbenchToolbarSearch` into its DESIGN-authorized Operational-scan `TextInput` leaf; apply bounded theme selectors and the WorkItemWorkspace shell residual; update only bounded proof. The Markdown dependency migration preserves all IA29 semantics and is not IA29 acceptance. The candidate must pass typecheck/build without otherwise touching IA29-IA34 consumer semantics.
 
 **Post-signoff IA27 completion:** after explicit normal sign-off and before IA29, create ResourceList, migrate **all** current direct ResourceRow consumers to ResourceList/canonical Row usage, narrow ResourceRow in the same change set, and prove type/API/consumer closure. No consumer may remain compiled against the superseded Row API.
 
