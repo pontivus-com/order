@@ -6,7 +6,7 @@
     "p3": {
       "id": "GW-DOC-WORKBENCH-UX-V2",
       "path": "docs/requirements/workbench.md",
-      "blob": "865800890eaf8da1e7fa581e092aa8b9d072eab9"
+      "blob": "ac89ec5a6c7c19d4b70879fefd9ef3c71d76675a"
     },
     "p4": {
       "id": "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
@@ -21,7 +21,7 @@
     "design": {
       "id": "work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21/DESIGN",
       "path": "docs/order/work-items/work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21/solution-design.md",
-      "blob": "3376afea70f120d012b48452e381c05b05791c59"
+      "blob": "62b0500b961e2b35f8fecfe6aa478e6517216bf8"
     }
   },
   "fixturePolicy": {
