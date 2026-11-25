@@ -1994,6 +1994,40 @@ describe("Order cross-boundary certification", () => {
       expect(referenceAtlas).toContain('data-surf="' + surfaceId + '"');
     }
 
+    const documentReferenceIds = [
+      "SURF-STEP-WR-001",
+      "SURF-STEP-DESIGN-001",
+      "SURF-STEP-PLAN-001",
+      "SURF-MAT-SOURCE-001",
+      "SURF-MAT-DOC-001",
+      "SURF-MAT-DOC-RO-001",
+    ] as const;
+    const referenceLine = (surfaceId: string) =>
+      referenceAtlas
+        .split(/\r?\n/)
+        .find((line) => line.includes('data-surf="' + surfaceId + '"')) ?? "";
+    for (const surfaceId of documentReferenceIds) {
+      const fixture = referenceLine(surfaceId);
+      const documentOffset = fixture.indexOf('<article class="document">');
+      const detailsOffset = fixture.indexOf('<details class="documentdetails">');
+      expect(documentOffset).toBeGreaterThanOrEqual(0);
+      expect(detailsOffset).toBeGreaterThan(documentOffset);
+      expect(fixture).not.toContain('<details class="documentdetails" open');
+      expect(fixture.slice(0, documentOffset)).not.toContain('<dl class="facts">');
+    }
+    for (const surfaceId of ["SURF-STEP-WR-001", "SURF-MAT-SOURCE-001"]) {
+      expect(referenceLine(surfaceId)).toContain("<summary>Work request context</summary>");
+    }
+    for (const surfaceId of [
+      "SURF-STEP-DESIGN-001",
+      "SURF-STEP-PLAN-001",
+      "SURF-MAT-DOC-001",
+      "SURF-MAT-DOC-RO-001",
+    ]) {
+      expect(referenceLine(surfaceId)).toContain("<summary>Document location</summary>");
+    }
+    expect(referenceLine("SURF-MAT-DOC-RO-001")).not.toContain("editor-controls");
+
     const referenceReadme = read("docs/references/workbench-ui/README.md");
     expect(referenceReadme).toContain("active derived comparison evidence");
     expect(referenceReadme).toContain("Git history is the only retained provenance for the superseded 0.5.0 SVG pack");
