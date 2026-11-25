@@ -3025,8 +3025,9 @@ describe("daemon control plane", () => {
       const project = await import("./src/shell/project.ts");
       const repositoryRoot = ${JSON.stringify(repository)};
       const manifest = await project.loadValidatedProjectManifest(repositoryRoot);
+      const fence = String.fromCharCode(96).repeat(3);
       const task = (ref) => new TextEncoder().encode(
-        "# plan\\n\\n\\`\\`\\`order-tasks\\n" +
+        "# plan\\n\\n" + fence + "order-tasks\\n" +
         JSON.stringify({
           version: 1,
           tasks: [{
@@ -3042,7 +3043,7 @@ describe("daemon control plane", () => {
             concernIds: ["shell"],
           }],
         }) +
-        "\\n\\`\\`\\`\\n",
+        "\\n" + fence + "\\n",
       );
       let inactiveError = null;
       try {
