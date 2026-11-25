@@ -1405,11 +1405,7 @@ describe("architecture fitness", () => {
       },
     );
     for (const sourcePath of activeDocumentationFiles.filter(
-      (path) =>
-        !retainedSemanticVersionPath(path) &&
-        // The 0.5.0 visual reference pack is historical evidence, not a
-        // present canonical authority consumer; its exact V1 pins are intentional.
-        path !== "docs/references/workbench-ui/README.md"
+      (path) => !retainedSemanticVersionPath(path)
     )) {
       for (const { stableId, currentPath, versionedIds } of advancedConcerns) {
         if (sourcePath === currentPath) continue;
@@ -1686,6 +1682,7 @@ describe("architecture fitness", () => {
       ["PLAN", gitBlobSha(join(campaignDirectory, "implementation-plan.md"))],
       ["P3 Workbench", gitBlobSha("docs/requirements/workbench.md")],
       ["P4 Workbench", gitBlobSha("docs/architecture/workbench.md")],
+      ["P4 Workbench Theme", gitBlobSha("docs/architecture/workbench-theme.md")],
     ] as const);
     const currentGateProjection =
       /^(?:\*\*Status:\*\*[^\n]*\bG(?:5A|[0-6])\b[^\n]*\b(?:PASS|IN_PROGRESS|BLOCKED|REVALIDATION|NOT_STARTED)\b|\s*(?:[-*]\s*)?(?:\*\*)?G(?:5A|[0-6])(?:\*\*)?\s*(?::|=|is\b)[^\n]*\b(?:PASS|IN_PROGRESS|BLOCKED|REVALIDATION|NOT_STARTED|complete|closed|ready)\b)/i;
@@ -2901,15 +2898,71 @@ describe("architecture fitness", () => {
           expectedReplacementScreens,
         );
 
-        const referenceSurfaceText = sourceText("docs/references/workbench-ui/README.md");
-        const referenceSurfaceIds = [
-          ...referenceSurfaceText.matchAll(/^\| \`(SURF-[^\`]+)\` \|/gm),
+        const referenceManifest = JSON.parse(
+          sourceText("docs/references/workbench-ui/reference-manifest.json"),
+        ) as {
+          semanticAuthority?: boolean;
+          authority?: {
+            p3?: { blob?: string };
+            p4?: { blob?: string };
+            theme?: { blob?: string };
+            design?: { blob?: string };
+          };
+          surfaces?: readonly { id?: string; source?: string; selector?: string }[];
+        };
+        const designSurfaceIds = [
+          ...design.matchAll(/^##### (SURF-[A-Z0-9-]+)\b/gm),
         ].map((match) => match[1] ?? "");
-        if (referenceSurfaceIds.length !== 37 || duplicates(referenceSurfaceIds).length > 0) {
+        if (designSurfaceIds.length !== 37 || duplicates(designSurfaceIds).length > 0) {
           violations.push(
-            "Workbench reference registry must contain 37 unique SURF rows; found " +
-              referenceSurfaceIds.length,
+            "DESIGN must contain 37 unique detailed SURF contracts; found " +
+              designSurfaceIds.length,
           );
+        }
+        const referenceSurfaceIds = (referenceManifest.surfaces ?? [])
+          .map((row) => row.id ?? "");
+        if (referenceManifest.semanticAuthority !== false) {
+          violations.push("Workbench reference manifest must explicitly be non-authoritative");
+        }
+        exactSet("Workbench reference manifest SURF set", referenceSurfaceIds, designSurfaceIds);
+        const blobSha = (path: string): string => {
+          const bytes = readFileSync(join(repositoryRoot, path));
+          return createHash("sha1")
+            .update("blob " + bytes.length + "\0")
+            .update(bytes)
+            .digest("hex");
+        };
+        const expectedReferenceAuthority = {
+          p3: blobSha("docs/requirements/workbench.md"),
+          p4: blobSha("docs/architecture/workbench.md"),
+          theme: blobSha("docs/architecture/workbench-theme.md"),
+          design: blobSha(workItemRoot + "/solution-design.md"),
+        } as const;
+        for (const [key, expectedBlob] of Object.entries(expectedReferenceAuthority)) {
+          const actual = referenceManifest.authority?.[key as keyof typeof expectedReferenceAuthority]?.blob;
+          if (actual !== expectedBlob) {
+            violations.push(
+              "Workbench reference manifest " + key + " blob is stale; expected " +
+                expectedBlob + ", found " + (actual ?? "missing"),
+            );
+          }
+        }
+        const referenceFiles = readdirSync(
+          join(repositoryRoot, "docs/references/workbench-ui"),
+        ).sort();
+        if (referenceFiles.some((name) => name.endsWith(".svg"))) {
+          violations.push("superseded Workbench SVG references must not remain in the live tree");
+        }
+        exactSet(
+          "Workbench active reference files",
+          referenceFiles,
+          ["README.md", "reference-atlas.html", "reference-manifest.json"],
+        );
+        const referenceAtlas = sourceText("docs/references/workbench-ui/reference-atlas.html");
+        for (const surfId of designSurfaceIds) {
+          if (!referenceAtlas.includes('data-surf="' + surfId + '"')) {
+            violations.push("Workbench reference atlas missing " + surfId);
+          }
         }
 
         const faceLedgerSection =
@@ -2942,7 +2995,7 @@ describe("architecture fitness", () => {
               duplicateFaceSurfaces.join(", "),
           );
         }
-        exactSet("PLAN rendered face allocation", faceSurfaceUnion, referenceSurfaceIds);
+        exactSet("PLAN rendered face allocation", faceSurfaceUnion, designSurfaceIds);
 
         const ia30Faces = faceLedgerRows.find((row) => row.phaseId === "IA30")?.surfaceIds ?? [];
         const ia31Faces = faceLedgerRows.find((row) => row.phaseId === "IA31")?.surfaceIds ?? [];
@@ -3129,33 +3182,33 @@ describe("architecture fitness", () => {
           violations.push("PLAN must not redefine the canonical Attention API with generic purpose/status/blocker slots");
         }
         for (const required of [
-          "no adjacent/nested generic `Technical details`",
-          "header/body/footer",
-          "editor-control region directly adjacent",
-          "Proposal Review, Readiness and Approval each use one direct `WorkbenchReview` primary composition",
+          "**Semantic authority:** none",
+          "exact current authority versions",
+          "must never fabricate",
+          "37-SURF universe is derived from current DESIGN",
         ]) {
           if (!referenceReadme.includes(required)) {
-            violations.push("Workbench reference-pack composition contract missing " + required);
+            violations.push("Workbench reference corpus contract missing " + required);
           }
         }
-        const correctedReferencePaths = [
-          "docs/references/workbench-ui/work-request.svg",
-          "docs/references/workbench-ui/research.svg",
-          "docs/references/workbench-ui/requirements.svg",
-          "docs/references/workbench-ui/solution-design.svg",
-          "docs/references/workbench-ui/implementation-plan.svg",
-          "docs/references/workbench-ui/readiness-review.svg",
-          "docs/references/workbench-ui/approval.svg",
-          "docs/references/workbench-ui/approval-task-detail.svg",
-          "docs/references/workbench-ui/implementation.svg",
-          "docs/references/workbench-ui/create-work-item.svg",
-          "docs/references/workbench-ui/settings-model.svg",
-          "docs/references/workbench-ui/settings-repositories.svg",
-        ];
-        for (const referencePath of correctedReferencePaths) {
-          const reference = sourceText(referencePath);
-          if (/>(?:Technical details|Task technical details)\s*(?:›|▾)?</.test(reference)) {
-            violations.push(referencePath + ": reference retains prohibited local technical disclosure");
+        for (const [label, textValue] of [
+          ["P3 Workbench", p3Workbench],
+          ["P4 Workbench", p4Workbench],
+          ["DESIGN", design],
+          ["PLAN", plan],
+          ["PLAN action catalog", actionCatalog],
+          ["PLAN closeout", closeout],
+        ] as const) {
+          for (const forbidden of [
+            "Review currentness/summary/body/decisions",
+            "authorized local Technical details",
+            "reviewed SVG composition",
+            "reviewed derived SVG pack",
+            "derives the 37-surface universe from `docs/references/workbench-ui/README.md`",
+          ]) {
+            if (textValue.includes(forbidden)) {
+              violations.push(label + " retains superseded documentation/reference contract: " + forbidden);
+            }
           }
         }
 

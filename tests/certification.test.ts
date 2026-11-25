@@ -1852,60 +1852,37 @@ describe("Order cross-boundary certification", () => {
     expect(readme).not.toContain("export PONTIVUS_ORDER_OPENCODE_MODEL");
     expect(readme).not.toContain("Host-native daemon autostart/process supervision is outside v1");
   });
-  it("locks the P7 integrated visual inventory and removes superseded UI paths", () => {
+  it("locks the authority-bound 0.6.0 visual comparison corpus and removes superseded UI paths", () => {
     const expectedReferences = [
-      "application-notices-states.svg",
-      "approval-task-detail.svg",
-      "approval.svg",
-      "complete-linked-remediation.svg",
-      "complete.svg",
-      "create-linked-remediation.svg",
-      "create-work-item.svg",
-      "current-attention-states.svg",
-      "dialogue-states.svg",
-      "document-authoring.svg",
-      "document-readonly.svg",
-      "document-states.svg",
-      "evidence-viewer.svg",
-      "implementation-plan.svg",
-      "implementation-states.svg",
-      "implementation.svg",
-      "installation-readiness.svg",
-      "proposal-review.svg",
-      "proposal-states.svg",
-      "queue-states.svg",
-      "queue.svg",
-      "readiness-review.svg",
-      "requirements.svg",
-      "research.svg",
-      "responsive-composition.svg",
-      "safety-confirmations.svg",
-      "settings-model.svg",
-      "settings-opencode-add.svg",
-      "settings-opencode-login-states.svg",
-      "settings-opencode-login.svg",
-      "settings-opencode-rename.svg",
-      "settings-opencode.svg",
-      "settings-repositories.svg",
-      "settings-repository-add.svg",
-      "settings-repository-move.svg",
-      "solution-design.svg",
-      "theme-parity.svg",
-      "work-request.svg",
-      "work-type-variants.svg",
-      "workitem-context.svg",
-      "workitem-shell-controls.svg",
+      "README.md",
+      "reference-atlas.html",
+      "reference-manifest.json",
     ].sort();
 
-    const references = readdirSync(join(root, "docs/references/workbench-ui"))
-      .filter((name) => name.endsWith(".svg"))
-      .sort();
+    const references = readdirSync(join(root, "docs/references/workbench-ui")).sort();
     expect(references).toEqual(expectedReferences);
+    expect(references.some((name) => name.endsWith(".svg"))).toBe(false);
+
+    const referenceManifest = JSON.parse(
+      read("docs/references/workbench-ui/reference-manifest.json"),
+    ) as {
+      semanticAuthority?: boolean;
+      surfaces?: readonly { id?: string }[];
+    };
+    expect(referenceManifest.semanticAuthority).toBe(false);
+    const surfaceIds = (referenceManifest.surfaces ?? []).map((row) => row.id ?? "");
+    expect(surfaceIds).toHaveLength(37);
+    expect(new Set(surfaceIds).size).toBe(37);
+
+    const referenceAtlas = read("docs/references/workbench-ui/reference-atlas.html");
+    for (const surfaceId of surfaceIds) {
+      expect(referenceAtlas).toContain('data-surf="' + surfaceId + '"');
+    }
 
     const referenceReadme = read("docs/references/workbench-ui/README.md");
-    for (const reference of expectedReferences) {
-      expect(referenceReadme).toContain("(" + reference + ")");
-    }
+    expect(referenceReadme).toContain("active derived comparison evidence");
+    expect(referenceReadme).toContain("Git history is the only retained provenance for the superseded 0.5.0 SVG pack");
+    expect(referenceReadme).toContain("must never fabricate");
 
     const workflows = readdirSync(join(root, ".github/workflows"))
       .filter((name) => name.endsWith(".yml") || name.endsWith(".yaml"))
