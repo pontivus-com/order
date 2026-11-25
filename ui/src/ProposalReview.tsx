@@ -1,17 +1,17 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CodeBlock } from "@astryxdesign/core/CodeBlock";
 import type { Run, WorkItem } from "../../src/core/contracts.ts";
 import type { StageRunInteraction } from "../../src/core/lifecycle.ts";
 import * as api from "./http.ts";
+import { DocumentChangeView } from "./DocumentChangeView.tsx";
 import { invalidateWorkbenchMutation, workbenchQueryKeys } from "./query-keys.ts";
 import {
   lifecycleArtifactLabel, proposalDispositionFor, type ProposalSelection,
 } from "./workbench-presentation.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
+import { WorkbenchFacts } from "./primitives/WorkbenchFacts.tsx";
 import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
 import { WorkbenchReview } from "./primitives/WorkbenchReview.tsx";
 import { WorkbenchState } from "./primitives/WorkbenchState.tsx";
-import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
 
 export const ProposalReview = ({
   workItem, selection, currentRunId, currentInteraction,
@@ -32,6 +32,11 @@ export const ProposalReview = ({
   const proposalEvent = events.find((event) => event.id === selection.eventId);
   const proposal = proposalEvent?.event.tag === "ARTIFACT_PROPOSAL_CREATED"
     ? proposalEvent.event : null;
+  const targetQuery = useQuery({
+    queryKey: ["proposal-target", selection.eventId] as const,
+    queryFn: () => api.readProposalTarget(selection.eventId),
+    enabled: proposal !== null,
+  });
   const disposition = proposal === null
     ? null : proposalDispositionFor(events, selection.eventId);
   const adoptionRequested = events.some((event) =>
@@ -54,44 +59,120 @@ export const ProposalReview = ({
     description={eventsQuery.error instanceof Error ? eventsQuery.error.message : String(eventsQuery.error)} />;
   if (proposal === null) return <WorkbenchState kind="empty" title="Proposal is no longer available"
     description="Return to the owning workflow step to select a current proposal event." />;
+  if (targetQuery.isPending) return <WorkbenchState kind="loading" title="Loading proposed document…" />;
+  if (targetQuery.isError) return <WorkbenchState kind="error" title="Proposed document unavailable"
+    description={targetQuery.error instanceof Error ? targetQuery.error.message : String(targetQuery.error)} />;
+
+  let currentMarkdown: string;
+  try {
+    currentMarkdown = new TextDecoder("utf-8", { fatal: true }).decode(targetQuery.data);
+  } catch {
+    return <WorkbenchState kind="error" title="Current target is not UTF-8 Markdown" />;
+  }
 
   const ownsDecision = selection.runId === currentRunId && currentInteraction?.tag === "OPEN";
   const decisionOpen = disposition === null && !adoptionRequested && ownsDecision;
-  const currentness = <WorkbenchStatus
-    tone={disposition === "ADOPTED" ? "success" : disposition === "REJECTED" ? "neutral" : adoptionRequested ? "warning" : "info"}
-    label={disposition === "ADOPTED" ? "Adopted" : disposition === "REJECTED" ? "Rejected" : adoptionRequested ? "Adoption in progress" : "Pending review"}
-  />;
+  const verdict =
+    disposition === "ADOPTED"
+      ? { label: "Adopted", tone: "success" as const, currentness: "Proposal history" }
+      : disposition === "REJECTED"
+        ? { label: "Rejected", tone: "neutral" as const, currentness: "Proposal history" }
+        : adoptionRequested
+          ? { label: "Adoption in progress", tone: "warning" as const, currentness: "Current proposal" }
+          : { label: "Pending review", tone: "info" as const, currentness: "Current proposal" };
 
-  return <section data-testid="proposal-review-workspace" className="order-proposal-review">
-    <WorkbenchReview
-      currentness={currentness}
-      summary={<div><h2>Artifact proposal review</h2><p>Review the proposed governed-document change before disposition.</p></div>}
-      body={<div className="order-proposal-review-body">
-        <dl className="order-proposal-facts">
-          <div><dt>Target document</dt><dd>{lifecycleArtifactLabel(proposal.role)} document</dd></div>
-          <div><dt>Rationale</dt><dd>{proposal.rationale}</dd></div>
-        </dl>
-        <section className="order-proposal-diff" data-testid="proposal-review-diff" aria-label="Proposed document diff">
-          <h3>Proposed document diff</h3>
-          <CodeBlock code={proposal.unifiedDiff} language="diff" isDiff isWrapped hasCopyButton container="section" width="100%" />
-        </section>
-        {adoptionRequested && disposition === null ? <WorkbenchNotice tone="warning"
-          title="Adoption in progress"
-          description="The canonical document is being reconciled. Proposal controls remain disabled until disposition is recorded."
-        /> : null}
-        {decision.error ? <WorkbenchNotice tone="danger" title="Proposal decision failed"
-          description={decision.error instanceof Error ? decision.error.message : String(decision.error)}
-        /> : null}
-      </div>}
-      decisions={<>
-        <WorkbenchAction label="Back to workflow attempt" tone="secondary" onClick={onBack} />
-        {decisionOpen ? <div className="order-proposal-decisions">
-          <WorkbenchAction label="Reject" tone="destructive" loading={decision.isPending}
-            disabled={mutationsDisabled || decision.isPending} onClick={() => decision.mutate("REJECT")} />
-          <WorkbenchAction label="Adopt" tone="primary" loading={decision.isPending}
-            disabled={mutationsDisabled || decision.isPending} onClick={() => decision.mutate("ADOPT")} />
-        </div> : null}
-      </>}
-    />
-  </section>;
+  return (
+    <section data-testid="proposal-review-workspace" className="order-proposal-review">
+      <WorkbenchReview
+        title="Proposed document change"
+        description={lifecycleArtifactLabel(proposal.role)}
+        verdict={verdict}
+        sections={[
+          {
+            id: "proposal-context",
+            title: "Change",
+            content: (
+              <WorkbenchFacts
+                label="Proposal"
+                items={[
+                  {
+                    id: "target",
+                    label: "Document",
+                    value: lifecycleArtifactLabel(proposal.role),
+                  },
+                  {
+                    id: "rationale",
+                    label: "Rationale",
+                    value: proposal.rationale,
+                    emphasis: "strong",
+                  },
+                ]}
+              />
+            ),
+          },
+          {
+            id: "proposed-document",
+            title: "Document change",
+            content: (
+              <DocumentChangeView
+                currentMarkdown={currentMarkdown}
+                unifiedDiff={proposal.unifiedDiff}
+              />
+            ),
+          },
+          ...(adoptionRequested && disposition === null
+            ? [{
+              id: "adoption-state",
+              title: "Status",
+              content: (
+                <WorkbenchNotice
+                  tone="warning"
+                  title="Adoption in progress"
+                  description="The canonical document is being reconciled."
+                />
+              ),
+            }]
+            : []),
+          ...(decision.error === null
+            ? []
+            : [{
+              id: "decision-error",
+              title: "Decision failed",
+              content: (
+                <WorkbenchNotice
+                  tone="danger"
+                  title="Proposal decision failed"
+                  description={decision.error instanceof Error
+                    ? decision.error.message
+                    : String(decision.error)}
+                />
+              ),
+            }]),
+        ]}
+        decisions={
+          <>
+            <WorkbenchAction label="Back to workflow attempt" tone="secondary" onClick={onBack} />
+            {decisionOpen ? (
+              <div className="order-proposal-decisions">
+                <WorkbenchAction
+                  label="Reject"
+                  tone="destructive"
+                  loading={decision.isPending}
+                  disabled={mutationsDisabled || decision.isPending}
+                  onClick={() => decision.mutate("REJECT")}
+                />
+                <WorkbenchAction
+                  label="Adopt"
+                  tone="primary"
+                  loading={decision.isPending}
+                  disabled={mutationsDisabled || decision.isPending}
+                  onClick={() => decision.mutate("ADOPT")}
+                />
+              </div>
+            ) : null}
+          </>
+        }
+      />
+    </section>
+  );
 };
