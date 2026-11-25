@@ -14,7 +14,9 @@ import {
   type EvidenceSelection, type ProposalSelection, type WorkflowMaterial,
 } from "./workbench-presentation.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
+import { WorkbenchIcon } from "./primitives/WorkbenchIcon.tsx";
 import { WorkbenchResourceList } from "./primitives/WorkbenchResourceList.tsx";
+import { WorkbenchSection } from "./primitives/WorkbenchSection.tsx";
 import { WorkbenchState } from "./primitives/WorkbenchState.tsx";
 
 export type SharedPreSignoffStage = "R1" | "R2" | "DESIGN" | "PLAN";
@@ -105,32 +107,56 @@ export const PreSignoffStageWorkspace = ({
     )
   );
   const supportingMaterial=supportingResources.length===0 ? undefined : (
-    <section className="order-productive-supporting" aria-label="Supporting workflow material">
-      <WorkbenchResourceList
-        items={supportingResources.map((item)=>({
-          id: item.id,
-          label: item.label,
-          detail: [item.description,item.statusLabel].filter(Boolean).join(" · ") || undefined,
-          action: <WorkbenchAction label={"Open "+item.label} tone="ghost" onClick={item.onSelect} />,
-        }))}
-      />
-    </section>
+    <WorkbenchSection
+      title="Related material"
+      content={
+        <WorkbenchResourceList
+          items={supportingResources.map((item)=>({
+            id: item.id,
+            label: item.label,
+            detail: [item.description,item.statusLabel].filter(Boolean).join(" · ") || undefined,
+            action: (
+              <WorkbenchAction
+                label={"View "+item.label}
+                icon={<WorkbenchIcon name={item.id.startsWith("run-") ? "dialogue" : "document"} />}
+                iconOnly
+                tone="ghost"
+                onClick={item.onSelect}
+              />
+            ),
+          }))}
+        />
+      }
+    />
   );
 
-  const researchMaterial=stage==="R1" && stageArtifact!==null ? <section
-    className="order-productive-research-context" aria-label="Research governed material">
-    <strong>Repository-backed Research material</strong>
-    <span>{materialState===null ? "Current governed Research material" : materialPresentationStateLabel(materialState)}</span>
-    <WorkbenchAction label="Open Research document" tone="secondary"
-      onClick={()=>onSelectMaterial({kind:"STAGE_DOCUMENT",artifactId:stageArtifact.id})} />
-  </section> : undefined;
+  const researchMaterial=stage==="R1" && stageArtifact!==null ? (
+    <WorkbenchSection
+      title="Research document"
+      description={
+        materialState===null
+          ? "Current governed Research material"
+          : materialPresentationStateLabel(materialState)
+      }
+      action={
+        <WorkbenchAction
+          label="View Research document"
+          icon={<WorkbenchIcon name="document" />}
+          iconOnly
+          tone="ghost"
+          onClick={()=>onSelectMaterial({kind:"STAGE_DOCUMENT",artifactId:stageArtifact.id})}
+        />
+      }
+      content={null}
+    />
+  ) : undefined;
 
   const dialogueSupport =
     researchMaterial === undefined && supportingMaterial === undefined ? undefined : (
-      <div className="order-productive-dialogue-support">
+      <>
         {researchMaterial}
         {supportingMaterial}
-      </div>
+      </>
     );
 
   const primary=(()=>{
@@ -156,16 +182,30 @@ export const PreSignoffStageWorkspace = ({
               onOpenArtifactEvidence={onOpenArtifactEvidence} onContextDocumentChange={onContextDocumentChange}
               onMutationError={onMutationError} />}
       </>;
-      case "SOURCE_DOCUMENT": return <section className="order-productive-transient">
-        <WorkbenchAction label="Back to workflow context" tone="ghost" onClick={onReturnFromTransient} />
+      case "SOURCE_DOCUMENT": return <>
+        <div className="order-productive-navigation">
+          <WorkbenchAction
+            label="Back to workflow context"
+            icon={<WorkbenchIcon name="back" />}
+            tone="ghost"
+            onClick={onReturnFromTransient}
+          />
+        </div>
         <SourceDocumentMaterial workItem={workItem} readOnly onDirtyChange={onDirtyChange}
           onContextDocumentChange={onContextDocumentChange} />
-      </section>;
-      case "SUPPORTING_DOCUMENT": return <section className="order-productive-transient">
-        <WorkbenchAction label="Back to workflow context" tone="ghost" onClick={onReturnFromTransient} />
+      </>;
+      case "SUPPORTING_DOCUMENT": return <>
+        <div className="order-productive-navigation">
+          <WorkbenchAction
+            label="Back to workflow context"
+            icon={<WorkbenchIcon name="back" />}
+            tone="ghost"
+            onClick={onReturnFromTransient}
+          />
+        </div>
         <ReadOnlyLifecycleDocumentMaterial workItem={workItem} artifactId={material.artifactId}
           onOpenArtifactEvidence={onOpenArtifactEvidence} onContextDocumentChange={onContextDocumentChange} />
-      </section>;
+      </>;
       case "PROPOSAL": return <ProposalReview workItem={workItem}
         selection={{runId:material.runId,eventId:material.eventId}}
         currentRunId={workItem.stage===stage ? currentRunId : null}
@@ -188,7 +228,7 @@ export const PreSignoffStageWorkspace = ({
 
   return <section className="order-productive-stage" data-stage={stage}>
     {historicalReturn === undefined ? null : (
-      <div className="order-inline-actions">{historicalReturn}</div>
+      <div className="order-productive-navigation">{historicalReturn}</div>
     )}
     <div className="order-productive-primary">
       {primary}
