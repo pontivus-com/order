@@ -79,9 +79,9 @@
   grid-template-columns: minmax(0, 1fr) max-content;
   align-items: center;
   gap: var(--spacing-4);
-  border-bottom: 1px solid var(--color-accent);
-  background: var(--color-accent);
-  color: var(--color-on-accent);
+  border-bottom: 1px solid var(--color-border-emphasized);
+  background: var(--color-background-surface);
+  color: var(--color-text-primary);
 }
 .order-workbench-toolbar-primary,
 .order-workbench-toolbar-secondary,
@@ -118,15 +118,8 @@
   font-size: var(--font-size-lg);
 }
 .order-application-orientation span {
-  color: currentColor;
+  color: var(--color-text-secondary);
   font-size: var(--font-size-sm);
-  opacity: 0.82;
-}
-.order-workbench-toolbar .order-utility-link {
-  color: var(--color-on-accent);
-}
-.order-workbench-toolbar [role="radio"][aria-checked="false"] {
-  color: var(--color-on-accent);
 }
 .order-utility-link {
   display: inline-flex;
