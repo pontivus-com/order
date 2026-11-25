@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { TextInput } from "@astryxdesign/core/TextInput";
 
 import type {
   WorkItem,
@@ -23,10 +24,6 @@ import { WorkbenchEmptyState } from "./primitives/WorkbenchState.tsx";
 import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
 import { WorkbenchSurface } from "./primitives/WorkbenchSurface.tsx";
 import { WorkbenchTable } from "./primitives/WorkbenchTable.tsx";
-import {
-  WorkbenchToolbarGroup,
-  WorkbenchToolbarSearch,
-} from "./primitives/WorkbenchToolbar.tsx";
 
 const humanKindLabel = (
   kind: WorkItemSchemaCatalogEntry["kind"] | undefined,
@@ -168,7 +165,7 @@ export const WorkItemQueue = ({
         material={
           <div className="order-queue-scan-content">
             <div className="order-queue-commandbar">
-              <WorkbenchToolbarGroup>
+              <span className="order-inline-actions">
                 <WorkbenchAction
                   label="New work item"
                   tone="primary"
@@ -181,8 +178,20 @@ export const WorkItemQueue = ({
                   loading={refreshPending}
                   onClick={onRefresh}
                 />
-              </WorkbenchToolbarGroup>
-              <WorkbenchToolbarSearch value={search} onChange={onSearchChange} />
+              </span>
+              <div className="order-queue-search" data-testid="workbench-search">
+                <TextInput
+                  label="Search work items"
+                  isLabelHidden
+                  type="search"
+                  size="sm"
+                  width="100%"
+                  value={search}
+                  onChange={onSearchChange}
+                  placeholder="Search work items"
+                  startIcon={<WorkbenchIcon name="search" />}
+                />
+              </div>
             </div>
             {sourceDiagnostics.length > 0 ? (
               <div className="order-app-notice-stack" data-testid="source-diagnostics">

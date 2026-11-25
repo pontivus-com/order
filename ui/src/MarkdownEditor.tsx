@@ -25,10 +25,6 @@ import {
 import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
 import { WorkbenchSectionHeader } from "./primitives/WorkbenchSectionHeader.tsx";
 import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
-import {
-  WorkbenchToolbar,
-  WorkbenchToolbarGroup,
-} from "./primitives/WorkbenchToolbar.tsx";
 
 export type MarkdownEditorProps = Readonly<{
   title: string;
@@ -205,7 +201,7 @@ export const MarkdownEditor = ({
 
   const formatting = !editing ? undefined : (
     <div data-testid="markdown-format-toolbar" className="order-markdown-format-toolbar">
-      <WorkbenchToolbarGroup>
+      <span className="order-markdown-format-group">
         <WorkbenchAction
           label={historyActions[0].label}
           icon={<WorkbenchIcon name={historyActions[0].icon} />}
@@ -220,8 +216,8 @@ export const MarkdownEditor = ({
           disabled={formattingDisabled}
           onClick={() => sourceEditorRef.current?.redo()}
         />
-      </WorkbenchToolbarGroup>
-      <WorkbenchToolbarGroup>
+      </span>
+      <span className="order-markdown-format-group">
         {inlineActions.map((action) => (
           <WorkbenchAction
             key={action.command}
@@ -232,8 +228,8 @@ export const MarkdownEditor = ({
             onClick={() => format(action.command)}
           />
         ))}
-      </WorkbenchToolbarGroup>
-      <WorkbenchToolbarGroup>
+      </span>
+      <span className="order-markdown-format-group">
         {structureActions.map((action) => (
           <WorkbenchAction
             key={action.command}
@@ -244,7 +240,7 @@ export const MarkdownEditor = ({
             onClick={() => format(action.command)}
           />
         ))}
-      </WorkbenchToolbarGroup>
+      </span>
     </div>
   );
 
@@ -277,36 +273,37 @@ export const MarkdownEditor = ({
         action={presentation}
       />
 
-      <WorkbenchToolbar
-        start={formatting}
-        end={
-          <WorkbenchToolbarGroup>
-            {toolbarAccessory}
-            {!readOnly ? (
-              <>
-                {toolbarAccessory === undefined ? (
-                  <WorkbenchStatus
-                    tone={dirty ? "warning" : "success"}
-                    label={dirty ? "Unsaved" : "Current"}
-                  />
-                ) : null}
-                <WorkbenchAction
-                  type="submit"
-                  label={saving ? "Saving…" : "Save"}
-                  tone="primary"
-                  loading={saving}
-                  disabled={saveDisabled || !dirty || conflicted || saving}
+      <div
+        className="order-markdown-editor-controls"
+        data-testid="markdown-editor-controls"
+      >
+        {formatting}
+        <div className="order-markdown-editor-actions">
+          {toolbarAccessory}
+          {!readOnly ? (
+            <>
+              {toolbarAccessory === undefined ? (
+                <WorkbenchStatus
+                  tone={dirty ? "warning" : "success"}
+                  label={dirty ? "Unsaved" : "Current"}
                 />
-                <WorkbenchAction
-                  label="Cancel"
-                  disabled={saving}
-                  onClick={cancel}
-                />
-              </>
-            ) : null}
-          </WorkbenchToolbarGroup>
-        }
-      />
+              ) : null}
+              <WorkbenchAction
+                type="submit"
+                label={saving ? "Saving…" : "Save"}
+                tone="primary"
+                loading={saving}
+                disabled={saveDisabled || !dirty || conflicted || saving}
+              />
+              <WorkbenchAction
+                label="Cancel"
+                disabled={saving}
+                onClick={cancel}
+              />
+            </>
+          ) : null}
+        </div>
+      </div>
 
       <div className="order-editor-notices">
         {conflicted ? (

@@ -1,9 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  SegmentedControl,
-  SegmentedControlItem,
-} from "@astryxdesign/core/SegmentedControl";
 import { Link } from "@astryxdesign/core/Link";
 import { Theme } from "@astryxdesign/core/theme";
 import { neutralTheme } from "@astryxdesign/theme-neutral/built";
@@ -17,7 +13,7 @@ import {
   type WorkItemSchemaId,
 } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
-import { OpenCodeAccountControl } from "./OpenCodeAccountControl.tsx";
+import { useOpenCodeAccountControl } from "./OpenCodeAccountControl.tsx";
 import type { SettingsSection } from "./SettingsWorkspace.tsx";
 import {
   installationReadinessBlockerText,
@@ -27,17 +23,11 @@ import {
 import { workbenchQueryKeys } from "./query-keys.ts";
 
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
-import { WorkbenchIcon } from "./primitives/WorkbenchIcon.tsx";
 import { WorkbenchAppShell } from "./primitives/WorkbenchAppShell.tsx";
 import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
 import { WorkbenchTaskPanel } from "./primitives/WorkbenchTaskPanel.tsx";
-import { WorkbenchUtilityLink } from "./primitives/WorkbenchUtilityLink.tsx";
 import { WorkbenchConfirmation } from "./primitives/WorkbenchConfirmation.tsx";
-import {
-  WorkbenchToolbar,
-  WorkbenchToolbarGroup,
-  WorkbenchToolbarUtilities,
-} from "./primitives/WorkbenchToolbar.tsx";
+import { WorkbenchToolbar } from "./primitives/WorkbenchToolbar.tsx";
 import {
   WorkbenchEmptyState,
   WorkbenchErrorState,
@@ -119,6 +109,7 @@ const updateDestinationUrl = (
 
 export const App = () => {
   const queryClient = useQueryClient();
+  const openCodeAccount = useOpenCodeAccountControl();
   const [selectedWorkItemId, setSelectedWorkItemId] = useState<WorkItemId | null>(selectedIdFromUrl);
   const [settingsSection, setSettingsSection] = useState<SettingsSection | null>(settingsSectionFromUrl);
   const [queueProjectId, setQueueProjectId] = useState("");
@@ -377,55 +368,51 @@ export const App = () => {
         ? "Governed work item"
         : "Governed work queue";
 
+  const projectOptions = (projectsQuery.data ?? []).map(
+    (project) => project.projectId,
+  );
+  const toolbarProjectId = selectedWorkItem?.projectId ?? projectId;
   const toolbar = (
     <WorkbenchToolbar
-      start={
-        <WorkbenchToolbarGroup>
-          {settingsSection !== null ? (
-            <WorkbenchUtilityLink
-              label="Work queue"
-              icon={<WorkbenchIcon name="back" />}
-              href="/"
-              onNavigate={(event) => {
-                event.preventDefault();
-                requestSelection(null);
-              }}
-            />
-          ) : null}
-          <div
-            className="order-application-orientation"
-            aria-label="Current application destination"
-          >
-            <strong>Order</strong>
-            <span>{applicationDestination}</span>
-          </div>
-        </WorkbenchToolbarGroup>
-      }
-      end={
-        <WorkbenchToolbarUtilities>
-          <OpenCodeAccountControl onOpenSettings={() => navigateSettings("opencode")} />
-          {settingsSection === null ? (
-            <WorkbenchUtilityLink
-              label="Settings"
-              href="/settings/repositories"
-              onNavigate={(event) => {
-                event.preventDefault();
-                navigateSettings("repositories");
-              }}
-            />
-          ) : null}
-          <SegmentedControl
-            label="Theme"
-            value={themePreference}
-            onChange={selectTheme}
-            size="sm"
-          >
-            <SegmentedControlItem value="system" label="System" />
-            <SegmentedControlItem value="light" label="Light" />
-            <SegmentedControlItem value="dark" label="Dark" />
-          </SegmentedControl>
-        </WorkbenchToolbarUtilities>
-      }
+      orientation={{
+        productLabel: "Order",
+        destinationLabel: applicationDestination,
+      }}
+      projectContext={toolbarProjectId.length === 0
+        ? undefined
+        : {
+          value: toolbarProjectId,
+          options: projectOptions,
+          ...(selectedWorkItem === null && projectOptions.length > 1
+            ? {
+              onChange: (nextProjectId: string) => {
+                setProjectId(nextProjectId);
+                setQueueProjectId(nextProjectId);
+              },
+            }
+            : {}),
+        }}
+      account={{
+        label: openCodeAccount.label,
+        readiness: openCodeAccount.readiness,
+        href: "/settings/opencode",
+        onNavigate: () => navigateSettings("opencode"),
+      }}
+      navigation={settingsSection === null
+        ? {
+          label: "Settings",
+          href: "/settings/repositories",
+          onNavigate: () => navigateSettings("repositories"),
+        }
+        : {
+          label: "Work queue",
+          href: "/",
+          onNavigate: () => requestSelection(null),
+        }}
+      theme={{
+        value: themePreference,
+        onChange: selectTheme,
+      }}
     />
   );
 
