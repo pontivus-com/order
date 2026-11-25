@@ -15,7 +15,7 @@ The active corpus is valid only for these exact inputs:
 - `GW-DOC-WORKBENCH-THEME-V1` — blob `03dfc6be3600a1128b5639d011f4c0159d3497dd`;
 - current 0.6.0 DESIGN — blob `f54ead6381f2ffe77e26e0f31022f008c93de26e`.
 
-If any bound owner changes, this corpus is stale until regenerated and reviewed. The owner wins on every conflict.
+These are the exact current authority versions projected by this corpus. If any bound owner changes, this corpus is stale until regenerated and reviewed. The owner wins on every conflict.
 
 ## Files
 

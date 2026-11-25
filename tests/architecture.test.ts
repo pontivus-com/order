@@ -2911,7 +2911,7 @@ describe("architecture fitness", () => {
           surfaces?: readonly { id?: string; source?: string; selector?: string }[];
         };
         const designSurfaceIds = [
-          ...design.matchAll(/^##### (SURF-[A-Z0-9-]+)\b/gm),
+          ...design.matchAll(/^#{5,6} (SURF-[A-Z0-9-]+)\b/gm),
         ].map((match) => match[1] ?? "");
         if (designSurfaceIds.length !== 37 || duplicates(designSurfaceIds).length > 0) {
           violations.push(
