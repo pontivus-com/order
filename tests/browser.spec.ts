@@ -3658,7 +3658,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   await page.getByRole("radio", { name: "Light" }).click();
   await page.getByRole("button", { name: "Back to workflow attempt" }).click();
   const historicalAttemptAction = page.getByRole("button", {
-    name: "Open Attempt 1",
+    name: "View Attempt 1",
     exact: true,
   });
   if (
@@ -4699,7 +4699,7 @@ test("narrow workflow work index returns focus and preserves dirty material acro
     initial + "\n# Responsive continuity\n",
   );
 
-  const relatedAttempt = page.getByRole("button", { name: "Open Attempt 1", exact: true });
+  const relatedAttempt = page.getByRole("button", { name: "View Attempt 1", exact: true });
   await relatedAttempt.focus();
   await expect(relatedAttempt).toBeFocused();
   await expect(page.getByRole("button", { name: "Supporting material and history", exact: true })).toHaveCount(0);
@@ -4710,7 +4710,7 @@ test("narrow workflow work index returns focus and preserves dirty material acro
 
   await page.setViewportSize({ width: 1600, height: 900 });
   await expect(page.getByRole("button", { name: "Supporting material and history", exact: true })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Open Attempt 1", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "View Attempt 1", exact: true })).toBeVisible();
   await expect.poll(() => markdownSourceValue(editor))
     .toContain("# Responsive continuity");
 });
@@ -5561,7 +5561,7 @@ test("OPEN continuation keeps the agent anchor visible and admits exactly one cu
   await expect(composer).not.toContainText("Continue current work");
   await expect(composer.getByText("Answer the question above", { exact: true })).toHaveCount(0);
   await expect(detail.getByRole("heading", { name: "Research document", exact: true })).toBeVisible();
-  await expect(detail.getByRole("button", { name: "Open Research document", exact: true })).toBeVisible();
+  await expect(detail.getByRole("button", { name: "View Research document", exact: true })).toBeVisible();
   await expect(page.getByTestId("proposal-review-workspace")).toHaveCount(0);
 });
 
