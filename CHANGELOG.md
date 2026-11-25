@@ -8,6 +8,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Changed
 
+- Formalize Order's existing P0-P8 functional-pyramid discipline at its canonical governance owner: add proposition-level placement and downward derivation rules, strengthen canonical ownership/explicit flow with semantic-lifecycle closure and noninterference, and open a repository-native conformance WorkItem/register to audit canonical placement and producer-to-consumer meaning without adding Span runtime integration.
+
 - Repair the live 0.6.0 Workbench documentation/reference graph before further UI implementation: remove stale Review/technical-inspection contradictions from canonical P3/P4, close the application toolbar and Implementation master APIs, make Project context and non-generic boundary grammar explicit, replace the 41-file 0.5.0 SVG oracle with a deterministic 37-SURF authority-bound reference atlas/manifest, bind reference fitness to exact P3/P4/theme/DESIGN blobs, and reopen stale campaign/readiness acceptance for fresh revalidation.
 
 - Regovern the 0.6.0 Workbench after the semantic-component audit: make P4 the sole component/API owner, add the missing Section/Facts/ResourceList/ReviewVerdict/ReviewSection/Document/Result composition layer and contextual Proposal change view, regenerate DESIGN/PLAN to a 76-path candidate with one IA-definition owner, and invalidate stale G4-G6/ALIGN/RZ16/sign-off conclusions until fresh revalidation.
