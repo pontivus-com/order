@@ -51,28 +51,31 @@ R1 confirmed that Order already has the material structure: layer ownership, can
 - The open PR #83 overlap is revalidated against its eventual merged bytes before this exercise claims final closure.
 
 
-## Post-audit remediation requirements
+## Post-audit disposition requirements
 
-C02/C03 established the exact defects below. These are consequences of the existing authority above; they do not introduce new product intent.
+C02/C03 was initially executed against the independent `master` baseline while PR #83 was concurrently advancing the 0.6.0 authority/context foundation. Exact-head revalidation against PR #83 `24f86507df0459b4efb8454d2aa8e98850beaa60` establishes that FP-F06/FP-F07 are **stale-baseline findings, not new remediation requirements**.
 
-| Remediation requirement | Disposition | Canonical owner |
+The current 0.6.0 authority model already satisfies the functional-pyramid requirement by separating two existing concepts:
+
+| Required proposition | Disposition | Canonical owner |
 |---|---|---|
-| The P2 System Brief must not restate the exact P3 WorkItem lifecycle. | REFERENCE | GW-DOC-WORK-LIFECYCLE-V1 |
-| P5 account-control wording must not contradict the P3 shell-versus-Settings account-management boundary. | REFERENCE | GW-DOC-INSTALLATION-READINESS-V1 |
-| The project `refs` registry remains exact identity→source resolution without itself granting stage applicability; reference-only material is omitted from ordinary stage context. | REFERENCE | GW-DOC-LIFECYCLE-CONTEXT-V2 |
-| Active authority projection selects only sources applicable to the current governed stage; retained semantic versions and prior-art evidence are not injected merely because they remain referenceable. | REFERENCE | GW-DOC-LIFECYCLE-CONTEXT-V2 |
-| A signed task may rely on an `acceptanceRef`/`authorityRef` only when the exact referenced source is already in the current material context/closure through an authorized applicability path. Exact ref resolution alone is insufficient. | REFERENCE | GW-DOC-LIFECYCLE-CONTEXT-V2 |
-| The separate 0.6.0 campaign remains the implementation owner for overlapping Workbench reconstruction. This WorkItem must not create a competing UI implementation; it records/revalidates FP-F08-F11 against the exact PR #83 candidate and blocks closure while a finding remains open. | LOCAL |  |
+| The full project authority graph remains exactly reachable, including retained semantic versions needed by historical schema pins and reference-fact owners. | REFERENCE / NO CHANGE | `GW-DOC-CANONICAL-CONTRACTS-V2`, `GW-DOC-LIFECYCLE-CONTEXT-V2` |
+| Productive stage context contains only the minimum-sufficient applicable subset selected by pinned schema/template authority, explicit upstream refs, resolved P1 rules and applicable concern authority. Reachability alone does not imply materiality. | REFERENCE / NO CHANGE | `GW-DOC-LIFECYCLE-CONTEXT-V2`, PR #83 G-F13/C22-F02 realization |
+| Current-v2 context excludes unrelated retained-v1 authority while historical v1 schemas can still materialize their exact pinned version. | REFERENCE / NO CHANGE | `GW-DOC-LIFECYCLE-CONTEXT-V2` |
+| Prior-art/factual reference owners may remain reachable without becoming ordinary productive context unless an authorized applicability path selects them. | REFERENCE / NO CHANGE | `GW-DOC-LIFECYCLE-CONTEXT-V2` |
+| P7 task refs do not manufacture P1-P6 meaning: PLAN may reference only already-governed upstream authority and may not decide new product/architecture/contract scope. | REFERENCE / NO CHANGE | `GW-DOC-LIFECYCLE-CONTEXT-V2`, `GW-DOC-SPECIFICATION-STANDARD-V2` |
+| P2/P5 documents must not restate or contradict exact P3 lifecycle/account-management semantics. | DELTA | `GW-P1-DOC-CANONICALITY`, `GW-DOC-WORK-LIFECYCLE-V1`, `GW-DOC-INSTALLATION-READINESS-V1` |
+| The separate 0.6.0 campaign remains the implementation owner for overlapping Workbench reconstruction. This WorkItem must not create a competing UI implementation. | LOCAL |  |
 
 Additional acceptance:
 
-- `pontivus-order.toml [refs]` continues to resolve every stable/current and retained versioned canonical identifier required by `GW-P1-DOC-CANONICALITY`.
-- The active `[authority]` sets no longer select retained V1 semantic owners or the OpenSpec/Spec Kit/Kiro/BMAD prior-art reference documents.
-- Project-manifest validation verifies exact ref sources remain valid repository files without requiring them to be active authority.
-- `ResolvedProjectAuthority.authorityRefs` continues to expose only refs whose sources are actually in the resolved active layer set.
-- R3 signed-task validation rejects an exact task ref whose source is not already part of the material context/closure.
-- A reference-only source does not appear in a normal stage prompt solely because it exists in `[refs]`.
-- No second reference registry, authority carrier, DTO family, or inferred layer classifier is introduced.
+- do **not** remove retained semantic-version or reference-fact sources from the reachable authority graph merely to keep them out of productive prompts;
+- do **not** weaken the architecture fitness rule that exact `refs` sources are selected by the reachable P1-P6 graph;
+- do **not** replace PR #83's `applicableAuthorityPaths(...)` / material projection with a second reference registry or a blanket "active authority only" model;
+- preserve the existing current-v2 versus historical-v1 pinned-authority tests;
+- preserve the current negative proof that unrelated selected sources are absent from productive stage material;
+- FP-F06/FP-F07 close by exact-current-candidate revalidation, not by new source/manifest/P6 mutation on PR #84;
+- FP-F08-F10 and the IA33 terminal part of FP-F11 remain dependencies on the exact PR #83 candidate; the remaining shared-event FP-F11 path remains routed to post-signoff IA30.
 
 ## Scope/exclusions
 
