@@ -1391,6 +1391,33 @@ export const WorkItemWorkspace = ({
             onCreateRemediation={onCreateRemediation}
           />
         </Suspense>
+      ) : material.kind === "SOURCE_DOCUMENT" || material.kind === "STAGE_DOCUMENT" ? (
+        <div className="order-document-inspection">
+          {historicalReturn === undefined ? currentInteractionAttention : (
+            <div className="order-review-navigation">{historicalReturn}</div>
+          )}
+          <Suspense fallback={<WorkbenchState kind="loading" title="Loading document…" />}>
+            {material.kind === "SOURCE_DOCUMENT" ? (
+              <SourceDocumentMaterial
+                workItem={workItem}
+                mutationsDisabled={documentMutationsDisabled}
+                onDirtyChange={setDirtyState}
+                onContextDocumentChange={onContextDocumentChange}
+                onMutationError={reportMutationError}
+              />
+            ) : (
+              <LifecycleDocumentMaterial
+                workItem={workItem}
+                artifactId={material.artifactId}
+                mutationsDisabled={documentMutationsDisabled}
+                onDirtyChange={setDirtyState}
+                onOpenArtifactEvidence={openArtifactEvidence}
+                onContextDocumentChange={onContextDocumentChange}
+                onMutationError={reportMutationError}
+              />
+            )}
+          </Suspense>
+        </div>
       ) : (
         <WorkbenchSurface
           attention={currentInteractionAttention}
@@ -1400,26 +1427,6 @@ export const WorkItemWorkspace = ({
                 <div className="order-inline-actions">{historicalReturn}</div>
               )}
               <Suspense fallback={<WorkbenchState kind="loading" title="Loading workspace…" />}>
-              {material.kind === "SOURCE_DOCUMENT" ? (
-                <SourceDocumentMaterial
-                  workItem={workItem}
-                  mutationsDisabled={documentMutationsDisabled}
-                  onDirtyChange={setDirtyState}
-                  onContextDocumentChange={onContextDocumentChange}
-                  onMutationError={reportMutationError}
-                />
-              ) : null}
-              {material.kind === "STAGE_DOCUMENT" ? (
-                <LifecycleDocumentMaterial
-                  workItem={workItem}
-                  artifactId={material.artifactId}
-                  mutationsDisabled={documentMutationsDisabled}
-                  onDirtyChange={setDirtyState}
-                  onOpenArtifactEvidence={openArtifactEvidence}
-                  onContextDocumentChange={onContextDocumentChange}
-                  onMutationError={reportMutationError}
-                />
-              ) : null}
               {material.kind === "STEP_STATE" ? (
                 <WorkbenchEmptyState
                   compact

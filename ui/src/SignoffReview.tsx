@@ -238,7 +238,7 @@ export const SignoffReview = ({
 
   if (selection.kind === "DOCUMENT") {
     return (
-      <div data-testid="review-workspace">
+      <div className="order-document-inspection" data-testid="review-workspace">
         <div className="order-review-navigation">
           <WorkbenchAction
             label="Back to Approval"
@@ -376,7 +376,15 @@ export const SignoffReview = ({
         {
           id: "tasks",
           title: currentApproval ? "Signed tasks" : "Approved tasks",
-          content: (
+          content: taskItems.length === 1 ? (
+            <>
+              <WorkbenchFacts label="Signed task" items={[
+                { id: "objective", label: "Objective", value: taskItems[0]!.label, emphasis: "strong" },
+                { id: "scope-gates", label: "Authorization", value: taskItems[0]!.detail },
+              ]} />
+              <div className="order-inline-actions">{taskItems[0]!.action}</div>
+            </>
+          ) : (
             <WorkbenchResourceList
               items={taskItems}
               empty={<WorkbenchState kind="empty" title="No signed tasks" />}

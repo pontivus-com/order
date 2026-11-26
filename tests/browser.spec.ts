@@ -465,6 +465,7 @@ const captureRenderedAcceptance = async (
   }
   mkdirSync(renderedAcceptanceDir, { recursive: true });
   const screenshot = entry.id + ".png";
+  expect(page.viewportSize(), entry.id + " runtime viewport").toEqual(entry.viewport);
   if (entry.workflowStep === "Approval" && !entry.state.includes("stale") &&
       (entry.surface === "SURF-STEP-APPROVAL-001" ||
        entry.surface === "SURF-MAT-APPROVAL-TASK-001" ||
@@ -3990,7 +3991,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
       route: routeValue(), authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
     });
   }
-  await expect(approval.locator('[data-review-section="tasks"]').getByTestId("workbench-resource-list")).toBeVisible();
+  await expect(approval.locator('[data-review-section="tasks"]').getByRole("button", { name: "View task 1", exact: true })).toBeVisible();
   await expect(approval.locator('[data-review-section="documents"]').getByTestId("workbench-resource-list")).toBeVisible();
   await expect(approval.locator('[data-review-section="documents"]').getByRole("button", { name: "View Implementation plan", exact: true })).toContainText("View Implementation plan");
   await approval.getByRole("button", {

@@ -179,30 +179,11 @@ export const PreSignoffStageWorkspace = ({
               onOpenArtifactEvidence={onOpenArtifactEvidence} onContextDocumentChange={onContextDocumentChange}
               onMutationError={onMutationError} />}
       </>;
-      case "SOURCE_DOCUMENT": return <>
-        <div className="order-productive-navigation">
-          <WorkbenchAction
-            label="Back to workflow context"
-            icon={<WorkbenchIcon name="back" />}
-            tone="ghost"
-            onClick={onReturnFromTransient}
-          />
-        </div>
-        <SourceDocumentMaterial workItem={workItem} readOnly onDirtyChange={onDirtyChange}
-          onContextDocumentChange={onContextDocumentChange} />
-      </>;
-      case "SUPPORTING_DOCUMENT": return <>
-        <div className="order-productive-navigation">
-          <WorkbenchAction
-            label="Back to workflow context"
-            icon={<WorkbenchIcon name="back" />}
-            tone="ghost"
-            onClick={onReturnFromTransient}
-          />
-        </div>
-        <ReadOnlyLifecycleDocumentMaterial workItem={workItem} artifactId={material.artifactId}
-          onOpenArtifactEvidence={onOpenArtifactEvidence} onContextDocumentChange={onContextDocumentChange} />
-      </>;
+      case "SOURCE_DOCUMENT": return <SourceDocumentMaterial workItem={workItem} readOnly
+        onDirtyChange={onDirtyChange} onContextDocumentChange={onContextDocumentChange} />;
+      case "SUPPORTING_DOCUMENT": return <ReadOnlyLifecycleDocumentMaterial workItem={workItem}
+        artifactId={material.artifactId} onOpenArtifactEvidence={onOpenArtifactEvidence}
+        onContextDocumentChange={onContextDocumentChange} />;
       case "PROPOSAL": return <ProposalReview workItem={workItem}
         selection={{runId:material.runId,eventId:material.eventId}}
         currentRunId={workItem.stage===stage ? currentRunId : null}
@@ -223,9 +204,17 @@ export const PreSignoffStageWorkspace = ({
 
   if (material.kind === "PROPOSAL") return primary;
 
+  const inspectingSupportingDocument =
+    material.kind === "SOURCE_DOCUMENT" || material.kind === "SUPPORTING_DOCUMENT";
   return <section className="order-productive-stage" data-stage={stage}>
-    {historicalReturn === undefined ? null : (
-      <div className="order-productive-navigation">{historicalReturn}</div>
+    {historicalReturn === undefined && !inspectingSupportingDocument ? null : (
+      <div className="order-productive-navigation">
+        {inspectingSupportingDocument ? (
+          <WorkbenchAction label="Back to workflow context" icon={<WorkbenchIcon name="back" />}
+            tone="ghost" onClick={onReturnFromTransient} />
+        ) : null}
+        {historicalReturn}
+      </div>
     )}
     {material.kind === "STAGE_DOCUMENT" && historicalReturn === undefined ? documentAttention : null}
     <div className="order-productive-primary">

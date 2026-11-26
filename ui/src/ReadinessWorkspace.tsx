@@ -311,7 +311,7 @@ export const ReadinessWorkspace = ({
     )
   ) {
     return (
-      <div data-testid="review-workspace">
+      <div className={material.kind === "SUPPORTING_DOCUMENT" ? "order-document-inspection" : undefined} data-testid="review-workspace">
         {requiredInputOwnsAttention ? null : (
           <div className="order-inline-actions">
             <WorkbenchAction
@@ -432,22 +432,16 @@ export const ReadinessWorkspace = ({
             content: readinessArtifact === null
               ? <WorkbenchState kind="empty" title="Readiness review is in progress" />
               : (
-                <WorkbenchResourceList items={[{
-                  id: "readiness-" + readinessArtifact.id,
-                  label: "Readiness review",
-                  action: (
-                    <WorkbenchAction
-                      label="Read readiness review"
-                      icon={<WorkbenchIcon name="document" />}
-                      tone="secondary"
-                      onClick={() =>
-                        onSelectMaterial({
-                          kind: "SUPPORTING_DOCUMENT",
-                          artifactId: readinessArtifact.id,
-                        })}
-                    />
-                  ),
-                }]} />
+                <WorkbenchAction
+                  label="Read readiness review"
+                  icon={<WorkbenchIcon name="document" />}
+                  tone="secondary"
+                  onClick={() =>
+                    onSelectMaterial({
+                      kind: "SUPPORTING_DOCUMENT",
+                      artifactId: readinessArtifact.id,
+                    })}
+                />
               ),
           },
           {

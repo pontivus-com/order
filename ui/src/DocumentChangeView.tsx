@@ -37,11 +37,12 @@ const applyUnifiedDiff = (
   for (const line of unifiedDiff.split("\n")) {
     if (line.startsWith("@@")) {
       flushRemoved();
-      const match = /^@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@/.exec(line);
+      const match = /^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/.exec(line);
       if (match === null) return null;
       const oldStart = Number(match[1]);
-      const targetIndex = Math.max(0, oldStart - 1);
-      if (targetIndex < sourceIndex) return null;
+      const oldCount = match[2] === undefined ? 1 : Number(match[2]);
+      const targetIndex = oldCount === 0 ? oldStart : Math.max(0, oldStart - 1);
+      if (targetIndex < sourceIndex || targetIndex > source.length) return null;
       while (sourceIndex < targetIndex && sourceIndex < source.length) {
         output.push({
           text: source[sourceIndex] ?? "",
@@ -55,13 +56,14 @@ const applyUnifiedDiff = (
       continue;
     }
 
-    if (!inHunk || line.startsWith("--- ") || line.startsWith("+++ ")) continue;
+    if (!inHunk) continue;
     if (line === "\\ No newline at end of file" || line.length === 0) continue;
 
     const marker = line[0];
     const text = line.slice(1);
 
     if (marker === " ") {
+      if (source[sourceIndex] !== text) return null;
       flushRemoved();
       output.push({
         text: source[sourceIndex] ?? text,
@@ -73,6 +75,7 @@ const applyUnifiedDiff = (
     }
 
     if (marker === "-") {
+      if (source[sourceIndex] !== text) return null;
       pendingRemoved += 1;
       sourceIndex += 1;
       continue;
@@ -110,39 +113,38 @@ const proposedSegments = (
   lines: readonly ProposedLine[],
 ): readonly ProposedSegment[] => {
   const segments: ProposedSegment[] = [];
+  let block: ProposedLine[] = [];
+  let fence: string | null = null;
 
-  for (const line of lines) {
+  const flushBlock = (): void => {
+    if (block.length === 0) return;
+    const changed = block.some((line) => line.changed);
+    const markdown = block.map((line) => line.text).join("\n");
+    const removedLines = block.reduce((sum, line) => sum + line.removedBefore, 0);
     const previous = segments.at(-1);
-    const startsChangedRegion =
-      line.changed &&
-      (
-        previous === undefined ||
-        !previous.changed ||
-        line.removedBefore > 0
-      );
-    const canAppend =
-      previous !== undefined &&
-      previous.changed === line.changed &&
-      !startsChangedRegion;
-
-    if (canAppend) {
+    if (previous !== undefined && previous.changed === changed) {
       segments[segments.length - 1] = {
         ...previous,
-        markdown:
-          previous.markdown.length === 0
-            ? line.text
-            : previous.markdown + "\n" + line.text,
+        markdown: previous.markdown + "\n" + markdown,
+        removedLines: previous.removedLines + removedLines,
       };
-      continue;
+    } else {
+      segments.push({ id: "segment-" + segments.length, changed, markdown, removedLines });
     }
+    block = [];
+  };
 
-    segments.push({
-      id: "segment-" + segments.length,
-      changed: line.changed,
-      markdown: line.text,
-      removedLines: line.removedBefore,
-    });
+  for (const line of lines) {
+    const marker = /^ {0,3}(`{3,}|~{3,})/.exec(line.text)?.[1];
+    if (marker !== undefined) {
+      if (fence === null) fence = marker;
+      else if (marker[0] === fence[0] && marker.length >= fence.length &&
+          line.text.trim() === marker) fence = null;
+    }
+    block.push(line);
+    if (fence === null && line.text.trim().length === 0) flushBlock();
   }
+  flushBlock();
 
   return segments;
 };
