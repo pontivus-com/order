@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Record targeted remaining 0.6.0 audit results: close unaffected local shell/factual checks, isolate installer continuity and database archive rollback custody findings under the existing IA25; retain prior semantic audit evidence.
+
 - Make 0.6.0 campaign revalidation semantic-delta driven: retain unchanged proven audit bodies using one exact current input/evidence binding, reopen only affected obligations and real dependencies, and keep final exact-package R3/Approval gates unchanged.
 
 - Correct 0.6.0 installation history/admission and rollback/commit/finalization specifications after independent REV-01–REV-07 review; retain one installer/readiness owner, require actual-orchestrator proof and distinguish preserved semantic Workbench APIs from rejected physical presentation. No production implementation or sign-off.
