@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Specify shell-invariant versus global consumer acceptance and deterministic independent signed phase capture invocation (REV-F05/F06), retaining exhaustive final proof and the unchanged T1 scope.
+
 - Record targeted 0.6.0 PLAN revalidation counterexamples for shared-shell acceptance and independent signed evidence invocation (REV-F05/F06).
 
 - Specify independent signed phase-local and Priority-0 rendered evidence execution, preserve terminal exhaustive verification, and reopen the affected readiness interfaces (REV-F04).
