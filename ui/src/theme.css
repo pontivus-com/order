@@ -961,6 +961,9 @@
 }
 .order-workbench-result-meaning p { margin: 0; color: var(--color-text-secondary); }
 
+.order-implementation-detail > .order-workbench-facts { padding: var(--spacing-3) 0; }
+.order-implementation-detail .order-workbench-facts ul { margin: 0; padding-inline-start: var(--spacing-4); }
+
 /* 4. Specialist content and feature-semantic layout. */
 
 /* IA31 — Review structure is owned only by WorkbenchReview/Verdict/Section. */
@@ -1319,10 +1322,6 @@
   gap: var(--spacing-4);
   padding: var(--spacing-3) var(--spacing-4) var(--spacing-5);
 }
-.order-implementation-detail > .order-workbench-facts {
-  padding: var(--spacing-3) 0;
-}
-.order-implementation-detail .order-workbench-facts ul { margin: 0; padding-inline-start: var(--spacing-4); }
 .order-implementation-heading {
   display: flex;
   align-items: flex-start;

@@ -30,7 +30,7 @@
     "runtimeEvidence": false
   },
   "source": "docs/references/workbench-ui/reference-atlas.html",
-  "query": "?surf=<SURF-ID>&state=<declared-state>&theme=light|dark|system",
+  "query": "?surf=<SURF-ID>&state=<declared-state>&theme=light|dark|system&step=<selected-stage>",
   "viewportClasses": {
     "wide": 1440,
     "narrow": 760
@@ -468,7 +468,8 @@
         "open",
         "required-input",
         "processing",
-        "blocked"
+        "blocked",
+        "document"
       ],
       "viewports": [
         "wide",
@@ -742,7 +743,8 @@
         "open",
         "required-input",
         "processing",
-        "blocked"
+        "blocked",
+        "closed"
       ],
       "viewports": [
         "wide",
@@ -769,7 +771,9 @@
       "states": [
         "pending",
         "applying",
-        "failed"
+        "failed",
+        "adopted",
+        "rejected"
       ],
       "viewports": [
         "wide",

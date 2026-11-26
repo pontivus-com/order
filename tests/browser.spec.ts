@@ -52,6 +52,13 @@ const huxPriorityCaptureIds = new Set<string>([
   "ia26-research-wide-light",
   "ia26-proposal-review-wide-light",
   "ia26-readiness-review-wide-light",
+  "ia26-readiness-review-narrow-light",
+  "ia26-readiness-required-input-wide-light",
+  "ia26-research-narrow-light",
+  "ia26-requirements-wide-light",
+  "ia26-requirements-narrow-light",
+  "ia26-implementation-plan-wide-light",
+  "ia26-implementation-plan-narrow-light",
   "ia26-approval-wide-light",
   "ia26-approval-task-wide-light",
   "ia26-approval-task-wide-dark",
@@ -216,6 +223,7 @@ const canonicalReferenceState = (
     return "active";
   }
   if (surface === "SURF-STEP-R1-001" || surface === "SURF-STEP-R2-001") {
+    if (surface === "SURF-STEP-R2-001" && runtimeState.includes("document")) return "document";
     if (runtimeState.includes("required-input")) return "required-input";
     if (runtimeState.includes("processing")) return "processing";
     if (runtimeState.includes("blocked")) return "blocked";
@@ -238,8 +246,8 @@ const canonicalReferenceState = (
   }
   if (surface === "SURF-STEP-EXEC-001") {
     if (runtimeState.includes("historical")) return "historical-selection";
-    if (runtimeState.includes("validation")) return "validation-recorded";
     if (runtimeState.includes("blocked")) return "blocked";
+    if (runtimeState.includes("validation")) return "validation-recorded";
     if (/processing|running/.test(runtimeState)) return "running";
     return "ready";
   }
@@ -265,13 +273,15 @@ const canonicalReferenceState = (
     if (runtimeState.includes("required-input")) return "required-input";
     if (runtimeState.includes("processing")) return "processing";
     if (runtimeState.includes("blocked")) return "blocked";
-    if (runtimeState.includes("closed-terminal")) return null;
+    if (runtimeState.includes("closed-terminal")) return "closed";
     return "open";
   }
   if (surface === "SURF-MAT-PROPOSAL-001") {
     if (runtimeState.includes("adoption-in-progress")) return "applying";
     if (runtimeState.includes("failed")) return "failed";
     if (runtimeState.includes("pending-decision")) return "pending";
+    if (runtimeState.includes("adopted")) return "adopted";
+    if (runtimeState.includes("rejected")) return "rejected";
     return null;
   }
   if (surface === "SURF-MAT-EVIDENCE-001") return "text";
@@ -320,7 +330,8 @@ const resolveRenderedReference = (
   const query = state === null ? null :
     "?surf=" + encodeURIComponent(entry.surface) +
     "&state=" + encodeURIComponent(state) +
-    "&theme=" + encodeURIComponent(theme);
+    "&theme=" + encodeURIComponent(theme) +
+    "&step=" + encodeURIComponent(entry.workflowStep ?? "");
   return {
     manifestPath: referenceManifestPath,
     sourcePath: referenceAtlasPath,
@@ -3710,7 +3721,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
       workItemKind: "CHANGE",
       workflowStep: step,
       surface,
-      state: "primary-wide",
+      state: step === "Requirements" ? "document" : "primary-wide",
       fixture: title,
       viewport: light,
       theme: "Light",
@@ -3723,7 +3734,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
       workItemKind: "CHANGE",
       workflowStep: step,
       surface,
-      state: "primary-narrow",
+      state: step === "Requirements" ? "document" : "primary-narrow",
       fixture: title,
       viewport: narrow,
       theme: "Light",
