@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Record the current G4 technical revalidation checkpoint, including exact Approval-membership carrier, authority applicability, attention/PLAN/blocker/terminal residuals and accepted-foundation reuse boundaries; keep later gates unpassed.
+
 - Close G3 functional revalidation with current R1 evidence linkage, eleven pair audits and H2; retain existing functional authority and enter G4 technical realization review.
 
 - Close G2 factual revalidation through A11 and H1, preserving the bounded operator foundation acceptance and classified implementation/proof gaps; enter G3 revalidation without production mutation or sign-off.
