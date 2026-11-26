@@ -1412,7 +1412,7 @@ No domain renderer owns recurring component chrome, structural breakpoint policy
 
 SD21 owns the **package-local derivation from the canonical Workbench visual language into the 0.6.0 foundation**. It does not create a second visual-language authority: exact semantics remain owned by current P3/this DESIGN, recurring composition/primitive responsibility by `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`, and visual/token/style semantics by `GW-DOC-WORKBENCH-THEME-V1`. Any rendered comparison corpus is downstream evidence generated from those exact owners and may never participate in deriving this ledger.
 
-The IA27 realization ledger is closed over these dimensions:
+The SD21 visual-language → foundation realization ledger is closed over these dimensions:
 
 | Design-language dimension | Canonical input | Required foundation realization |
 |---|---|---|
@@ -1430,7 +1430,7 @@ The IA27 realization ledger is closed over these dimensions:
 | accessibility/focus/overlay mechanics | P4 primitive/Astryx responsibility | keyboard/focus return, modal/disclosure semantics, rail/dialogue/table behavior and overlay mechanics are implemented once at their canonical primitive/foundation owner |
 | specialized content | P4 approved leaves + theme specialist-content rules | Markdown/editor/code/evidence leaves own content mechanics only and inherit the same surrounding theme/hierarchy; they cannot establish screen chrome |
 
-For each row **this DESIGN/SD21 ledger** records the exact permanent authority reference, owning Workbench structural or semantic composition component/approved leaf, Astryx substrate/variant where applicable, theme token/geometry role, responsive/disclosure behavior and verification owner. Derived reference entries are generated later from this closed ledger and are not inputs to it. IA27 consumes this closed ledger; it does not derive, extend or repair it. A recurring design concern that cannot be mapped without invention is an unresolved DESIGN/P4 issue and blocks PLAN/IA27.
+For each row **this DESIGN/SD21 ledger** records the exact permanent authority reference, owning Workbench structural or semantic composition component/approved leaf, Astryx substrate/variant where applicable, theme token/geometry role, responsive/disclosure behavior and verification owner. Derived reference entries are generated later from this closed ledger and are not inputs to it. IA27 consumes this closed ledger; it does not derive, extend or repair it. Later consumer phases may not introduce a recurring color/token, typography/spacing/density scale, button/action treatment, status/notice treatment, disclosure lane, overlay mechanic, hierarchy convention, shell/region geometry or breakpoint/responsive grammar. A newly required recurring role returns to the owning DESIGN/P4 boundary; it is not a feature-local correction. A recurring design concern that cannot be mapped without invention is an unresolved DESIGN/P4 issue and blocks PLAN/IA27.
 
 **Dialogue closure.** P4's canonical Dialogue composition is `WorkbenchDialogue({ transcript, activity?, composer?, state? })`: `activity` is the single bounded Supporting/Operational region required by the P4 RunEvent presentation planes. Material heading/status remain outside the primitive through the owning surface/section composition, and Technical/Diagnostic identity routes to the explicit WorkItem Context/Evidence owner rather than a Dialogue-local disclosure. `header` and `technical` are therefore not Dialogue API degrees of freedom.
 

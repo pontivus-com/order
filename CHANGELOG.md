@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Restore the SD21 foundation-ledger and recurring visual-role ownership constraints lost during forecast reconciliation; retain the architecture sensor unchanged.
+
 - Reconcile the exact 40-path residual/proof forecast, protect 72 excluded owners, compile the modular PLAN candidate and update the protected architecture sensor; preserve all surface/scenario/HUX proof obligations without advancing G4–G6.
 
 - Specify exact current versus historical Approval identity and signed artifact membership, including upstream-return and zero-task retained-history cases, without a new transport representation.
