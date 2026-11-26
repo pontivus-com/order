@@ -2501,7 +2501,7 @@ describe("architecture fitness", () => {
     for (const requiredR2 of [
       "resolved repository-relative WorkItem documentation root is default-visible supporting task context",
       "diagnostic's source path is ordinary operator information",
-      "current repository path is default-visible supporting document identity",
+      "current repository path and WorkItem directory are available as Supporting orientation in the one named details disclosure closed by default after the canvas",
       "Each connected-repository entry default-visibly shows project identity",
     ]) {
       if (!requirements.includes(requiredR2)) {
@@ -2509,6 +2509,15 @@ describe("architecture fitness", () => {
           "R2 information-visibility correction missing " + requiredR2,
         );
       }
+    }
+
+    // Markdown P3 §10 owns Document information availability, not a permanently open facts band.
+    const markdownWorkbench = sourceText("docs/requirements/markdown-workbench.md");
+    if (!markdownWorkbench.includes("one specifically named details disclosure closed by default after the document")) {
+      violations.push("Markdown Workbench P3 document-location disclosure authority must be reconciled before changing the R2 projection");
+    }
+    if (requirements.includes("current repository path is default-visible supporting document identity")) {
+      violations.push("R2 must not reintroduce an always-open document-location facts band");
     }
 
     for (const forbiddenP3 of [
