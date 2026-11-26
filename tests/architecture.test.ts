@@ -1,6 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync, readlinkSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readlinkSync, readdirSync, statSync } from "node:fs";
 import { dirname, extname, join, matchesGlob, relative, resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -74,7 +74,65 @@ const resolvedRepositoryImport = (
   return repositoryPath(resolve(repositoryRoot, dirname(sourcePath), specifier));
 };
 
+// This campaign sensor distinguishes reviewed specification evidence from candidate
+// conformance. An allowed path is not authorization: the caller must resolve and
+// verify the exact existing operator provenance and baseline before supplying it.
+const campaignInputDifferences = (
+  reviewed: ReadonlyMap<string, string>,
+  candidate: ReadonlyMap<string, string>,
+  authorizedPaths: ReadonlySet<string>,
+): readonly string[] =>
+  [...new Set([...reviewed.keys(), ...candidate.keys()])]
+    .sort()
+    .filter((path) => reviewed.get(path) !== candidate.get(path) && !authorizedPaths.has(path));
+
+const parseCampaignInputSnapshot = (bytes: string): ReadonlyMap<string, string> => {
+  const entries = new Map<string, string>();
+  let previous: string | undefined;
+  if (!bytes.endsWith("\n")) throw new Error("snapshot requires final LF");
+  for (const line of bytes.slice(0, -1).split("\n")) {
+    const match = line.match(/^(100644|100755|120000)\t([0-9a-f]{40})\t([^\t\r\n]+)$/);
+    if (!match?.[1] || !match[2] || !match[3]) throw new Error("malformed snapshot entry");
+    const [, mode, sha, path] = match;
+    if (previous !== undefined && previous >= path) throw new Error("snapshot paths must be sorted and unique");
+    entries.set(path, mode + "\t" + sha);
+    previous = path;
+  }
+  return entries;
+};
+
+const campaignSnapshotBytes = (entries: ReadonlyMap<string, string>): string =>
+  [...entries.entries()]
+    .sort(([left], [right]) => left < right ? -1 : left > right ? 1 : 0)
+    .map(([path, identity]) => identity + "\t" + path + "\n")
+    .join("");
+
 describe("architecture fitness", () => {
+  it("distinguishes exact campaign review inputs from bounded candidate differences", () => {
+    const sha = "1".repeat(40);
+    const changedSha = "2".repeat(40);
+    const reviewed = parseCampaignInputSnapshot(
+      "100644\t" + sha + "\ta.ts\n100644\t" + sha + "\tauthority.md\n100755\t" + sha + "\tverify.sh\n",
+    );
+    expect(campaignSnapshotBytes(reviewed)).toBe(
+      "100644\t" + sha + "\ta.ts\n100644\t" + sha + "\tauthority.md\n100755\t" + sha + "\tverify.sh\n",
+    );
+    const candidate = new Map(reviewed);
+    candidate.set("a.ts", "100644\t" + changedSha);
+    expect(campaignInputDifferences(reviewed, candidate, new Set())).toEqual(["a.ts"]);
+    expect(campaignInputDifferences(reviewed, candidate, new Set(["a.ts"]))).toEqual([]);
+    candidate.set("authority.md", "100644\t" + changedSha);
+    candidate.set("verify.sh", "100644\t" + sha);
+    candidate.set("unexpected.ts", "100644\t" + sha);
+    expect(campaignInputDifferences(reviewed, candidate, new Set(["a.ts"]))).toEqual([
+      "authority.md", "unexpected.ts", "verify.sh",
+    ]);
+    candidate.delete("authority.md");
+    expect(campaignInputDifferences(reviewed, candidate, new Set(["a.ts"]))).toContain("authority.md");
+    expect(() => parseCampaignInputSnapshot("100644\t" + sha + "\ta.ts\n100644\t" + sha + "\ta.ts\n")).toThrow();
+    expect(() => parseCampaignInputSnapshot("100644\t" + sha + "\ta.ts")).toThrow();
+  });
+
   it("enforces the P4 dependency direction and explicit CLI shell exceptions", () => {
     const violations: string[] = [];
 
@@ -1893,34 +1951,181 @@ describe("architecture fitness", () => {
       const actualEvidence = hashBlob(Buffer.from(evidenceParts.join(""), "utf8"));
       if (actualEvidence !== evidenceBlob) bindingErrors.push("retained original audit evidence changed: expected " + actualEvidence);
       try {
-        // Include every tracked input, including source, authority, tests, toolchain
-        // and compiled package. Exclude only this control record (self-reference),
-        // release-history provenance, and downstream independent R3 output.
-        const excluded = new Set([
-          campaignPlanPath, "CHANGELOG.md",
-          join(campaignDirectory, "readiness-review.md").replaceAll("\\", "/"),
-        ]);
-        const index = execFileSync("git", ["ls-files", "--stage", "-z"], {
-          cwd: repositoryRoot, encoding: "utf8", maxBuffer: 8 * 1024 * 1024,
-        });
-        const entries: { path: string; line: string }[] = [];
-        for (const entry of index.split("\0").filter(Boolean)) {
-          const match = entry.match(/^(\d{6}) [0-9a-f]{40} (\d)\t([\s\S]+)$/);
-          if (!match || match[2] !== "0") throw new Error("unmerged or malformed tracked input");
-          const [, mode, , path] = match;
-          if (path === undefined || mode === undefined) throw new Error("missing tracked input");
-          if (excluded.has(path)) continue;
-          if (!["100644", "100755", "120000"].includes(mode)) throw new Error("unsupported tracked input mode: " + path);
-          const bytes = mode === "120000"
-            ? Buffer.from(readlinkSync(join(repositoryRoot, path)), "utf8")
-            : readFileSync(join(repositoryRoot, path));
-          entries.push({ path, line: mode + "\t" + hashBlob(bytes) + "\t" + path + "\n" });
+        // The frozen rows are the existing reviewed-input evidence, not a new
+        // authority or a candidate snapshot to refresh after implementation.
+        const readinessPath = join(campaignDirectory, "readiness-review.md").replaceAll("\\", "/");
+        const excluded = new Set([campaignPlanPath, "CHANGELOG.md", readinessPath]);
+        const frozenText = reuseSection.match(/\*\*Frozen reviewed input rows:\*\*\r?\n\r?\n~~~reviewed-inputs\r?\n([\s\S]*?)~~~(?:\r?\n|$)/)?.[1];
+        if (!frozenText || hashBlob(Buffer.from(frozenText, "utf8")) !== inputBlob) {
+          throw new Error("frozen reviewed input rows must match the exact reviewed digest");
         }
-        entries.sort((left, right) => left.path < right.path ? -1 : left.path > right.path ? 1 : 0);
-        const actualInputs = hashBlob(Buffer.from(entries.map((entry) => entry.line).join(""), "utf8"));
-        if (actualInputs !== inputBlob) bindingErrors.push("delta reuse exact reviewed inputs changed: expected " + actualInputs);
+        const frozen = parseCampaignInputSnapshot(frozenText);
+        if ([...excluded].some((path) => frozen.has(path))) throw new Error("invalid reviewed input exclusions");
+        const git = (args: readonly string[]): string =>
+          execFileSync("git", [...args], {
+            cwd: repositoryRoot, encoding: "utf8", maxBuffer: 8 * 1024 * 1024, stdio: ["ignore", "pipe", "pipe"],
+          });
+        const readCommitInputs = (commit: string): ReadonlyMap<string, string> => {
+          const entries = new Map<string, string>();
+          for (const entry of git(["ls-tree", "-r", "-z", commit]).split("\0").filter(Boolean)) {
+            const match = entry.match(/^(100644|100755|120000) blob ([0-9a-f]{40})\t([^\t\r\n]+)$/);
+            if (!match?.[1] || !match[2] || !match[3]) throw new Error("unsupported tracked baseline entry");
+            const [, mode, sha, path] = match;
+            if (!excluded.has(path)) entries.set(path, mode + "\t" + sha);
+          }
+          return entries;
+        };
+        const readLiveInputs = (): ReadonlyMap<string, string> => {
+          const entries = new Map<string, string>();
+          for (const entry of git(["ls-files", "--stage", "-z"]).split("\0").filter(Boolean)) {
+            const match = entry.match(/^(100644|100755|120000) [0-9a-f]{40} 0\t([^\t\r\n]+)$/);
+            if (!match?.[1] || !match[2]) throw new Error("unmerged or unsupported tracked input");
+            const [, mode, path] = match;
+            if (excluded.has(path)) continue;
+            const bytes = mode === "120000"
+              ? Buffer.from(readlinkSync(join(repositoryRoot, path)), "utf8")
+              : readFileSync(join(repositoryRoot, path));
+            // Also reject unstaged executable-bit drift, not merely index modes.
+            if (mode !== "120000") {
+              const actualMode = (statSync(join(repositoryRoot, path)).mode & 0o111) !== 0 ? "100755" : "100644";
+              entries.set(path, actualMode + "\t" + hashBlob(bytes));
+            } else {
+              entries.set(path, mode + "\t" + hashBlob(bytes));
+            }
+          }
+          return entries;
+        };
+        const boundedSection = source.match(/## 17A\. Bounded pre-sign-off realization authorization\r?\n([\s\S]*?)(?=\r?\n## 18\.)/)?.[1] ?? "";
+        const normalLine = gateSection.match(/^\*\*Current normal authorization: (NONE|T1 only)\.\*\*$/m)?.[1];
+        const boundedLine = boundedSection.match(/^\*\*Current bounded authorization: (NONE|IA27\/IA28 only)\.\*\*$/m)?.[1];
+        if (!normalLine || !boundedLine ||
+          (gateSection.match(/^\*\*Current normal authorization:/gm) ?? []).length !== 1 ||
+          (boundedSection.match(/^\*\*Current bounded authorization:/gm) ?? []).length !== 1) {
+          throw new Error("missing, duplicated or malformed current campaign authorization");
+        }
+        const normal = normalLine === "T1 only";
+        const bounded = boundedLine === "IA27/IA28 only";
+        if (normal && bounded) throw new Error("normal and bounded authorization cannot coexist");
+        const normalDetails = /^\*\*Authorized (?:baseline commit|R3 blob|operator decision):/gm;
+        const boundedDetails = /^\*\*Authorized (?:baseline commit|R3 blob|operator decision|bounded paths):/gm;
+        if ((!normal && normalDetails.test(gateSection)) || (!bounded && boundedDetails.test(boundedSection))) {
+          throw new Error("inactive authorization must not carry active authorization details");
+        }
+
+        if (!normal && !bounded) {
+          const actualInputs = hashBlob(Buffer.from(campaignSnapshotBytes(readLiveInputs()), "utf8"));
+          if (actualInputs !== inputBlob) {
+            bindingErrors.push("delta reuse exact reviewed inputs changed: expected " + actualInputs);
+          }
+        } else {
+          if (campaignGateOrder.some((id) => gates.get(id)?.status !== "PASS")) {
+            throw new Error("authorized candidate requires all specification gates PASS");
+          }
+          const section = normal ? gateSection : boundedSection;
+          const exactField = (name: string, pattern: string): string => {
+            const values = [...section.matchAll(new RegExp("^\\*\\*Authorized " + name + ":\\*\\* " + pattern + "$", "gm"))];
+            const value = values[0]?.[1];
+            if (values.length !== 1 || !value) throw new Error("missing/duplicate authorized " + name);
+            return value;
+          };
+          const baselineCommit = exactField("baseline commit", "\x60([0-9a-f]{40})\x60");
+          const r3Blob = exactField("R3 blob", "\x60([0-9a-f]{40})\x60");
+          // The human decision itself is independently checked in PR evidence.
+          // This is a provenance reference, never proof of a human's identity.
+          exactField("operator decision", "(https://github\\.com/pontivus-com/order/pull/83#(?:issuecomment|pullrequestreview)-[0-9]+)");
+          if (gitBlobSha(readinessPath) !== r3Blob) throw new Error("authorized R3 bytes changed");
+          const planText = sourceText(join(campaignDirectory, "implementation-plan.md"));
+          const blocks = [...planText.matchAll(/\x60\x60\x60order-tasks\r?\n([\s\S]*?)\r?\n\x60\x60\x60/g)];
+          if (blocks.length !== 1 || !blocks[0]?.[1]) throw new Error("expected one exact signed task block");
+          const parsed = JSON.parse(blocks[0][1]) as { tasks?: readonly { id?: string; scope?: readonly string[]; exclusions?: readonly string[] }[] };
+          const task = parsed.tasks?.[0];
+          if (parsed.tasks?.length !== 1 || task?.id !== "T1" || !Array.isArray(task.scope) || !Array.isArray(task.exclusions)) {
+            throw new Error("unresolved exact T1 scope/exclusions");
+          }
+          const scope = new Set(task.scope);
+          const exclusions = new Set(task.exclusions);
+          if (scope.size !== 45 || exclusions.size !== 68 || [...scope].some((path) => exclusions.has(path))) {
+            throw new Error("invalid exact T1 scope/exclusions");
+          }
+          const allowed = normal ? scope : new Set(exactField("bounded paths", "([^\\r\\n]+)").split(", "));
+          if (allowed.size === 0 || [...allowed].some((path) => !scope.has(path) || exclusions.has(path))) {
+            throw new Error("authorization exceeds exact T1 scope");
+          }
+          // The optional grant must not grant downstream production owners.
+          if (bounded) {
+            const boundedOwners = new Set([
+              "ui/src/primitives/WorkbenchToolbar.tsx", "ui/src/app.tsx",
+              "ui/src/WorkItemWorkspace.tsx", "ui/src/WorkItemContext.tsx",
+              "ui/src/styles.css", "ui/src/theme.css", "tests/browser.spec.ts",
+              "tests/certification.test.ts", "CHANGELOG.md",
+            ]);
+            if ([...allowed].some((path) => !boundedOwners.has(path))) {
+              throw new Error("bounded authorization exceeds IA27/IA28 mutable owners");
+            }
+          }
+          const stripAuthorization = (text: string): string =>
+            text.replace(/^\*\*Current normal authorization: T1 only\.\*\*$/m, "**Current normal authorization: NONE.**")
+              .replace(/^\*\*Current bounded authorization: IA27\/IA28 only\.\*\*$/m, "**Current bounded authorization: NONE.**")
+              .replace(/^\*\*Authorized (?:baseline commit|R3 blob|operator decision|bounded paths):\*\* [^\r\n]+\r?\n/gm, "");
+          const proveCandidate = (entries: ReadonlyMap<string, string>, candidateCommit?: string): void => {
+            const drift = campaignInputDifferences(frozen, entries, allowed);
+            if (drift.length !== 0) throw new Error("authorized candidate changed out-of-scope inputs: " + drift.join(", "));
+            const changelogSha = candidateCommit === undefined
+              ? gitBlobSha("CHANGELOG.md")
+              : git(["rev-parse", candidateCommit + ":CHANGELOG.md"]).trim();
+            // CHANGELOG is an existing reviewed-input exclusion, but is a
+            // signed mutation owner; bounded work must explicitly include it.
+            if (!allowed.has("CHANGELOG.md")) {
+              if (changelogSha !== git(["rev-parse", baselineCommit + ":CHANGELOG.md"]).trim()) {
+                throw new Error("authorization does not include changelog mutation");
+              }
+            }
+          };
+
+          // Before squash delivery the exact reviewed commit is a real ancestor.
+          // After squash, the original branch SHA need not survive in master.
+          // Only actual integrated PR #83 ancestry with identical control/R3
+          // bytes establishes historical campaign evidence.
+          let integratedCommit: string | undefined;
+          if (normal) {
+            for (const masterRef of ["refs/remotes/origin/master", "refs/heads/master"]) {
+              try {
+                const masterCampaign = git(["show", masterRef + ":" + campaignPlanPath]);
+                if (masterCampaign !== source) continue;
+                const commit = git(["log", "-1", "--first-parent", "--format=%H", masterRef, "--", campaignPlanPath]).trim();
+                if (!/^[0-9a-f]{40}$/.test(commit)) continue;
+                const subject = git(["show", "-s", "--format=%s", commit]).trim();
+                if (!/\(#83\)$/.test(subject)) continue;
+                git(["merge-base", "--is-ancestor", commit, "HEAD"]);
+                if (git(["show", commit + ":" + campaignPlanPath]) !== source ||
+                    git(["rev-parse", commit + ":" + readinessPath]).trim() !== r3Blob) continue;
+                integratedCommit = commit;
+                break;
+              } catch {
+                // A missing/nonmatching integration is not a bypass: the live
+                // authorized-candidate proof below still has to succeed.
+              }
+            }
+          }
+          if (integratedCommit !== undefined) {
+            proveCandidate(readCommitInputs(integratedCommit), integratedCommit);
+          } else {
+            git(["merge-base", "--is-ancestor", baselineCommit, "HEAD"]);
+            if (hashBlob(Buffer.from(campaignSnapshotBytes(readCommitInputs(baselineCommit)), "utf8")) !== inputBlob) {
+              throw new Error("authorized baseline tree does not match frozen review inputs");
+            }
+            if (git(["rev-parse", baselineCommit + ":" + readinessPath]).trim() !== r3Blob) {
+              throw new Error("authorization does not bind reviewed R3");
+            }
+            const baselineCampaign = git(["show", baselineCommit + ":" + campaignPlanPath]);
+            if (baselineCampaign !== stripAuthorization(source)) {
+              throw new Error("candidate changed frozen campaign control or authorization baseline");
+            }
+            proveCandidate(readLiveInputs());
+          }
+        }
       } catch (error) {
-        bindingErrors.push("cannot establish exact delta reuse inputs: " + String(error));
+        bindingErrors.push("cannot establish exact reviewed baseline/candidate fitness: " + String(error));
       }
       if (bindingErrors.length === 0) for (const id of proposedIds) retainedAuditIds.add(id);
       violations.push(...bindingErrors);
