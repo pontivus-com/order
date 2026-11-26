@@ -6,7 +6,7 @@ This R2 artifact is rebuilt from the fresh post-corrective-foundation R1 record 
 
 Current implementation, UI, tests, 0.5.0 behavior, historical design and prior R2/DESIGN/PLAN text are evidence only. They do not define 0.6.0 behavior, preservation scope, compatibility fallback or regression semantics.
 
-The current R1 basis is `research.md` blob `6ba550c89bd746772cb874e51268cba8b55e3c30`. It retains the G-F12 reconstruction, C19-F03/C20-F06 and post-IA28 C19-F04/C19-F05/C20-F07 findings, and now records C19-F06/C19-F07/C19-F08/C20-F08/C20-F09/C20-F10 with zero material `UNPROVEN`: a mandatory semantic attention slot contradicted the closed interaction grammar, Evidence could nest one primary surface inside another, terminal rendering duplicated outcome semantics and leaked specification/container terminology, and rendered/certification evidence could positively protect those defects. Current canonical Workbench P3 is `GW-DOC-WORKBENCH-UX-V2` blob `64184232833b59a9e6db5e1a28b841f48b3217cd`; current Markdown Workbench P3 is `GW-DOC-MARKDOWN-WORKBENCH-V1` blob `da89bd08e4f78f353d7b3062758e9d78e21375b2`. P3 owns the permanent semantic classes and composition invariants, including semantic-region ownership, exactly one selected primary interaction composition, terminal-result primacy without a duplicate attention band, one semantic material/history owner, one explicit technical-inspection boundary per scope, no generic local Technical-details bars, no disclosure accumulation, task-modal header/body/footer anatomy and Markdown editor-control→canvas adjacency. R2 owns the complete 0.6.0 package-specific functional consequences. Technical primitive ownership and implementation scope remain DESIGN/PLAN decisions. The current document-first/supporting-context correction is a P3 hierarchy clarification over R2's existing Primary/Supporting classification: governed document content remains Primary, same-task orientation facts remain Supporting, and the correction introduces no new package-local behavior or functional contradiction.
+The current R1 basis is `research.md` blob `9fa36f2f5e8938e7ecf88a4dc90dcc7fc16a77cb`. It retains the G-F12 reconstruction, C19-F03/C20-F06 and post-IA28 C19-F04/C19-F05/C20-F07 findings, and now records C19-F06/C19-F07/C19-F08/C20-F08/C20-F09/C20-F10 with zero material `UNPROVEN`: a mandatory semantic attention slot contradicted the closed interaction grammar, Evidence could nest one primary surface inside another, terminal rendering duplicated outcome semantics and leaked specification/container terminology, and rendered/certification evidence could positively protect those defects. Current canonical Workbench P3 is `GW-DOC-WORKBENCH-UX-V2` blob `64184232833b59a9e6db5e1a28b841f48b3217cd`; current Markdown Workbench P3 is `GW-DOC-MARKDOWN-WORKBENCH-V1` blob `da89bd08e4f78f353d7b3062758e9d78e21375b2`. P3 owns the permanent semantic classes and composition invariants, including semantic-region ownership, exactly one selected primary interaction composition, terminal-result primacy without a duplicate attention band, one semantic material/history owner, one explicit technical-inspection boundary per scope, no generic local Technical-details bars, no disclosure accumulation, task-modal header/body/footer anatomy and Markdown editor-control→canvas adjacency. R2 owns the complete 0.6.0 package-specific functional consequences. Technical primitive ownership and implementation scope remain DESIGN/PLAN decisions. The current document-first/supporting-context correction is a P3 hierarchy clarification over R2's existing Primary/Supporting classification: governed document content remains Primary, same-task orientation facts remain Supporting, and the correction introduces no new package-local behavior or functional contradiction.
 
 ## Functional authority disposition ledger
 
@@ -154,19 +154,19 @@ This ledger records the exact factual basis consumed by R2 after G-F10 plus the 
 | `GW-FR-004-INDEPENDENT-VALIDATION` | `CONFORMS_WITH_DEPENDENCY` | `C12-O08`, `C12-O09`, `C12-O10`, `C12-O11`, `C12-O12`, `C20-O10` | `REFERENCE` | C20 |
 | `GW-FR-005-LOCAL-WORKBENCH` | `CONFORMS` | `C05-O01`, `C05-O04`, `C05-O12`, `C19-O06`, `C19-O08` | `REFERENCE` | C05 |
 | `GW-FR-006-MINIMUM-VERIFIED-CANDIDATE` | `CONFORMS` | `C12-O12`, `C12-O13`, `C12-O19` | `REFERENCE` | C12 |
-| `GW-FR-007-GUIDED-PRODUCTIVE-BOOTSTRAP` | `VIOLATES` | `DIRECT-FR007`, `C16-F04` | `REFERENCE` | C16 |
+| `GW-FR-007-GUIDED-PRODUCTIVE-BOOTSTRAP` | `CONFORMS_WITH_VERIFICATION_GAP` | `DIRECT-FR007`, `C16-F04` | `REFERENCE` | C16 |
 | `GW-FR-008-GOVERNED-REPOSITORY-ACCESS` | `CONFORMS` | `C16-O02`, `C16-O05`, `C22-O10` | `REFERENCE` | C22 |
 | `GW-FR-009-PORTABLE-WORK-ITEM-SOURCE` | `CONFORMS` | `C04-O01`, `C04-O04` | `REFERENCE` | C04 |
 | `GW-FR-010-GOVERNED-WORK-KIND-CATALOG` | `CONFORMS` | `C02-O01` | `REFERENCE` | C02 |
 | `GW-FR-011-VERSIONED-AUTHORING-SCHEMAS` | `CONFORMS` | `C02-O02`, `C02-O06` | `REFERENCE` | C02 |
-| `GW-FR-012-CATALOG-DRIVEN-AUTHORING` | `MIXED` | `C02-O04`, `C02-O05`, `C02-O07` | `REFERENCE` | C02 |
+| `GW-FR-012-CATALOG-DRIVEN-AUTHORING` | `CONFORMS_WITH_VERIFICATION_GAP` | `C02-O04`, `C02-O05`, `C02-O07` | `REFERENCE` | C02 |
 | `GW-FR-013-PORTABLE-QUEUE-RECONCILIATION` | `CONFORMS` | `C03-O01`, `C03-O02`, `C03-O03`, `C03-O05`, `C03-O09` | `REFERENCE` | C03 |
 | `GW-FR-014-SOURCE-FRESHNESS` | `CONFORMS` | `C04-O14`, `C02-O12` | `REFERENCE` | C04 |
 | `GW-FR-015-SOURCE-CONTEXT-PROJECTION` | `CONFORMS_WITH_DEPENDENCY` | `C06-O02`, `C22-O06` | `REFERENCE` | C06 |
 | `GW-FR-016-SOURCE-CONFORMANCE-IDENTITY` | `CONFORMS` | `C06-O15`, `C22-O06` | `REFERENCE` | C17 |
 | `GW-FR-017-SOURCE-SIGNOFF-BINDING` | `CONFORMS` | `C11-O01`, `C11-O03`, `C12-O20` | `REFERENCE` | C11 |
-| `GW-FR-018-SOURCE-CONSUMER-CLOSURE` | `MIXED` | `C04-O07`, `C04-O14` | `REFERENCE` | C04 |
-| `GW-FR-019-SOURCE-CLARIFICATION-DURABILITY` | `VIOLATES` | `C06-O13` | `REFERENCE` | C06 |
+| `GW-FR-018-SOURCE-CONSUMER-CLOSURE` | `CONFORMS` | `C04-O07`, `C04-O14` | `REFERENCE` | C04 |
+| `GW-FR-019-SOURCE-CLARIFICATION-DURABILITY` | `CONFORMS` | `C06-O13` | `REFERENCE` | C06 |
 | `GW-FR-020-WORKBENCH-SOURCE-OPERATIONS` | `CONFORMS` | `C03-O04`, `C03-O09` | `REFERENCE` | C04 |
 | `GW-FR-021-MARKDOWN-WORKSPACE` | `CONFORMS` | `C04-O15`, `C05-O02`, `C05-O10` | `REFERENCE` | C05 |
 | `GW-FR-022-GOVERNED-MARKDOWN-EDITING` | `CONFORMS` | `C04-O03`, `C04-O08`, `C04-O14` | `REFERENCE` | C04 |
@@ -195,7 +195,7 @@ This ledger records the exact factual basis consumed by R2 after G-F10 plus the 
 | `GW-FR-076-OPENCODE-ACCOUNT-MUTATION-SAFETY` | `CONFORMS` | `C16-O07` | `REFERENCE` | C16 |
 | `GW-FR-077-DIRECT-WORKITEM-TITLE-EDIT` | `CONFORMS` | `C04-O03` | `REFERENCE` | C04 |
 | `GW-FR-078-PORTABLE-WORKITEM-ARCHIVE` | `CONFORMS` | `C03-O06`, `C03-O08` | `REFERENCE` | C03 |
-| `GW-FR-079-PRODUCTIVE-INSTALLATION-READINESS` | `MIXED` | `C16-O09`, `C16-O10`, `C16-F04` | `DELTA` | C16 |
+| `GW-FR-079-PRODUCTIVE-INSTALLATION-READINESS` | `CONFORMS` | `C16-O09`, `C16-O10`, `C16-F04` | `DELTA` | C16 |
 | `GW-FR-080-CONFIGURATION-CONTINUITY` | `CONFORMS` | `DIRECT-FR080` | `REFERENCE` | C16 |
 | `GW-FR-081-OPENCODE-ACCOUNT-CONTINUITY` | `CONFORMS` | `C16-O06`, `DIRECT-FR081` | `REFERENCE` | C16 |
 | `GW-FR-082-REPOSITORY-AND-DOCUMENT-CONTINUITY` | `CONFORMS` | `C16-O04`, `DIRECT-FR082` | `REFERENCE` | C16 |
@@ -214,7 +214,7 @@ This ledger records the exact factual basis consumed by R2 after G-F10 plus the 
 | `GW-FR-100-COMPLETE-REPOSITORY-INSTRUCTION-CLOSURE` | `CONFORMS` | `C22-O09` | `REFERENCE` | C22 |
 | `GW-FR-101-PRODUCTIVE-OPENCODE-PATH-CONSISTENCY` | `CONFORMS` | `C15-O03`, `C15-O04`, `C15-O08` | `REFERENCE` | C15 |
 | `GW-FR-102-FAILURE-ORIGIN-CLASSIFICATION` | `CONFORMS` | `C15-O12`, `C15-O13` | `REFERENCE` | C15 |
-| `GW-FR-103-OPENCODE-INTEGRATION-CERTIFICATION-COVERAGE` | `VERIFICATION_GAP` | `DIRECT-FR103`, `C20-F04` | `REFERENCE` | C20 |
+| `GW-FR-103-OPENCODE-INTEGRATION-CERTIFICATION-COVERAGE` | `CONFORMS_WITH_VERIFICATION_GAP` | `DIRECT-FR103`, `C20-F04` | `REFERENCE` | C20 |
 | `GW-FR-104-STAGE-WORKSPACE-FRESHNESS` | `CONFORMS` | `C15-O03`, `C15-O04` | `REFERENCE` | C15 |
 | `GW-FR-105-PRODUCTIVE-MODEL-CONTEXT-AUTHORITY-CLOSURE` | `CONFORMS_WITH_DEPENDENCY` | `C22-O06`, `C22-O09`, `C22-O10`, `C15-O15` | `REFERENCE` | C22 |
 | `GW-FR-200-CANONICAL-WORKFLOW-OBSERVATION` | `MIXED` | `C05-O05`, `C05-O06`, `C05-O11` | `REFERENCE` | C05 |
@@ -238,8 +238,8 @@ This ledger records the exact factual basis consumed by R2 after G-F10 plus the 
 | `GW-FR-218-SPACE-CLASS-CONSISTENCY` | `CONFORMS` | `C05-O12`, `C19-O04` | `REFERENCE` | C05 |
 | `GW-FR-219-EXPLICIT-CONTEXT` | `CONFORMS` | `C05-O04` | `REFERENCE` | C05 |
 | `GW-FR-220-PRESIGNOFF-CONTINUITY` | `MIXED` | `C05-O05`, `C05-O06`, `C05-O12` | `REFERENCE` | C05 |
-| `GW-FR-221-READINESS-REVIEW-HIERARCHY` | `VIOLATES` | `C10-O06`, `C10-O07` | `REFERENCE` | C10 |
-| `GW-FR-222-APPROVAL-REVIEW-HIERARCHY` | `MIXED` | `C11-O06`, `C11-O07` | `REFERENCE` | C11 |
+| `GW-FR-221-READINESS-REVIEW-HIERARCHY` | `MIXED` | `C10-O06`, `C10-O07` | `REFERENCE` | C10 |
+| `GW-FR-222-APPROVAL-REVIEW-HIERARCHY` | `CONFORMS_WITH_VERIFICATION_GAP` | `C11-O06`, `C11-O07` | `REFERENCE` | C11 |
 | `GW-FR-223-IMPLEMENTATION-MASTER-DETAIL` | `MIXED` | `C12-O17`, `DIRECT-FR223` | `REFERENCE` | C12 |
 | `GW-FR-224-TERMINAL-RESULT-PRIMACY` | `MIXED` | `C13-O04`, `DIRECT-FR224` | `REFERENCE` | C13 |
 | `GW-FR-225-RESPONSIVE-SEMANTIC-CONTINUITY` | `CONFORMS` | `C18-O01`, `C18-O04` | `REFERENCE` | C18 |
@@ -259,7 +259,7 @@ This ledger records the exact factual basis consumed by R2 after G-F10 plus the 
 | `GW-FR-239-TASK-SCOPED-MANUAL-IMPLEMENTATION` | `CONFORMS` | `C12-O16` | `REFERENCE` | C12 |
 | `GW-FR-240-REJECTED-PROVIDER-RESULT-FAILURE` | `CONFORMS` | `C15-O01`, `C15-O07`, `C15-O12` | `REFERENCE` | C15 |
 | `GW-FR-241-DERIVED-MATERIAL-MATURITY` | `MIXED` | `C14-O03`, `C14-O04`, `DIRECT-FR241` | `REFERENCE` | C14 |
-| `GW-FR-242-DIALOGUE-REPLY-CONTEXT` | `MIXED` | `C14-O08`, `DIRECT-FR242` | `REFERENCE` | C14 |
+| `GW-FR-242-DIALOGUE-REPLY-CONTEXT` | `CONFORMS_WITH_VERIFICATION_GAP` | `C14-O08`, `DIRECT-FR242` | `REFERENCE` | C14 |
 
 Cardinality: **112 / 112**, missing **0**, duplicate **0**. Every row resolves to the current `research.md` G-F10 evidence ledger.
 
@@ -437,6 +437,27 @@ This law intentionally makes the new screen layer incompatible with the old scre
 ## Realization-evidence reconciliation
 
 The 2026-11-26 source evidence reopens browser realization of FR213/223/224/226/241/242, not their functional ownership. These remain `REFERENCE` to existing P3 semantics, not new product behavior. Apply existing stage contracts, §5.6 conversational context, material maturity, attention/recovery and outcome-specific result rules. Earlier positive producer/carrier evidence is not a no-change instruction for nonconforming consumers.
+
+
+### 2026-11-26 — exact G3 revalidation and H2 integration
+
+R1 `9fa36f2f5e8938e7ecf88a4dc90dcc7fc16a77cb` is the factual input. The 112 stable requirement identities match R1 exactly; 9 realization verdict links changed. The 111 REFERENCE dispositions and adopted FR079 DELTA remain unchanged. The earlier two non-stable authority-clause dispositions remain adopted. No new LOCAL requirement or canonical P2/P3 amendment is necessary. The following checks clarify the application of existing owners to current classified gaps; they are not new product policy or implementation acceptance.
+
+| Pair | Existing functional contract rechecked | Residual disposition |
+|---|---|---|
+| A01 C01 + C21 | R1 terminal outcome without delivery; BLOCKED and RETURNED remain nonterminal conditions; verified candidate only for executed delivery; no automatic product commit/push/merge/deploy; documentation commit explicitly permitted. | SD01/IA19 public wording remains; no new lifecycle state. |
+| A02 C22 + C02 | Resolve the applicable subset from mandatory stage policy, pinned schema, explicit references and transitive dependencies; reject unresolved required references before provider invocation. Four governed kinds, controlled concerns and fixed linked-remediation project. | SD02/IA02 authority closure remains; already-correct intake is reuse subject to exact proof. |
+| A03 C03 + C04 | One project/kind-filtered queue and one source creation/discovery owner; exact source and lifecycle document identity, edit return semantics and governed path/status review before Git commit. | Retain consumer proof, not duplicate source or Git ownership. |
+| A04 C05 + C06 | Historical/supporting inspection preserves current exact reason and permitted action; one primary interaction, explicit Evidence replace/Back; durable clarification follows canonical owner and current reply anchor. | C05-F01 / SD07 / IA14 remains; exact current request and durability proof retained. |
+| A05 C07 + C08 | Distinct Change/Defect obligations, correction and preservation scope; R2 owns P2/P3 proposals and DESIGN owns P4–P6 proposals; exact artifact admission and no implicit disposition. | Existing governed proposal owner retained; no parallel proposal model. |
+| A06 C09 + C10 | Nonvacuous exact task contract; signed scope vs change-surface forecast; plan makes derived task and forecast information available; typed independent readiness verdict, required-input actions and no implicit sign-off. | IA30 consumer projection remains; independently verify readiness and task semantics. |
+| A07 C11 + C12 | Exact signed package/identity; current approval lineage owns execution tasks, actual blocker reason and authorized next action, one current execution owner, V0–V7 evidence tied to exact candidate and signed scope. | IA32 exact blocker/attempt lineage; reuse IA07/IA08 prerequisite proof, not self-authorization. |
+| A08 C13 + C14 | Unreached Complete remains unreached, not a terminal result; candidate proof uses the exact qualifying execution/approval lineage; signed-and-locked label requires actual approved artifact membership; current stage reply uses current turn. | IA29 exact lock membership and IA33 unreached routing; retain candidate/reply proof. |
+| A09 C15 + C16 | Pinned provider identity and durable evidence; fresh productive install requires guided setup and effective readiness; later repair is distinct, not a fresh-install bypass. | Preserve corrected FR079 and already-realized setup; exact-pin and representative proof retained. |
+| A10 C17 + C18 | Exact current attention, permitted recovery action and reason remain accessible across historical selection and responsive layouts; exact current request takes focus once, no focus stealing. | IA14/IA32 attention lineage and responsive proof; preserve current focus guard. |
+| A11 C19 + C20 | One owner per semantic region and interaction, 37 governed surfaces, 46 scenarios and complete semantic, theme and visual/reference evidence, not screenshot count; bounded foundation acceptance is not acceptance of downstream consumers. | Retain IA20–IA26 independent proof, work-kind coverage and narrow/reference residuals; no new UI authority. |
+
+**H2 functional integration:** IDEA intake and project/schema selection resolve the governing work-kind and exact applicable authority before R1. R1 may terminate through an admitted non-delivery outcome or proceed through R2, DESIGN, PLAN and independent R3. Each stage consumes the prior governed artifacts, explicit decisions and required input; unresolved authority, semantic incompleteness and provider failure do not authorize advancement. R3 readiness only enables explicit approval of that exact package. EXECUTION consumes that approval and exact current task lineage, bounded attempts, recovery and V0–V7 evidence; only a qualifying result reaches terminal Complete. Return/block/stale/cancel/failure preserve the governed current owner and permitted recovery, not a terminal-success projection. History/Context/Evidence never confer current ownership; material mutation, signed membership, reply and attention retain exact identities. The separate fresh-install and repair paths and all four work kinds retain their existing functional consequences. Responsive/theme composition preserves semantics and negative action boundaries. All classified R1 residuals are covered by existing functional owners; DESIGN must close technical realization and PLAN must allocate remaining work and proof. H2 PASS for functional integration only; no implementation or HUX acceptance inferred.
 
 ## Required observable outcome/delta
 
