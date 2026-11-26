@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Close the terminal-origin factual/functional/technical trace, including signed no-op and exact conformed R1 result material, and record the A01 technical audit against the corrected package.
+
 - Reconcile the 0.6.0 terminal route matrix and SD01 reuse with exact Approval provenance; remove stale duplicated modular PLAN package identities and record the failed DESIGN-A01 audit pending exact-package revalidation.
 
 - Clarify exact terminal Approval provenance for both R1 and signed no-op ALREADY_SATISFIED outcomes, and distinguish committed signed artifact membership from working-tree currentness; retain existing outcome-label owners.

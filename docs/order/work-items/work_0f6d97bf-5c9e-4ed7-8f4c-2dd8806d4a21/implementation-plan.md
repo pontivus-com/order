@@ -4,7 +4,7 @@
 
 ## Canonical PLAN authority
 
-This root is the single deterministic P7 artifact for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. Its modular directory is the maintainable authoring decomposition, not independent executable authority. This synchronized candidate binds R1 `25004c458a188b130b2a479688e6322c537baefe`, R2 `466f92adfe7955b7bae744fc3088f5716cf53631`, DESIGN `a129a7d52b7ca05df01e2db1c406499c9f3f1124`, current P4 and P6. G4 must close before G5 finalizes it; campaign §17A/§18 own gate state and authorization. No gate advance or sign-off is inferred.
+This root is the single deterministic P7 artifact for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. Its modular directory is the maintainable authoring decomposition, not independent executable authority. This synchronized candidate binds R1 `ae515f383c395a54fae48505bc236377d5428631`, R2 `56d7420dab12f004be0bdb401d5f3bb5caf89a32`, DESIGN `fe41c2c2f52ef35991a4a986ee301369953cbe16`, current P4 and P6. G4 must close before G5 finalizes it; campaign §17A/§18 own gate state and authorization. No gate advance or sign-off is inferred.
 
 ## Current Workbench implementation plan
 
@@ -14,7 +14,7 @@ Retain evidenced closed F6B owners and the operator-accepted foundation within s
 
 | Source component | Git blob |
 |---|---|
-| `implementation-plan/00-governance.md` | `a77cb54b9a3f3f1d9a30e044579f7ad11620da01` |
+| `implementation-plan/00-governance.md` | `2bcf91a481ad6db8d77ca75d6d1b623de5133d6c` |
 | `implementation-plan/01-a01-lifecycle-product.md` | `94707df41608c41756d04f452b2f982fdbdd8338` |
 | `implementation-plan/02-a02-governance-intake.md` | `790ff546f060699dbc202627137af241fc04ba2a` |
 | `implementation-plan/03-a03-queue-source.md` | `b0f9bd32f6f3bce513e9668a31f7d388fa0cecb8` |
@@ -26,7 +26,7 @@ Retain evidenced closed F6B owners and the operator-accepted foundation within s
 | `implementation-plan/09-a09-provider-settings.md` | `dc9988af7a2f63ae8a2843122e66911e14d595e9` |
 | `implementation-plan/10-a10-recovery-accessibility.md` | `3537f8f368001084e0844c4039235f85b0cbe532` |
 | `implementation-plan/11-a11-component-certification.md` | `8d24929b9444178a917e04be08302ea2c70e4952` |
-| `implementation-plan/12-action-catalog.md` | `a4220ecdc730075ff4e86b8ab31f735f04ec10c2` |
+| `implementation-plan/12-action-catalog.md` | `0202338d90d4de579732c0966e7281b1f06bc021` |
 | `implementation-plan/13-verification-closeout.md` | `3ca250e562c04fdeb95ea54bd960a5ef9600996f` |
 
 A source hash mismatch makes PLAN non-current until recompiled. Directory files have no independent order-tasks block or lifecycle state.
@@ -341,9 +341,9 @@ This decomposition is revalidated under C19-F09/C20-F11 after the prior G4-G6 cl
 
 ##### Exact upstream package
 
-- R1 `research.md`: `25004c458a188b130b2a479688e6322c537baefe`.
-- R2 `requirements.md`: `466f92adfe7955b7bae744fc3088f5716cf53631`.
-- DESIGN `solution-design.md`: `a129a7d52b7ca05df01e2db1c406499c9f3f1124` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 40-path forecast.
+- R1 `research.md`: `ae515f383c395a54fae48505bc236377d5428631`.
+- R2 `requirements.md`: `56d7420dab12f004be0bdb401d5f3bb5caf89a32`.
+- DESIGN `solution-design.md`: `fe41c2c2f52ef35991a4a986ee301369953cbe16` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 40-path forecast.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `9c2ec83a9552b7583f90e91080c014df4d6870df`.
 - P3 `GW-DOC-WORKBENCH-UX-V2`: `64184232833b59a9e6db5e1a28b841f48b3217cd` — §11.4A/§12/§13/§14 own semantic information classes, state-is-not-interface behavior, direct primary interaction composition, no generic workflow-material selector, continuous Dialogue semantics, Terminal-result primacy, singular technical inspection, task anatomy and composition invariants.
 - P3 `GW-DOC-MARKDOWN-WORKBENCH-V1`: `da89bd08e4f78f353d7b3062758e9d78e21375b2` — §17.4 owns one compact Markdown editor-control region, overflow-before-wrap formatting and control→canvas adjacency.
@@ -1516,9 +1516,9 @@ The IA27-IA34 union remains exactly **37 unique SURF rows** with no duplicate or
 
 **Solution:** SD27 plus IA19 product-language projection.  
 **Owner dispositions:** bounded `WorkItemWorkspace.tsx`, `TerminalResult.tsx` and workbench-presentation; proof-only `WorkbenchResult.tsx`, `EvidenceViewer.tsx`; Context proof remains IA27.
-**Required mutation:** UNREACHED Complete routes to State, not TerminalResult; candidate evidence binds exact final Approval.id and canonical qualifying reviewer chain. Distinguish admitted terminal R1 from signed all-no-op ALREADY_SATISFIED using the exact P6 §6 provenance observation; use neutral ALREADY_SATISFIED explanation without implying sign-off. Neither route may manufacture candidate resources. Preserve one Result/Section/ResourceList and exact-byte Evidence; no new Result.  
+**Required mutation:** UNREACHED Complete routes to State, not TerminalResult; candidate evidence binds exact final Approval.id and canonical qualifying reviewer chain. Distinguish admitted terminal R1 from signed all-no-op ALREADY_SATISFIED using the exact P6 §6 provenance observation; use neutral ALREADY_SATISFIED explanation without implying sign-off. Use the shared pure lifecycle terminal-R1 selection (SD27) over canonical Run/RunEvent and exact ArtifactRef identity, consuming listRuns/listRunEvents/listArtifacts and readArtifactContent by output id. Never choose the last same-role/current working-tree artifact; missing, multiple or mismatched terminal evidence is unresolved/unavailable. Neither route may manufacture candidate resources. Preserve one Result/Section/ResourceList and exact-byte Evidence; no new Result.  
 
-**Functional realization beyond cutover:** reached Complete only, canonical WorkOutcome and exact outcome-owned material (terminal R1 result/evidence for schema-admitted R1 completion; exact signed provenance for all-no-op execution), verified-candidate proof from actual qualifying validated execution lineage rather than all historical Runs. Non-delivery omits candidate resources; linked remediation only eligible. Failed/cancelled attempts remain Implementation inspection. Exact bytes/identity through Evidence with origin/return, text/binary/unavailable/recovery. IA19 shared vocabulary; no guessed result ordering, lineage or fallback. Prove all outcome classes, negative unreached/action and resource provenance.
+**Functional realization beyond cutover:** reached Complete only, canonical WorkOutcome and exact outcome-owned material (terminal R1 result/evidence for schema-admitted R1 completion; exact signed provenance for all-no-op execution), verified-candidate proof from actual qualifying validated execution lineage rather than all historical Runs. Non-delivery omits candidate resources; linked remediation only eligible. Failed/cancelled attempts remain Implementation inspection. Exact bytes/identity through Evidence with origin/return, text/binary/unavailable/recovery. IA19 shared vocabulary; no guessed result ordering, lineage or fallback. Prove all outcome classes, direct terminal R1 including DUPLICATE/ALREADY_SATISFIED, competing historical R1 artifacts, missing/mismatched terminal event or bytes, returned execution then terminal R1, exact all-no-op signed and mixed aggregate provenance, negative unreached/action and resource provenance.
 
 **Proof:** candidate/non-candidate/linked-remediation + Evidence rows PASS; no synthetic attention, duplicated outcome, local result/resource grammar, internal enum/event identity or nested primary Surface.
 
