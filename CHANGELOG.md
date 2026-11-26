@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Clarify exact terminal Approval provenance for both R1 and signed no-op ALREADY_SATISFIED outcomes, and distinguish committed signed artifact membership from working-tree currentness; retain existing outcome-label owners.
+
 - Restore the SD21 foundation-ledger and recurring visual-role ownership constraints lost during forecast reconciliation; retain the architecture sensor unchanged.
 
 - Reconcile the exact 40-path residual/proof forecast, protect 72 excluded owners, compile the modular PLAN candidate and update the protected architecture sensor; preserve all surface/scenario/HUX proof obligations without advancing G4–G6.

@@ -166,7 +166,7 @@ Phase ownership is unchanged. Breaking APIs are not forecast; a disproven retain
 
 **Solution:** SD12.  
 **Anchor:** `ui/src/SignoffReview.tsx::SignoffReview`.  
-**Required mutation/proof disposition:** Bind exact stage/outcome-gated current Approval and history via P6 observational routes, selected exact ApprovalId and signed ArtifactRef membership; filter current tasks by exact Approval.id, never latest task group. IA29 owns committed document display; IA31 owns prospective versus historical Review. Preserve sign-off admission. Loading/error unresolved.  
+**Required mutation/proof disposition:** Bind exact lifecycle/completion-evidence-gated current/final Approval and history via P6 §6 observational routes. In COMPLETE distinguish admitted terminal R1 from actual complete signed task aggregate, including signed all-ALREADY_SATISFIED, through existing RunEvent/Run facts and aggregateTaskCompletion; validate exact signed task membership and outcome. No inference from outcome alone, count or historical reach. Filter current tasks by exact Approval.id; IA29 owns committed artifact membership/display and IA31 owns prospective versus historical Review. Preserve sign-off admission and typed loading/error.  
 
 **SD12 closure:** preserve non-mutating query and exact package admission/recomputation; verify current/stale/returned/historical package and selected signed/approved task lineage against P6, including selected task identity in IA27 Context. No current readiness inferred from latest artifact. Decision feedback in task detail and overview; IA31 owns shared Review.
 
@@ -376,7 +376,7 @@ The IA27-IA34 union remains exactly **37 unique SURF rows** with no duplicate or
 
 **Solution:** SD23.  
 **Owner dispositions:** bounded `DocumentWorkspace.tsx` and `MarkdownEditor.tsx`; existing Document/Facts/Section APIs are proof-only.
-**Required mutation:** consume existing Document API; pass exact signed committed ArtifactRef from selected Approval, derive read-only/currentness independently, no role/hash alias. Preserve document-first content, closed supporting Facts, compact Git action, Context identity, control→canvas adjacency. Correct HUX-07 narrow controls only where disproven; no new Document.  
+**Required mutation:** consume existing Document API; pass exact signed committed ArtifactRef from the exact current/final Approval via existing explicit inspection read; signed membership + reached stage, not working-tree snapshot identity, yields SIGNED_LOCKED in the existing pure derivation. Older Approval material remains HISTORICAL/read-only; derive currentness/editability independently, no role/hash alias. Preserve document-first content, closed supporting Facts, compact Git action, Context identity, control→canvas adjacency. Correct HUX-07 narrow controls only where disproven; no new Document.  
 
 **Information/state realization:** SD06/SD23 and SURF-STEP-WR/MAT-SOURCE/DOC/DOC-RO. Four kind contracts, six derived maturity labels distinct from Git/editability, discovered Draft without invented reach, read/edit/preview/split, expected-hash conflict, dirty navigation, active-Run Save exclusion, signed/read-only boundaries, pre-Save return/invalidation and exact Git confirmation. IA13 owns Save/Git consequence, IA29 composition. Prove full long-document content, default-hidden technical fields, inspection/return, wide/medium/narrow continuity.
 

@@ -4,7 +4,7 @@
 
 ## Canonical PLAN authority
 
-This root is the single deterministic P7 artifact for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. Its modular directory is the maintainable authoring decomposition, not independent executable authority. This synchronized candidate binds R1 `25004c458a188b130b2a479688e6322c537baefe`, R2 `466f92adfe7955b7bae744fc3088f5716cf53631`, DESIGN `53955fd34760b262b2a89df1a17cedb65bde7bf2`, current P4 and P6. G4 must close before G5 finalizes it; campaign §17A/§18 own gate state and authorization. No gate advance or sign-off is inferred.
+This root is the single deterministic P7 artifact for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. Its modular directory is the maintainable authoring decomposition, not independent executable authority. This synchronized candidate binds R1 `25004c458a188b130b2a479688e6322c537baefe`, R2 `466f92adfe7955b7bae744fc3088f5716cf53631`, DESIGN `26b8c13625d74a3b1597d2fe1a11a59a2e6dec00`, current P4 and P6. G4 must close before G5 finalizes it; campaign §17A/§18 own gate state and authorization. No gate advance or sign-off is inferred.
 
 ## Current Workbench implementation plan
 
@@ -14,7 +14,7 @@ Retain evidenced closed F6B owners and the operator-accepted foundation within s
 
 | Source component | Git blob |
 |---|---|
-| `implementation-plan/00-governance.md` | `87f508e3496cad749c3643ecf056dcd798a53188` |
+| `implementation-plan/00-governance.md` | `9f39cb141e8c18eaac5a24443ffe55dc160599d5` |
 | `implementation-plan/01-a01-lifecycle-product.md` | `6b7b1e8b5b9e2ac1065f6a1fe0561fcd9c2ef546` |
 | `implementation-plan/02-a02-governance-intake.md` | `c49d08691e84de8f62d7c74c653d9157658fd69d` |
 | `implementation-plan/03-a03-queue-source.md` | `614a61d2383828afa5d078b037bad32e3b06f984` |
@@ -26,7 +26,7 @@ Retain evidenced closed F6B owners and the operator-accepted foundation within s
 | `implementation-plan/09-a09-provider-settings.md` | `b6a694d0cab6b030ba0f3004007cc4f52e58f6c2` |
 | `implementation-plan/10-a10-recovery-accessibility.md` | `a708ed77c05640fd0a3897a3fc8a356b524b96f8` |
 | `implementation-plan/11-a11-component-certification.md` | `09ef94227ef6be2e426d849ff814463bb7917203` |
-| `implementation-plan/12-action-catalog.md` | `6a2ecf8f9851100e566e88e4af6af8d8a751dd59` |
+| `implementation-plan/12-action-catalog.md` | `23b7861a1c0fbf26804fd03be4604093a74b4e5e` |
 | `implementation-plan/13-verification-closeout.md` | `3ca250e562c04fdeb95ea54bd960a5ef9600996f` |
 
 A source hash mismatch makes PLAN non-current until recompiled. Directory files have no independent order-tasks block or lifecycle state.
@@ -343,13 +343,13 @@ This decomposition is revalidated under C19-F09/C20-F11 after the prior G4-G6 cl
 
 - R1 `research.md`: `25004c458a188b130b2a479688e6322c537baefe`.
 - R2 `requirements.md`: `466f92adfe7955b7bae744fc3088f5716cf53631`.
-- DESIGN `solution-design.md`: `53955fd34760b262b2a89df1a17cedb65bde7bf2` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 40-path forecast.
+- DESIGN `solution-design.md`: `26b8c13625d74a3b1597d2fe1a11a59a2e6dec00` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 40-path forecast.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `9c2ec83a9552b7583f90e91080c014df4d6870df`.
 - P3 `GW-DOC-WORKBENCH-UX-V2`: `64184232833b59a9e6db5e1a28b841f48b3217cd` — §11.4A/§12/§13/§14 own semantic information classes, state-is-not-interface behavior, direct primary interaction composition, no generic workflow-material selector, continuous Dialogue semantics, Terminal-result primacy, singular technical inspection, task anatomy and composition invariants.
 - P3 `GW-DOC-MARKDOWN-WORKBENCH-V1`: `da89bd08e4f78f353d7b3062758e9d78e21375b2` — §17.4 owns one compact Markdown editor-control region, overflow-before-wrap formatting and control→canvas adjacency.
 - P4 `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`: `8fccbe031436a9eb54da8ae493b614e94cc957b1` — sole permanent owner of structural + semantic Workbench component responsibilities/APIs, consumer boundaries, composition laws and remediation disposition semantics.
 - P4 `GW-DOC-WORKBENCH-THEME-V1`: `03dfc6be3600a1128b5639d011f4c0159d3497dd` — owns the corrected semantic-disclosure, technical-inspection and task-panel visual roles.
-- P6 `GW-DOC-CANONICAL-CONTRACTS-V2`: `e0d348abc3f8d4326d374c4678abffb5fe0365ef`.
+- P6 `GW-DOC-CANONICAL-CONTRACTS-V2`: `250a84c895df0471c0877a6fe96b732b39f77114`.
 - SD13 checkpoint and SD10 scope/forecast/V4-V6 realization are consumed only because current DESIGN positively proves those canonical capabilities; T1 does not reimplement them.
 
 ##### Traceability law
@@ -1258,7 +1258,7 @@ Phase ownership is unchanged. Breaking APIs are not forecast; a disproven retain
 
 **Solution:** SD12.  
 **Anchor:** `ui/src/SignoffReview.tsx::SignoffReview`.  
-**Required mutation/proof disposition:** Bind exact stage/outcome-gated current Approval and history via P6 observational routes, selected exact ApprovalId and signed ArtifactRef membership; filter current tasks by exact Approval.id, never latest task group. IA29 owns committed document display; IA31 owns prospective versus historical Review. Preserve sign-off admission. Loading/error unresolved.  
+**Required mutation/proof disposition:** Bind exact lifecycle/completion-evidence-gated current/final Approval and history via P6 §6 observational routes. In COMPLETE distinguish admitted terminal R1 from actual complete signed task aggregate, including signed all-ALREADY_SATISFIED, through existing RunEvent/Run facts and aggregateTaskCompletion; validate exact signed task membership and outcome. No inference from outcome alone, count or historical reach. Filter current tasks by exact Approval.id; IA29 owns committed artifact membership/display and IA31 owns prospective versus historical Review. Preserve sign-off admission and typed loading/error.  
 
 **SD12 closure:** preserve non-mutating query and exact package admission/recomputation; verify current/stale/returned/historical package and selected signed/approved task lineage against P6, including selected task identity in IA27 Context. No current readiness inferred from latest artifact. Decision feedback in task detail and overview; IA31 owns shared Review.
 
@@ -1468,7 +1468,7 @@ The IA27-IA34 union remains exactly **37 unique SURF rows** with no duplicate or
 
 **Solution:** SD23.  
 **Owner dispositions:** bounded `DocumentWorkspace.tsx` and `MarkdownEditor.tsx`; existing Document/Facts/Section APIs are proof-only.
-**Required mutation:** consume existing Document API; pass exact signed committed ArtifactRef from selected Approval, derive read-only/currentness independently, no role/hash alias. Preserve document-first content, closed supporting Facts, compact Git action, Context identity, control→canvas adjacency. Correct HUX-07 narrow controls only where disproven; no new Document.  
+**Required mutation:** consume existing Document API; pass exact signed committed ArtifactRef from the exact current/final Approval via existing explicit inspection read; signed membership + reached stage, not working-tree snapshot identity, yields SIGNED_LOCKED in the existing pure derivation. Older Approval material remains HISTORICAL/read-only; derive currentness/editability independently, no role/hash alias. Preserve document-first content, closed supporting Facts, compact Git action, Context identity, control→canvas adjacency. Correct HUX-07 narrow controls only where disproven; no new Document.  
 
 **Information/state realization:** SD06/SD23 and SURF-STEP-WR/MAT-SOURCE/DOC/DOC-RO. Four kind contracts, six derived maturity labels distinct from Git/editability, discovered Draft without invented reach, read/edit/preview/split, expected-hash conflict, dirty navigation, active-Run Save exclusion, signed/read-only boundaries, pre-Save return/invalidation and exact Git confirmation. IA13 owns Save/Git consequence, IA29 composition. Prove full long-document content, default-hidden technical fields, inspection/return, wide/medium/narrow continuity.
 
