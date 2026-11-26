@@ -22,7 +22,8 @@ import {
 } from "./workbench-presentation.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchResourceList } from "./primitives/WorkbenchResourceList.tsx";
-import { WorkbenchSectionHeader } from "./primitives/WorkbenchSectionHeader.tsx";
+import { WorkbenchResult } from "./primitives/WorkbenchResult.tsx";
+import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
 import { WorkbenchState } from "./primitives/WorkbenchState.tsx";
 import { WorkbenchSurface } from "./primitives/WorkbenchSurface.tsx";
 
@@ -151,32 +152,17 @@ export const TerminalResult = ({
   );
 
   const material = (
-    <div className="order-terminal-result">
-      <section
-        className="order-terminal-outcome"
-        data-testid="final-governed-outcome"
-      >
-        <WorkbenchSectionHeader
-          title={workOutcomeProductLabel(workItem.outcome)}
-          description={resultExplanation(workItem)}
-          action={
-            evidenceBacked && onCreateRemediation !== undefined ? (
-              <WorkbenchAction
-                label="Create linked remediation"
-                tone="primary"
-                onClick={() => onCreateRemediation(workItem)}
-              />
-            ) : undefined
-          }
-        />
-      </section>
-
-      {candidateDone ? (
-        <section
-          className="order-terminal-resources"
-          data-testid="candidate-result-material"
-        >
-          <WorkbenchSectionHeader title="Verified candidate resources" />
+    <WorkbenchResult
+      title={workOutcomeProductLabel(workItem.outcome)}
+      status={<WorkbenchStatus tone="success" label="Complete" />}
+      summary={resultExplanation(workItem)}
+      action={evidenceBacked && onCreateRemediation !== undefined ? (
+        <WorkbenchAction label="Create linked remediation" tone="primary"
+          onClick={() => onCreateRemediation(workItem)} />
+      ) : undefined}
+      resources={candidateDone ? {
+        title: "Verified candidate resources",
+        content: <div data-testid="candidate-result-material">
           {runsQuery.isPending ||
           eventQueries.some((query) => query.isPending) ? (
             <WorkbenchState
@@ -223,14 +209,10 @@ export const TerminalResult = ({
               })}
             />
           )}
-        </section>
-      ) : null}
-
-      {evidenceBacked ? (
-        <section
-          className="order-terminal-result-content"
-          data-testid="result-material"
-        >
+        </div>,
+      } : undefined}
+      sections={evidenceBacked ? [{
+        content: <div data-testid="result-material">
           {artifactsQuery.isPending ? (
             <WorkbenchState kind="loading" title="Loading result…" />
           ) : artifactsQuery.isError ? (
@@ -310,9 +292,9 @@ export const TerminalResult = ({
                 })()}
             </>
           )}
-        </section>
-      ) : null}
-    </div>
+        </div>,
+      }] : []}
+    />
   );
 
   return (

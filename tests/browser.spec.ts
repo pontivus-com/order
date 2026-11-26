@@ -465,6 +465,14 @@ const captureRenderedAcceptance = async (
   }
   mkdirSync(renderedAcceptanceDir, { recursive: true });
   const screenshot = entry.id + ".png";
+  if (entry.workflowStep === "Approval" && !entry.state.includes("stale") &&
+      (entry.surface === "SURF-STEP-APPROVAL-001" ||
+       entry.surface === "SURF-MAT-APPROVAL-TASK-001" ||
+       entry.id.startsWith("bounded-hux-shell-approval") ||
+       entry.id.startsWith("hux-shell-review"))) {
+    await expect(page.getByText("Resolving approval package…", { exact: true })).toHaveCount(0);
+    await expect(page.getByTestId("review-verdict")).toBeVisible();
+  }
   await page.evaluate(async () => {
     await document.fonts.ready;
   });
@@ -679,6 +687,11 @@ const openWorkflowResource = async (
   });
   if (await viewAction.isVisible().catch(() => false)) {
     await viewAction.click();
+    return;
+  }
+  const masterItem = page.getByTestId("workbench-master-detail-master").getByText(label, { exact: true });
+  if (await masterItem.isVisible().catch(() => false)) {
+    await masterItem.click();
     return;
   }
   const openAction = page.getByRole("button", {
@@ -3921,9 +3934,9 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     });
   }
   await expect(approval.locator('[data-review-section="documents"]').getByTestId("workbench-resource-list")).toBeVisible();
-  await expect(approval.locator('[data-review-section="documents"]').getByRole("button", { name: "View Implementation plan", exact: true })).toHaveText("View Implementation plan");
+  await expect(approval.locator('[data-review-section="documents"]').getByRole("button", { name: "View Implementation plan", exact: true })).toContainText("View Implementation plan");
   await approval.getByRole("button", {
-    name: "View task Prove the browser candidate surface",
+    name: "View task 1",
     exact: true,
   }).click();
   await expect(approval).toContainText("Prove the browser candidate surface");
@@ -6128,7 +6141,7 @@ test("proposal decisions are primary, mutation-safe, and Approval keeps sign-off
   await page.getByRole("button", { name: "Back to Approval", exact: true }).click();
 
   await approvalReview.getByRole("button", {
-    name: "View task Prove the browser candidate surface",
+    name: "View task 1",
     exact: true,
   }).click();
   const approvalTaskDetail = page.getByTestId("review-workspace");
@@ -6537,7 +6550,7 @@ test("candidate Complete surface and reached Implementation expose V0-V7, exact 
   await expect(page.getByTestId("workflow-step-index")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Sign off exact package" })).toHaveCount(0);
   await page.getByTestId("review-workspace").getByRole("button", {
-    name: "View task Prove the browser candidate surface",
+    name: "View task 1",
     exact: true,
   }).click();
   await expect(page.getByTestId("review-workspace"))

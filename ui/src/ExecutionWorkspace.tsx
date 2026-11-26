@@ -36,6 +36,8 @@ import { WorkbenchDisclosure } from "./primitives/WorkbenchDisclosure.tsx";
 import { WorkbenchMasterDetail } from "./primitives/WorkbenchMasterDetail.tsx";
 import { WorkbenchResourceList } from "./primitives/WorkbenchResourceList.tsx";
 import { WorkbenchSectionHeader } from "./primitives/WorkbenchSectionHeader.tsx";
+import { WorkbenchSection } from "./primitives/WorkbenchSection.tsx";
+import { WorkbenchFacts } from "./primitives/WorkbenchFacts.tsx";
 import { WorkbenchState } from "./primitives/WorkbenchState.tsx";
 import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
 import { WorkbenchSurface } from "./primitives/WorkbenchSurface.tsx";
@@ -169,12 +171,10 @@ const ValidationSummary = ({
   );
 
   return (
-    <section className="order-implementation-validation" data-testid="validation-matrix">
-      <WorkbenchSectionHeader
-        title="Validation"
+    <div data-testid="validation-matrix">
+      <WorkbenchSection title="Validation"
         action={validationBoundaryStatus(boundary, boundaryScope)}
-      />
-      {recordedStages.length === 0 ? (
+        content={recordedStages.length === 0 ? (
         <WorkbenchState
           kind={active ? "pending" : "empty"}
           title={active ? "Validation in progress" : "Validation not started"}
@@ -213,38 +213,41 @@ const ValidationSummary = ({
           ) : null}
         </>
       )}
-    </section>
+      />
+    </div>
   );
 };
 
 const values = (items: readonly string[]): ReactNode =>
-  items.length === 0 ? (
-    <p>None</p>
-  ) : (
-    <ul>{items.map((item) => <li key={item}><code>{item}</code></li>)}</ul>
+  items.length === 0 ? "None" : (
+    <ul>{items.map((item, index) => <li key={index}><code>{item}</code></li>)}</ul>
   );
 
 const TaskContract = ({ task }: Readonly<{ task: ExecutionTask }>) => (
-  <section className="order-implementation-contract" aria-label="Approved task contract">
-    <section className="order-implementation-scope">
-      <h3>Authorized scope</h3>
-      {values(task.scope)}
-    </section>
-    <WorkbenchDisclosure
-      label="Signed task details"
-      content={
-        <div className="order-implementation-contract-supporting">
-          <section><h3>Exclusions</h3>{values(task.exclusions)}</section>
-          <section><h3>Acceptance</h3>{values(task.acceptanceRefs)}</section>
-          <section><h3>Authority</h3>{values(task.authorityRefs)}</section>
-          <section><h3>Concerns</h3>{values(task.concernIds)}</section>
-          <section><h3>Gates</h3>{values(task.gateIds)}</section>
-          <section><h3>Dependencies</h3>{values(task.dependsOn)}</section>
-          <section><h3>Change surface forecast</h3>{values(task.changeSurface)}</section>
-        </div>
-      }
-    />
-  </section>
+  <WorkbenchSection
+    title="Authorized scope"
+    content={
+      <>
+        <WorkbenchFacts label="Authorized scope" items={[
+          { id: "scope", label: "Scope", value: values(task.scope), emphasis: "strong" },
+        ]} />
+        <WorkbenchDisclosure
+          label="Signed task details"
+          content={
+            <WorkbenchFacts label="Signed task contract" items={[
+              { id: "exclusions", label: "Exclusions", value: values(task.exclusions) },
+              { id: "acceptance", label: "Acceptance", value: values(task.acceptanceRefs) },
+              { id: "authority", label: "Authority", value: values(task.authorityRefs) },
+              { id: "concerns", label: "Concerns", value: values(task.concernIds) },
+              { id: "gates", label: "Gates", value: values(task.gateIds) },
+              { id: "dependencies", label: "Dependencies", value: values(task.dependsOn) },
+              { id: "forecast", label: "Change surface forecast", value: values(task.changeSurface) },
+            ]} />
+          }
+        />
+      </>
+    }
+  />
 );
 
 export const ExecutionWorkspace = ({
@@ -457,93 +460,45 @@ export const ExecutionWorkspace = ({
       />
     );
 
-  const master =
-    tasks.length === 0 ? (
-      <WorkbenchState kind="empty" title="No approved tasks" />
-    ) : (
-      <div className="order-implementation-master">
-        <WorkbenchTable
-          label="Approved tasks"
-          selection="single"
-          columns={[{ key: "task", label: "Approved task" }]}
-          rows={tasks.map((task) => ({
-            id: task.id,
-            selected: task.id === selectedTask?.id,
-            onSelect: () =>
-              onSelectMaterial({
-                kind: "EXECUTION_TASK",
-                taskId: task.id,
-                runId:
-                  [...runs]
-                    .filter((run) => run.executionTaskId === task.id)
-                    .sort(
-                      (left, right) =>
-                        left.attempt - right.attempt ||
-                        left.startedAt.localeCompare(right.startedAt) ||
-                        left.id.localeCompare(right.id),
-                    )
-                    .at(-1)?.id ?? null,
-              }),
-            cells: {
-              task: (
-                <div className="order-implementation-master-task">
-                  <strong>{task.objective}</strong>
-                  <WorkbenchStatus
-                    tone={taskTone(task)}
-                    label={taskStateLabel(task)}
-                  />
-                </div>
-              ),
-            },
-          }))}
-        />
-        {selectedTask === null ? null : (
-          <section
-            className="order-implementation-master-attempts"
-            aria-label="Implementation attempts"
-          >
-            <WorkbenchSectionHeader title="Attempts" />
-            {taskRuns.length === 0 ? (
-              <WorkbenchState kind="empty" title="No attempts yet" />
-            ) : (
-              <WorkbenchResourceList
-                items={taskRuns.map((run) => ({
-                  id: run.id,
-                  label: runRoleLabel(run.role) + " · Attempt " + run.attempt,
-                  detail:
-                    new Date(run.startedAt).toLocaleString() +
-                    " · " +
-                    runStatusLabel(run.status),
-                  meta: (
-                    <WorkbenchStatus
-                      tone={runTone(run)}
-                      label={runStatusLabel(run.status)}
-                    />
-                  ),
-                  action: (
-                    <WorkbenchAction
-                      label={
-                        "Open " +
-                        runRoleLabel(run.role) +
-                        " · Attempt " +
-                        run.attempt
-                      }
-                      tone="ghost"
-                      onClick={() =>
-                        onSelectMaterial({
-                          kind: "EXECUTION_TASK",
-                          taskId: selectedTask.id,
-                          runId: run.id,
-                        })}
-                    />
-                  ),
-                }))}
-              />
-            )}
-          </section>
-        )}
-      </div>
-    );
+  const master = {
+    label: "Approved tasks",
+    items: tasks.flatMap((task) => {
+      const selected = task.id === selectedTask?.id;
+      const taskItem = {
+        id: task.id,
+        label: task.objective,
+        detail: selected && taskRuns.length === 0 ? "No attempts yet" : undefined,
+        state: <WorkbenchStatus tone={taskTone(task)} label={taskStateLabel(task)} />,
+        selected,
+        onSelect: () => onSelectMaterial({
+          kind: "EXECUTION_TASK",
+          taskId: task.id,
+          runId: [...runs]
+            .filter((run) => run.executionTaskId === task.id)
+            .sort((left, right) =>
+              left.attempt - right.attempt ||
+              left.startedAt.localeCompare(right.startedAt) ||
+              left.id.localeCompare(right.id))
+            .at(-1)?.id ?? null,
+        }),
+      };
+      return [
+        taskItem,
+        ...(selected ? taskRuns.map((run) => ({
+          id: run.id,
+          label: runRoleLabel(run.role) + " · Attempt " + run.attempt,
+          detail: new Date(run.startedAt).toLocaleString(),
+          state: <WorkbenchStatus tone={runTone(run)} label={runStatusLabel(run.status)} />,
+          selected: run.id === selectedRun?.id,
+          onSelect: () => onSelectMaterial({
+            kind: "EXECUTION_TASK",
+            taskId: task.id,
+            runId: run.id,
+          }),
+        })) : []),
+      ];
+    }),
+  };
 
   const selectedBoundary: ValidationBoundary | null =
     selectedTask === null
@@ -570,21 +525,16 @@ export const ExecutionWorkspace = ({
       <WorkbenchState kind="empty" title="No implementation tasks materialized" />
     ) : (
       <section className="order-implementation-detail" data-testid="execution-task-detail">
-        <header className="order-implementation-detail-header">
-          <div>
-            <h2>{selectedTask.objective}</h2>
-            <span>Approved implementation task</span>
-          </div>
-          <WorkbenchStatus
-            tone={taskTone(selectedTask)}
-            label={taskStateLabel(selectedTask)}
-          />
-        </header>
+        <WorkbenchSectionHeader
+          title={selectedTask.objective}
+          description="Approved implementation task"
+          action={<WorkbenchStatus tone={taskTone(selectedTask)} label={taskStateLabel(selectedTask)} />}
+        />
 
         <TaskContract task={selectedTask} />
 
         {selectedRun === null ? null : (
-          <section className="order-implementation-attempt" aria-label="Selected implementation attempt">
+          <WorkbenchSection content={<>
             <div data-testid="selected-run-header">
               <WorkbenchSectionHeader
                 title={runRoleLabel(selectedRun.role) + " · Attempt " + selectedRun.attempt}
@@ -654,12 +604,10 @@ export const ExecutionWorkspace = ({
                 onOpenEvidence={onOpenEvidence}
               />
             )}
-          </section>
+          </>} />
         )}
 
-        <section className="order-implementation-resources">
-          <WorkbenchSectionHeader title="Evidence and governed material" />
-          {artifacts.length === 0 ? (
+        <WorkbenchSection title="Evidence and governed material" content={artifacts.length === 0 ? (
             <WorkbenchState kind="empty" title="No governed implementation material" />
           ) : (
             <WorkbenchResourceList
@@ -684,8 +632,7 @@ export const ExecutionWorkspace = ({
                 };
               })}
             />
-          )}
-        </section>
+          )} />
       </section>
     );
 
@@ -704,7 +651,6 @@ export const ExecutionWorkspace = ({
       <WorkbenchMasterDetail
         master={master}
         detail={primary}
-        masterLabel="Approved tasks"
       />
     </div>
   );

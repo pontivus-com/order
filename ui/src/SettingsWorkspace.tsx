@@ -21,6 +21,8 @@ import { WorkbenchConfirmation } from "./primitives/WorkbenchConfirmation.tsx";
 import { WorkbenchForm } from "./primitives/WorkbenchForm.tsx";
 import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
 import { WorkbenchSectionHeader } from "./primitives/WorkbenchSectionHeader.tsx";
+import { WorkbenchSection } from "./primitives/WorkbenchSection.tsx";
+import { WorkbenchFacts } from "./primitives/WorkbenchFacts.tsx";
 import { WorkbenchSettingsLayout } from "./primitives/WorkbenchSettingsLayout.tsx";
 import { WorkbenchState } from "./primitives/WorkbenchState.tsx";
 import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
@@ -252,21 +254,13 @@ const RepositorySettings = ({
               " without changing WorkItem identity."
             }
           />
-          <div className="order-settings-task-context">
-            <div>
-              <strong>Repository</strong>
-              <code>{migrationTarget.repositoryRoot}</code>
-            </div>
-            <div>
-              <strong>Current repository-relative root</strong>
-              <code>{migrationTarget.workItemsRoot ?? "Unavailable"}</code>
-            </div>
-            <p>
-              Migration preserves WorkItem identities and document bytes,
-              updates project configuration atomically, and leaves one
-              productive WorkItem document root.
-            </p>
-          </div>
+          <WorkbenchSection content={
+            <WorkbenchFacts label="Migration context" items={[
+              { id: "repository", label: "Repository", value: <code>{migrationTarget.repositoryRoot}</code> },
+              { id: "root", label: "Current repository-relative root", value: <code>{migrationTarget.workItemsRoot ?? "Unavailable"}</code> },
+              { id: "effect", label: "Effect", value: "Migration preserves WorkItem identities and document bytes, updates project configuration atomically, and leaves one productive WorkItem document root." },
+            ]} />
+          } />
           <WorkbenchForm
             content={
               <TextInput
@@ -366,13 +360,10 @@ const RepositorySettings = ({
               ) : undefined
             }
           />
-          <div className="order-settings-task-context">
-            <p>
-              Choose an existing Git repository with a valid Order project
-              manifest. The connection must not duplicate or overlap an
-              existing target repository.
-            </p>
-          </div>
+          <WorkbenchSection content={
+            <p>Choose an existing Git repository with a valid Order project manifest.
+              The connection must not duplicate or overlap an existing target repository.</p>
+          } />
         </div>
       </section>
     );
@@ -423,21 +414,11 @@ const RepositorySettings = ({
             id: repository.repositoryRoot,
             cells: {
               project: (
-                <div className="order-settings-repository">
-                  <strong>
-                    {repository.projectId ?? "Repository needs attention"}
-                  </strong>
-                  <span>
-                    Git root: <code>{repository.repositoryRoot}</code>
-                  </span>
-                  <span>
-                    WorkItem documents:{" "}
-                    <code>
-                      {repository.workItemsRoot ??
-                        "Unavailable until configuration is valid"}
-                    </code>
-                  </span>
-                </div>
+                <WorkbenchFacts label="Repository identity" items={[
+                  { id: "project", label: "Project", value: repository.projectId ?? "Repository needs attention", emphasis: "strong" },
+                  { id: "git-root", label: "Git root", value: <code>{repository.repositoryRoot}</code> },
+                  { id: "workitems", label: "WorkItem documents", value: <code>{repository.workItemsRoot ?? "Unavailable until configuration is valid"}</code> },
+                ]} />
               ),
               status: (
                 <WorkbenchStatus
@@ -507,12 +488,10 @@ const RepositorySettings = ({
         />
       ) : null}
 
-      <section className="order-settings-configuration">
-        <WorkbenchSectionHeader
-          title="STAGE reference roots"
-          description="Read-only context sources for productive stages. These never become target repositories."
-        />
-        <WorkbenchForm
+      <WorkbenchSection
+        title="STAGE reference roots"
+        description="Read-only context sources for productive stages. These never become target repositories."
+        content={<WorkbenchForm
           content={
             <TextArea
               label="Reference roots"
@@ -544,8 +523,7 @@ const RepositorySettings = ({
               />
             ) : undefined
           }
-        />
-      </section>
+        />} />
 
       <WorkbenchConfirmation
         kind="destructive"
@@ -675,8 +653,7 @@ const ModelRuntimeSettings = () => {
           }
         />
       ) : null}
-      <section className="order-settings-configuration">
-        <WorkbenchForm
+      <WorkbenchSection content={<WorkbenchForm
           content={
             <Selector
               label="Configured model"
@@ -708,8 +685,7 @@ const ModelRuntimeSettings = () => {
               />
             ) : undefined
           }
-        />
-      </section>
+        />} />
     </section>
   );
 };
@@ -731,69 +707,40 @@ const SettingsDiagnostics = ({
   });
 
   return section === "repositories" ? (
-    <div className="order-settings-diagnostic-values">
-      {configQuery.data ? (
-        <p>
-          Configuration SHA-256: <code>{configQuery.data.sha256}</code>
-        </p>
-      ) : null}
+    <>
+      {configQuery.data ? <WorkbenchFacts items={[
+        { id: "config", label: "Configuration SHA-256", value: <code>{configQuery.data.sha256}</code> },
+      ]} /> : null}
       {(repositoriesQuery.data ?? []).map((repository) => (
-        <section key={repository.repositoryRoot}>
-          <h3>
-            {repository.projectId ?? "Repository requiring attention"}
-          </h3>
-          <p>
-            Manifest SHA-256:{" "}
-            <code>{repository.manifestSha256 ?? "Unavailable"}</code>
-          </p>
-          <p>
-            Diagnostic state:{" "}
-            <code>
-              {repository.attention.join(", ") || "READY"}
-            </code>
-          </p>
-        </section>
+        <WorkbenchSection key={repository.repositoryRoot}
+          title={repository.projectId ?? "Repository requiring attention"}
+          content={<WorkbenchFacts items={[
+            { id: "manifest", label: "Manifest SHA-256", value: <code>{repository.manifestSha256 ?? "Unavailable"}</code> },
+            { id: "diagnostic", label: "Diagnostic state", value: <code>{repository.attention.join(", ") || "READY"}</code> },
+          ]} />}
+        />
       ))}
-    </div>
+    </>
   ) : section === "opencode" ? (
-    <div className="order-settings-diagnostic-values">
-      <p>
-        Active account id:{" "}
-        <code>
-          {accountStateQuery.data?.activeAccountId ?? "None"}
-        </code>
-      </p>
+    <>
+      <WorkbenchFacts items={[
+        { id: "active", label: "Active account id", value: <code>{accountStateQuery.data?.activeAccountId ?? "None"}</code> },
+        { id: "blockers", label: "Mutation blockers", value: <code>{accountStateQuery.data?.mutationBlockers.join(", ") || "None"}</code> },
+      ]} />
       {(accountStateQuery.data?.accounts ?? []).map((account) => (
-        <section key={account.id}>
-          <h3>{account.label}</h3>
-          <p>
-            Account id: <code>{account.id}</code>
-          </p>
-          <p>
-            Status: <code>{account.status.status}</code>
-          </p>
-        </section>
+        <WorkbenchSection key={account.id} title={account.label}
+          content={<WorkbenchFacts items={[
+            { id: "account", label: "Account id", value: <code>{account.id}</code> },
+            { id: "status", label: "Status", value: <code>{account.status.status}</code> },
+          ]} />}
+        />
       ))}
-      <p>
-        Mutation blockers:{" "}
-        <code>
-          {accountStateQuery.data?.mutationBlockers.join(", ") ||
-            "None"}
-        </code>
-      </p>
-    </div>
+    </>
   ) : (
-    <div className="order-settings-diagnostic-values">
-      {configQuery.data ? (
-        <p>
-          Configuration SHA-256: <code>{configQuery.data.sha256}</code>
-        </p>
-      ) : null}
-      <p>
-        Model availability is loaded through the configured OpenCode
-        account boundary.
-      </p>
-    </div>
+    <WorkbenchFacts items={[
+      ...(configQuery.data ? [{ id: "config", label: "Configuration SHA-256", value: <code>{configQuery.data.sha256}</code> }] : []),
+      { id: "boundary", label: "Model availability", value: "Loaded through the configured OpenCode account boundary." },
+    ]} />
   );
 };
 
@@ -895,11 +842,8 @@ export const SettingsWorkspace = ({
           <div className="order-settings-primary">
             {readiness}
             {content}
-            <section
-              className="order-settings-inspection"
-              aria-label="Settings diagnostics"
-            >
-              <WorkbenchSectionHeader
+            <div aria-label="Settings diagnostics">
+              <WorkbenchSection
                 title="Settings diagnostics"
                 description="Inspect exact configuration and integration identity only when needed."
                 action={
@@ -914,13 +858,13 @@ export const SettingsWorkspace = ({
                       setDiagnosticsOpen((open) => !open)}
                   />
                 }
+                content={diagnosticsOpen ? (
+                  <div data-testid="settings-diagnostics">
+                    <SettingsDiagnostics section={section} />
+                  </div>
+                ) : null}
               />
-              {diagnosticsOpen ? (
-                <div data-testid="settings-diagnostics">
-                  <SettingsDiagnostics section={section} />
-                </div>
-              ) : null}
-            </section>
+            </div>
           </div>
         }
       />

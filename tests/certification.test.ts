@@ -414,6 +414,7 @@ describe("Order cross-boundary certification", () => {
       "WorkbenchRail.tsx",
       "WorkbenchResourceList.tsx",
       "WorkbenchResourceRow.tsx",
+      "WorkbenchResult.tsx",
       "WorkbenchReview.tsx",
       "WorkbenchReviewSection.tsx",
       "WorkbenchReviewVerdict.tsx",
@@ -807,11 +808,18 @@ describe("Order cross-boundary certification", () => {
       "DocumentWorkspace.tsx",
     ]);
     expect(consumersOf("WorkbenchSection")).toEqual([
+      "ExecutionWorkspace.tsx",
+      "OpenCodeAccountSettings.tsx",
       "PreSignoffStageWorkspace.tsx",
+      "SettingsWorkspace.tsx",
       "WorkItemContext.tsx",
     ]);
+    expect(consumersOf("WorkbenchResult")).toEqual(["TerminalResult.tsx"]);
     expect(consumersOf("WorkbenchFacts")).toEqual([
       "DocumentWorkspace.tsx",
+      "ExecutionWorkspace.tsx",
+      "OpenCodeAccountSettings.tsx",
+      "SettingsWorkspace.tsx",
       "SignoffReview.tsx",
       "WorkItemContext.tsx",
     ]);
@@ -867,7 +875,6 @@ describe("Order cross-boundary certification", () => {
       "ExecutionWorkspace.tsx",
       "OpenCodeAccountSettings.tsx",
       "SettingsWorkspace.tsx",
-      "TerminalResult.tsx",
       "WorkItemQueue.tsx",
     ]);
     expect(consumersOf("WorkbenchSettingsLayout")).toEqual([
@@ -1031,14 +1038,15 @@ describe("Order cross-boundary certification", () => {
     expect(execution).toContain("WorkbenchMasterDetail");
     expect(execution).toContain("api.startExecutionTask(workItem.id, currentOwnerTask.id)");
     expect(execution).not.toContain("api.tick");
-    expect(execution).toContain('masterLabel="Approved tasks"');
-    expect(execution).toContain('label="Approved tasks"');
-    expect(execution).toContain('selection="single"');
-    expect(execution).toContain('className="order-implementation-master"');
-    expect(execution).toContain('className="order-implementation-master-attempts"');
+    expect(execution).toContain('label: "Approved tasks"');
+    expect(execution).toContain("items: tasks.flatMap");
+    expect(execution).not.toContain('className="order-implementation-master"');
+    expect(execution).not.toContain('className="order-implementation-master-attempts"');
     expect(execution).not.toContain('className="order-implementation-attempts"');
     expect(execution).toContain('className="order-implementation-detail"');
-    expect(execution).toContain('className="order-implementation-scope"');
+    expect(execution).toContain("<WorkbenchFacts");
+    expect(execution).toContain("<WorkbenchSection");
+    expect(execution).not.toContain('className="order-implementation-scope"');
     expect(execution).toContain('label="Signed task details"');
     expect(execution).toContain('data-testid="validation-matrix"');
     expect(execution).toContain("lifecycleArtifactLabel(artifact.role)");
@@ -1061,6 +1069,8 @@ describe("Order cross-boundary certification", () => {
     const masterDetail = read("ui/src/primitives/WorkbenchMasterDetail.tsx");
     expect(masterDetail).toContain('width="var(--order-master-width)"');
     expect(masterDetail).not.toContain("masterWidth");
+    expect(masterDetail).not.toContain("master: ReactNode");
+    expect(masterDetail).toContain("items: readonly Readonly");
 
     expect(documentWorkspace).not.toContain("RequirementsAuthorityFacts");
     expect(documentWorkspace).not.toContain('aria-label="Requirements authority"');
@@ -2602,8 +2612,9 @@ describe("0.6.0 Wave 4 Workbench and product-language certification", () => {
     expect(presentation).toContain("export const workOutcomeProductLabel");
     expect(presentation).toContain('case "CANDIDATE_DONE": return "Verified candidate"');
     expect(terminal).toContain("workOutcomeProductLabel(workItem.outcome)");
-    expect(terminal).toContain('className="order-terminal-result"');
-    expect(terminal).toContain('data-testid="final-governed-outcome"');
+    expect(terminal).toContain("<WorkbenchResult");
+    expect(terminal).not.toContain('className="order-terminal-result"');
+    expect(read("ui/src/primitives/WorkbenchResult.tsx")).toContain('data-testid="final-governed-outcome"');
     expect(terminal).toContain('data-testid="candidate-result-material"');
     expect(terminal).not.toContain("WorkbenchAttention");
     expect(terminal).not.toContain("Final governed outcome");

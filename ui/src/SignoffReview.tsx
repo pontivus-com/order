@@ -63,7 +63,7 @@ const taskStateLabel = (task: SignedTaskDefinition | ExecutionTask): string | nu
 
 const signedValues = (values: readonly string[]): ReactNode =>
   values.length === 0 ? "None" : (
-    <ul className="order-workbench-fact-values">
+    <ul >
       {values.map((value, index) => <li key={index}>{value}</li>)}
     </ul>
   );
@@ -271,7 +271,7 @@ export const SignoffReview = ({
     );
   }
 
-  const taskItems = (currentApproval ? currentTasks : tasks).map((task) => ({
+  const taskItems = (currentApproval ? currentTasks : tasks).map((task, index) => ({
     id: "task:" + task.id,
     label: task.objective,
     detail:
@@ -284,7 +284,7 @@ export const SignoffReview = ({
       (task.gateIds.length === 1 ? "" : "s"),
     action: (
       <WorkbenchAction
-        label={"View task " + task.objective}
+        label={"View task " + (index + 1)}
         icon={<WorkbenchIcon name="execution" />}
         tone="secondary"
         onClick={() => setSelection({ kind: "TASK", taskId: task.id })}

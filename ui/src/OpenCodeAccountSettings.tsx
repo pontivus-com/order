@@ -17,6 +17,8 @@ import { WorkbenchConfirmation } from "./primitives/WorkbenchConfirmation.tsx";
 import { WorkbenchForm } from "./primitives/WorkbenchForm.tsx";
 import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
 import { WorkbenchSectionHeader } from "./primitives/WorkbenchSectionHeader.tsx";
+import { WorkbenchSection } from "./primitives/WorkbenchSection.tsx";
+import { WorkbenchFacts } from "./primitives/WorkbenchFacts.tsx";
 import { WorkbenchState } from "./primitives/WorkbenchState.tsx";
 import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
 import { WorkbenchTable } from "./primitives/WorkbenchTable.tsx";
@@ -258,10 +260,9 @@ export const OpenCodeAccountSettings = () => {
           title="Rename OpenCode account"
           description={"Rename " + renaming.label + "."}
         />
-        <div className="order-settings-task-context">
-          <strong>Current account</strong>
-          <span>{renaming.label}</span>
-        </div>
+        <WorkbenchSection content={<WorkbenchFacts items={[
+          { id: "account", label: "Current account", value: renaming.label, emphasis: "strong" },
+        ]} />} />
         <WorkbenchForm
           content={
             <TextInput
@@ -420,12 +421,9 @@ export const OpenCodeAccountSettings = () => {
               </p>
               {loginAttempt.status === "PENDING" ? (
                 <>
-                  <p>
-                    Authorization expires{" "}
-                    {new Date(
-                      loginAttempt.expiresAt,
-                    ).toLocaleString()}.
-                  </p>
+                  <WorkbenchFacts items={[
+                    { id: "expiry", label: "Authorization expires", value: new Date(loginAttempt.expiresAt).toLocaleString() },
+                  ]} />
                   <WorkbenchAction
                     label="Cancel OpenCode sign-in"
                     loading={cancelLogin.isPending}
