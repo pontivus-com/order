@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Close targeted Order 0.6.0 REV-F07 PLAN, vertical alignment and independent readiness review for the exact repository campaign execution boundary; native checkpoint and terminal semantics remain unchanged, with operator authorization and final implementation evidence separate.
+
 - Correct REV-F07 by separating native gateId-only checkpoints from independently published PR phase evidence; require exact candidate handoff and explicit operator continuation while retaining the six signed gates, scope and exhaustive final proof.
 
 - Reopen 0.6.0 readiness for REV-F07: the parameterized phase-evidence invocation is not expressible by the native signed gate checkpoint contract.
