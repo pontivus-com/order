@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Close targeted 0.6.0 final alignment after independent R3-F01–F04 corrections; retain independent R3 and operator authorization boundary.
+
 - Revalidate the affected R3 installer factual, functional, technical and PLAN pair audits against the exact green-architecture correction; preserve 43 retained evidence bodies. Formal ALIGN remains separate.
 
 - Match the existing installer trace fitness assertions to the strengthened strict-presence and no-publication proof clauses.
