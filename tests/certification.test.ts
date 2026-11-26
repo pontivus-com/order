@@ -1503,7 +1503,13 @@ describe("Order cross-boundary certification", () => {
     expect(execution).toContain('currentOwnerTask?.id === selectedTask.id');
     expect(execution).toContain('selectedTask.state === "CANDIDATE_DONE"');
     expect(execution).toContain('selectedTask.state === "ALREADY_SATISFIED"');
-    expect(execution).toContain("validationBoundaryStatus(boundary, boundaryScope)");
+    expect(execution).toContain('label: "Validation boundary"');
+    const attemptValidation = execution.slice(execution.indexOf("const ValidationSummary ="), execution.indexOf("const ValidationSummary =") + execution.slice(execution.indexOf("const ValidationSummary =")).indexOf("\n};") + 3);
+    expect(attemptValidation).toContain("latestValidationEvent(events, stage)");
+    expect(attemptValidation).not.toContain("ValidationBoundary");
+    expect(attemptValidation).not.toContain("validationBoundaryLabel");
+    expect(activity.indexOf("const cancel = useMutation(")).toBeGreaterThanOrEqual(0);
+    expect(activity.indexOf("const cancel = useMutation(")).toBeLessThan(activity.indexOf("if (selectedRun === null) return"));
     expect(execution).not.toContain("deriveValidationBoundary");
     expect(execution).not.toContain("deriveExecutionOwner");
     expect(execution).toContain("currentOwnerTask");

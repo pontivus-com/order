@@ -6738,7 +6738,9 @@ test("candidate Complete surface and reached Implementation expose V0-V7, exact 
     page.getByText("Candidate state recorded", { exact: true }),
   ).toBeVisible();
 
+  await expect(page.getByLabel("Task overview")).toContainText("Recorded boundary: complete");
   await expect(page.getByTestId("validation-matrix")).toContainText("No validation results in this attempt");
+  await expect(page.getByTestId("validation-matrix")).not.toContainText("boundary:");
   await selectWorkflowMaterial(page, "Independent review · Attempt 1");
   await expect(page.getByRole("region", { name: "Agent activity" })).toBeVisible();
   await expect(page.getByRole("region", { name: "Agent activity" }))
@@ -6759,8 +6761,8 @@ test("candidate Complete surface and reached Implementation expose V0-V7, exact 
   await expect(page.locator("textarea")).toHaveCount(0);
 
   const validation = page.getByTestId("validation-matrix");
-  await expect(validation).toContainText("Recorded boundary: complete");
-  await expect(validation).not.toContainText("Current boundary: none");
+  await expect(page.getByLabel("Task overview")).toContainText("Recorded boundary: complete");
+  await expect(validation).not.toContainText("boundary:");
   for (const stage of ["V0", "V1", "V2", "V3", "V4", "V5", "V6", "V7"]) {
     await expect(
       validation.getByTestId("validation-stage-" + stage),

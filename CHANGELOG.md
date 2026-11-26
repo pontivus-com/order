@@ -8,6 +8,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Changed
 
+- Preserve Dialogue hook ordering during empty-to-populated Run transitions and separate task-level validation status from selected-attempt evidence; assert both ownership boundaries in certification and browser tests.
+
 - Refine configuration, queue, review, result, evidence and confirmation compositions; preserve the approved lifecycle and action boundaries, improve pending/retry behavior, decision visibility, exact-path confirmation and settled readiness/validation evidence.
 
 - Reconstruct Implementation task/attempt navigation and selected-attempt validation, retain task-level boundary meaning, distinguish loading from absent evidence, and make Approval recovery available when inspecting a task. Tighten governed document and review information grouping.

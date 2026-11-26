@@ -48,15 +48,6 @@ const validationStages: readonly ValidationStage[] = [
   "V0", "V1", "V2", "V3", "V4", "V5", "V6", "V7",
 ];
 
-const validationBoundaryTone = (
-  boundary: ValidationBoundary | null,
-): "danger" | "success" | "neutral" =>
-  boundary?.tag === "FAILED_AT"
-    ? "danger"
-    : boundary?.tag === "COMPLETE" || boundary?.tag === "PASSED_THROUGH"
-      ? "success"
-      : "neutral";
-
 const validationBoundaryLabel = (
   boundary: ValidationBoundary | null,
   scope: "Current" | "Recorded",
@@ -70,16 +61,6 @@ const validationBoundaryLabel = (
         : boundary.tag === "COMPLETE"
           ? scope + " boundary: complete"
           : scope + " boundary: not started";
-
-const validationBoundaryStatus = (
-  boundary: ValidationBoundary | null,
-  scope: "Current" | "Recorded",
-) => (
-  <WorkbenchStatus
-    tone={validationBoundaryTone(boundary)}
-    label={validationBoundaryLabel(boundary, scope)}
-  />
-);
 
 const taskTone = (
   task: ExecutionTask,
@@ -158,15 +139,11 @@ const validationRows = (
 const ValidationSummary = ({
   events,
   active,
-  boundary,
-  boundaryScope,
   pending,
   failed,
 }: Readonly<{
   events: readonly RunEvent[];
   active: boolean;
-  boundary: ValidationBoundary | null;
-  boundaryScope: "Current" | "Recorded";
   pending: boolean;
   failed: boolean;
 }>) => {
@@ -177,8 +154,7 @@ const ValidationSummary = ({
   return (
     <div data-testid="validation-matrix">
       <WorkbenchSection title="Validation for selected attempt"
-        description="Task boundary and attempt-specific evidence are distinct."
-        action={validationBoundaryStatus(boundary, boundaryScope)}
+        description="Results recorded by this attempt."
         content={pending ? (
           <WorkbenchState kind="loading" title="Loading validation evidence…" />
         ) : failed ? (
@@ -583,12 +559,6 @@ export const ExecutionWorkspace = ({
               active={runIsActive(selectedRun)}
               pending={eventsQuery.isPending}
               failed={eventsQuery.isError}
-              boundary={selectedBoundary}
-              boundaryScope={
-                currentOwnerTask?.id === selectedTask.id
-                  ? "Current"
-                  : "Recorded"
-              }
             />
 
             {activityEvents.length === 0 ? null : (

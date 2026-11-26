@@ -65,6 +65,18 @@ export const StageRunMaterial = ({
   const [inputError, setInputError] = useState<unknown>(null);
   const stageRuns = runs.filter((run) => run.role === "STAGE" && run.stage === stage);
   const selectedRun = stageRuns.find((run) => run.id === selectedRunId) ?? latestStageRun(stageRuns, stage);
+  const cancel = useMutation({
+    mutationFn: () => {
+      if (selectedRun === null || selectedRun.id !== currentRunId ||
+          currentInteraction === null || currentInteraction.tag === "CLOSED") {
+        throw new TypeError("selected workflow Run is not the current cancellable Run");
+      }
+      return api.cancelRun(selectedRun.id);
+    },
+    onSuccess: async (run) => { onSelectedRunChange(run.id); await onMutationRefresh(); },
+    onError: async (error) => { onMutationError?.(error); await onMutationRefresh(); },
+  });
+
   if (selectedRun === null) return <WorkbenchState kind="empty"
     title={"No " + workflowPresentation(stage).label + " activity yet"}
     description="Start this workflow step to create its first attempt." />;
@@ -77,17 +89,6 @@ export const StageRunMaterial = ({
   const interaction = selectedIsCurrent ? currentInteraction : null;
   const pending = interaction?.tag === "REQUIRED_INPUT"
     ? events.find((event) => event.id === interaction.requestEventId) ?? null : null;
-
-  const cancel = useMutation({
-    mutationFn: () => {
-      if (!selectedIsCurrent || interaction === null || interaction.tag === "CLOSED") {
-        throw new TypeError("selected workflow Run is not the current cancellable Run");
-      }
-      return api.cancelRun(selectedRun.id);
-    },
-    onSuccess: async (run) => { onSelectedRunChange(run.id); await onMutationRefresh(); },
-    onError: async (error) => { onMutationError?.(error); await onMutationRefresh(); },
-  });
 
   const runOwnsAttention = !["PROPOSAL_DECISION","PROPOSAL_ADOPTION","MUTATION_CONFLICT","CONVERGING"].includes(currentAttention);
   const canCancel = selectedIsCurrent && runOwnsAttention && stageRunCancellationIsAdmitted(selectedRun, events);
