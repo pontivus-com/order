@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Correct REV-F07 by separating native gateId-only checkpoints from independently published PR phase evidence; require exact candidate handoff and explicit operator continuation while retaining the six signed gates, scope and exhaustive final proof.
+
 - Reopen 0.6.0 readiness for REV-F07: the parameterized phase-evidence invocation is not expressible by the native signed gate checkpoint contract.
 
 - Record the exact-package 0.6.0 readiness review following targeted PLAN and vertical alignment revalidation of REV-F04–F06; retain separate operator authorization and full implementation verification boundaries.
