@@ -88,6 +88,7 @@ const huxPriorityCaptureIds = new Set<string>([
   "ia26-implementation-processing-wide-light",
   "ia26-implementation-blocked-wide-light",
   "ia26-implementation-validation-recorded-wide-light",
+  "ia26-implementation-builder-attempt-wide-light",
   "ia26-settings-repository-move-wide-light",
   "ia26-settings-opencode-login-failed-wide-light",
   "ia26-settings-model-narrow-light",
@@ -390,7 +391,8 @@ const resolveRenderedReference = (
     "&kind=" + encodeURIComponent(entry.workItemKind) +
     (lifecycleFixture === null ? "" : "&current=" + encodeURIComponent(lifecycleFixture.current) +
       "&reached=" + encodeURIComponent(lifecycleFixture.reached.join("|"))) +
-    (entry.id === "ia26-implementation-validation-recorded-wide-light" ? "&attempt=reviewer-1" : "");
+    (entry.id === "ia26-implementation-validation-recorded-wide-light" ? "&attempt=reviewer-1" :
+      entry.id === "ia26-implementation-builder-attempt-wide-light" ? "&attempt=builder-1" : "");
   return {
     manifestPath: referenceManifestPath,
     sourcePath: referenceAtlasPath,
@@ -625,9 +627,13 @@ const captureRenderedAcceptance = async (
         await expect(referenceRail.locator(".rail-cell.reached .process-label")).toHaveText(lifecycleFixture.reached);
         if (entry.workflowStep !== null) await expect(referenceRail.locator(".rail-cell.selected .process-label")).toHaveText(entry.workflowStep);
       }
-      if (entry.id === "ia26-implementation-validation-recorded-wide-light") {
-        await expect(referenceSurface.locator(".attempts .masteritem.current strong")).toHaveText("Independent review · Attempt 1");
+      if (entry.id === "ia26-implementation-validation-recorded-wide-light" || entry.id === "ia26-implementation-builder-attempt-wide-light") {
+        const reviewer = entry.id === "ia26-implementation-validation-recorded-wide-light";
+        await expect(referenceSurface.locator(".attempts .masteritem.current strong")).toHaveText(
+          reviewer ? "Independent review · Attempt 1" : "Implementation agent · Attempt 1");
         await expect(referenceSurface.locator(".attempt-heading")).toHaveText("Attempts");
+        if (reviewer) await expect(referenceSurface.locator(".validation-results tbody tr")).toHaveCount(8);
+        else await expect(referenceSurface.locator(".validation-results")).toContainText("No validation results in this attempt");
       }
       await referencePage.evaluate(async () => { await document.fonts.ready; });
       referenceScreenshot = entry.id + "-reference.png";
@@ -4375,6 +4381,23 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     route: routeValue(),
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }, page.getByTestId("execution-workspace"));
+  await selectWorkflowMaterial(page, "Implementation agent · Attempt 1");
+  await expect(page.getByTestId("selected-run-header")).toContainText("Implementation agent · Attempt 1");
+  await expect(page.getByLabel("Task overview")).toContainText("Recorded boundary: complete");
+  await expect(page.getByTestId("validation-matrix")).toContainText("No validation results in this attempt");
+  await expect(page.getByTestId("validation-matrix")).not.toContainText("boundary:");
+  await capture({
+    id: "ia26-implementation-builder-attempt-wide-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Implementation",
+    surface: "SURF-STEP-EXEC-001",
+    state: "validation-recorded",
+    fixture: "Verified candidate reached Implementation · Implementation agent · Attempt 1",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    authorityRefs: ["GW-DOC-WORKBENCH-UX"],
+  }, page.getByTestId("execution-workspace"));
   await backToQueue(page);
 
   await openWorkItem(page, "Completed investigation");
@@ -5196,7 +5219,8 @@ test("completed pre-signoff history never suppresses the canonical next-stage ac
     if (entry.currentStep === "Requirements") {
       const reachedResearch = rail.getByRole("button", { name: "Research", exact: true });
       await expect(reachedResearch.locator(".order-workbench-process-marker")).toHaveText("✓");
-      await expect(rail.locator('li[data-state="reached"][data-tone="success"]').filter({ has: reachedResearch })).toHaveCount(1);
+      await expect(reachedResearch.locator("..")).toHaveAttribute("data-state", "reached");
+      await expect(reachedResearch.locator("..")).toHaveAttribute("data-tone", "success");
       const markerGeometry = await reachedResearch.locator(".order-workbench-process-marker").evaluate((marker) => {
         const cell = marker.closest("li")!;
         const cellRect = cell.getBoundingClientRect();

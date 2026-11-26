@@ -8,6 +8,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Changed
 
+- Capture separately selected builder and independent-review attempt evidence, retaining the recorded task boundary without attributing reviewer validation results to the builder.
+
 - Apply semantic workflow rail marker colors and symbols to the existing canonical summary projection; stop connectors short of each marker and distinguish reached history from a validation verdict. Make approved-task attempt provenance explicit with aligned full-width subordinate rows and semantic task/Run statuses. Correct the not-started Readiness fixture assertion and inconsistent empty findings copy; retain exact lifecycle behavior.
 
 - Correct Document read/view sizing: governed Markdown content retains its intrinsic height inside the Document content scroll owner instead of collapsing into a zero-basis nested flex viewport. Assert visible, non-clipped Work request preview content on wide and narrow viewports while retaining bounded editor behavior.

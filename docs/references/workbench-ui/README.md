@@ -31,7 +31,7 @@ The corpus must never fabricate or be cited as evidence of persisted Runs, agent
 
 ## Acceptance use
 
-The runtime capture and reference must identify the same SURF, state, governed scope, viewport class and effective theme. For lifecycle inspection fixtures, the independently declared `current` and `reached` parameters describe persisted fixture history, separately from the selected `step`; `attempt` identifies the selected attempt when the comparison depends on it. Unmatched states or selections are not equivalent. A component reference cannot be compared as if it were a full-workbench reference.
+The runtime capture and reference must identify the same SURF, state, governed scope, viewport class and effective theme. For lifecycle inspection fixtures, the independently declared `current` and `reached` parameters describe persisted fixture history, separately from the selected `step`; `marker` specifies the current cell's disposition independently of inspected material; `attempt` identifies the selected builder or reviewer attempt when the comparison depends on it. Historical green checkmarks indicate reached history only, never validation success. Unmatched states or selections are not equivalent. A component reference cannot be compared as if it were a full-workbench reference.
 
 A reference mismatch never authorizes implementation to change product behavior. The reviewer resolves the discrepancy against the exact bound authority first.
 

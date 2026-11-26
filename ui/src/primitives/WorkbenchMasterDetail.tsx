@@ -48,17 +48,17 @@ export const WorkbenchMasterDetail = ({
                   <div className="order-workbench-master-attempt-group">
                     <div className="order-workbench-master-attempt-heading">Attempts</div>
                     <ul className="order-workbench-master-attempts" aria-label={"Attempts for " + item.label}>
-                    {attempts.map((attempt) => (
-                      <li key={attempt.id}>
-                        <button type="button" className="order-workbench-master-item"
-                          aria-pressed={attempt.selected}
-                          onClick={() => { attempt.onSelect(); setMasterOpen(false); }}>
-                          <strong>{attempt.label}</strong>
-                          {attempt.state}
-                          {attempt.detail === undefined ? null : <span>{attempt.detail}</span>}
-                        </button>
-                      </li>
-                    ))}
+                      {attempts.map((attempt) => (
+                        <li key={attempt.id}>
+                          <button type="button" className="order-workbench-master-item"
+                            aria-pressed={attempt.selected}
+                            onClick={() => { attempt.onSelect(); setMasterOpen(false); }}>
+                            <strong>{attempt.label}</strong>
+                            {attempt.state}
+                            {attempt.detail === undefined ? null : <span>{attempt.detail}</span>}
+                          </button>
+                        </li>
+                      ))}
                     </ul>
                   </div>
                 )}
