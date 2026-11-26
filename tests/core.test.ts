@@ -49,6 +49,7 @@ import {
   resolveApplicableArtifactIds,
   resolveConcernIds,
   resolveProjectAuthority,
+  resolveAuthorityRefClosure,
 } from "../src/core/governance.ts";
 import {
   artifactReturnOwner,
@@ -935,6 +936,54 @@ describe("functional lifecycle and execution policy", () => {
       },
       r2Authority,
     )).toBe(false);
+  });
+
+  it("validates additive stage refs and resolves exact transitive dependency identities without precedence", () => {
+    const sources = {
+      p1: [], p2: ["docs/current.md", "docs/historical.md"],
+      p3: ["docs/b.md", "docs/c.md", "docs/d.md"], p4: [], p5: [], p6: [],
+    } as const;
+    const input = {
+      version: 1, projectId: "example", authority: sources,
+      refs: {
+        CURRENT: "docs/current.md", HISTORICAL: "docs/historical.md",
+        B: "docs/b.md", C: "docs/c.md", D: "docs/d.md",
+      },
+    };
+    const absent = ProjectManifestSchema.parse(input);
+    const empty = ProjectManifestSchema.parse({ ...input, stageAuthorityRefs: {}, refDependencies: {} });
+    expect(absent).toEqual(empty);
+    const manifest = ProjectManifestSchema.parse({
+      ...input,
+      stageAuthorityRefs: { R2: ["CURRENT"] },
+      refDependencies: { CURRENT: ["C", "B"], B: ["D"], C: ["D"], D: ["CURRENT"] },
+    });
+    const resolved = resolveProjectAuthority(manifest, sources);
+    expect(resolveAuthorityRefClosure(resolved, manifest.refDependencies, manifest.stageAuthorityRefs.R2 ?? []))
+      .toEqual(["B", "C", "CURRENT", "D"]);
+    expect(resolveAuthorityRefClosure(resolved, manifest.refDependencies, ["HISTORICAL"]))
+      .toEqual(["HISTORICAL"]);
+    expect(resolveAuthorityRefClosure(resolved, manifest.refDependencies, [])).toEqual([]);
+    expect(resolveAuthorityRefClosure(resolved, manifest.refDependencies, ["D", "CURRENT", "B"]))
+      .toEqual(["B", "C", "CURRENT", "D"]);
+    expect(resolved.layers).toEqual(resolveProjectAuthority(absent, sources).layers);
+    expect(() => resolveAuthorityRefClosure(resolved, manifest.refDependencies, ["MISSING"]))
+      .toThrow("unresolved AuthorityRef");
+    for (const invalid of [
+      { stageAuthorityRefs: { EXECUTION: ["CURRENT"] } },
+      { stageAuthorityRefs: { R2: ["MISSING"] } },
+      { stageAuthorityRefs: { R2: ["CURRENT", "CURRENT"] } },
+      { refDependencies: { MISSING: ["CURRENT"] } },
+      { refDependencies: { CURRENT: ["MISSING"] } },
+      { refDependencies: { CURRENT: ["B", "B"] } },
+    ]) {
+      expect(ProjectManifestSchema.safeParse({ ...input, ...invalid }).success).toBe(false);
+    }
+    expect(() => resolveProjectAuthority(manifest, { ...sources, p3: ["docs/b.md", "docs/c.md"] }))
+      .toThrow("source is not selected");
+    expect(() => resolveProjectAuthority({
+      ...manifest, refDependencies: { MISSING: ["CURRENT"] },
+    }, sources)).toThrow("unresolved AuthorityRef");
   });
 
   it("requires adopted authority after answered durable decision input before completion", () => {

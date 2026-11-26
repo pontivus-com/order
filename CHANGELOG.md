@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Add strict optional project stage-authority declarations and exact reference-dependency closure in the existing pure governance resolver (IA01); productive stage integration remains IA02.
+
 - Correct 0.6.0 campaign fitness to preserve frozen reviewed-input evidence while validating explicitly authorized candidate scope, and freeze the final changelog before exhaustive rendered acceptance; no implementation authorization or rendered acceptance inferred.
 
 - Close targeted Order 0.6.0 REV-F07 PLAN, vertical alignment and independent readiness review for the exact repository campaign execution boundary; native checkpoint and terminal semantics remain unchanged, with operator authorization and final implementation evidence separate.

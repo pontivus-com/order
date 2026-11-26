@@ -1251,12 +1251,23 @@ export const ProjectWorkItemsSchema = z.strictObject({
   root: ProjectWorkItemsRootSchema.default("docs/order/work-items"),
 });
 
+const AuthorityRefListSchema = z.array(AuthorityRefSchema)
+  .refine(unique, "duplicate authority refs").readonly();
+
 export const ProjectManifestSchema = z
   .strictObject({
     version: z.literal(1),
     projectId: ProjectIdSchema,
     authority: z.strictObject(authorityShape),
     refs: z.record(AuthorityRefSchema, RepositoryPathSchema).optional().default({}),
+    stageAuthorityRefs: z.strictObject({
+      R1: AuthorityRefListSchema.optional(),
+      R2: AuthorityRefListSchema.optional(),
+      DESIGN: AuthorityRefListSchema.optional(),
+      PLAN: AuthorityRefListSchema.optional(),
+      R3: AuthorityRefListSchema.optional(),
+    }).optional().default({}),
+    refDependencies: z.record(AuthorityRefSchema, AuthorityRefListSchema).optional().default({}),
     precedence: z.strictObject(precedenceShape).optional().default({}),
     governance: z
       .strictObject({
@@ -1272,6 +1283,23 @@ export const ProjectManifestSchema = z
       .default({ root: "docs/order/work-items" }),
   })
   .superRefine((value, ctx) => {
+    for (const [stage, refs] of Object.entries(value.stageAuthorityRefs)) {
+      for (const ref of refs ?? []) {
+        if (!Object.hasOwn(value.refs, ref)) {
+          ctx.addIssue({ code: "custom", path: ["stageAuthorityRefs", stage], message: `unresolved AuthorityRef: ${ref}` });
+        }
+      }
+    }
+    for (const [ref, dependencies] of Object.entries(value.refDependencies)) {
+      if (!Object.hasOwn(value.refs, ref)) {
+        ctx.addIssue({ code: "custom", path: ["refDependencies", ref], message: `unresolved AuthorityRef: ${ref}` });
+      }
+      for (const dependency of dependencies) {
+        if (!Object.hasOwn(value.refs, dependency)) {
+          ctx.addIssue({ code: "custom", path: ["refDependencies", ref], message: `unresolved AuthorityRef: ${dependency}` });
+        }
+      }
+    }
     const overrideIds = value.governance.overrides.map((rule) => rule.defaultRuleId);
     if (!unique(overrideIds)) {
       ctx.addIssue({ code: "custom", message: "duplicate governance override defaultRuleId" });

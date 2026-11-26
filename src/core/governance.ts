@@ -142,6 +142,27 @@ const requireResolvedGovernanceRule = (
   }
 };
 
+// Ref closure selects exact identities only; layer/precedence order remains owned by the resolver.
+export const resolveAuthorityRefClosure = (
+  authority: Pick<ResolvedProjectAuthority, "authorityRefs">,
+  dependencies: ProjectManifest["refDependencies"],
+  seeds: readonly AuthorityRef[],
+): readonly AuthorityRef[] => {
+  const reachable = new Set(authority.authorityRefs.map(([ref]) => ref));
+  const visited = new Set<AuthorityRef>();
+  const pending = [...seeds];
+  while (pending.length > 0) {
+    const ref = pending.pop();
+    if (ref === undefined || visited.has(ref)) continue;
+    if (!reachable.has(ref)) throw new TypeError(`unresolved AuthorityRef: ${ref}`);
+    visited.add(ref);
+    if (Object.hasOwn(dependencies, ref)) {
+      for (const dependency of dependencies[ref] ?? []) pending.push(dependency);
+    }
+  }
+  return [...visited].sort();
+};
+
 export const resolveProjectAuthority = (
   manifest: ProjectManifest,
   expandedSources: ExpandedAuthoritySources,
@@ -184,6 +205,16 @@ export const resolveProjectAuthority = (
     }
     authorityRefs.push([authorityRef, path]);
   }
+
+  // Validate all declared edges and stage refs, including currently unused ones.
+  resolveAuthorityRefClosure(
+    { authorityRefs },
+    manifest.refDependencies,
+    [
+      ...Object.keys(manifest.refDependencies),
+      ...Object.values(manifest.stageAuthorityRefs).flatMap((refs) => refs ?? []),
+    ],
+  );
 
   const p1Sources = new Set(
     layers.find((layer) => layer.layer === "p1")?.sources ?? [],
