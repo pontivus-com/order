@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Revalidate G2 A02–A03 against the current authority, intake, queue and documentation owners; classify residual applicable-authority closure without duplicating realized changes; correct A01 audit formatting.
+
 - Begin exact-package G2 revalidation; reconcile A01 lifecycle/product facts, superseded label evidence and residual README outcome-language defect without changing product authority or production code.
 
 - Continue IA29–IA34 realization: restore the narrow editor control contract, retain exact proposal inspection across unavailable targets, show sign-off failure on task detail, explain durable-decision input, preserve upstream material access, separate current execution ownership from historical approvals, bind terminal resources to recorded candidate validation lineage, and improve Settings recovery controls.
