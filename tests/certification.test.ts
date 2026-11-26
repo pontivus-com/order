@@ -458,6 +458,15 @@ describe("Order cross-boundary certification", () => {
     expect(toolbar).toContain('className="order-workbench-toolbar-main"');
     expect(toolbar).toContain('className="order-workbench-toolbar-project"');
     expect(toolbar).toContain('className="order-workbench-toolbar-utilities"');
+    expect(toolbar).toContain('className="order-workbench-toolbar-account"');
+    expect(toolbar).toContain('label="OpenCode"');
+    expect(toolbar).not.toContain("label={account.label}");
+    expect(toolbar).toContain('className="order-workbench-account-label"');
+    expect(toolbar).toContain('className="order-workbench-toolbar-theme"');
+    const identity = read("ui/src/primitives/WorkbenchIdentity.tsx");
+    expect(identity).toContain('aria-label="Selected work item"');
+    expect(identity).toContain('aria-label="Work item navigation"');
+    expect(identity).toContain('aria-label="Work item actions"');
     expect(toolbar).not.toContain("WorkbenchToolbarGroup");
     expect(toolbar).not.toContain("WorkbenchToolbarSearch");
     expect(toolbar).not.toContain("start:");
@@ -500,6 +509,11 @@ describe("Order cross-boundary certification", () => {
     expect(theme).not.toContain(".order-theme-control");
     expect(theme).not.toContain(".order-workbench-app-destination");
     expect(theme).toContain("--order-toolbar-height: 3.25rem");
+    const kindRule = theme.match(/\.order-workitem-kind\s*\{([^}]*)\}/)?.[1] ?? "";
+    expect(kindRule).not.toContain("--radius-full");
+    expect(kindRule).not.toContain("background:");
+    expect(theme).toContain(".order-workbench-account-label");
+    expect(theme).toContain(".order-workbench-toolbar-theme");
 
     const attention = read("ui/src/primitives/WorkbenchAttention.tsx");
     expect(attention).not.toContain("tone?:");

@@ -1188,7 +1188,7 @@ export const WorkItemWorkspace = ({
     <WorkItemIdentityRow
       navigation={
         <Link href="/" isStandalone color="secondary" onClick={(event) => { event.preventDefault(); onBack(); }}>
-          Back to queue
+          <span className="order-workitem-back"><WorkbenchIcon name="back" />Back to queue</span>
         </Link>
       }
       title={
@@ -1201,9 +1201,7 @@ export const WorkItemWorkspace = ({
         ) : (
           <div className="order-workitem-title-row">
             <h1 ref={headingRef} tabIndex={-1} data-testid="work-item-heading">{workItem.title}</h1>
-            {workItem.stage !== "EXECUTION" && workItem.stage !== "COMPLETE" ? (
-              <WorkbenchAction label="Edit title" tone="ghost" disabled={documentMutationsDisabled} onClick={() => { setTitleDraft(workItem.title); setTitleError(null); setTitleEditing(true); }} />
-            ) : null}
+            <span className="order-workitem-kind">{workItemKindLabel}</span>
           </div>
         )
       }
@@ -1216,17 +1214,19 @@ export const WorkItemWorkspace = ({
       }
       utilities={
         <>
-          <span className="order-workitem-kind">{workItemKindLabel}</span>
+          {!titleEditing && workItem.stage !== "EXECUTION" && workItem.stage !== "COMPLETE" ? (
+            <WorkbenchAction label="Edit title" tone="ghost" disabled={documentMutationsDisabled} onClick={() => { setTitleDraft(workItem.title); setTitleError(null); setTitleEditing(true); }} />
+          ) : null}
           <WorkbenchAction
             label="Context"
-            tone="secondary"
+            tone="ghost"
             icon={<WorkbenchIcon name="context" />}
             ariaExpanded={contextOpen}
             onClick={() => onContextOpenChange(!contextOpen)}
           />
           <WorkbenchAction
             label={workItem.archived ? "Restore" : "Archive"}
-            tone="secondary"
+            tone="ghost"
             disabled={mutationsDisabled || workItem.stage === "EXECUTION" || runs.some(runIsActive) || archiveMutation.isPending}
             onClick={() => setConfirmArchive(true)}
           />

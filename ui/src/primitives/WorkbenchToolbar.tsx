@@ -72,7 +72,7 @@ export const WorkbenchToolbar = ({
           aria-label="Current application destination"
         >
           <strong>{orientation.productLabel}</strong>
-          <span>{orientation.destinationLabel}</span>
+          <span className="order-workbench-destination-label">{orientation.destinationLabel}</span>
         </div>
         {projectContext === undefined ? null : projectSwitchable ? (
           <div className="order-workbench-toolbar-project">
@@ -92,8 +92,8 @@ export const WorkbenchToolbar = ({
             className="order-workbench-project-context"
             aria-label="Current Project"
           >
-            <small>Project</small>
-            <strong>{projectContext.value}</strong>
+            <span>Project</span>
+            <strong title={projectContext.value}>{projectContext.value}</strong>
           </div>
         )}
       </div>
@@ -102,38 +102,43 @@ export const WorkbenchToolbar = ({
         data-testid="workbench-utilities"
       >
         {account === undefined ? null : (
-          <WorkbenchUtilityLink
-            label={account.label}
-            detail={
-              account.readiness === undefined
-                ? undefined
-                : (
-                  <WorkbenchStatus
-                    tone={account.readiness.tone}
-                    label={account.readiness.label}
-                  />
-                )
-            }
-            href={account.href}
-            testId="opencode-account-trigger"
-            onNavigate={navigate(account.onNavigate)}
-          />
+          <div className="order-workbench-toolbar-account" title={account.label}>
+            <WorkbenchUtilityLink
+              label="OpenCode"
+              detail={
+                <span className="order-workbench-account-detail">
+                  <span className="order-workbench-account-label">{account.label}</span>
+                  {account.readiness === undefined ? null : (
+                    <WorkbenchStatus
+                      tone={account.readiness.tone}
+                      label={account.readiness.label}
+                    />
+                  )}
+                </span>
+              }
+              href={account.href}
+              testId="opencode-account-trigger"
+              onNavigate={navigate(account.onNavigate)}
+            />
+          </div>
         )}
         <WorkbenchUtilityLink
           label={navigation.label}
           href={navigation.href}
           onNavigate={navigate(navigation.onNavigate)}
         />
-        <SegmentedControl
-          label="Theme"
-          value={theme.value}
-          onChange={theme.onChange}
-          size="sm"
-        >
-          <SegmentedControlItem value="system" label="System" />
-          <SegmentedControlItem value="light" label="Light" />
-          <SegmentedControlItem value="dark" label="Dark" />
-        </SegmentedControl>
+        <div className="order-workbench-toolbar-theme">
+          <SegmentedControl
+            label="Theme"
+            value={theme.value}
+            onChange={theme.onChange}
+            size="sm"
+          >
+            <SegmentedControlItem value="system" label="System" />
+            <SegmentedControlItem value="light" label="Light" />
+            <SegmentedControlItem value="dark" label="Dark" />
+          </SegmentedControl>
+        </div>
       </div>
     </header>
   );

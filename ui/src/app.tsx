@@ -370,8 +370,8 @@ export const App = () => {
     settingsSection !== null
       ? "Settings"
       : selectedWorkItem
-        ? "Governed work item"
-        : "Governed work queue";
+        ? "Work item"
+        : "Work queue";
 
   const projectOptions = (projectsQuery.data ?? []).map(
     (project) => project.projectId,

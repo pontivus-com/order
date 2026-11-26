@@ -31,7 +31,7 @@ export const WorkbenchWorkItemShell = ({
         height="fill"
         padding={0}
         header={
-          <LayoutHeader padding={0} hasDivider>
+          <LayoutHeader padding={0}>
             <div className="order-workbench-chrome">
               {identity}
               {workflowRail}

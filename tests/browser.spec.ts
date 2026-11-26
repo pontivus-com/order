@@ -1826,6 +1826,11 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   );
 
   const entries: RenderedAcceptanceEntry[] = [];
+  const toolbar = page.getByTestId("workbench-toolbar");
+  const accountUtility = toolbar.getByTestId("opencode-account-trigger");
+  await expect(accountUtility).toContainText("OpenCode");
+  await expect(accountUtility.locator(".order-workbench-account-label")).toHaveText("operator@example.com");
+  await expect(toolbar.getByRole("radio")).toHaveCount(3);
 
   entries.push(await captureRenderedAcceptance(page, {
     id: "application-wide-light-active-account",
@@ -2174,7 +2179,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   await page.setViewportSize({ width: 700, height: 800 });
   await expect(queue).toBeVisible();
   await expect(
-    page.getByLabel("Current application destination").getByText("Governed work queue", { exact: true }),
+    page.getByLabel("Current application destination").getByText("Work queue", { exact: true }),
   ).toBeVisible();
   await expect(queue.locator(".order-workbench-surface-attention")).toHaveCount(0);
   const narrowQueueTable = page.getByRole("table", { name: "Work items" });
@@ -2342,6 +2347,12 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   const shellChrome = page.locator(".order-workbench-chrome");
   const currentAttention = page.locator(".order-workbench-attention");
   await expect(shellChrome).toBeVisible();
+  const identity = page.getByTestId("workbench-identity");
+  await expect(identity.getByRole("navigation", { name: "Work item navigation" }).getByRole("link", { name: "Back to queue" })).toBeVisible();
+  await expect(identity.locator(".order-workbench-identity-primary").getByTestId("work-item-heading")).toBeVisible();
+  await expect(identity.locator(".order-workbench-identity-primary .order-workitem-kind")).toHaveText("Change");
+  await expect(identity.locator(".order-workitem-kind")).toHaveCSS("border-radius", "0px");
+  await expect(identity.getByRole("group", { name: "Work item actions" }).getByRole("button", { name: "Edit title", exact: true })).toBeVisible();
   await expect(currentAttention).toBeVisible();
   await expect(currentAttention).not.toContainText("Current attention:");
 
@@ -2449,7 +2460,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     "narrow",
   );
   await expect(
-    page.getByLabel("Current application destination").getByText("Governed work item", { exact: true }),
+    page.getByLabel("Current application destination").getByText("Work item", { exact: true }),
   ).toBeVisible();
   entries.push(await captureRenderedAcceptance(page, {
     id: "application-toolbar-workitem-narrow-light",
@@ -2557,6 +2568,38 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     captureScope: "production application toolbar only; Settings body excluded",
   }, page.getByTestId("workbench-toolbar")));
 
+  // Bounded HUX-10/HUX-11 evidence: exercise the same shell over a real Review
+  // destination, without changing or accepting the Review body.
+  if (renderedEvidenceKind === "bounded_phase_acceptance") {
+    await page.goto("/");
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await openWorkItem(page, "Awaiting sign-off");
+    await selectWorkflowStep(page, "Approval");
+    await expect(page.getByRole("button", { name: "Sign off exact package", exact: true })).toBeVisible();
+    for (const viewport of [{ width: 1440, height: 900 }, { width: 700, height: 800 }]) {
+      await page.setViewportSize(viewport);
+      for (const theme of ["Light", "Dark"] as const) {
+        await page.getByRole("radio", { name: theme }).click();
+        await expect(page.locator("html")).toHaveAttribute("data-theme", theme.toLowerCase());
+        await expect(page.getByTestId("workbench-identity").getByTestId("work-item-heading")).toBeVisible();
+        await expect(page.getByTestId("workbench-toolbar").getByLabel("Current application destination")).toBeVisible();
+        entries.push(await captureRenderedAcceptance(page, {
+          id: "bounded-hux-shell-approval-" + (viewport.width === 1440 ? "wide" : "narrow") + "-" + theme.toLowerCase(),
+          workItemKind: "CHANGE",
+          workflowStep: "Approval",
+          surface: "SURF-WI-001",
+          state: "selected-workitem-chrome-review",
+          fixture: "Awaiting sign-off (shared shell only; Review body not accepted)",
+          viewport,
+          theme,
+          route: new URL(page.url()).pathname + new URL(page.url()).search,
+          authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2", "GW-DOC-WORKBENCH-THEME-V1"],
+        }));
+      }
+    }
+    await page.getByRole("radio", { name: "Light" }).click();
+    expect(entries.filter((entry) => entry.id.startsWith("bounded-hux-shell-approval-"))).toHaveLength(4);
+  }
   if (!diagnosticCurrentState) writeRenderedAcceptanceEvidence(entries);
   expect([...new Set(entries.map((entry) => entry.surface))].sort()).toEqual([
     "SURF-APP-001",
