@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Specify exact interrupted governance-proposal recovery and conformed Readiness verdict selection; reconcile the one newly justified existing repository-shell path in the 0.6.0 draft scope and campaign fitness.
+
 - Align the campaign fitness assertion with the canonical closed-by-default document-location disclosure and reject the superseded visibility rule.
 
 - Reconcile linked-remediation admission, document orientation, producing-stage material and durable-decision/current-attention specification across DESIGN A02–A04; rebind exact R1/R2/DESIGN/PLAN identities and proof obligations without extending implementation scope.

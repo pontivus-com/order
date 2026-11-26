@@ -8,7 +8,7 @@ This is a trace/readability view of the one canonical `order-tasks` block in the
 
 | Task | DESIGN / IA ownership | Depends on | Primary implementation owner | Mandatory removal/replacement evidence | Closure evidence |
 |---|---|---|---|---|---|
-| T1 | SD01-SD30; IA01-IA34 | — | one cumulative 40-path 0.6.0 candidate; internal waves below own ordered mutation/proof responsibilities | F6B retained closed APIs and required absence; exact residuals and complete consumer proof; operator-accepted foundation retained within scope | final V0-V7 + SD16-SD18/SD29 certification + IA26/SD30 exact-candidate 37-SURF and component-architecture acceptance |
+| T1 | SD01-SD30; IA01-IA34 | — | one cumulative 41-path 0.6.0 candidate; internal waves below own ordered mutation/proof responsibilities | F6B retained closed APIs and required absence; exact residuals and complete consumer proof; operator-accepted foundation retained within scope | final V0-V7 + SD16-SD18/SD29 certification + IA26/SD30 exact-candidate 37-SURF and component-architecture acceptance |
 
 **Audit rule:** T1 is the only P6 ExecutionTask. Wave/IA ordering below is internal implementation sequencing and never relies on candidate-byte promotion between tasks. A later phase discovering a foundation defect returns to IA27/DESIGN rather than patching around it; T1 cannot close until every owned phase obligation and final candidate proof is satisfied.
 
@@ -48,9 +48,9 @@ Phase ownership is unchanged. Breaking APIs are not forecast; a disproven retain
 
 **Solution:** SD09.  
 **Anchors:** `src/core/contracts.ts` proposal/ArtifactRef contracts; `src/core/governance.ts`; `src/daemon/stage.ts::proposalDisposition/proposalAdoptionRequest/adoptArtifactProposal/reconcilePendingArtifactProposals`; `src/daemon/authority.ts`.  
-**Required mutation/proof disposition:** Proof-only: retain existing exact target/layer/base-hash proposal/adoption and re-resolution.  
+**Required mutation/proof disposition:** Retain exact target/layer admission and human intent. In daemon/stage.ts enforce base before first adoption request, but let exact durable ADOPTION_IN_PROGRESS reconcile already-applied bytes via the existing shell owner; revalidate current authority/decision. In src/shell/repository.ts verify exact one target on both branches; reverse into isolated scratch, verify reconstructed base hash/absence, forward replay and exact observed current bytes, recheck live target, remove scratch; no live patch on already-applied branch or unrelated drift acceptance. Retain existing effect/disposition transaction and no new state.  
 **Forbidden:** stage-specific proposal DTOs/direct provider writes/second decision store.  
-**Proof:** core/daemon wrong-layer/path/hash/stale/adoption/freshness cases.
+**Proof:** core/daemon wrong-layer/path/hash/stale/adoption/freshness cases; intent-before-effect interruption, effect-before-disposition GOVERNANCE interruption at R2/DESIGN, reverse-applicable unrelated target drift, new-file/modified-file recovery, no intent, changed owner and idempotent exact disposition. Test existing shell mechanic via daemon integration; no new test file.
 
 ## IA04 — durable-decision completion admission
 
@@ -156,11 +156,11 @@ Phase ownership is unchanged. Breaking APIs are not forecast; a disproven retain
 
 **Solution:** SD11.  
 **Anchor:** `ui/src/ReadinessWorkspace.tsx::ReadinessWorkspace` plus existing presentation helper.  
-**Required mutation/proof disposition:** Proof-only for typed R3 verdict; IA14/IA31 own current attention. Verify ready/return/blocked/stale.  
+**Required mutation/proof disposition:** In existing pure lifecycle/presentation and ReadinessWorkspace owners bind selected exact COMPLETED R3 Run to same-Run later CONFORMANCE_PASSED with matching contextHash and output id, then exact ArtifactRef bytes. No raw provider completion or latest-role fallback as verdict. Current readiness additionally requires package coherence; historical verdict stays historical. Missing/mismatched proof uses typed state/error; preserve full admitted findings, not heuristic omission. IA14/IA31 own attention/composition.  
 
-**SD11 closure:** latest applicable typed R3 outcome through existing pure presentation helper. Distinguish no Run, processing, required input, returned owner, failure/cancel/block/stale/history. Verify actual R3 schema/template findings without heuristic omission, separate currentness, automatic READY_FOR_SIGNOFF→AWAITING_SIGNOFF. IA31 owns Review composition.
+**SD11 closure:** exact selected coordinator-conformed typed R3 outcome through existing pure lifecycle/presentation selection, shared conformance join with SD27 but no R1 policy imported. Distinguish no Run, processing, required input, returned owner, failure/cancel/block/stale/history. Verify actual R3 schema/template findings without heuristic omission, separate currentness, automatic READY_FOR_SIGNOFF→AWAITING_SIGNOFF. IA31 owns Review composition.
 
-**Proof:** READY_FOR_SIGNOFF/RETURN_TO_*/BLOCKED + stale material cases.
+**Proof:** READY_FOR_SIGNOFF/RETURN_TO_*/BLOCKED + stale material, raw READY event followed by CONFORMANCE_FAILED and BLOCKED Run, competing same-role output, mismatched/missing conformance, exact historical verdict and complete findings. No change to R3 judgment or sign-off command.
 
 ## IA17 — Approval readiness/currentness hierarchy
 

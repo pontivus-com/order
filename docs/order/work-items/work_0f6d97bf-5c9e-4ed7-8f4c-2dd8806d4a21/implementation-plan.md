@@ -4,7 +4,7 @@
 
 ## Canonical PLAN authority
 
-This root is the single deterministic P7 artifact for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. Its modular directory is the maintainable authoring decomposition, not independent executable authority. This synchronized candidate binds R1 `071a6b40590d3f58348484599faad4228f1f9fd8`, R2 `1db96b6905c12f3f156980f42e52f8dbf82e1e3d`, DESIGN `d0f9ce9eaf9452c32c1e3a5a392be2625dece8c2`, current P4 and P6. G4 must close before G5 finalizes it; campaign §17A/§18 own gate state and authorization. No gate advance or sign-off is inferred.
+This root is the single deterministic P7 artifact for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. Its modular directory is the maintainable authoring decomposition, not independent executable authority. This synchronized candidate binds R1 `682e9bbc9246704a2ad3abc32822ad9639a2191d`, R2 `65f0797ca5915012044a7f5d6fc285f116779376`, DESIGN `b7e2751daa29fce804045f822ef4762c8ac1f16d`, current P4 and P6. G4 must close before G5 finalizes it; campaign §17A/§18 own gate state and authorization. No gate advance or sign-off is inferred.
 
 ## Current Workbench implementation plan
 
@@ -14,20 +14,20 @@ Retain evidenced closed F6B owners and the operator-accepted foundation within s
 
 | Source component | Git blob |
 |---|---|
-| `implementation-plan/00-governance.md` | `2f135b2fb9f8c813fedb00d46d92f2a873396c46` |
+| `implementation-plan/00-governance.md` | `8229f18b76b24ebe74e9542210ba166bb8468548` |
 | `implementation-plan/01-a01-lifecycle-product.md` | `94707df41608c41756d04f452b2f982fdbdd8338` |
 | `implementation-plan/02-a02-governance-intake.md` | `1f496e6221987a58b5f1aed9c783eb67a3e5492c` |
 | `implementation-plan/03-a03-queue-source.md` | `b0f9bd32f6f3bce513e9668a31f7d388fa0cecb8` |
 | `implementation-plan/04-a04-workbench-research.md` | `7c6b144887894a019a3b605a0d35cbfa8a274a35` |
-| `implementation-plan/05-a05-requirements-design.md` | `f0ca441deab870b54fdcd5a96577f0c37d023e79` |
-| `implementation-plan/06-a06-plan-readiness.md` | `ddcdf3e774a45af677af04ff3985fe860f9a893c` |
+| `implementation-plan/05-a05-requirements-design.md` | `b207ae12ca717f76a8bc37b701fe1da4c1d78ec9` |
+| `implementation-plan/06-a06-plan-readiness.md` | `3f50065b39413011675c8bc7013a5d757013ca9b` |
 | `implementation-plan/07-a07-approval-execution.md` | `36cf09789f9bfd4c352864d4c6bce0f905564667` |
-| `implementation-plan/08-a08-complete-materials.md` | `4645e7f12ee2725b8833fa146605cd608020e47e` |
+| `implementation-plan/08-a08-complete-materials.md` | `cc7df16a0b1fe49b1596075cbd7e38530edb47eb` |
 | `implementation-plan/09-a09-provider-settings.md` | `dc9988af7a2f63ae8a2843122e66911e14d595e9` |
 | `implementation-plan/10-a10-recovery-accessibility.md` | `3537f8f368001084e0844c4039235f85b0cbe532` |
 | `implementation-plan/11-a11-component-certification.md` | `39888364495850fe7b9fc3c486ad67bf6905678c` |
-| `implementation-plan/12-action-catalog.md` | `1fca643fbd1fcce74f0d6cca5c9b3e52fcd62a65` |
-| `implementation-plan/13-verification-closeout.md` | `3ca250e562c04fdeb95ea54bd960a5ef9600996f` |
+| `implementation-plan/12-action-catalog.md` | `2643a4aa837b3e015608c75ef0a42f7759d71c7a` |
+| `implementation-plan/13-verification-closeout.md` | `362516ec871380274d15226efdfd38ed5b8ff8dd` |
 
 A source hash mismatch makes PLAN non-current until recompiled. Directory files have no independent order-tasks block or lifecycle state.
 
@@ -37,14 +37,14 @@ A01–A11 retain requirement/atom-specific consequences; IA01–IA34 are the sin
 
 ## Candidate execution scope
 
-One T1 candidate, exact 40 paths for scope and changeSurface; explicit exclusions protect retained/absent owners and authorizing material. No production authority before normal sign-off.
+One T1 candidate, exact 41 paths for scope and changeSurface; explicit exclusions protect retained/absent owners and authorizing material. No production authority before normal sign-off.
 
 ```order-tasks
 {
   "tasks": [
     {
       "id": "T1",
-      "objective": "Implement the corrected authority-driven Order 0.6.0 candidate only after fresh G4-G6/sign-off. Consume P4/SD21/F6B as closed component authority; retain operator-accepted foundation within scope, existing closed APIs and REQUIRED_ABSENT owners. IA01/IA02 close exact authority declarations/dependency closure; IA04 material durable-decision conformance. IA27/IA28 revalidate foundation and all-caller ResourceList/Row; IA29 exact signed document membership; IA31 exact current/historical Approval; IA30 exact PLAN inspection/current attention; IA32 terminal blocker; IA33 reached Complete/exact candidate lineage; IA34 Settings proof. IA20–IA23/IA26 certify physical SoC, all 37 governed surfaces, 46 P3 scenarios, outstanding HUX and exact rendered reference evidence. No compatibility path, duplicate carrier, new persisted model, blanket reconstruction or protected-root mutation. No production mutation before normal sign-off; any bounded grant is separate. Out-of-scope discoveries return upstream.",
+      "objective": "Implement the corrected authority-driven Order 0.6.0 candidate only after fresh G4-G6/sign-off. Consume P4/SD21/F6B as closed component authority; retain operator-accepted foundation within scope, existing closed APIs and REQUIRED_ABSENT owners. IA01/IA02 close exact authority declarations/dependency closure; IA03 exact interrupted governance proposal recovery; IA04 material durable-decision conformance; IA16 exact conformed R3 verdict. IA27/IA28 revalidate foundation and all-caller ResourceList/Row; IA29 exact signed document membership; IA31 exact current/historical Approval; IA30 exact PLAN inspection/current attention; IA32 terminal blocker; IA33 reached Complete/exact candidate lineage; IA34 Settings proof. IA20–IA23/IA26 certify physical SoC, all 37 governed surfaces, 46 P3 scenarios, outstanding HUX and exact rendered reference evidence. No compatibility path, duplicate carrier, new persisted model, blanket reconstruction or protected-root mutation. No production mutation before normal sign-off; any bounded grant is separate. Out-of-scope discoveries return upstream.",
       "dependsOn": [],
       "scope": [
         "README.md",
@@ -57,6 +57,7 @@ One T1 candidate, exact 40 paths for scope and changeSurface; explicit exclusion
         "src/daemon/coordinator.ts",
         "src/daemon/server.ts",
         "src/daemon/stage.ts",
+        "src/shell/repository.ts",
         "ui/src/http.ts",
         "ui/src/query-keys.ts",
         "ui/src/app.tsx",
@@ -101,7 +102,6 @@ One T1 candidate, exact 40 paths for scope and changeSurface; explicit exclusion
         "src/shell/process.ts",
         "src/shell/project-config.ts",
         "src/shell/project.ts",
-        "src/shell/repository.ts",
         "src/shell/runtime.ts",
         "src/shell/setup.ts",
         "src/shell/sqlite.ts",
@@ -200,6 +200,7 @@ One T1 candidate, exact 40 paths for scope and changeSurface; explicit exclusion
         "src/daemon/coordinator.ts",
         "src/daemon/server.ts",
         "src/daemon/stage.ts",
+        "src/shell/repository.ts",
         "ui/src/http.ts",
         "ui/src/query-keys.ts",
         "ui/src/app.tsx",
@@ -275,7 +276,7 @@ Existing closed component owners, atomic adapters and specialist/infrastructure 
 
 ## Exact candidate implementation surface
 
-Exact 40 paths; DESIGN owns the obligation-specific reasons.
+Exact 41 paths; DESIGN owns the obligation-specific reasons.
 
 ### Authority and lifecycle
 - `README.md`
@@ -288,6 +289,7 @@ Exact 40 paths; DESIGN owns the obligation-specific reasons.
 - `src/daemon/coordinator.ts`
 - `src/daemon/server.ts`
 - `src/daemon/stage.ts`
+- `src/shell/repository.ts`
 ### UI transport and bounded residuals
 - `ui/src/http.ts`
 - `ui/src/query-keys.ts`
@@ -325,7 +327,7 @@ Exact 40 paths; DESIGN owns the obligation-specific reasons.
 ## Exhaustive traceability invariants
 
 - one T1 and one IA01-IA34 definition owner, 112 stable requirements and 27 package atoms mapped to DESIGN/IA and proof;
-- exact 40-path scope/changeSurface, protected exclusions, no mutation for retained/required-absent owners;
+- exact 41-path scope/changeSurface, protected exclusions, no mutation for retained/required-absent owners;
 - 37 SURF and 46 scenarios, exact HUX and physical SoC proof, no compatibility or shadow representation;
 - G4/G5/G5A/independent R3 and normal sign-off remain separate gates.
 
@@ -341,9 +343,9 @@ This decomposition is revalidated under C19-F09/C20-F11 after the prior G4-G6 cl
 
 ##### Exact upstream package
 
-- R1 `research.md`: `071a6b40590d3f58348484599faad4228f1f9fd8`.
-- R2 `requirements.md`: `1db96b6905c12f3f156980f42e52f8dbf82e1e3d`.
-- DESIGN `solution-design.md`: `d0f9ce9eaf9452c32c1e3a5a392be2625dece8c2` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 40-path forecast.
+- R1 `research.md`: `682e9bbc9246704a2ad3abc32822ad9639a2191d`.
+- R2 `requirements.md`: `65f0797ca5915012044a7f5d6fc285f116779376`.
+- DESIGN `solution-design.md`: `b7e2751daa29fce804045f822ef4762c8ac1f16d` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 41-path forecast.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `9c2ec83a9552b7583f90e91080c014df4d6870df`.
 - P3 `GW-DOC-WORKBENCH-UX-V2`: `64184232833b59a9e6db5e1a28b841f48b3217cd` — §11.4A/§12/§13/§14 own semantic information classes, state-is-not-interface behavior, direct primary interaction composition, no generic workflow-material selector, continuous Dialogue semantics, Terminal-result primacy, singular technical inspection, task anatomy and composition invariants.
 - P3 `GW-DOC-MARKDOWN-WORKBENCH-V1`: `da89bd08e4f78f353d7b3062758e9d78e21375b2` — §17.4 owns one compact Markdown editor-control region, overflow-before-wrap formatting and control→canvas adjacency.
@@ -413,7 +415,7 @@ Presence-only browser assertions are nonconforming when they force technical/dia
 
 Return to DESIGN/PLAN before editing when execution requires a new semantic owner, public contract, state meaning, persistence/transport/effect boundary, dependency direction or external dependency, validation contract, provider capability, verification authority, authorized behavior, or any path outside signed scope/exclusions.
 
-Because scope equals the exact 40-path forecast, a newly required out-of-scope path returns to DESIGN/PLAN.
+Because scope equals the exact 41-path forecast, a newly required out-of-scope path returns to DESIGN/PLAN.
 
 
 ### Compiled component: `implementation-plan/01-a01-lifecycle-product.md`
@@ -700,8 +702,8 @@ Stable rows in phase: **1**.
 
 | Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
 |---|---|---|---|---|---|
-| `PL-C07-01` | C07-F01 | `SD09` | `IA03` | — | R2 can propose/adopt validated current P2/P3 canonical-owner amendments through the one proposal mechanism. |
-| `PL-C08-01` | C08-F01 | `SD09` | `IA03` | — | DESIGN can propose/adopt validated current P4/P5/P6 canonical-owner amendments through the same mechanism. |
+| `PL-C07-01` | C07-F01 | `SD09` | `IA03` | — | R2 can propose/adopt validated current P2/P3 canonical-owner amendments through the one proposal mechanism, including exact interrupted-adoption recovery. |
+| `PL-C08-01` | C08-F01 | `SD09` | `IA03` | — | DESIGN can propose/adopt validated current P4/P5/P6 canonical-owner amendments through the same mechanism, including exact interrupted-adoption recovery. |
 
 Package atoms in phase: **2**.
 
@@ -746,7 +748,7 @@ IA30 owns R2/DESIGN primary routing and upstream material; IA03 canonical author
 |---|---|---|---|---|---|---|
 | `GW-FR-098-READINESS-AUTHORITY-TOPOLOGY-REVIEW` | `C10-O01`, `C10-O09`, `C10-O10` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C10-O01`, `C10-O09`, `C10-O10` via tests/architecture.test.ts; tests/daemon.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-211-READINESS-RETURN-CONTINUITY` | `C10-O04`, `C01-O10` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C10-O04`, `C01-O10` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
-| `GW-FR-221-READINESS-REVIEW-HIERARCHY` | `C10-O06`, `C10-O07` | `MIXED_TECHNICAL_AND_VERIFICATION_DELTA` | `SD11` | `IA16`, `IA31` | — | Retain typed R3 dominant verdict; correct current attention ownership during historical inspection through SD07/SD11. Proof: tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-221-READINESS-REVIEW-HIERARCHY` | `C10-O06`, `C10-O07` | `MIXED_TECHNICAL_AND_VERIFICATION_DELTA` | `SD11` | `IA16`, `IA31` | — | Bind typed R3 verdict to exact conformed Run/output and currentness; reject unadmitted completion and competing artifact; correct attention ownership through SD07/SD11. Proof: tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 
 Stable rows in phase: **3**.
 
@@ -755,7 +757,7 @@ Stable rows in phase: **3**.
 | Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
 |---|---|---|---|---|---|
 | `PL-C09-01` | C09-F01 | `SD10` | `IA05` | — | Current-v2 Change/Defect task packages must satisfy P6 §37.4 mechanical non-vacuity through the one schema-aware admission owner while published v1 validation semantics remain unchanged; material task sufficiency remains owned by PLAN semantic conformance and independent R3. |
-| `PL-C10-01` | C10-F01 | `SD11`, `SD25` | `IA16`, `IA31` | — | Readiness dominant verdict is the human projection of typed R3 outcome; findings/return owner are mapped once into direct Review, supporting package/history is subordinate, and no generic workflow frame/selector or raw typed enum is ordinary UI. |
+| `PL-C10-01` | C10-F01 | `SD11`, `SD25` | `IA16`, `IA31` | — | Readiness dominant verdict is the human projection of typed coordinator-conformed R3 outcome bound to exact Run/output; findings/return owner are mapped once into direct Review, supporting package/history is subordinate, and no generic workflow frame/selector or raw typed enum is ordinary UI. |
 
 Package atoms in phase: **2**.
 
@@ -858,7 +860,7 @@ IA17/31 own exact package/task currentness, Context provenance and decision feed
 | Requirement | R1 evidence | DESIGN disposition | Solution(s) | Execution owner | Consumer dependency | Required proof |
 |---|---|---|---|---|---|---|
 | `GW-FR-028-NONDELIVERY-TERMINAL-VIEW` | `C13-O01`, `C13-O05` | `MIXED_TECHNICAL_DELTA` | `SD03`, `SD27` | `IA11`, `IA33` | — | Retain terminal transition; prove exact terminal R1 result and canonical linked-remediation eligibility for every admitted completed Investigation/Audit outcome, negative kinds/project/stage; via tests/core.test.ts; tests/daemon.test.ts; tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
-| `GW-FR-207-PROPOSAL-AUTHORITY-BOUNDARY` | `C14-O05`, `C14-O06` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C14-O05`, `C14-O06` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-207-PROPOSAL-AUTHORITY-BOUNDARY` | `C14-O05`, `C14-O06` | `MIXED_TECHNICAL_DELTA` | `SD09` | `IA03` | — | Retain proposal decision/authority owner; correct exact interrupted adoption recovery via tests/daemon.test.ts; tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-208-ACTIVE-RUN-AUTHORITY-EXCLUSION` | `C14-O09`, `C05-O09` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C14-O09`, `C05-O09` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-224-TERMINAL-RESULT-PRIMACY` | `C13-O04`, `DIRECT-FR224` | `MIXED_TECHNICAL_DELTA` | `SD01`, `SD27` | `IA19`, `IA33` | — | Reached Complete only; exact outcome-owned result and qualifying execution proof, exact bytes in Evidence. Required proof: owning IA and P3 §23 allocation in 13-verification-closeout.md. |
 | `GW-FR-238-PROPOSAL-CANCEL-CLOSURE` | `C14-O05`, `C14-O06` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C14-O05`, `C14-O06` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
@@ -880,6 +882,8 @@ Package atoms in phase: **0**.
 C13/C14 domain semantics remain stable. Complete and Evidence residuals and proof are owned by SD27/IA33 under PL-C19-02. Complete is one attention-free Terminal-result composition: canonical product-facing outcome/status, substantive result/evidence/resources and permitted linked-remediation action without duplicate outcome/attention copy or architecture/container terminology. Evidence is one attention-free primary inspection composition and replaces rather than nests inside the owning workflow material. WorkItem technical Context is no longer deferred to IA33: SD21/IA27 establishes the singular selection-aware Context inspection owner and the one-primary-composition router before document/productive/review/execution consumers migrate. This phase consumes those owners and does not preserve the current feature-card/layout implementation as a baseline.
 
 ##### Referenced actions
+
+- **IA03** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 
 Action mutation/disposition semantics are owned only by `12-action-catalog.md`; the bullets below are dependency/traceability references, not alternate IA definitions.
 
@@ -1100,7 +1104,7 @@ This is a trace/readability view of the one canonical `order-tasks` block in the
 
 | Task | DESIGN / IA ownership | Depends on | Primary implementation owner | Mandatory removal/replacement evidence | Closure evidence |
 |---|---|---|---|---|---|
-| T1 | SD01-SD30; IA01-IA34 | — | one cumulative 40-path 0.6.0 candidate; internal waves below own ordered mutation/proof responsibilities | F6B retained closed APIs and required absence; exact residuals and complete consumer proof; operator-accepted foundation retained within scope | final V0-V7 + SD16-SD18/SD29 certification + IA26/SD30 exact-candidate 37-SURF and component-architecture acceptance |
+| T1 | SD01-SD30; IA01-IA34 | — | one cumulative 41-path 0.6.0 candidate; internal waves below own ordered mutation/proof responsibilities | F6B retained closed APIs and required absence; exact residuals and complete consumer proof; operator-accepted foundation retained within scope | final V0-V7 + SD16-SD18/SD29 certification + IA26/SD30 exact-candidate 37-SURF and component-architecture acceptance |
 
 **Audit rule:** T1 is the only P6 ExecutionTask. Wave/IA ordering below is internal implementation sequencing and never relies on candidate-byte promotion between tasks. A later phase discovering a foundation defect returns to IA27/DESIGN rather than patching around it; T1 cannot close until every owned phase obligation and final candidate proof is satisfied.
 
@@ -1140,9 +1144,9 @@ Phase ownership is unchanged. Breaking APIs are not forecast; a disproven retain
 
 **Solution:** SD09.  
 **Anchors:** `src/core/contracts.ts` proposal/ArtifactRef contracts; `src/core/governance.ts`; `src/daemon/stage.ts::proposalDisposition/proposalAdoptionRequest/adoptArtifactProposal/reconcilePendingArtifactProposals`; `src/daemon/authority.ts`.  
-**Required mutation/proof disposition:** Proof-only: retain existing exact target/layer/base-hash proposal/adoption and re-resolution.  
+**Required mutation/proof disposition:** Retain exact target/layer admission and human intent. In daemon/stage.ts enforce base before first adoption request, but let exact durable ADOPTION_IN_PROGRESS reconcile already-applied bytes via the existing shell owner; revalidate current authority/decision. In src/shell/repository.ts verify exact one target on both branches; reverse into isolated scratch, verify reconstructed base hash/absence, forward replay and exact observed current bytes, recheck live target, remove scratch; no live patch on already-applied branch or unrelated drift acceptance. Retain existing effect/disposition transaction and no new state.  
 **Forbidden:** stage-specific proposal DTOs/direct provider writes/second decision store.  
-**Proof:** core/daemon wrong-layer/path/hash/stale/adoption/freshness cases.
+**Proof:** core/daemon wrong-layer/path/hash/stale/adoption/freshness cases; intent-before-effect interruption, effect-before-disposition GOVERNANCE interruption at R2/DESIGN, reverse-applicable unrelated target drift, new-file/modified-file recovery, no intent, changed owner and idempotent exact disposition. Test existing shell mechanic via daemon integration; no new test file.
 
 ##### IA04 — durable-decision completion admission
 
@@ -1248,11 +1252,11 @@ Phase ownership is unchanged. Breaking APIs are not forecast; a disproven retain
 
 **Solution:** SD11.  
 **Anchor:** `ui/src/ReadinessWorkspace.tsx::ReadinessWorkspace` plus existing presentation helper.  
-**Required mutation/proof disposition:** Proof-only for typed R3 verdict; IA14/IA31 own current attention. Verify ready/return/blocked/stale.  
+**Required mutation/proof disposition:** In existing pure lifecycle/presentation and ReadinessWorkspace owners bind selected exact COMPLETED R3 Run to same-Run later CONFORMANCE_PASSED with matching contextHash and output id, then exact ArtifactRef bytes. No raw provider completion or latest-role fallback as verdict. Current readiness additionally requires package coherence; historical verdict stays historical. Missing/mismatched proof uses typed state/error; preserve full admitted findings, not heuristic omission. IA14/IA31 own attention/composition.  
 
-**SD11 closure:** latest applicable typed R3 outcome through existing pure presentation helper. Distinguish no Run, processing, required input, returned owner, failure/cancel/block/stale/history. Verify actual R3 schema/template findings without heuristic omission, separate currentness, automatic READY_FOR_SIGNOFF→AWAITING_SIGNOFF. IA31 owns Review composition.
+**SD11 closure:** exact selected coordinator-conformed typed R3 outcome through existing pure lifecycle/presentation selection, shared conformance join with SD27 but no R1 policy imported. Distinguish no Run, processing, required input, returned owner, failure/cancel/block/stale/history. Verify actual R3 schema/template findings without heuristic omission, separate currentness, automatic READY_FOR_SIGNOFF→AWAITING_SIGNOFF. IA31 owns Review composition.
 
-**Proof:** READY_FOR_SIGNOFF/RETURN_TO_*/BLOCKED + stale material cases.
+**Proof:** READY_FOR_SIGNOFF/RETURN_TO_*/BLOCKED + stale material, raw READY event followed by CONFORMANCE_FAILED and BLOCKED Run, competing same-role output, mismatched/missing conformance, exact historical verdict and complete findings. No change to R3 judgment or sign-off command.
 
 ##### IA17 — Approval readiness/currentness hierarchy
 
@@ -1610,7 +1614,6 @@ IA27/IA28 prove existing shell/Context/ResourceList and exact residuals; later p
 Phase-local rendered proof remains bounded to each IA's owned SURF rows plus shared invariants exercised there. After all owning phases, IA20/IA26 prove the global component API/consumer/SoC matrix, no local substitute semantic grammar, no nested/synthetic primary composition, and the complete 37-SURF union.
 
 ##### Requirement-level proof law
-##### Requirement-level proof law
 
 For every stable requirement row in phases 01-11:
 
@@ -1686,7 +1689,7 @@ SD20 exact-pin OpenCode proof is a mandatory IA23 precondition to IA26 and IA24:
 
 ###### Pre-Approval structural-sensor correction
 
-The permanent package sensor is protected pre-signoff material. It validates exact 40-path DESIGN/T1 scope and forecast, exclusions, existing closed API proof and required absence, authority/Approval integration paths, 37 SURF, 46 scenarios, single catalog and compiled blob identity.
+The permanent package sensor is protected pre-signoff material. It validates exact 41-path DESIGN/T1 scope and forecast, exclusions, existing closed API proof and required absence, authority/Approval integration paths, 37 SURF, 46 scenarios, single catalog and compiled blob identity.
 
 This sensor correction is campaign/package fitness only: `tests/architecture.test.ts` remains outside signed implementation tasks. Re-run architecture and root/modular compilation checks on the corrected package before G5 may return to PASS.
 
@@ -1769,7 +1772,7 @@ V4/V5/V6 explicitly verify:
 - all 112 stable rows retain their exact current R1 evidence and DESIGN disposition;
 - all 27 package-local atoms, including `PL-C12-02`, are satisfied by their one implementation or DESIGN-positive-reuse proof owner;
 - every `POSITIVE_NO_CHANGE` and DESIGN-positive-reuse obligation remains true;
-- T1 retains exact 40-path forecast and protected exclusions; no obsolete component recreation;
+- T1 retains exact 41-path forecast and protected exclusions; no obsolete component recreation;
 - every actual changed path is inside signed `scope`, outside exclusions/protected material, and either forecast or positively proven as minimum same-layer responsibility-preserving variance;
 - forecast variance changes no semantic owner, public contract, state meaning, effect boundary, dependency direction/external dependency, validation contract or authorized behavior;
 - current-v2 task non-vacuity is enforced without changing published v1 task semantics or creating a second task schema/parser/review owner;
