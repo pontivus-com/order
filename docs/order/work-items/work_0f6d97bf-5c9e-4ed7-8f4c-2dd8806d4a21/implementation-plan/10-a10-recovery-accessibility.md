@@ -48,3 +48,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 ## Realization trace consequence
 
 IA14 owns reason/action through historical/supporting/transient selection, IA31 decision-local feedback, IA32 execution recovery, IA15 focus. Prove rejection, no competing action, focus/return and viewport continuity.
+
+### A09 installation-recovery dependency
+
+Consume SD19/F7 and IA25 as the sole installation transaction owner. A10 re-audit must challenge historical ambiguity, partial predecessor migration/application/launcher/service activation, every pre-commit rollback and post-commit finalization failure, then verify the same invocation-local classification is used on retry and reporting. Do not reinterpret installation recovery as WorkItem lifecycle recovery or add a second recovery owner. IA25 owns its behavioral oracle; A10 verifies the cross-domain consequence and may not pass while the upstream installer boundary is unresolved.

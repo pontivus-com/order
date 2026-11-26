@@ -57,3 +57,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 ## Realization trace consequence
 
 IA20/21/22/23/26 consume complete P3 §23 allocation in closeout and 37 DESIGN datum/action contracts. Phase-local and final proof are independent. Fixture/reference maintenance is SD30 verification only.
+
+### A09/A10 installation certification dependency
+
+IA25 owns the executable transaction matrix and actual-orchestrator evidence; A11 verifies complete allocation and exact candidate results alongside IA23 integrated proof. Helper-level and structural assertions alone cannot discharge transaction fault-injection cases. No separate installation certification framework or new proof-only production policy.

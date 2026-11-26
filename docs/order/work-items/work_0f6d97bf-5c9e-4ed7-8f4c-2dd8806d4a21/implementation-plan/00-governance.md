@@ -6,16 +6,16 @@ This decomposition is revalidated under C19-F09/C20-F11 after the prior G4-G6 cl
 
 ## Exact upstream package
 
-- R1 `research.md`: `027066ef6532232a7707014a223b64eb4d361e15`.
-- R2 `requirements.md`: `8ad3bbbd2f80f1aa8cde3909a63038c88c29644f`.
-- DESIGN `solution-design.md`: `d2695a048829758cf289c02d4e4bdd11725de4ee` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 43-path forecast.
-- Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `9c2ec83a9552b7583f90e91080c014df4d6870df`.
+- R1 `research.md`: `fafee0a2a5a92ca748dc9aa8bbfdfc1f5e0b3e47`.
+- R2 `requirements.md`: `6cc73485af7eb1f3801d98c81dc1912ba0df7fb5`.
+- DESIGN `solution-design.md`: `6b0eec662f3508f3f6559ca02eae1f54df1d3f06` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 43-path forecast.
+- Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `d7a967431a34bea96729ff7d955f7fb537986ce1`.
 - P3 `GW-DOC-WORKBENCH-UX-V2`: `64184232833b59a9e6db5e1a28b841f48b3217cd` — §11.4A/§12/§13/§14 own semantic information classes, state-is-not-interface behavior, direct primary interaction composition, no generic workflow-material selector, continuous Dialogue semantics, Terminal-result primacy, singular technical inspection, task anatomy and composition invariants.
 - P3 `GW-DOC-MARKDOWN-WORKBENCH-V1`: `da89bd08e4f78f353d7b3062758e9d78e21375b2` — §17.4 owns one compact Markdown editor-control region, overflow-before-wrap formatting and control→canvas adjacency.
 - P4 `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`: `8fccbe031436a9eb54da8ae493b614e94cc957b1` — sole permanent owner of structural + semantic Workbench component responsibilities/APIs, consumer boundaries, composition laws and remediation disposition semantics.
 - P4 `GW-DOC-WORKBENCH-THEME-V1`: `03dfc6be3600a1128b5639d011f4c0159d3497dd` — owns the corrected semantic-disclosure, technical-inspection and task-panel visual roles.
-- P4 `GW-DOC-TECHNICAL-ARCHITECTURE-V2`: `12a47df7837002cb445d084b3b4a2faa00f1997d` — canonical installer/readiness and technical ownership.
-- P6 `GW-DOC-CANONICAL-CONTRACTS-V2`: `bc06069c03751bbf00ac731d344b31dd4e8de75a`.
+- P4 `GW-DOC-TECHNICAL-ARCHITECTURE-V2`: `6519090ad408b63ecbe846b37b4d5fd4a82fa90a` — canonical installer/readiness and technical ownership.
+- P6 `GW-DOC-CANONICAL-CONTRACTS-V2`: `7bb3af47c739215b79c62e7509e1774c51155dd4`.
 - SD13 checkpoint and SD10 scope/forecast/V4-V6 realization are consumed only because current DESIGN positively proves those canonical capabilities; T1 does not reimplement them.
 
 ## Traceability law
@@ -39,7 +39,7 @@ A positive no-change or baseline-reuse disposition is an implementation instruct
 
 This PLAN carries no implementation authority by itself. Current campaign gate state, bounded authorization and sign-off are owned only by campaign §17A/§18. These bytes define the executable P7 specification only once G5 and G5A/R3 are closed; production execution still requires explicit sign-off. The registers alone establish the required gates and explicit authorization; any bounded pre-sign-off grant must bind the exact current P4/DESIGN/PLAN package.
 
-Retain existing closed P4/F6B APIs and the operator-accepted foundation within evidenced scope. IA27/IA28 own revalidation, IA29/IA31/IA30 exact residuals, IA32/IA33/IA34 remaining semantic/proof obligations. The catalog alone owns mutation definitions.
+Retain proven closed P4/F6B APIs and semantic owner responsibilities only; correct rejected physical shell realization within scope. IA27/IA28 own revalidation, IA29/IA31/IA30 exact residuals, IA32/IA33/IA34 remaining semantic/proof obligations. The catalog alone owns mutation definitions.
 
 ## Signed scope and forecast law
 
@@ -55,7 +55,7 @@ Published change-v1/defect-v1 semantics remain unchanged. SD10 reuses existing v
 
 ## Workbench presentation realization law
 
-Current authority and SD21/F6B define the target. Retain existing closed APIs, required absence and the explicit foundation milestone only within proved scope. All 37 SURF and 46 scenarios remain in verification. IA27–IA34 consume the catalog and correct only forecast residuals; a disproven retained owner returns upstream. No new component or compatibility path is authorized. Optional bounded evidence is separate after current R3 and exact grant; ordinary signed execution follows sign-off.
+Current authority and SD21/F6B define the target. Retain existing closed APIs and required absence within proved scope; the foundation milestone establishes only evidenced semantic responsibility, not acceptance of rejected physical Toolbar/Identity realization. IA27/IA28 correct the latter via the catalog and scoped owners; excluded owners return upstream. All 37 SURF and 46 scenarios remain in verification. IA27–IA34 consume the catalog and correct only forecast residuals; a disproven retained owner returns upstream. No new component or compatibility path is authorized. Optional bounded evidence is separate after current R3 and exact grant; ordinary signed execution follows sign-off.
 
 ## Information visibility / disclosure execution law
 
