@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Bind current-v2 lifecycle context and conformance to exact upstream and producing-output authority declarations, including structured R2/PLAN refs, and require a fresh productive turn when newly declared material changes the context (IA02).
+
 - Begin IA02 productive-context integration: resolve additive current-v2 stage declarations and their transitive dependencies in canonical precedence order, with exact pinned-header parsing and retained-v1 isolation.
 
 - Add strict optional project stage-authority declarations and exact reference-dependency closure in the existing pure governance resolver (IA01); productive stage integration remains IA02.

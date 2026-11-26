@@ -54,6 +54,7 @@ import {
 import {
   stageTemplateForSchema,
   stageDocumentAuthorityRefs,
+  authorityDispositionOwnerRefs,
   workItemDocumentPath,
 } from "../core/work-item-source.ts";
 import {
@@ -342,11 +343,49 @@ const stageTemplateAuthorityRefs = (
   return required;
 };
 
+const stageArtifactAuthorityRefs = (
+  workItem: WorkItem,
+  manifest: ProjectManifest,
+  artifact: ArtifactRef,
+): readonly AuthorityRef[] => {
+  const role = artifact.role;
+  if (role !== "R1" && role !== "R2" && role !== "DESIGN" && role !== "PLAN" && role !== "R3") {
+    throw new TypeError("authority declarations require a lifecycle output");
+  }
+  if (
+    artifact.workItemId !== workItem.id ||
+    artifact.repositoryPath !== workItemDocumentPath(manifest.workItems.root, workItem.id, role)
+  ) {
+    throw new TypeError("authority declarations require the exact canonical WorkItem output");
+  }
+  const bytes = readWorkingTreeFile(workItem.repositoryRoot, artifact.repositoryPath);
+  if (sha256(bytes) !== artifact.sha256) {
+    throw new TypeError("authority declaration output bytes are stale");
+  }
+  const markdown = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  return [
+    ...stageDocumentAuthorityRefs(workItem.schemaId, role, markdown),
+    ...authorityDispositionOwnerRefs(workItem.schemaId, role, markdown),
+    ...(role === "PLAN"
+      ? parseSignedTaskBlockFromPlan(bytes).tasks.flatMap((task) => [
+          ...task.acceptanceRefs, ...task.authorityRefs,
+        ])
+      : []),
+  ];
+};
+
 const explicitUpstreamAuthorityRefs = (
   workItem: WorkItem,
+  manifest: ProjectManifest,
   authority: ResolvedProjectAuthority,
   upstreamArtifacts: readonly ArtifactRef[],
 ): readonly AuthorityRef[] => {
+  if (workItem.schemaId.endsWith("-v2")) {
+    return upstreamArtifacts.flatMap((artifact) =>
+      stageArtifactAuthorityRefs(workItem, manifest, artifact)
+    );
+  }
+  // Retained v1 pins keep their published historical selection policy.
   const bodies = upstreamArtifacts.map((artifact) =>
     new TextDecoder().decode(
       readWorkingTreeFile(workItem.repositoryRoot, artifact.repositoryPath),
@@ -365,6 +404,7 @@ const applicableAuthorityPaths = async (
   manifest: ProjectManifest,
   authority: ResolvedProjectAuthority,
   upstreamArtifacts: readonly ArtifactRef[],
+  producingOutput: ArtifactRef | null,
 ): Promise<Readonly<{
   resolved: readonly Readonly<{
     path: RepositoryPath;
@@ -373,10 +413,16 @@ const applicableAuthorityPaths = async (
   concernOnly: readonly RepositoryPath[];
 }>> => {
   const currentV2 = workItem.schemaId.endsWith("-v2");
+  if (currentV2 && producingOutput !== null && producingOutput.role !== stage) {
+    throw new TypeError("producing output does not belong to the current stage");
+  }
   const applicableRefs = new Set<AuthorityRef>([
     ...stageTemplateAuthorityRefs(workItem, stage, authority),
     ...(currentV2 ? manifest.stageAuthorityRefs[stage] ?? [] : []),
-    ...explicitUpstreamAuthorityRefs(workItem, authority, upstreamArtifacts),
+    ...explicitUpstreamAuthorityRefs(workItem, manifest, authority, upstreamArtifacts),
+    ...(currentV2 && producingOutput !== null
+      ? stageArtifactAuthorityRefs(workItem, manifest, producingOutput)
+      : []),
     ...authority.overrides.map((rule) => rule.authorityRef),
     ...authority.extensions.map((rule) => rule.authorityRef),
   ]);
@@ -408,6 +454,12 @@ const applicableAuthorityPaths = async (
     workItem.concernIds,
   );
   concernPaths.forEach((path) => applicablePaths.add(path));
+  if (
+    currentV2 &&
+    applicablePaths.has(workItemDocumentPath(manifest.workItems.root, workItem.id, stage))
+  ) {
+    throw new TypeError("producing lifecycle output cannot be its own governing dependency");
+  }
 
   const resolved: Array<Readonly<{
     path: RepositoryPath;
@@ -494,37 +546,29 @@ const latestRunCandidateArtifacts = (
   runtime: CoordinatorRuntime,
   workItemId: WorkItemId,
   role: LifecycleRole,
+  includePriorDrafts: boolean,
 ): readonly ArtifactRef[] => {
   const runs = listRuns(runtime, workItemId)
     .filter((run) => run.role === "STAGE" && run.stage === role)
     .reverse();
-  const latest = runs[0];
-  if (latest !== undefined) {
-    const events = listRunEvents(runtime, latest.id);
-
+  for (const [index, run] of runs.entries()) {
+    const events = listRunEvents(runtime, run.id);
     const conformance = events.findLast((event) =>
-      event.event.tag === "CONFORMANCE_PASSED" &&
-      event.event.stage === role
+      event.event.tag === "CONFORMANCE_PASSED" && event.event.stage === role
     );
     if (conformance?.event.tag === "CONFORMANCE_PASSED") {
-      const artifacts = artifactsForIds(
-        runtime,
-        conformance.event.outputArtifactRefIds,
-        role,
-      );
+      const artifacts = artifactsForIds(runtime, conformance.event.outputArtifactRefIds, role);
       if (artifacts.length > 0) return artifacts;
     }
 
+    // A current-v2 R1–PLAN draft can survive a context-freshness return.
+    // It remains a draft, never higher authority or downstream conformance.
+    if (index !== 0 && !includePriorDrafts) continue;
     const completion = events.findLast((event) =>
-      event.event.tag === "STAGE_COMPLETED" &&
-      event.event.completion.stage === role
+      event.event.tag === "STAGE_COMPLETED" && event.event.completion.stage === role
     );
     if (completion?.event.tag === "STAGE_COMPLETED") {
-      const artifacts = artifactsForIds(
-        runtime,
-        completion.event.artifactRefIds,
-        role,
-      );
+      const artifacts = artifactsForIds(runtime, completion.event.artifactRefIds, role);
       if (artifacts.length > 0) return artifacts;
     }
 
@@ -537,26 +581,10 @@ const latestRunCandidateArtifacts = (
       .flatMap((event) =>
         event.event.tag === "ARTIFACT_PROPOSAL_DISPOSITIONED" &&
         event.event.adoptedArtifactRefId !== null
-          ? [event.event.adoptedArtifactRefId]
-          : [])
+          ? [event.event.adoptedArtifactRefId] : [])
       .map((id) => getArtifact(runtime, id))
       .filter((artifact) => artifact.role === role);
     if (adopted.length > 0) return deduplicateArtifacts(adopted);
-  }
-
-  for (const run of runs) {
-    const conformance = listRunEvents(runtime, run.id)
-      .findLast((event) =>
-        event.event.tag === "CONFORMANCE_PASSED" &&
-        event.event.stage === role
-      );
-    if (conformance?.event.tag !== "CONFORMANCE_PASSED") continue;
-    const artifacts = artifactsForIds(
-      runtime,
-      conformance.event.outputArtifactRefIds,
-      role,
-    );
-    if (artifacts.length > 0) return artifacts;
   }
   return [];
 };
@@ -566,7 +594,9 @@ export const currentStageCompletionArtifacts = (
   workItem: WorkItem,
   stage: PreSignoffStage,
 ): readonly ArtifactRef[] => {
-  const candidates = latestRunCandidateArtifacts(runtime, workItem.id, stage);
+  const candidates = latestRunCandidateArtifacts(
+    runtime, workItem.id, stage, workItem.schemaId.endsWith("-v2") && stage !== "R3",
+  );
   return deduplicateArtifacts(
     candidates.flatMap((candidate) => {
       if (!candidate.repositoryPath.endsWith(".md")) return [];
@@ -584,9 +614,12 @@ export const currentStageDraftArtifacts = async (
   runtime: CoordinatorRuntime,
   workItem: WorkItem,
   stage: PreSignoffStage,
+  materializeArtifacts = true,
 ): Promise<readonly ArtifactRef[]> => {
   if (stage === "R3") return [];
-  const candidates = latestRunCandidateArtifacts(runtime, workItem.id, stage);
+  const candidates = latestRunCandidateArtifacts(
+    runtime, workItem.id, stage, workItem.schemaId.endsWith("-v2") && stage !== "R3",
+  );
   const semantic = new Map<string, ArtifactRef>();
   for (const candidate of candidates) {
     if (
@@ -606,13 +639,13 @@ export const currentStageDraftArtifacts = async (
   const drafts: ArtifactRef[] = [];
   for (const candidate of semantic.values()) {
     try {
-      drafts.push(await currentFileArtifact(
-        runtime,
-        workItem,
-        candidate.repositoryPath,
-        candidate.role,
-        candidate.authorityLayer,
-      ));
+      drafts.push(materializeArtifacts
+        ? await currentFileArtifact(
+            runtime, workItem, candidate.repositoryPath, candidate.role, candidate.authorityLayer,
+          )
+        : await inspectCurrentFileArtifact(
+            workItem, candidate.repositoryPath, candidate.role, candidate.authorityLayer,
+          ));
     } catch {
       // Missing/non-regular historical outputs have no current draft to review.
     }
@@ -666,11 +699,47 @@ export const currentLifecycleArtifacts = async (
   });
 };
 
+const currentProducingStageArtifact = async (
+  runtime: CoordinatorRuntime,
+  workItem: WorkItem,
+  manifest: ProjectManifest,
+  stage: PreSignoffStage,
+): Promise<ArtifactRef | null> => {
+  if (stage === "R3") {
+    // A fresh independent R3 never imports a failed or historical R3 output.
+    // Only the active review's own adopted draft can seed its next turn.
+    const active = [...listRuns(runtime, workItem.id)].reverse().find((run) =>
+      run.role === "STAGE" && run.stage === "R3" &&
+      (run.status === "RUNNING" || run.status === "WAITING_FOR_INPUT")
+    );
+    if (active === undefined) return null;
+    const adopted = listRunEvents(runtime, active.id).findLast((event) =>
+      event.event.tag === "ARTIFACT_PROPOSAL_DISPOSITIONED" &&
+      event.event.disposition === "ADOPTED" &&
+      event.event.adoptedArtifactRefId !== null &&
+      getArtifact(runtime, event.event.adoptedArtifactRefId).role === "R3"
+    );
+    if (adopted?.event.tag !== "ARTIFACT_PROPOSAL_DISPOSITIONED" ||
+        adopted.event.adoptedArtifactRefId === null) return null;
+    const candidate = getArtifact(runtime, adopted.event.adoptedArtifactRefId);
+    return persistedCurrentArtifactSnapshot(runtime, workItem, candidate);
+  }
+
+  const expected = workItemDocumentPath(manifest.workItems.root, workItem.id, stage);
+  const selected = deduplicateArtifacts([
+    ...currentStageCompletionArtifacts(runtime, workItem, stage),
+    ...await currentStageDraftArtifacts(runtime, workItem, stage, false),
+  ].filter((artifact) => artifact.repositoryPath === expected));
+  if (selected.length > 1) throw new TypeError("ambiguous current producing-stage output");
+  return selected[0] ?? null;
+};
+
 export const resolveStageContextState = async (
   runtime: CoordinatorRuntime,
   workItem: WorkItem,
   stage: PreSignoffStage,
   materializeArtifacts = true,
+  producingOutput?: ArtifactRef | null,
 ): Promise<StageContextResolution> => {
   const validated = await revalidateWorkItemSource(runtime, workItem.id);
   workItem = validated.workItem;
@@ -708,6 +777,11 @@ export const resolveStageContextState = async (
     manifest,
     authority,
     priorOutputs,
+    workItem.schemaId.endsWith("-v2")
+      ? producingOutput === undefined
+        ? await currentProducingStageArtifact(runtime, workItem, manifest, stage)
+        : producingOutput
+      : null,
   );
   const materialAuthority = projectAuthorityForSources(
     authority,
@@ -765,49 +839,50 @@ export const resolveStageConformanceState = async (
   stage: PreSignoffStage,
   materializeArtifacts = true,
 ): Promise<StageConformanceResolution> => {
-  const state = await resolveStageContextState(
-    runtime,
-    workItem,
-    stage,
-    materializeArtifacts,
-  );
-  if (state.staleStage !== null) {
-    return { context: state.context, outputs: [], staleStage: state.staleStage };
-  }
-
   const latestRun = [...listRuns(runtime, workItem.id)]
     .reverse()
     .find((run) => run.role === "STAGE" && run.stage === stage);
-  if (latestRun === undefined) {
-    return { context: state.context, outputs: [], staleStage: stage };
-  }
-
-  const conformance = listRunEvents(runtime, latestRun.id)
-    .findLast((event) =>
-      event.event.tag === "CONFORMANCE_PASSED" &&
-      event.event.stage === stage
-    );
-  if (
-    conformance === undefined ||
-    conformance.event.tag !== "CONFORMANCE_PASSED" ||
-    conformance.event.contextHash !== state.context.contextHash
-  ) {
-    return { context: state.context, outputs: [], staleStage: stage };
-  }
-
-  const outputs = conformance.event.outputArtifactRefIds.map((id) =>
-    getArtifact(runtime, id)
+  const conformance = latestRun === undefined
+    ? undefined
+    : listRunEvents(runtime, latestRun.id).findLast((event) =>
+        event.event.tag === "CONFORMANCE_PASSED" && event.event.stage === stage
+      );
+  const outputs = conformance?.event.tag === "CONFORMANCE_PASSED"
+    ? conformance.event.outputArtifactRefIds.map((id) => getArtifact(runtime, id))
+    : [];
+  const currentV2 = workItem.schemaId.endsWith("-v2");
+  const outputBytesCurrent = outputs.every((artifact) =>
+    artifact.workItemId === workItem.id &&
+    artifact.role === artifactRoleForStage(stage) &&
+    currentArtifactBytesMatch(workItem, artifact)
   );
+  const exactOutput = currentV2 && latestRun?.status === "COMPLETED" &&
+      outputs.length === 1 && outputBytesCurrent
+    ? outputs[0] ?? null : null;
+
+  let state: StageContextResolution;
+  try {
+    state = await resolveStageContextState(runtime, workItem, stage, materializeArtifacts, exactOutput);
+  } catch (error) {
+    if (exactOutput === null) throw error;
+    // Invalid declarations cannot seed a downstream stage. Re-resolve only
+    // the governing context without the rejected output and return its owner.
+    const withoutOutput = await resolveStageContextState(runtime, workItem, stage, materializeArtifacts, null);
+    return {
+      context: withoutOutput.context, outputs: [],
+      staleStage: withoutOutput.staleStage ?? stage,
+    };
+  }
+  if (state.staleStage !== null) {
+    return { context: state.context, outputs: [], staleStage: state.staleStage };
+  }
   if (
-    outputs.some((artifact) =>
-      artifact.workItemId !== workItem.id ||
-      artifact.role !== artifactRoleForStage(stage) ||
-      !currentArtifactBytesMatch(workItem, artifact)
-    )
+    conformance?.event.tag !== "CONFORMANCE_PASSED" ||
+    conformance.event.contextHash !== state.context.contextHash ||
+    !outputBytesCurrent || (currentV2 && exactOutput === null)
   ) {
     return { context: state.context, outputs: [], staleStage: stage };
   }
-
   return { context: state.context, outputs, staleStage: null };
 };
 
@@ -1048,6 +1123,7 @@ const currentApprovalMaterialSet = async (
     workItem,
     "R3",
     false,
+    currentArtifactBytesMatch(workItem, closure.r3) ? closure.r3 : null,
   );
   const current: ArtifactRef[] = [
     ...expandLifecycleMaterialDependencies(

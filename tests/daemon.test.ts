@@ -295,6 +295,14 @@ const fixturePlan = `# fixture plan
 \`\`\`
 `;
 
+const currentV2StageFixture = (stage: "R1" | "R2" | "DESIGN" | "PLAN" | "R3"): string => {
+  const template = stageTemplateForSchema("change-v2", stage);
+  if (template === null) throw new TypeError("missing current-v2 stage template");
+  return stage === "R2"
+    ? template.replace("|  |  |  |", "| Fixture requirement | LOCAL | — |")
+    : template;
+};
+
 const currentV2PlanTemplate = stageTemplateForSchema("change-v2", "PLAN");
 if (currentV2PlanTemplate === null) {
   throw new TypeError("missing current-v2 PLAN template");
@@ -748,11 +756,18 @@ const seedSignoffScript = (
     repositoryRoot,
     createdSource.path,
   );
-  ${planMarkdown === null
-    ? ""
-    : `await Bun.write(repositoryRoot + "/docs/plan.md", ${JSON.stringify(planMarkdown)});`}
+  const stagePaths = ${schemaId === "change-v2"
+    ? `Object.fromEntries(["R1", "R2", "DESIGN", "PLAN", "R3"].map((stage) => [stage, sourceCore.workItemDocumentPath("docs/order/work-items", work, stage)]))`
+    : JSON.stringify({ R1: "docs/r1.md", R2: "docs/r2.md", DESIGN: "docs/design.md", PLAN: "docs/plan.md", R3: "docs/r3.md" })};
+  ${schemaId === "change-v2"
+    ? `for (const [stage, markdown] of Object.entries(${JSON.stringify({
+        R1: currentV2StageFixture("R1"), R2: currentV2StageFixture("R2"),
+        DESIGN: currentV2StageFixture("DESIGN"), PLAN: planMarkdown ?? vacuousCurrentV2Plan,
+        R3: currentV2StageFixture("R3"),
+      })})) await Bun.write(repositoryRoot + "/" + stagePaths[stage], markdown);`
+    : planMarkdown === null ? "" : `await Bun.write(repositoryRoot + "/docs/plan.md", ${JSON.stringify(planMarkdown)});`}
   for (const argv of [
-    ["git", "add", "--", createdSource.path${planMarkdown === null ? "" : ', "docs/plan.md"'}],
+    ["git", "add", "--", createdSource.path${schemaId === "change-v2" ? ", ...Object.values(stagePaths)" : planMarkdown === null ? "" : ', "docs/plan.md"'}],
     ["git", "commit", "-qm", "seed WorkItem source"],
   ]) {
     const result = Bun.spawnSync(argv, {
@@ -787,15 +802,17 @@ const seedSignoffScript = (
 
   const seedWorkItem = coord.getWorkItem(runtime, work);
   const outputs = {
-    R1: await authority.currentFileArtifact(runtime, seedWorkItem, "docs/r1.md", "R1", "P1"),
-    R2: await authority.currentFileArtifact(runtime, seedWorkItem, "docs/r2.md", "R2", "P3"),
-    DESIGN: await authority.currentFileArtifact(runtime, seedWorkItem, "docs/design.md", "DESIGN", "P6"),
-    PLAN: await authority.currentFileArtifact(runtime, seedWorkItem, "docs/plan.md", "PLAN", "P7"),
-    R3: await authority.currentFileArtifact(runtime, seedWorkItem, "docs/r3.md", "R3", "P7"),
+    R1: await authority.currentFileArtifact(runtime, seedWorkItem, stagePaths.R1, "R1", "P1"),
+    R2: await authority.currentFileArtifact(runtime, seedWorkItem, stagePaths.R2, "R2", "P3"),
+    DESIGN: await authority.currentFileArtifact(runtime, seedWorkItem, stagePaths.DESIGN, "DESIGN", "P6"),
+    PLAN: await authority.currentFileArtifact(runtime, seedWorkItem, stagePaths.PLAN, "PLAN", "P7"),
+    R3: await authority.currentFileArtifact(runtime, seedWorkItem, stagePaths.R3, "R3", "P7"),
   };
 
   const conform = async (stage, output) => {
-    const context = await authority.resolveStageContext(runtime, seedWorkItem, stage);
+    const state = await authority.resolveStageContextState(runtime, seedWorkItem, stage, true, output);
+    if (state.staleStage !== null) throw new TypeError("fixture upstream context is stale: " + state.staleStage);
+    const context = state.context;
     const run = runStore.insertRun(runtime, {
       id: rt.newRunId(),
       workItemId: work,
@@ -3122,9 +3139,9 @@ describe("daemon control plane", () => {
         PLAN: root + "/implementation-plan.md",
       };
       fs.mkdirSync(path.join(repositoryRoot, root), { recursive: true });
-      fs.writeFileSync(path.join(repositoryRoot, files.R1), "# R1\\n");
-      fs.writeFileSync(path.join(repositoryRoot, files.R2), "# R2\\n");
-      fs.writeFileSync(path.join(repositoryRoot, files.DESIGN), "# DESIGN\\n");
+      fs.writeFileSync(path.join(repositoryRoot, files.R1), ${JSON.stringify(currentV2StageFixture("R1"))});
+      fs.writeFileSync(path.join(repositoryRoot, files.R2), ${JSON.stringify(currentV2StageFixture("R2"))});
+      fs.writeFileSync(path.join(repositoryRoot, files.DESIGN), ${JSON.stringify(currentV2StageFixture("DESIGN"))});
       fs.writeFileSync(
         path.join(repositoryRoot, files.PLAN),
         ${JSON.stringify(vacuousCurrentV2Plan)},
@@ -3139,7 +3156,9 @@ describe("daemon control plane", () => {
       const repo = await import("./src/shell/repository.ts");
       const baseline = await repo.resolveHeadCommit(repositoryRoot);
       const conform = async (stage, artifact) => {
-        const context = await authority.resolveStageContext(runtime, workItem, stage);
+        const state = await authority.resolveStageContextState(runtime, workItem, stage, true, artifact);
+        if (state.staleStage !== null) throw new TypeError("fixture upstream context is stale: " + state.staleStage);
+        const context = state.context;
         const row = runStore.insertRun(runtime, {
           id: rt.newRunId(),
           workItemId: workItem.id,
@@ -3258,9 +3277,9 @@ describe("daemon control plane", () => {
         R3: root + "/readiness-review.md",
       };
       fs.mkdirSync(path.join(repositoryRoot, root), { recursive: true });
-      fs.writeFileSync(path.join(repositoryRoot, files.R1), "# R1\\n");
-      fs.writeFileSync(path.join(repositoryRoot, files.R2), "# R2\\n");
-      fs.writeFileSync(path.join(repositoryRoot, files.DESIGN), "# DESIGN\\n");
+      fs.writeFileSync(path.join(repositoryRoot, files.R1), ${JSON.stringify(currentV2StageFixture("R1"))});
+      fs.writeFileSync(path.join(repositoryRoot, files.R2), ${JSON.stringify(currentV2StageFixture("R2"))});
+      fs.writeFileSync(path.join(repositoryRoot, files.DESIGN), ${JSON.stringify(currentV2StageFixture("DESIGN"))});
       fs.writeFileSync(
         path.join(repositoryRoot, files.PLAN),
         ${JSON.stringify(vacuousCurrentV2Plan)},
@@ -3280,7 +3299,9 @@ describe("daemon control plane", () => {
       const repo = await import("./src/shell/repository.ts");
       const baseline = await repo.resolveHeadCommit(repositoryRoot);
       const conform = async (stage, artifact) => {
-        const context = await authority.resolveStageContext(runtime, workItem, stage);
+        const state = await authority.resolveStageContextState(runtime, workItem, stage, true, artifact);
+        if (state.staleStage !== null) throw new TypeError("fixture upstream context is stale: " + state.staleStage);
+        const context = state.context;
         const row = runStore.insertRun(runtime, {
           id: rt.newRunId(),
           workItemId: workItem.id,
@@ -5603,6 +5624,87 @@ describe("daemon control plane", () => {
       "docs/work-lifecycle.md",
     ]);
   }, 60_000);
+  it("requires fresh producing context for new exact declarations and excludes prose-only authority", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-producing-authority-");
+    const binary = createFakeOpenCode("stage-bound-r1");
+    for (const name of ["additional", "dependency", "historical"]) {
+      writeFileSync(join(repository, "docs", name + ".md"), "# " + name + "\n");
+    }
+    const manifestPath = join(repository, "pontivus-order.toml");
+    const manifest = readFileSync(manifestPath, "utf8")
+      .replace("p3 = []", 'p3 = ["docs/additional.md", "docs/dependency.md", "docs/historical.md"]')
+      .replace("[refs]\n", '[refs]\nEXTRA = "docs/additional.md"\nDEPENDENCY = "docs/dependency.md"\nHISTORICAL = "docs/historical.md"\n')
+      .replace("[governance.fitness]", '[refDependencies]\nEXTRA = ["DEPENDENCY"]\n\n[governance.fitness]');
+    writeFileSync(manifestPath, manifest);
+    runGit(repository, "add", ".");
+    runGit(repository, "commit", "--amend", "--no-edit");
+    const output = bunEval(`
+      const fs = await import("node:fs");
+      const path = await import("node:path");
+      const sql = await import("./src/shell/sqlite.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const authority = await import("./src/daemon/authority.ts");
+      const source = await import("./src/core/work-item-source.ts");
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const repositoryRoot = ${JSON.stringify(repository)};
+      const runtime = coord.createCoordinatorRuntime(database, ${JSON.stringify(state)}, process.env, {
+        version: 4, model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+        repositoryRoots: [repositoryRoot], referenceRoots: [],
+      });
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture", schemaId: "change-v2", title: "producing authority", concernIds: [],
+      });
+      const work = coord.getWorkItem(runtime, created.id);
+      const outputPath = source.workItemDocumentPath("docs/order/work-items", work.id, "R1");
+      fs.writeFileSync(path.join(repositoryRoot, outputPath),
+        source.stageTemplateForSchema("change-v2", "R1").replace(" -->", ", EXTRA -->") +
+          "\\nHISTORICAL is mentioned only as evidence.\\n");
+      const artifact = await authority.currentFileArtifact(runtime, work, outputPath, "R1", "P1");
+      fs.writeFileSync(path.join(path.dirname(process.env.PONTIVUS_ORDER_OPENCODE_BIN), "binding-id"), artifact.id);
+      const initial = await authority.resolveStageContextState(runtime, work, "R1");
+      const candidate = await authority.resolveStageContextState(runtime, work, "R1", false, artifact);
+      const settle = async () => {
+        const run = await coord.startStageRun(runtime, work.id, "INTERACTIVE");
+        await Promise.all([...runtime.stageTurnTasks.values()].map((task) => task.catch(() => undefined)));
+        return { run: coord.getRun(runtime, run.id), events: coord.listRunEvents(runtime, run.id) };
+      };
+      const first = await settle();
+      const second = await settle();
+      const current = coord.getWorkItem(runtime, work.id);
+      const downstream = await authority.resolveStageContextState(runtime, current, "R2", false);
+      const paths = (context) => context.artifacts.map((item) => item.repositoryPath);
+      console.log(JSON.stringify({
+        initial: paths(initial.context), producing: paths(candidate.context),
+        firstStatus: first.run.status, secondStatus: second.run.status,
+        firstFailed: first.events.some((event) => event.event.tag === "CONFORMANCE_FAILED" &&
+          event.event.summary.includes("stage context changed")),
+        secondConformed: second.events.some((event) => event.event.tag === "CONFORMANCE_PASSED"),
+        stage: current.stage, downstream: paths(downstream.context), outputPath,
+        downstreamStale: downstream.staleStage,
+      }));
+      database.close();
+    `, providerEnvironment(binary, state), 60_000) as {
+      initial: string[]; producing: string[]; firstStatus: string; secondStatus: string;
+      firstFailed: boolean; secondConformed: boolean; stage: string; downstream: string[];
+      outputPath: string; downstreamStale: string | null;
+    };
+    expect(output.initial).not.toContain("docs/additional.md");
+    expect(output.producing).toContain("docs/additional.md");
+    expect(output.producing).toContain("docs/dependency.md");
+    expect(output.producing).not.toContain(output.outputPath);
+    expect(output.producing).not.toContain("docs/historical.md");
+    expect(output.firstStatus).toBe("BLOCKED");
+    expect(output.firstFailed).toBe(true);
+    expect(output.secondStatus).toBe("COMPLETED");
+    expect(output.secondConformed).toBe(true);
+    expect(output.stage).toBe("R2");
+    expect(output.downstreamStale).toBeNull();
+    expect(output.downstream).toContain("docs/additional.md");
+    expect(output.downstream).toContain("docs/dependency.md");
+    expect(output.downstream).not.toContain("docs/historical.md");
+  }, 60_000);
+
   it("blocks before provider use when pinned template authority is unresolved", () => {
     const repository = createRepository();
     const manifestPath = join(repository, "pontivus-order.toml");

@@ -706,6 +706,8 @@ export const validateStageDocumentStructure = (
   markdown: string,
 ): void => {
   const canonicalSchema = WorkItemSchemaIdSchema.parse(schemaId);
+  if (!canonicalSchema.endsWith("-v2")) return;
+  stageDocumentAuthorityRefs(canonicalSchema, stage, markdown);
   if (canonicalSchema !== "change-v2" && canonicalSchema !== "defect-v2") return;
   const template = stageTemplateForSchema(canonicalSchema, stage);
   if (template === null) {
