@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Revalidate the affected R3 installer factual, functional, technical and PLAN pair audits against the exact green-architecture correction; preserve 43 retained evidence bodies. Formal ALIGN remains separate.
+
 - Match the existing installer trace fitness assertions to the strengthened strict-presence and no-publication proof clauses.
 
 - Reconcile the R3 correction's strict config-read and quiescence instructions with the earlier F7 sequence; preserve exact publication identity and pre-effect recovery custody.
