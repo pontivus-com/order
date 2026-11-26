@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Reconcile all 112 DESIGN factual classifications with current R2, retain realized owners, and clarify exact PLAN inspection and execution terminal-cause projection.
+
 - Refine SD02's stage-authority declaration as an optional additive policy over mandatory pinned/concern/source/explicit-reference inputs; retain fail-closed required-reference/dependency resolution without blanket v2 manifest migration or self-authorizing root changes.
 
 - Reconcile current F6B component ownership against actual closed APIs/consumers, preserve the accepted foundation, and identify exact remaining technical residuals. Correct SD02's protected project-manifest activation boundary and expose stale PLAN scope/exclusions for subsequent revalidation.
