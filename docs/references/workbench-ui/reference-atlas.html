@@ -304,10 +304,10 @@ if(["SURF-STEP-EXEC-001","SURF-MAT-EXEC-TASK-001"].includes(surf)){
 const identity=screen.querySelector(".identity");
 if(identity){
   const title=identity.querySelector(".wi-title"),status=identity.querySelector(".status"),buttons=Array.from(identity.querySelectorAll("button"));
-  const primary=document.createElement("div");primary.className="identity-primary";primary.append(title,status);
+  const primary=document.createElement("div");primary.className="identity-primary";const kind=q.get("kind");if(kind&&kind!=="QUEUE")status.textContent=kind.charAt(0)+kind.slice(1).toLowerCase();primary.append(title,status);
   const actions=document.createElement("div");actions.className="identity-actions";
   if(!["SURF-STEP-COMPLETE-001"].includes(surf)){const edit=document.createElement("button");edit.className="link";edit.textContent="Edit title";actions.append(edit);}
-  actions.append(buttons[1]);identity.replaceChildren(buttons[0],primary,actions);
+  actions.append(buttons[1]);const archive=document.createElement("button");archive.className="link";archive.textContent="Archive";actions.append(archive);identity.replaceChildren(buttons[0],primary,actions);
 }
 const rail=screen.querySelector(".rail");
 if(rail){
@@ -326,6 +326,7 @@ if(rail){
   });
 }
 
+if(identity&&rail){const chrome=document.createElement("div");chrome.className="workitem-chrome";identity.before(chrome);chrome.append(identity,rail);}
 document.title=surf+" · "+state+" · Order 0.6.0 reference";
 </script>
 </body>

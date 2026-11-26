@@ -30,7 +30,7 @@
     "runtimeEvidence": false
   },
   "source": "docs/references/workbench-ui/reference-atlas.html",
-  "query": "?surf=<SURF-ID>&state=<declared-state>&theme=light|dark|system&step=<selected-stage>",
+  "query": "?surf=<SURF-ID>&state=<declared-state>&theme=light|dark|system&step=<selected-stage>&kind=<work-item-kind>",
   "viewportClasses": {
     "wide": 1440,
     "narrow": 760
@@ -352,7 +352,7 @@
       "interactionClass": "workitem",
       "source": "reference-atlas.html",
       "selector": "[data-surf=\"SURF-WI-001\"]",
-      "captureScope": "full-workbench",
+      "captureScope": "component-reference",
       "states": [
         "default",
         "current-action",

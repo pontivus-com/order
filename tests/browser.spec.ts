@@ -88,6 +88,25 @@ const huxPriorityCaptureIds = new Set<string>([
   "ia26-implementation-processing-wide-light",
   "ia26-implementation-blocked-wide-light",
   "ia26-implementation-validation-recorded-wide-light",
+  "ia26-settings-repository-move-wide-light",
+  "ia26-settings-opencode-login-failed-wide-light",
+  "ia26-settings-model-narrow-light",
+  "ia26-context-wide-dark",
+  "ia26-evidence-wide-dark",
+  "ia26-confirm-documentation-git-wide-light",
+  "ia26-confirm-repository-disconnect-wide-light",
+  "ia26-confirm-archive-wide-dark",
+  "ia26-confirm-dirty-material-wide-light",
+  "ia26-confirm-dirty-destination-wide-light",
+  "ia26-confirm-opencode-remove-wide-light",
+  "ia26-create-workitem-wide-dark",
+  "ia26-complete-candidate-wide-light",
+  "ia26-complete-investigation-linked-wide-light",
+  "ia26-stage-dialogue-closed-wide-light",
+  "ia26-proposal-review-adopted-wide-light",
+  "ia26-proposal-review-rejected-wide-light",
+  "ia26-proposal-review-adopting-wide-light",
+  "ia26-queue-wide-dark",
 ]);
 const renderedDiagnosticPhases = ["IA34", "IA29", "IA30", "IA31", "IA32", "IA33"] as const;
 type RenderedDiagnosticPhase = typeof renderedDiagnosticPhases[number];
@@ -331,7 +350,8 @@ const resolveRenderedReference = (
     "?surf=" + encodeURIComponent(entry.surface) +
     "&state=" + encodeURIComponent(state) +
     "&theme=" + encodeURIComponent(theme) +
-    "&step=" + encodeURIComponent(entry.workflowStep ?? "");
+    "&step=" + encodeURIComponent(entry.workflowStep ?? "") +
+    "&kind=" + encodeURIComponent(entry.workItemKind);
   return {
     manifestPath: referenceManifestPath,
     sourcePath: referenceAtlasPath,
@@ -505,9 +525,15 @@ const captureRenderedAcceptance = async (
   if (declaredReference === undefined) {
     throw new TypeError("rendered evidence surface is missing from reference manifest: " + entry.surface);
   }
-  const acceptanceTarget = diagnosticCurrentState
-      ? target
-      : declaredReference.captureScope === "full-workbench" ? undefined : target;
+  const shellChromeCapture = entry.surface === "SURF-WI-001" &&
+    !entry.state.includes("attention");
+  const shellAttentionCapture = entry.surface === "SURF-WI-001" &&
+    entry.state.includes("attention");
+  const acceptanceTarget = shellChromeCapture
+      ? page.locator(".order-workbench-chrome")
+      : diagnosticCurrentState || shellAttentionCapture
+        ? target
+        : declaredReference.captureScope === "full-workbench" ? undefined : target;
   if (!diagnosticCurrentState &&
       declaredReference.captureScope === "component-reference" &&
       acceptanceTarget === undefined) {
@@ -528,7 +554,8 @@ const captureRenderedAcceptance = async (
     });
   }
   const captureScope = diagnosticCurrentState
-      ? entry.captureScope ?? (target === undefined ? "full application viewport" : "explicit locator crop")
+      ? entry.captureScope ?? (acceptanceTarget === undefined ? "full application viewport" : "explicit locator crop")
+      : shellAttentionCapture ? "production current-attention region only"
       : declaredReference.captureScope;
   const reference = resolveRenderedReference(entry, captureScope);
   let referenceScreenshot: string | undefined;
@@ -560,7 +587,8 @@ const captureRenderedAcceptance = async (
         scale: "css" as const,
       };
       if (reference.captureScope === "component-reference") {
-        const component = entry.surface === "SURF-MAT-APPROVAL-TASK-001" ? ".review" : ".dialog";
+        const component = entry.surface === "SURF-WI-001" ? ".workitem-chrome"
+          : entry.surface === "SURF-MAT-APPROVAL-TASK-001" ? ".review" : ".dialog";
         await referenceSurface.locator(component).screenshot(options);
       } else {
         await referencePage.screenshot({ ...options, fullPage: false });
