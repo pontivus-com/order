@@ -544,8 +544,8 @@
   width: min(100%, var(--order-review-max-width));
   margin-inline: auto;
   display: grid;
-  gap: var(--spacing-6);
-  padding: var(--spacing-6);
+  gap: var(--spacing-4);
+  padding: var(--spacing-4);
 }
 .order-workbench-review-header {
   min-width: 0;
@@ -598,7 +598,7 @@
 .order-workbench-review-sections {
   min-width: 0;
   display: grid;
-  gap: var(--spacing-6);
+  gap: var(--spacing-4);
 }
 .order-workbench-review-section {
   min-width: 0;
@@ -607,7 +607,7 @@
 }
 .order-workbench-review-section-content { min-width: 0; }
 .order-workbench-review-section-content > .order-workbench-facts {
-  padding-block: var(--spacing-2);
+  padding-block: var(--spacing-1);
 }
 .order-workbench-resource-list {
   border: 1px solid var(--color-border);

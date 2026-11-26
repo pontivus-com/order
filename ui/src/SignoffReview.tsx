@@ -295,7 +295,6 @@ export const SignoffReview = ({
   const documentItems = packageArtifacts.map((artifact) => ({
     id: "artifact:" + artifact.id,
     label: lifecycleArtifactLabel(artifact.role),
-    detail: packageStale ? "Historical governed document" : "Governed package document",
     action: (
       <WorkbenchAction
         label={"View " + lifecycleArtifactLabel(artifact.role)}
