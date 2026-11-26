@@ -42,6 +42,8 @@ No material unresolved specification conflict identified in the independent revi
 
 ## Readiness verdict
 
-`READY_FOR_SIGNOFF`
+`RETURN_TO_DESIGN`
+
+REV-F01–F03 supersede the prior positive verdict at the reviewed baseline: correct the stale DESIGN forecast text, then PLAN HUX phase/global sequencing and bounded predecessor handling. The prior review above is historical evidence; current G4–G6 are reopened. No authorization.
 
 Under GW-DOC-SYSTEMS-GOVERNANCE-PYRAMID-V1, R3/G6 precedes any explicit exact-package bounded IA27/IA28 grant. Current authorization remains NONE. Any such grant is limited to the PLAN-declared tranche and evidence, stops before IA29 and requires explicit operator disposition before normal sign-off. Alternatively normal explicit sign-off governs signed T1 execution where applicable. This verdict is neither a grant nor normal sign-off, nor HUX acceptance, production implementation, merge or release. Full CI completion and execution-time behavioral/rendered proof are separate and must not be inferred. Any material contradiction discovered returns to the exact owner and invalidates readiness as applicable.
