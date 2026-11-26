@@ -948,6 +948,13 @@ export const artifactHasCurrentStageConformance = (
   );
 };
 
+// Task API projects approvals in canonical approvedAt/id order; the last group
+// is the only authority for an active or successfully completed execution.
+export const latestApprovalTasks = (tasks: readonly ExecutionTask[]): readonly ExecutionTask[] => {
+  const approval = tasks.at(-1)?.approvalId;
+  return approval === undefined ? [] : tasks.filter((task) => task.approvalId === approval);
+};
+
 export const deriveExecutionOwner = (
   tasks: readonly ExecutionTask[],
   runs: readonly Run[],
@@ -962,6 +969,7 @@ export const deriveExecutionOwner = (
     .filter(
       (run) =>
         run.executionTaskId !== null &&
+        tasks.some((task) => task.id === run.executionTaskId) &&
         (run.status === "RUNNING" || run.status === "WAITING_FOR_INPUT"),
     )
     .sort((left, right) => right.attempt - left.attempt)
@@ -1196,7 +1204,6 @@ export const deriveObservationCoherence = (
       }
       continue;
     }
-    if (task?.state === "RUNNING") return "CONVERGING";
   }
 
   for (const task of tasks) {

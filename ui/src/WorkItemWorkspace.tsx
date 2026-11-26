@@ -8,6 +8,7 @@ import {
   artifactHasCurrentStageConformance,
   deriveCurrentAttention,
   deriveExecutionOwner,
+  latestApprovalTasks,
   deriveObservationCoherence,
   deriveValidationBoundary,
   deriveProposalDecision,
@@ -24,7 +25,6 @@ import * as api from "./http.ts";
 import { invalidateWorkbenchMutation, workbenchQueryKeys } from "./query-keys.ts";
 import {
   resolveWorkflowMaterial,
-  latestApprovalTasks,
   runIsActive,
   workflowStepState,
   workflowMaterialIdentity,
@@ -289,7 +289,7 @@ export const WorkItemWorkspace = ({
   const currentExecutionTasks = workItem.stage === "EXECUTION" ? latestApprovalTasks(tasks) : [];
   const coherenceTasks =
     workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE"
-      ? tasks
+      ? latestApprovalTasks(tasks)
       : [];
   const runEventQueries = useQueries({
     queries: runs.map((run) => ({

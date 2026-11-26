@@ -3173,6 +3173,16 @@ describe("closed Workbench workflow-state kernel", () => {
         [{ ...executionTask, state: "RUNNING" }],
       ),
     ).toBe("COHERENT");
+    const priorAttempt = baseRun({ id: `run_${uuidC}`, status: "FAILED", terminalClassification: "PROVIDER_FAILURE", endedAt: "2026-11-11T03:30:00.000Z" });
+    const retryAttempt = baseRun({ attempt: 2 });
+    expect(
+      deriveObservationCoherence(
+        executionWorkItem,
+        [priorAttempt, retryAttempt],
+        [],
+        [{ ...executionTask, state: "RUNNING" }],
+      ),
+    ).toBe("COHERENT");
     expect(
       deriveObservationCoherence(
         executionWorkItem,

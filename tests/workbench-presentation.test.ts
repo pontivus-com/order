@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { latestApprovalTasks } from "../src/core/lifecycle.ts";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -16,7 +17,6 @@ import {
 } from "../src/core/contracts.ts";
 import {
   agentActivityRunEvents,
-  latestApprovalTasks,
   verifiedCandidateProofEvents,
   conversationRunEvents,
   pendingProposalForEvents,

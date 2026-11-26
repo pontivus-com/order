@@ -11,6 +11,7 @@ import type {
 } from "../../src/core/contracts.ts";
 import {
   reachStateForStage,
+  latestApprovalTasks,
   type CurrentAttentionTag,
   type ExecutionOwner,
   type StageRunInteraction,
@@ -763,15 +764,8 @@ export const runEventPresentation = (
   return exhaustive;
 };
 
-// Task API projects approvals in canonical approvedAt/id order; the last group
-// is the only authority for an active or successfully completed execution.
-export const latestApprovalTasks = (tasks: readonly ExecutionTask[]): readonly ExecutionTask[] => {
-  const approval = tasks.at(-1)?.approvalId;
-  return approval === undefined ? [] : tasks.filter((task) => task.approvalId === approval);
-};
-
 // Resolve evidence through the durable final candidate record, never by
-// treating all historical execution events as evidence for the final outcome.
+// excluding unrelated historical execution events from final-outcome evidence.
 export const verifiedCandidateProofEvents = (
   tasks: readonly ExecutionTask[],
   runs: readonly Run[],
