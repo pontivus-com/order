@@ -4,7 +4,7 @@
 
 ## Canonical PLAN authority
 
-This root is the single deterministic P7 artifact for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. Its modular directory is the maintainable authoring decomposition, not independent executable authority. This synchronized candidate binds R1 `25004c458a188b130b2a479688e6322c537baefe`, R2 `466f92adfe7955b7bae744fc3088f5716cf53631`, DESIGN `8d20e0378426d7bd546fb88ee29271117bfbf88b`, current P4 and P6. G4 must close before G5 finalizes it; campaign §17A/§18 own gate state and authorization. No gate advance or sign-off is inferred.
+This root is the single deterministic P7 artifact for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. Its modular directory is the maintainable authoring decomposition, not independent executable authority. This synchronized candidate binds R1 `25004c458a188b130b2a479688e6322c537baefe`, R2 `466f92adfe7955b7bae744fc3088f5716cf53631`, DESIGN `a129a7d52b7ca05df01e2db1c406499c9f3f1124`, current P4 and P6. G4 must close before G5 finalizes it; campaign §17A/§18 own gate state and authorization. No gate advance or sign-off is inferred.
 
 ## Current Workbench implementation plan
 
@@ -14,7 +14,7 @@ Retain evidenced closed F6B owners and the operator-accepted foundation within s
 
 | Source component | Git blob |
 |---|---|
-| `implementation-plan/00-governance.md` | `be67c1ec880b65ec189867dee8028e22b1f792e6` |
+| `implementation-plan/00-governance.md` | `a77cb54b9a3f3f1d9a30e044579f7ad11620da01` |
 | `implementation-plan/01-a01-lifecycle-product.md` | `94707df41608c41756d04f452b2f982fdbdd8338` |
 | `implementation-plan/02-a02-governance-intake.md` | `790ff546f060699dbc202627137af241fc04ba2a` |
 | `implementation-plan/03-a03-queue-source.md` | `b0f9bd32f6f3bce513e9668a31f7d388fa0cecb8` |
@@ -343,7 +343,7 @@ This decomposition is revalidated under C19-F09/C20-F11 after the prior G4-G6 cl
 
 - R1 `research.md`: `25004c458a188b130b2a479688e6322c537baefe`.
 - R2 `requirements.md`: `466f92adfe7955b7bae744fc3088f5716cf53631`.
-- DESIGN `solution-design.md`: `8d20e0378426d7bd546fb88ee29271117bfbf88b` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 40-path forecast.
+- DESIGN `solution-design.md`: `a129a7d52b7ca05df01e2db1c406499c9f3f1124` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 40-path forecast.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `9c2ec83a9552b7583f90e91080c014df4d6870df`.
 - P3 `GW-DOC-WORKBENCH-UX-V2`: `64184232833b59a9e6db5e1a28b841f48b3217cd` — §11.4A/§12/§13/§14 own semantic information classes, state-is-not-interface behavior, direct primary interaction composition, no generic workflow-material selector, continuous Dialogue semantics, Terminal-result primacy, singular technical inspection, task anatomy and composition invariants.
 - P3 `GW-DOC-MARKDOWN-WORKBENCH-V1`: `da89bd08e4f78f353d7b3062758e9d78e21375b2` — §17.4 owns one compact Markdown editor-control region, overflow-before-wrap formatting and control→canvas adjacency.
