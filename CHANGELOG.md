@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Reconcile C06 durable clarification evidence and define the exact read-only Approval membership integration; retain accepted foundation and classify existing UI residuals without reopening settled behavior. Rebind the non-authoritative reference manifest; SD02 and downstream readiness remain under review.
+
 - Record the current G4 technical revalidation checkpoint, including exact Approval-membership carrier, authority applicability, attention/PLAN/blocker/terminal residuals and accepted-foundation reuse boundaries; keep later gates unpassed.
 
 - Close G3 functional revalidation with current R1 evidence linkage, eleven pair audits and H2; retain existing functional authority and enter G4 technical realization review.
