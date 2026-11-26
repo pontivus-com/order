@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Revalidate G2 A04–A10 source facts, including current authority proposal/task/approval admission, exact candidate evidence, guided installation and focus. Retain attention, unreached routing, exact lock/lineage and verification residuals at existing owners.
+
 - Revalidate G2 A02–A03 against the current authority, intake, queue and documentation owners; classify residual applicable-authority closure without duplicating realized changes; correct A01 audit formatting.
 
 - Begin exact-package G2 revalidation; reconcile A01 lifecycle/product facts, superseded label evidence and residual README outcome-language defect without changing product authority or production code.
