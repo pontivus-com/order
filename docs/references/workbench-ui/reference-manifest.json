@@ -30,7 +30,7 @@
     "runtimeEvidence": false
   },
   "source": "docs/references/workbench-ui/reference-atlas.html",
-  "query": "?surf=<SURF-ID>&state=<declared-state>&theme=light|dark|system&step=<selected-stage>&kind=<work-item-kind>",
+  "query": "?surf=<SURF-ID>&state=<declared-state>&theme=light|dark|system&step=<selected-stage>&kind=<work-item-kind>&current=<fixture-current-stage>&reached=<fixture-reached-stage-list>&attempt=<fixture-selected-attempt>",
   "viewportClasses": {
     "wide": 1440,
     "narrow": 760

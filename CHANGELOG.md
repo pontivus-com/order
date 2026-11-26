@@ -8,6 +8,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Changed
 
+- Bind reference lifecycle current/reached history independently from inspection selection for the seeded Workbench fixtures, and assert the exact selected independent-review attempt in recorded validation evidence. Reconcile the reference README authority pointers.
+
 - Preserve Dialogue hook ordering during empty-to-populated Run transitions and separate task-level validation status from selected-attempt evidence; assert both ownership boundaries in certification and browser tests.
 
 - Refine configuration, queue, review, result, evidence and confirmation compositions; preserve the approved lifecycle and action boundaries, improve pending/retry behavior, decision visibility, exact-path confirmation and settled readiness/validation evidence.

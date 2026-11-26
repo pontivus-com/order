@@ -326,6 +326,41 @@ const referenceViewportClass = (
     ? "wide"
     : viewport.width <= referenceManifest.viewportClasses.narrow ? "narrow" : null;
 
+// These are independently declared expectations from the persisted e2e fixtures,
+ // not observations copied from the rendered workflow rail.
+const referenceLifecycleFixture = (entry: RenderedAcceptanceInput): Readonly<{
+  current: string; reached: readonly string[];
+}> | null => {
+  const precedingApproval = ["Work request", "Research", "Requirements", "Solution design", "Implementation plan", "Readiness review"];
+  if (/^(Source editing workbench|Lifecycle editing workbench|Awaiting sign-off|unsaved Work request source)/.test(entry.fixture)) {
+    return { current: "Approval", reached: precedingApproval };
+  }
+  if (entry.fixture.startsWith("Completed investigation")) {
+    return { current: "Complete", reached: ["Work request", "Research"] };
+  }
+  if (entry.fixture.startsWith("Verified candidate")) {
+    return { current: "Complete", reached: ["Work request", "Approval", "Implementation"] };
+  }
+  if (/^(Implementation action ready|Failed implementation feedback)/.test(entry.fixture)) {
+    return { current: "Implementation", reached: ["Work request", "Approval"] };
+  }
+  if (/^(Proposal review|Proposal rejection review|Proposal adoption in progress|Workflow input required)/.test(entry.fixture)) {
+    return { current: "Implementation plan", reached: ["Work request"] };
+  }
+  if (/^(Research open continuation|Research processing attention visual|Invalid lifecycle Markdown)/.test(entry.fixture)) {
+    return { current: "Research", reached: ["Work request"] };
+  }
+  if (/^(Requirements document visual|Solution design document visual|Implementation plan document visual|Readiness input required)/.test(entry.fixture)) {
+    const current = entry.fixture.startsWith("Readiness input required") ? "Readiness review" : entry.workflowStep;
+    if (current === null) return null;
+    return { current, reached: precedingApproval.slice(0, precedingApproval.indexOf(current)) };
+  }
+  if (/^(Change work type|Defect work type|Investigation work type|Audit work type|IA26 confirmation fixture|new untracked WorkItem documentation)/.test(entry.fixture)) {
+    return { current: "Work request", reached: [] };
+  }
+  return null;
+};
+
 const resolveRenderedReference = (
   entry: RenderedAcceptanceInput,
   captureScope: string,
@@ -346,12 +381,16 @@ const resolveRenderedReference = (
     declared.viewports.includes(viewportClass) &&
     declared.themes.includes(theme) &&
     captureScope === declared.captureScope;
+  const lifecycleFixture = referenceLifecycleFixture(entry);
   const query = state === null ? null :
     "?surf=" + encodeURIComponent(entry.surface) +
     "&state=" + encodeURIComponent(state) +
     "&theme=" + encodeURIComponent(theme) +
     "&step=" + encodeURIComponent(entry.workflowStep ?? "") +
-    "&kind=" + encodeURIComponent(entry.workItemKind);
+    "&kind=" + encodeURIComponent(entry.workItemKind) +
+    (lifecycleFixture === null ? "" : "&current=" + encodeURIComponent(lifecycleFixture.current) +
+      "&reached=" + encodeURIComponent(lifecycleFixture.reached.join("|"))) +
+    (entry.id === "ia26-implementation-validation-recorded-wide-light" ? "&attempt=reviewer-1" : "");
   return {
     manifestPath: referenceManifestPath,
     sourcePath: referenceAtlasPath,
@@ -579,6 +618,16 @@ const captureRenderedAcceptance = async (
       const referenceSurface = referencePage.locator(reference.selector);
       await expect(referenceSurface).toBeVisible();
       await expect(referenceSurface).toHaveAttribute("data-state", reference.state!);
+      const lifecycleFixture = referenceLifecycleFixture(entry);
+      const referenceRail = referenceSurface.locator(".rail");
+      if (lifecycleFixture !== null && await referenceRail.count() > 0) {
+        await expect(referenceRail.locator(".rail-cell.current .process-label")).toHaveText(lifecycleFixture.current);
+        await expect(referenceRail.locator(".rail-cell.reached .process-label")).toHaveText(lifecycleFixture.reached);
+        if (entry.workflowStep !== null) await expect(referenceRail.locator(".rail-cell.selected .process-label")).toHaveText(entry.workflowStep);
+      }
+      if (entry.id === "ia26-implementation-validation-recorded-wide-light") {
+        await expect(referenceSurface.locator(".attempts .masteritem.current")).toHaveText("Independent review · Attempt 1");
+      }
       await referencePage.evaluate(async () => { await document.fonts.ready; });
       referenceScreenshot = entry.id + "-reference.png";
       const options = {
@@ -4285,14 +4334,17 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   await selectWorkflowStep(page, "Implementation");
   await expect(page.getByTestId("execution-workspace")).toBeVisible();
   await selectWorkflowMaterial(page, "Independent review · Attempt 1");
+  await expect(page.getByTestId("selected-run-header")).toContainText("Independent review · Attempt 1");
   await expect(page.getByTestId("validation-matrix").getByTestId("validation-stage-V7")).toContainText("Passed");
+  await expect(page.getByTestId("workflow-rail").getByRole("button", { name: "Complete", exact: true })).toHaveAttribute("aria-current", "step");
+  await expect(page.getByTestId("workflow-rail").getByRole("button", { name: "Implementation", exact: true })).toHaveAttribute("aria-pressed", "true");
   await capture({
     id: "ia26-implementation-validation-recorded-wide-light",
     workItemKind: "CHANGE",
     workflowStep: "Implementation",
     surface: "SURF-STEP-EXEC-001",
     state: "validation-recorded",
-    fixture: "Verified candidate reached Implementation",
+    fixture: "Verified candidate reached Implementation · Independent review · Attempt 1",
     viewport: light,
     theme: "Light",
     route: routeValue(),

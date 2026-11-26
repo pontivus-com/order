@@ -10,10 +10,10 @@ This directory is a deterministic visual projection of the current Workbench aut
 
 The active corpus is valid only for these exact inputs:
 
-- `GW-DOC-WORKBENCH-UX-V2` — blob `ac89ec5a6c7c19d4b70879fefd9ef3c71d76675a`;
-- `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2` — blob `6253e4b8fec2071d5ec888faeb682337891ad718`;
+- `GW-DOC-WORKBENCH-UX-V2` — blob `64184232833b59a9e6db5e1a28b841f48b3217cd`;
+- `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2` — blob `8fccbe031436a9eb54da8ae493b614e94cc957b1`;
 - `GW-DOC-WORKBENCH-THEME-V1` — blob `03dfc6be3600a1128b5639d011f4c0159d3497dd`;
-- current 0.6.0 DESIGN — blob `dc70911aa79b4c3eca909597782db29b1a4ce537`.
+- current 0.6.0 DESIGN — blob `539169962251392e5d97010e82351aa93c4fdcd5`.
 
 These are the exact current authority versions projected by this corpus. If any bound owner changes, this corpus is stale until regenerated and reviewed. The owner wins on every conflict.
 
@@ -31,7 +31,7 @@ The corpus must never fabricate or be cited as evidence of persisted Runs, agent
 
 ## Acceptance use
 
-The runtime capture and reference must identify the same SURF, state, governed scope, viewport class and effective theme. A component reference cannot be compared as if it were a full-workbench reference.
+The runtime capture and reference must identify the same SURF, state, governed scope, viewport class and effective theme. For lifecycle inspection fixtures, the independently declared `current` and `reached` parameters describe persisted fixture history, separately from the selected `step`; `attempt` identifies the selected attempt when the comparison depends on it. Unmatched states or selections are not equivalent. A component reference cannot be compared as if it were a full-workbench reference.
 
 A reference mismatch never authorizes implementation to change product behavior. The reviewer resolves the discrepancy against the exact bound authority first.
 

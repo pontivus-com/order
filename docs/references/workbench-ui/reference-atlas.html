@@ -294,7 +294,9 @@ if(["SURF-STEP-EXEC-001","SURF-MAT-EXEC-TASK-001"].includes(surf)){
   if(state==="validation-recorded"){
     detail.querySelector(".attention")?.remove();
     setText(".masteritem.current span","Verified");
-    dd[1].textContent="No active Run";dd[2].textContent="Passed";
+    dd[1].textContent="No active Run";dd[2].textContent="Recorded boundary: complete";
+    setText(".pagehead .status","Candidate ready");
+    if(q.get("attempt")==="reviewer-1"){master.querySelectorAll(".masteritem:not(.current)").forEach(node=>node.remove());setText(".masterhead span","1 task");setText(".masteritem.current strong","Prove the browser candidate surface");dd[0].textContent="Prove the browser candidate surface";}
     master.querySelector(".masteritem.current").insertAdjacentHTML("afterend",'<div class="attempts"><button class="masteritem">Implementation · Attempt 1</button><button class="masteritem current">Independent review · Attempt 1</button></div>');
     const validation=document.createElement("section");validation.className="section";
     validation.innerHTML='<h2>Attempt detail</h2><p>Independent review · Attempt 1 · Completed</p><h2>Validation for selected attempt</h2><table><thead><tr><th>Stage</th><th>Result</th></tr></thead><tbody>'+Array.from({length:8},(_,i)=>'<tr><td>V'+i+'</td><td>Passed</td></tr>').join("")+'</tbody></table>';
@@ -313,13 +315,16 @@ const rail=screen.querySelector(".rail");
 if(rail){
   const cells=Array.from(rail.querySelectorAll(".rail-cell"));
   const labels=cells.map(cell=>cell.textContent.trim());
-  const selected=q.get("step")||labels[cells.findIndex(cell=>cell.classList.contains("current"))];
-  const current=surf==="SURF-STEP-R3-001"&&state==="ready"?"Approval":(["SURF-STEP-EXEC-001","SURF-MAT-EXEC-TASK-001"].includes(surf)&&state==="validation-recorded")?"Complete":selected;
+  const defaultCurrent=labels[cells.findIndex(cell=>cell.classList.contains("current"))];
+  const current=q.get("current")||(surf==="SURF-STEP-R3-001"&&state==="ready"?"Approval":(["SURF-STEP-EXEC-001","SURF-MAT-EXEC-TASK-001"].includes(surf)&&state==="validation-recorded")?"Complete":defaultCurrent);
+  const selected=q.get("step")||current;
   const currentIndex=labels.indexOf(current);
+  const reached=new Set(q.has("reached")?q.get("reached").split("|").filter(Boolean):labels.slice(0,Math.max(0,currentIndex)));
+  reached.delete(current);
   cells.forEach((cell,index)=>{
-    cell.classList.toggle("current",index===currentIndex);cell.classList.toggle("reached",index<currentIndex);
+    cell.classList.toggle("current",index===currentIndex);cell.classList.toggle("reached",reached.has(labels[index]));
     cell.classList.toggle("selected",labels[index]===selected);
-    const marker=document.createElement("span");marker.className="process-marker";marker.textContent=index<currentIndex||current==="Complete"&&index===currentIndex?"✓":String(index+1);
+    const marker=document.createElement("span");marker.className="process-marker";marker.textContent=reached.has(labels[index])||current==="Complete"&&index===currentIndex?"✓":String(index+1);
     const label=document.createElement("span");label.className="process-label";label.textContent=labels[index];
     const summary=document.createElement("span");summary.className="process-status";summary.textContent=index!==currentIndex?"":current==="Complete"?"Complete":state==="required-input"?"Waiting for you":state==="blocked"?"Blocked":state==="processing"||state==="running"?"Processing":"Current";
     cell.replaceChildren(marker,label,summary);
