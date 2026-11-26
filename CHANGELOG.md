@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Record targeted 0.6.0 PLAN revalidation counterexamples for shared-shell acceptance and independent signed evidence invocation (REV-F05/F06).
+
 - Specify independent signed phase-local and Priority-0 rendered evidence execution, preserve terminal exhaustive verification, and reopen the affected readiness interfaces (REV-F04).
 
 - Reopen Order 0.6.0 specification readiness for targeted HUX progression, bounded prerequisites and forecast consistency review (REV-F01–F03); correct phase-local versus global HUX acceptance, separate bounded baseline preflight from signed predecessors, and reconcile the 45-path DESIGN count without production mutation.
