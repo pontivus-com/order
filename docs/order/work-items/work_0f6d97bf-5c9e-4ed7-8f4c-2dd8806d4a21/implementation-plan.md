@@ -4,7 +4,7 @@
 
 ## Canonical PLAN authority
 
-This root is the single deterministic P7 artifact for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. Its modular directory is the maintainable authoring decomposition, not independent executable authority. This synchronized candidate binds R1 `25004c458a188b130b2a479688e6322c537baefe`, R2 `466f92adfe7955b7bae744fc3088f5716cf53631`, DESIGN `26b8c13625d74a3b1597d2fe1a11a59a2e6dec00`, current P4 and P6. G4 must close before G5 finalizes it; campaign §17A/§18 own gate state and authorization. No gate advance or sign-off is inferred.
+This root is the single deterministic P7 artifact for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. Its modular directory is the maintainable authoring decomposition, not independent executable authority. This synchronized candidate binds R1 `25004c458a188b130b2a479688e6322c537baefe`, R2 `466f92adfe7955b7bae744fc3088f5716cf53631`, DESIGN `8d20e0378426d7bd546fb88ee29271117bfbf88b`, current P4 and P6. G4 must close before G5 finalizes it; campaign §17A/§18 own gate state and authorization. No gate advance or sign-off is inferred.
 
 ## Current Workbench implementation plan
 
@@ -14,19 +14,19 @@ Retain evidenced closed F6B owners and the operator-accepted foundation within s
 
 | Source component | Git blob |
 |---|---|
-| `implementation-plan/00-governance.md` | `9f39cb141e8c18eaac5a24443ffe55dc160599d5` |
-| `implementation-plan/01-a01-lifecycle-product.md` | `6b7b1e8b5b9e2ac1065f6a1fe0561fcd9c2ef546` |
-| `implementation-plan/02-a02-governance-intake.md` | `c49d08691e84de8f62d7c74c653d9157658fd69d` |
-| `implementation-plan/03-a03-queue-source.md` | `614a61d2383828afa5d078b037bad32e3b06f984` |
-| `implementation-plan/04-a04-workbench-research.md` | `13664e5ae8336d7629b39414c5c9411a5eaa12c1` |
-| `implementation-plan/05-a05-requirements-design.md` | `f450cde14543ac29268e16059226ca0f89b63717` |
-| `implementation-plan/06-a06-plan-readiness.md` | `b14ef4d91cedd81ee02be96895e6f468fcdda0cc` |
-| `implementation-plan/07-a07-approval-execution.md` | `178e4222be149f4e409570164b331d98b78058c3` |
-| `implementation-plan/08-a08-complete-materials.md` | `0673c84e58fe40b8110b40ee656079d438c8c33f` |
-| `implementation-plan/09-a09-provider-settings.md` | `b6a694d0cab6b030ba0f3004007cc4f52e58f6c2` |
-| `implementation-plan/10-a10-recovery-accessibility.md` | `a708ed77c05640fd0a3897a3fc8a356b524b96f8` |
-| `implementation-plan/11-a11-component-certification.md` | `09ef94227ef6be2e426d849ff814463bb7917203` |
-| `implementation-plan/12-action-catalog.md` | `23b7861a1c0fbf26804fd03be4604093a74b4e5e` |
+| `implementation-plan/00-governance.md` | `be67c1ec880b65ec189867dee8028e22b1f792e6` |
+| `implementation-plan/01-a01-lifecycle-product.md` | `94707df41608c41756d04f452b2f982fdbdd8338` |
+| `implementation-plan/02-a02-governance-intake.md` | `790ff546f060699dbc202627137af241fc04ba2a` |
+| `implementation-plan/03-a03-queue-source.md` | `b0f9bd32f6f3bce513e9668a31f7d388fa0cecb8` |
+| `implementation-plan/04-a04-workbench-research.md` | `a480ed57081a21d2b94accba5a57e6a4f68c31dd` |
+| `implementation-plan/05-a05-requirements-design.md` | `f0ca441deab870b54fdcd5a96577f0c37d023e79` |
+| `implementation-plan/06-a06-plan-readiness.md` | `ddcdf3e774a45af677af04ff3985fe860f9a893c` |
+| `implementation-plan/07-a07-approval-execution.md` | `36cf09789f9bfd4c352864d4c6bce0f905564667` |
+| `implementation-plan/08-a08-complete-materials.md` | `2b3f72d1ddd0489d911fcdc2767d6f69b969e4ee` |
+| `implementation-plan/09-a09-provider-settings.md` | `dc9988af7a2f63ae8a2843122e66911e14d595e9` |
+| `implementation-plan/10-a10-recovery-accessibility.md` | `3537f8f368001084e0844c4039235f85b0cbe532` |
+| `implementation-plan/11-a11-component-certification.md` | `8d24929b9444178a917e04be08302ea2c70e4952` |
+| `implementation-plan/12-action-catalog.md` | `a4220ecdc730075ff4e86b8ab31f735f04ec10c2` |
 | `implementation-plan/13-verification-closeout.md` | `3ca250e562c04fdeb95ea54bd960a5ef9600996f` |
 
 A source hash mismatch makes PLAN non-current until recompiled. Directory files have no independent order-tasks block or lifecycle state.
@@ -343,7 +343,7 @@ This decomposition is revalidated under C19-F09/C20-F11 after the prior G4-G6 cl
 
 - R1 `research.md`: `25004c458a188b130b2a479688e6322c537baefe`.
 - R2 `requirements.md`: `466f92adfe7955b7bae744fc3088f5716cf53631`.
-- DESIGN `solution-design.md`: `26b8c13625d74a3b1597d2fe1a11a59a2e6dec00` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 40-path forecast.
+- DESIGN `solution-design.md`: `8d20e0378426d7bd546fb88ee29271117bfbf88b` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 40-path forecast.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `9c2ec83a9552b7583f90e91080c014df4d6870df`.
 - P3 `GW-DOC-WORKBENCH-UX-V2`: `64184232833b59a9e6db5e1a28b841f48b3217cd` — §11.4A/§12/§13/§14 own semantic information classes, state-is-not-interface behavior, direct primary interaction composition, no generic workflow-material selector, continuous Dialogue semantics, Terminal-result primacy, singular technical inspection, task anatomy and composition invariants.
 - P3 `GW-DOC-MARKDOWN-WORKBENCH-V1`: `da89bd08e4f78f353d7b3062758e9d78e21375b2` — §17.4 owns one compact Markdown editor-control region, overflow-before-wrap formatting and control→canvas adjacency.
@@ -422,7 +422,7 @@ Because scope equals the exact 40-path forecast, a newly required out-of-scope p
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C01 + C21.
-**Upstream:** current R1 `6ba550c89bd746772cb874e51268cba8b55e3c30`; current R2 `8164c48f9bf9e8b7bf4fc1144a966a0b295b7a45`; current DESIGN `074e3b2f9d0cbc2707017039e60aa44a73cae9f2`.
+**Upstream:** consume the single exact R1/R2/DESIGN binding in `00-governance.md` (compiled governance in the root PLAN); this phase owns no separate current package identity.
 
 ##### Stable requirement execution dispositions
 
@@ -444,7 +444,7 @@ These rows carry material R2 consequences that are already corrected in canonica
 |---|---|---|---|---|
 | `A01-NC01` — C01 verified-terminal success/no-code distinction | `ALREADY_CORRECTED_NO_CODE` | NONE — no T1 edit | `GW-DOC-SYSTEM-BRIEF` blob `a1784be23293cb65b4a70952e45e5e16a0515ca1`, §8 | Recheck exact authority identity plus R1 C01-O06/O13/O14 under V4; any contradiction returns to R2/DESIGN. |
 | `A01-NC02` — C01 `GW-P2-CONTROLLED-WORK` cross-reference | `ALREADY_CORRECTED_NO_CODE` | NONE — no T1 edit | `GW-DOC-WORK-LIFECYCLE` blob `013bc1297c3d167b776e115f428517b7cedbea57`, §7 → System Brief §9 | Recheck exact authority identity plus R1 C01-O14 under V4; do not edit runtime behavior for this documentation correction. |
-| `A01-NC03` — C21 canonical product-language/commit boundary | `ALREADY_CORRECTED_NO_CODE` | NONE — no additional P2 edit in T1 | `GW-DOC-PRODUCT-IDENTITY` blob `f45ee2ea00cf91c5b861c59d3d19f72b3e39611f` | Recheck exact authority identity and corrected C21-F01/F02/F04 semantics under V4; IA19 changes only the still-violating README/terminal projections. |
+| `A01-NC03` — C21 canonical product-language/commit boundary | `ALREADY_CORRECTED_NO_CODE` | NONE — no additional P2 edit in T1 | `GW-DOC-PRODUCT-IDENTITY` blob `f45ee2ea00cf91c5b861c59d3d19f72b3e39611f` | Recheck exact authority identity and corrected C21-F01/F02/F04 semantics under V4; IA19 corrects residual README language; IA33 owns exact reached result and provenance, including explanation without invented sign-off. |
 | `A01-NC04` — C01 WorkItem-stage vs execution-subflow distinction | `ALREADY_CORRECTED_NO_CODE` | NONE — no T1 edit | `GW-DOC-SYSTEM-BRIEF` blob `a1784be23293cb65b4a70952e45e5e16a0515ca1` | Recheck C01-F01/C01-O03/O05/O08 and exact authority identity under V4; no new lifecycle/state mutation. |
 | `A01-NC05` — C01 lifecycle-context stage/role/work-kind distinction | `ALREADY_CORRECTED_NO_CODE` | NONE — no T1 edit | `GW-DOC-LIFECYCLE-CONTEXT` blob `4ce2b49b9eb57e60ddd2b1e3664fdd4e11cbbbc7` | Recheck C01-F02/X-C01-C22-01 and exact authority identity under V4; no new stage/role/work-kind state. |
 
@@ -480,7 +480,7 @@ Package atoms in phase: **1**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C22 + C02.
-**Upstream:** current R1 `6ba550c89bd746772cb874e51268cba8b55e3c30`; current R2 `8164c48f9bf9e8b7bf4fc1144a966a0b295b7a45`; current DESIGN `074e3b2f9d0cbc2707017039e60aa44a73cae9f2`.
+**Upstream:** consume the single exact R1/R2/DESIGN binding in `00-governance.md` (compiled governance in the root PLAN); this phase owns no separate current package identity.
 
 ##### Stable requirement execution dispositions
 
@@ -534,7 +534,7 @@ Package atoms in phase: **4**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C03 + C04.
-**Upstream:** current R1 `6ba550c89bd746772cb874e51268cba8b55e3c30`; current R2 `8164c48f9bf9e8b7bf4fc1144a966a0b295b7a45`; current DESIGN `074e3b2f9d0cbc2707017039e60aa44a73cae9f2`.
+**Upstream:** consume the single exact R1/R2/DESIGN binding in `00-governance.md` (compiled governance in the root PLAN); this phase owns no separate current package identity.
 
 ##### Stable requirement execution dispositions
 
@@ -610,7 +610,7 @@ SD03/05/06: IA11/12 consume the complete Create/Queue datum and diagnostic contr
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C05 + C06.
-**Upstream:** current R1 `6ba550c89bd746772cb874e51268cba8b55e3c30`; current R2 `8164c48f9bf9e8b7bf4fc1144a966a0b295b7a45`; current DESIGN `074e3b2f9d0cbc2707017039e60aa44a73cae9f2`.
+**Upstream:** consume the single exact R1/R2/DESIGN binding in `00-governance.md` (compiled governance in the root PLAN); this phase owns no separate current package identity.
 
 ##### Stable requirement execution dispositions
 
@@ -686,7 +686,7 @@ IA04 owns durable admission; IA30 exact decision categories, reply anchor and Re
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C07 + C08.
-**Upstream:** current R1 `6ba550c89bd746772cb874e51268cba8b55e3c30`; current R2 `8164c48f9bf9e8b7bf4fc1144a966a0b295b7a45`; current DESIGN `074e3b2f9d0cbc2707017039e60aa44a73cae9f2`.
+**Upstream:** consume the single exact R1/R2/DESIGN binding in `00-governance.md` (compiled governance in the root PLAN); this phase owns no separate current package identity.
 
 ##### Stable requirement execution dispositions
 
@@ -738,7 +738,7 @@ IA30 owns R2/DESIGN primary routing and upstream material; IA03 canonical author
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C09 + C10.
-**Upstream:** current R1 `6ba550c89bd746772cb874e51268cba8b55e3c30`; current R2 `8164c48f9bf9e8b7bf4fc1144a966a0b295b7a45`; current DESIGN `074e3b2f9d0cbc2707017039e60aa44a73cae9f2`.
+**Upstream:** consume the single exact R1/R2/DESIGN binding in `00-governance.md` (compiled governance in the root PLAN); this phase owns no separate current package identity.
 
 ##### Stable requirement execution dispositions
 
@@ -789,7 +789,7 @@ IA30 consumes PLAN R1/R2/DESIGN/source/evidence and derived parsed task/change-s
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C11 + C12.
-**Upstream:** current R1 `6ba550c89bd746772cb874e51268cba8b55e3c30`; current R2 `8164c48f9bf9e8b7bf4fc1144a966a0b295b7a45`; current DESIGN `074e3b2f9d0cbc2707017039e60aa44a73cae9f2`.
+**Upstream:** consume the single exact R1/R2/DESIGN binding in `00-governance.md` (compiled governance in the root PLAN); this phase owns no separate current package identity.
 
 ##### Stable requirement execution dispositions
 
@@ -851,7 +851,7 @@ IA17/31 own exact package/task currentness, Context provenance and decision feed
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C13 + C14.
-**Upstream:** current R1 `6ba550c89bd746772cb874e51268cba8b55e3c30`; current R2 `8164c48f9bf9e8b7bf4fc1144a966a0b295b7a45`; current DESIGN `074e3b2f9d0cbc2707017039e60aa44a73cae9f2`.
+**Upstream:** consume the single exact R1/R2/DESIGN binding in `00-governance.md` (compiled governance in the root PLAN); this phase owns no separate current package identity.
 
 ##### Stable requirement execution dispositions
 
@@ -907,7 +907,7 @@ IA13/29 own maturity/Save presentation; IA30 reply context; IA19/33 exact outcom
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C15 + C16.
-**Upstream:** current R1 `6ba550c89bd746772cb874e51268cba8b55e3c30`; current R2 `8164c48f9bf9e8b7bf4fc1144a966a0b295b7a45`; current DESIGN `074e3b2f9d0cbc2707017039e60aa44a73cae9f2`.
+**Upstream:** consume the single exact R1/R2/DESIGN binding in `00-governance.md` (compiled governance in the root PLAN); this phase owns no separate current package identity.
 
 ##### Stable requirement execution dispositions
 
@@ -977,7 +977,7 @@ IA18/34 consume exact default-visible repository facts and distinct configuratio
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C17 + C18.
-**Upstream:** current R1 `6ba550c89bd746772cb874e51268cba8b55e3c30`; current R2 `8164c48f9bf9e8b7bf4fc1144a966a0b295b7a45`; current DESIGN `074e3b2f9d0cbc2707017039e60aa44a73cae9f2`.
+**Upstream:** consume the single exact R1/R2/DESIGN binding in `00-governance.md` (compiled governance in the root PLAN); this phase owns no separate current package identity.
 
 ##### Stable requirement execution dispositions
 
@@ -1031,7 +1031,7 @@ IA14 owns reason/action through historical/supporting/transient selection, IA31 
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C19 + C20.
-**Upstream:** current R1 `6ba550c89bd746772cb874e51268cba8b55e3c30`; current R2 `8164c48f9bf9e8b7bf4fc1144a966a0b295b7a45`; current DESIGN `074e3b2f9d0cbc2707017039e60aa44a73cae9f2`.
+**Upstream:** consume the single exact R1/R2/DESIGN binding in `00-governance.md` (compiled governance in the root PLAN); this phase owns no separate current package identity.
 
 ##### Stable requirement execution dispositions
 
@@ -1516,9 +1516,9 @@ The IA27-IA34 union remains exactly **37 unique SURF rows** with no duplicate or
 
 **Solution:** SD27 plus IA19 product-language projection.  
 **Owner dispositions:** bounded `WorkItemWorkspace.tsx`, `TerminalResult.tsx` and workbench-presentation; proof-only `WorkbenchResult.tsx`, `EvidenceViewer.tsx`; Context proof remains IA27.
-**Required mutation:** UNREACHED Complete routes to State, not TerminalResult; candidate evidence binds exact current Approval.id and canonical qualifying reviewer chain. Preserve non-delivery, one Result/Section/ResourceList and exact-byte Evidence; no new Result.  
+**Required mutation:** UNREACHED Complete routes to State, not TerminalResult; candidate evidence binds exact final Approval.id and canonical qualifying reviewer chain. Distinguish admitted terminal R1 from signed all-no-op ALREADY_SATISFIED using the exact P6 §6 provenance observation; use neutral ALREADY_SATISFIED explanation without implying sign-off. Neither route may manufacture candidate resources. Preserve one Result/Section/ResourceList and exact-byte Evidence; no new Result.  
 
-**Functional realization beyond cutover:** reached Complete only, canonical WorkOutcome and exact outcome-owned material (R1 result for Investigation/Audit), verified-candidate proof from actual qualifying validated execution lineage rather than all historical Runs. Non-delivery omits candidate resources; linked remediation only eligible. Failed/cancelled attempts remain Implementation inspection. Exact bytes/identity through Evidence with origin/return, text/binary/unavailable/recovery. IA19 shared vocabulary; no guessed result ordering, lineage or fallback. Prove all outcome classes, negative unreached/action and resource provenance.
+**Functional realization beyond cutover:** reached Complete only, canonical WorkOutcome and exact outcome-owned material (terminal R1 result/evidence for schema-admitted R1 completion; exact signed provenance for all-no-op execution), verified-candidate proof from actual qualifying validated execution lineage rather than all historical Runs. Non-delivery omits candidate resources; linked remediation only eligible. Failed/cancelled attempts remain Implementation inspection. Exact bytes/identity through Evidence with origin/return, text/binary/unavailable/recovery. IA19 shared vocabulary; no guessed result ordering, lineage or fallback. Prove all outcome classes, negative unreached/action and resource provenance.
 
 **Proof:** candidate/non-candidate/linked-remediation + Evidence rows PASS; no synthetic attention, duplicated outcome, local result/resource grammar, internal enum/event identity or nested primary Surface.
 
