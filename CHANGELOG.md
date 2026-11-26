@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Correct 0.6.0 installation history/admission and rollback/commit/finalization specifications after independent REV-01–REV-07 review; retain one installer/readiness owner, require actual-orchestrator proof and distinguish preserved semantic Workbench APIs from rejected physical presentation. No production implementation or sign-off.
+
 - Correct the Order 0.6.0 specification for ALIGN-A09-F02: fresh installer success must observe canonical productive readiness after liveness, before irreversible completion; reconcile P4/P6 and allocate exact installer/setup and bounded server proof without runtime changes or sign-off.
 
 - Reconcile ALIGN-A07-F01: exact Approval package/document identity requires technical and verification correction under existing IA17/29/31; correct FR026/212/222 dispositions and proof bindings without changing T1 scope or sign-off authority.
