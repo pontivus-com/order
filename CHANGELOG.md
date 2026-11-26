@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Reconcile current F6B component ownership against actual closed APIs/consumers, preserve the accepted foundation, and identify exact remaining technical residuals. Correct SD02's protected project-manifest activation boundary and expose stale PLAN scope/exclusions for subsequent revalidation.
+
 - Specify SD02's exact mandatory-stage, declared-reference and transitive dependency materiality integration at the existing P6 and DESIGN owners; rebind all current R1/R2 pair audits to the corrected factual package. No production mutation, G4 acceptance or sign-off.
 
 - Reconcile C06 durable clarification evidence and define the exact read-only Approval membership integration; retain accepted foundation and classify existing UI residuals without reopening settled behavior. Rebind the non-authoritative reference manifest; SD02 and downstream readiness remain under review.
