@@ -119,8 +119,7 @@ export const PreSignoffStageWorkspace = ({
               <WorkbenchAction
                 label={"View "+item.label}
                 icon={<WorkbenchIcon name={item.id.startsWith("run-") ? "dialogue" : "document"} />}
-                iconOnly
-                tone="ghost"
+                tone="secondary"
                 onClick={item.onSelect}
               />
             ),
@@ -142,8 +141,7 @@ export const PreSignoffStageWorkspace = ({
         <WorkbenchAction
           label="View Research document"
           icon={<WorkbenchIcon name="document" />}
-          iconOnly
-          tone="ghost"
+          tone="secondary"
           onClick={()=>onSelectMaterial({kind:"STAGE_DOCUMENT",artifactId:stageArtifact.id})}
         />
       }

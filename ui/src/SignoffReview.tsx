@@ -13,10 +13,11 @@ import type {
 import * as api from "./http.ts";
 import { ReadOnlyLifecycleDocumentMaterial } from "./DocumentWorkspace.tsx";
 import { invalidateWorkbenchMutation } from "./query-keys.ts";
-import { lifecycleArtifactLabel } from "./workbench-presentation.ts";
+import { lifecycleArtifactLabel, lifecycleArtifactRoleRank } from "./workbench-presentation.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchIcon } from "./primitives/WorkbenchIcon.tsx";
 import { WorkbenchReview } from "./primitives/WorkbenchReview.tsx";
+import { WorkbenchFacts } from "./primitives/WorkbenchFacts.tsx";
 import { WorkbenchResourceList } from "./primitives/WorkbenchResourceList.tsx";
 import {
   WorkbenchErrorState,
@@ -60,87 +61,56 @@ const taskStateLabel = (task: SignedTaskDefinition | ExecutionTask): string | nu
   }
 };
 
+const signedValues = (values: readonly string[]): ReactNode =>
+  values.length === 0 ? "None" : (
+    <ul className="order-workbench-fact-values">
+      {values.map((value, index) => <li key={index}>{value}</li>)}
+    </ul>
+  );
+
 const taskDetailSections = (
   task: SignedTaskDefinition | ExecutionTask,
 ) => [
   {
-    id: "scope",
-    title: "Scope",
+    id: "boundaries",
+    title: "Scope and boundaries",
+    description: "The authorized scope and exclusions govern implementation.",
     content: (
-      <WorkbenchResourceList
-        items={resourceItems("scope", task.scope)}
-        empty={<WorkbenchState kind="empty" title="No scope entries" />}
+      <WorkbenchFacts
+        label="Task boundaries"
+        items={[
+          { id: "scope", label: "Scope", value: signedValues(task.scope), emphasis: "strong" },
+          { id: "exclusions", label: "Exclusions", value: signedValues(task.exclusions) },
+          { id: "dependencies", label: "Dependencies", value: signedValues(task.dependsOn) },
+        ]}
       />
     ),
   },
   {
-    id: "exclusions",
-    title: "Exclusions",
+    id: "verification",
+    title: "Acceptance and authority",
     content: (
-      <WorkbenchResourceList
-        items={resourceItems("exclusion", task.exclusions)}
-        empty={<WorkbenchState kind="empty" title="No exclusions" />}
-      />
-    ),
-  },
-  {
-    id: "acceptance",
-    title: "Acceptance",
-    content: (
-      <WorkbenchResourceList
-        items={resourceItems("acceptance", task.acceptanceRefs)}
-        empty={<WorkbenchState kind="empty" title="No acceptance references" />}
-      />
-    ),
-  },
-  {
-    id: "gates",
-    title: "Gates",
-    content: (
-      <WorkbenchResourceList
-        items={resourceItems("gate", task.gateIds)}
-        empty={<WorkbenchState kind="empty" title="No gates" />}
-      />
-    ),
-  },
-  {
-    id: "authority",
-    title: "Authority",
-    content: (
-      <WorkbenchResourceList
-        items={resourceItems("authority", task.authorityRefs)}
-        empty={<WorkbenchState kind="empty" title="No authority references" />}
-      />
-    ),
-  },
-  {
-    id: "concerns",
-    title: "Concerns",
-    content: (
-      <WorkbenchResourceList
-        items={resourceItems("concern", task.concernIds)}
-        empty={<WorkbenchState kind="empty" title="No concerns" />}
-      />
-    ),
-  },
-  {
-    id: "dependencies",
-    title: "Dependencies",
-    content: (
-      <WorkbenchResourceList
-        items={resourceItems("dependency", task.dependsOn)}
-        empty={<WorkbenchState kind="empty" title="No dependencies" />}
+      <WorkbenchFacts
+        label="Verification and traceability"
+        items={[
+          { id: "acceptance", label: "Acceptance", value: signedValues(task.acceptanceRefs) },
+          { id: "gates", label: "Gates", value: signedValues(task.gateIds) },
+          { id: "authority", label: "Authority", value: signedValues(task.authorityRefs) },
+          { id: "concerns", label: "Concerns", value: signedValues(task.concernIds) },
+        ]}
       />
     ),
   },
   {
     id: "change-surface",
     title: "Expected change surface",
-    content: (
-      <WorkbenchResourceList
-        items={resourceItems("change", task.changeSurface)}
-        empty={<WorkbenchState kind="empty" title="No forecast entries" />}
-      />
+    description: "Physical change forecast, not an additional scope boundary.",
+    content: task.changeSurface.length === 0 ? (
+      <WorkbenchFacts items={[{ id: "forecast", label: "Forecast", value: "None" }]} />
+    ) : task.changeSurface.length === 1 ? (
+      <WorkbenchFacts items={[{ id: "forecast", label: "Forecast", value: task.changeSurface[0] }]} />
+    ) : (
+      <WorkbenchResourceList items={resourceItems("change", task.changeSurface)} />
     ),
   },
 ] as const;
@@ -192,6 +162,7 @@ export const SignoffReview = ({
   const packageArtifacts = artifacts
     .filter((artifact) => packageDocumentRoles.has(artifact.role))
     .sort((left, right) =>
+      lifecycleArtifactRoleRank(left.role) - lifecycleArtifactRoleRank(right.role) ||
       left.repositoryPath.localeCompare(right.repositoryPath));
 
   const selectedArtifact =
@@ -315,8 +286,7 @@ export const SignoffReview = ({
       <WorkbenchAction
         label={"View task " + task.objective}
         icon={<WorkbenchIcon name="execution" />}
-        iconOnly
-        tone="ghost"
+        tone="secondary"
         onClick={() => setSelection({ kind: "TASK", taskId: task.id })}
       />
     ),
@@ -330,8 +300,7 @@ export const SignoffReview = ({
       <WorkbenchAction
         label={"View " + lifecycleArtifactLabel(artifact.role)}
         icon={<WorkbenchIcon name="document" />}
-        iconOnly
-        tone="ghost"
+        tone="secondary"
         onClick={() => setSelection({ kind: "DOCUMENT", artifactId: artifact.id })}
       />
     ),
@@ -409,10 +378,18 @@ export const SignoffReview = ({
           id: "tasks",
           title: currentApproval ? "Signed tasks" : "Approved tasks",
           content: (
-            <WorkbenchResourceList
-              items={taskItems}
-              empty={<WorkbenchState kind="empty" title="No signed tasks" />}
-            />
+            taskItems.length === 1 ? (
+              <WorkbenchFacts label="Signed task" items={[
+                { id: "objective", label: "Objective", value: taskItems[0]!.label, emphasis: "strong" },
+                { id: "scope-gates", label: "Authorization", value: taskItems[0]!.detail },
+                { id: "inspect", label: "Task contract", value: taskItems[0]!.action },
+              ]} />
+            ) : (
+              <WorkbenchResourceList
+                items={taskItems}
+                empty={<WorkbenchState kind="empty" title="No signed tasks" />}
+              />
+            )
           ),
         },
         {
@@ -467,7 +444,7 @@ export const SignoffReview = ({
   return (
     <div data-testid="review-workspace">
       <WorkbenchReview
-        title="Approval"
+        title={selectedTask === null ? "Approval" : "Approval task detail"}
         description={
           selectedTaskDescription ??
           (currentApproval ? "Authorize the current governed package." : undefined)

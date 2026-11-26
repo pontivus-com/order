@@ -345,8 +345,7 @@ export const ReadinessWorkspace = ({
         <WorkbenchAction
           label={"View " + lifecycleArtifactLabel(artifact.role)}
           icon={<WorkbenchIcon name="document" />}
-          iconOnly
-          tone="ghost"
+          tone="secondary"
           onClick={() =>
             onSelectMaterial({
               kind: "SUPPORTING_DOCUMENT",
@@ -375,8 +374,7 @@ export const ReadinessWorkspace = ({
         <WorkbenchAction
           label={"Inspect evidence " + (index + 1) + " from Readiness attempt " + run.attempt}
           icon={<WorkbenchIcon name="evidence" />}
-          iconOnly
-          tone="ghost"
+          tone="secondary"
           onClick={() =>
             onOpenEvidence({
               kind: "EVIDENCE",
@@ -396,8 +394,7 @@ export const ReadinessWorkspace = ({
       <WorkbenchAction
         label={"View Readiness attempt " + run.attempt}
         icon={<WorkbenchIcon name="dialogue" />}
-        iconOnly
-        tone="ghost"
+        tone="secondary"
         onClick={() => onSelectMaterial({ kind: "STAGE_RUN", runId: run.id })}
       />
     ),

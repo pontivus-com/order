@@ -54,6 +54,18 @@ const huxPriorityCaptureIds = new Set<string>([
   "ia26-readiness-review-wide-light",
   "ia26-approval-wide-light",
   "ia26-approval-task-wide-light",
+  "ia26-approval-task-wide-dark",
+  "ia26-approval-task-narrow-light",
+  "ia26-approval-task-narrow-dark",
+  "ia26-approval-narrow-light",
+  "ia26-approval-wide-dark",
+  "ia26-approval-narrow-dark",
+  "hux-app-queue-wide-light",
+  "hux-app-queue-narrow-dark",
+  "hux-shell-document-wide-light",
+  "hux-shell-document-narrow-dark",
+  "hux-shell-review-wide-light",
+  "hux-shell-review-narrow-dark",
 ]);
 const renderedDiagnosticPhases = ["IA34", "IA29", "IA30", "IA31", "IA32", "IA33"] as const;
 type RenderedDiagnosticPhase = typeof renderedDiagnosticPhases[number];
@@ -460,13 +472,10 @@ const captureRenderedAcceptance = async (
   if (declaredReference === undefined) {
     throw new TypeError("rendered evidence surface is missing from reference manifest: " + entry.surface);
   }
-  const acceptanceTarget = huxPriorityOnly
-    ? undefined
-    : diagnosticCurrentState
+  const acceptanceTarget = diagnosticCurrentState
       ? target
       : declaredReference.captureScope === "full-workbench" ? undefined : target;
   if (!diagnosticCurrentState &&
-      !huxPriorityOnly &&
       declaredReference.captureScope === "component-reference" &&
       acceptanceTarget === undefined) {
     throw new TypeError("component-reference acceptance requires an explicit governed locator: " + entry.surface);
@@ -483,9 +492,7 @@ const captureRenderedAcceptance = async (
       animations: "disabled",
     });
   }
-  const captureScope = huxPriorityOnly
-    ? "full application viewport"
-    : diagnosticCurrentState
+  const captureScope = diagnosticCurrentState
       ? entry.captureScope ?? (target === undefined ? "full application viewport" : "explicit locator crop")
       : declaredReference.captureScope;
   const captured = {
@@ -3030,6 +3037,29 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
 
   }
 
+  if (huxPriorityOnly) {
+    // Capture the shared chrome explicitly; the same exact candidate will
+    // also be exercised in the Document and Review families below.
+    await page.goto("/");
+    for (const [viewport, theme, suffix] of [
+      [light, "Light", "wide-light"],
+      [narrow, "Dark", "narrow-dark"],
+    ] as const) {
+      await page.setViewportSize(viewport);
+      await page.getByRole("radio", { name: theme }).click();
+      await expect(page.getByTestId("workbench-toolbar")).toBeVisible();
+      await capture({
+        id: "hux-app-queue-" + suffix, workItemKind: "QUEUE",
+        workflowStep: null, surface: "SURF-APP-001",
+        state: "default", fixture: "populated Queue shared toolbar",
+        viewport, theme, route: routeValue(),
+        authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
+      });
+    }
+    await page.setViewportSize(light);
+    await page.getByRole("radio", { name: "Light" }).click();
+  }
+
   if (runRenderedPhase("IA29")) {
   // IA29 — Work request, document materials, and safety confirmations.
   await page.goto("/");
@@ -3087,6 +3117,25 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
       captureScope: "full application viewport",
     });
     await page.setViewportSize(light);
+  }
+  if (huxPriorityOnly) {
+    for (const [viewport, theme, suffix] of [
+      [light, "Light", "wide-light"],
+      [narrow, "Dark", "narrow-dark"],
+    ] as const) {
+      await page.setViewportSize(viewport);
+      await page.getByRole("radio", { name: theme }).click();
+      await expect(page.getByTestId("workbench-identity")).toBeVisible();
+      await capture({
+        id: "hux-shell-document-" + suffix, workItemKind: "CHANGE",
+        workflowStep: "Work request", surface: "SURF-WI-001",
+        state: "default", fixture: "Source editing workbench shared identity",
+        viewport, theme, route: routeValue(),
+        authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
+      });
+    }
+    await page.setViewportSize(light);
+    await page.getByRole("radio", { name: "Light" }).click();
   }
   const sourceMaterial = page.getByTestId("source-document-material");
   await expect(sourceMaterial.getByTestId("workbench-document")).toHaveCount(1);
@@ -3841,6 +3890,38 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }, approval);
   await page.setViewportSize(light);
+  for (const [viewport, suffix] of [[light, "wide"], [narrow, "narrow"]] as const) {
+    await page.setViewportSize(viewport);
+    await page.getByRole("radio", { name: "Dark" }).click();
+    await capture({
+      id: "ia26-approval-" + suffix + "-dark",
+      workItemKind: "CHANGE", workflowStep: "Approval",
+      surface: "SURF-STEP-APPROVAL-001", state: "current",
+      fixture: "Awaiting sign-off", viewport, theme: "Dark", route: routeValue(),
+      authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
+    }, approval);
+    if (huxPriorityOnly && suffix === "narrow") {
+      await capture({
+        id: "hux-shell-review-narrow-dark", workItemKind: "CHANGE",
+        workflowStep: "Approval", surface: "SURF-WI-001",
+        state: "default", fixture: "Awaiting sign-off shared identity",
+        viewport, theme: "Dark", route: routeValue(),
+        authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
+      });
+    }
+  }
+  await page.setViewportSize(light);
+  await page.getByRole("radio", { name: "Light" }).click();
+  if (huxPriorityOnly) {
+    await capture({
+      id: "hux-shell-review-wide-light", workItemKind: "CHANGE",
+      workflowStep: "Approval", surface: "SURF-WI-001", state: "default",
+      fixture: "Awaiting sign-off shared identity", viewport: light, theme: "Light",
+      route: routeValue(), authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
+    });
+  }
+  await expect(approval.locator('[data-review-section="documents"]').getByTestId("workbench-resource-list")).toBeVisible();
+  await expect(approval.locator('[data-review-section="documents"]').getByRole("button", { name: "View Implementation plan", exact: true })).toHaveText("View Implementation plan");
   await approval.getByRole("button", {
     name: "View task Prove the browser candidate surface",
     exact: true,
@@ -3872,6 +3953,19 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     route: routeValue(),
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
   }, approvalTask);
+  await page.setViewportSize(narrow);
+  for (const theme of ["Dark", "Light"] as const) {
+    await page.getByRole("radio", { name: theme }).click();
+    await expect(approvalTask.getByLabel("Task boundaries")).toBeVisible();
+    await capture({
+      id: "ia26-approval-task-narrow-" + theme.toLowerCase(),
+      workItemKind: "CHANGE", workflowStep: "Approval",
+      surface: "SURF-MAT-APPROVAL-TASK-001", state: "current",
+      fixture: "Awaiting sign-off task", viewport: narrow, theme,
+      route: routeValue(), authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
+    }, approvalTask);
+  }
+  await page.setViewportSize(light);
   await page.getByRole("radio", { name: "Light" }).click();
   await backToQueue(page);
 
@@ -4151,6 +4245,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
       expect(entry.reference.manifestPath).toBe(referenceManifestPath);
       expect(entry.reference.sourcePath).toBe(referenceAtlasPath);
       expect(referenceSurfaceById.has(entry.reference.surface)).toBe(true);
+      expect(entry.reference.comparisonEligible, entry.id).toBe(true);
     }
     expect(runtimeErrors).toEqual([]);
     return;

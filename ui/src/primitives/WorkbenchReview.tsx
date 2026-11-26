@@ -25,10 +25,13 @@ export const WorkbenchReview = ({
 }: WorkbenchReviewProps) => (
   <section className="order-workbench-review">
     <header className="order-workbench-review-header">
-      <h2>{title}</h2>
-      {description === undefined ? null : <p>{description}</p>}
+      <div className="order-workbench-review-heading">
+        <span className="order-workbench-review-eyebrow">Review</span>
+        <h2>{title}</h2>
+        {description === undefined ? null : <p>{description}</p>}
+      </div>
+      <WorkbenchReviewVerdict {...verdict} />
     </header>
-    <WorkbenchReviewVerdict {...verdict} />
     <div className="order-workbench-review-sections">
       {sections.map((section) => (
         <WorkbenchReviewSection key={section.id} {...section} />

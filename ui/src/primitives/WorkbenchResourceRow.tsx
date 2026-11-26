@@ -14,8 +14,9 @@ export const WorkbenchResourceRow = ({
 }: WorkbenchResourceItem) => (
   <ListItem
     itemKey={id}
-    label={label}
-    description={detail}
+    label={<span className="order-workbench-resource-label">{label}</span>}
+    description={detail === undefined ? undefined : <span className="order-workbench-resource-detail">{detail}</span>}
+    align="first-line"
     startContent={meta}
     endContent={action}
   />

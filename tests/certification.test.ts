@@ -812,6 +812,7 @@ describe("Order cross-boundary certification", () => {
     ]);
     expect(consumersOf("WorkbenchFacts")).toEqual([
       "DocumentWorkspace.tsx",
+      "SignoffReview.tsx",
       "WorkItemContext.tsx",
     ]);
     const contextPanel = read("ui/src/primitives/WorkbenchContextPanel.tsx");
@@ -848,6 +849,8 @@ describe("Order cross-boundary certification", () => {
     const resourceRow = read("ui/src/primitives/WorkbenchResourceRow.tsx");
     expect(resourceList).toContain("@astryxdesign/core/List");
     expect(resourceList).toContain("./WorkbenchResourceRow.tsx");
+    expect(resourceList).toContain("hasDividers");
+    expect(resourceList).toContain('density="balanced"');
     expect(resourceRow).toContain("itemKey={id}");
     expect(resourceRow).not.toContain("WorkbenchAction");
     const resourceTheme = read("ui/src/theme.css");
@@ -990,7 +993,10 @@ describe("Order cross-boundary certification", () => {
     const approval = read("ui/src/SignoffReview.tsx");
     expect(approval).toContain("WorkbenchReview");
     expect((approval.match(/<WorkbenchReview\b/g) ?? [])).toHaveLength(1);
-    expect(approval).not.toContain("WorkbenchFacts");
+    expect(approval).toContain("WorkbenchFacts");
+    expect(approval).not.toContain("iconOnly");
+    expect(approval).toContain('title: "Scope and boundaries"');
+    expect(approval).toContain('title: "Acceptance and authority"');
     expect(approval).toContain("WorkbenchResourceList");
     expect(approval).toContain("packageStale?: boolean");
     expect(approval).toContain(
