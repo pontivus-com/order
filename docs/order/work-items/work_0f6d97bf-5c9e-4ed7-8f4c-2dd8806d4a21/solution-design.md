@@ -1549,7 +1549,7 @@ The exhaustive SURF contracts and permanent P3/P4 state/interaction rules above 
 
 ## Exact implementation surface forecast
 
-The reconciled candidate forecast is **44 unique paths**. Each path has a specific technical residual or proof obligation. The 81-path reconstruction forecast is superseded; no recreation of conforming components or deletion of already-absent owners. No edit merely to consume the forecast. A disproven excluded owner or required new path returns to DESIGN/PLAN before mutation.
+The reconciled candidate forecast is **45 unique paths**. Each path has a specific technical residual or proof obligation. The 81-path reconstruction forecast is superseded; no recreation of conforming components or deletion of already-absent owners. No edit merely to consume the forecast. A disproven excluded owner or required new path returns to DESIGN/PLAN before mutation.
 
 ### Authority and lifecycle
 - `README.md` — SD01/IA19 remaining public result/blocked/return language

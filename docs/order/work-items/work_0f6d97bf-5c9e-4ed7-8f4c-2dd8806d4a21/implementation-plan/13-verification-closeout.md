@@ -17,12 +17,12 @@ T1 carries the same six logical gate IDs through final validation. During the li
 |---|---|---|
 | read-only IA07/IA08 and current R3/G6 | normal sign-off | exact existing capability proof; no mutation before sign-off absent separate grant |
 | signed IA01→IA02→IA03→IA04, IA11, IA17, IA25 and existing capability proof | IA27/IA28 | exact refs/decision conformance, interrupted adoption, linked-remediation eligibility, shared admitted completion/reach and Approval query/route proof; paired fixture chronology; IA25 INST-01–INST-12 exact history/admission, root-first guided retry, auth, proven quiescence, config snapshot/publication/restore custody, partial transaction rollback, commit and post-commit finalization proof |
-| IA27/IA28 | IA29 | existing shell/Context/ResourceList, Queue/Create proof, accepted scope and exact residuals |
+| IA27/IA28 | IA29 | signed path only: existing shell/Context/ResourceList, Queue/Create proof, accepted scope and exact residuals; apply phase-local HUX progression in the action catalog |
 | IA29 | IA16 | signed document membership and Document-first/narrow proof; IA17 exact query/selection already proven |
 | IA16 | IA31 | exact same-Run completed R3/conformance/contextHash/output ArtifactRef verdict and negative rejection/currentness proof; IA31 consumes the admitted verdict without deriving it again |
 | IA31 | IA30 | exact current/historical Approval and existing Review/Proposal/Readiness component/action proof |
 | IA30 | P0.4 HUX-09 / IA20+IA26 targeted fidelity proof | exact PLAN/current attention and direct productive composition; IA26 authority-derived current-marker/attempt-ordinal comparison correction precedes capture review |
-| P0.4 HUX-09 / IA20+IA26 targeted fidelity proof | IA32 | exact same-scope comparison and explicit outstanding HUX disposition |
+| P0.4 HUX-09 / IA20+IA26 targeted fidelity proof | IA32 | exact same-scope comparison and explicit operator disposition of every applicable Priority-0 HUX proposition per action catalog; global HUX-08 stays open until final IA26 |
 | IA32 | IA33 | exact current blocker and chronology/validation/evidence |
 | IA33 | IA34 | reached Complete, exact candidate chain, non-delivery/Evidence |
 | IA34 | IA20-IA23 integrated certification | Settings/diagnostic negative-state matrix |
@@ -150,6 +150,8 @@ The pre-sign-off IA27/IA28 lane is conditional evidence machinery only. It is el
 3. that lane uploads a separately named artifact bound to the exact candidate SHA and records only phase-local evidence; it does not emit or imply `GATE_PASSED(browser)`;
 4. the ordinary full browser suite then runs unchanged. Failures owned by IA29-IA34 remain visible and blocking for their owning phases/final validation, but they do not retroactively suppress the already-generated IA27/IA28 artifact;
 5. final IA26 remains after a green ordinary browser gate and still captures/reviews the complete 37-SURF exact-candidate union.
+
+**Bounded preflight (distinct from the signed predecessor table above):** before any bounded mutation, resolve the exact grant, mutable paths and evidence slice against current R3 and positively re-prove all baseline prerequisites exercised by that slice (including existing canonical reach/current marker, Approval/Context selection, linked-remediation and readiness/Queue/Create projections where applicable). IA01–IA04, IA11, IA17, IA25 and every other signed predecessor remain outside this grant; baseline proof does not complete their signed obligations. If a prerequisite is absent, unproven or contradicted, stop before dependent mutation; return to the owning DESIGN/PLAN or normal signed predecessor path. Do not simulate missing runtime capabilities, fabricate state, broaden the grant, or treat a failed/unavailable prerequisite as acceptance. Produce and stop at the declared evidence package; operator disposition and separate normal sign-off govern later signed execution. No IA29+ mutation or signed phase completion is implied.
 
 The bounded lane is not a waiver, test skip or alternate browser gate. It exists solely to make the campaign's phase-local pre-sign-off evidence boundary executable without authorizing downstream implementation.
 
