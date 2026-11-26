@@ -6,9 +6,9 @@ This decomposition is revalidated under C19-F09/C20-F11 after the prior G4-G6 cl
 
 ## Exact upstream package
 
-- R1 `research.md`: `704491e24774542428783bfd07f81f861d6dc206`.
-- R2 `requirements.md`: `791b7dce75335d6b00146adca7a1973f7db162b0`.
-- DESIGN `solution-design.md`: `3e8a8aeb408385b11091cb4fe8b9d5796b9ba340` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 43-path forecast.
+- R1 `research.md`: `027066ef6532232a7707014a223b64eb4d361e15`.
+- R2 `requirements.md`: `8ad3bbbd2f80f1aa8cde3909a63038c88c29644f`.
+- DESIGN `solution-design.md`: `d2695a048829758cf289c02d4e4bdd11725de4ee` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 43-path forecast.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `9c2ec83a9552b7583f90e91080c014df4d6870df`.
 - P3 `GW-DOC-WORKBENCH-UX-V2`: `64184232833b59a9e6db5e1a28b841f48b3217cd` — §11.4A/§12/§13/§14 own semantic information classes, state-is-not-interface behavior, direct primary interaction composition, no generic workflow-material selector, continuous Dialogue semantics, Terminal-result primacy, singular technical inspection, task anatomy and composition invariants.
 - P3 `GW-DOC-MARKDOWN-WORKBENCH-V1`: `da89bd08e4f78f353d7b3062758e9d78e21375b2` — §17.4 owns one compact Markdown editor-control region, overflow-before-wrap formatting and control→canvas adjacency.

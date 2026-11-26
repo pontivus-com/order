@@ -2754,7 +2754,7 @@ describe("architecture fitness", () => {
       );
     }
 
-    for (const required of ["requireFreshInstallerReadiness", "GET `/api/settings/readiness`", "before `retireLegacyGateweftArtifacts`", "state/config/database/private-account residue alone is never installed-system proof", "atomically publish its unchanged source-commit bytes before irreversible retirement/success", "interruption before fresh source-marker publication"]) {
+    for (const required of ["requireFreshInstallerReadiness", "GET `/api/settings/readiness`", "before `retireLegacyGateweftArtifacts`", "state/config/database/private-account residue alone is never installed-system proof", "atomically publish its unchanged source-commit bytes before irreversible retirement/success", "interruption before fresh source-marker publication", "never the v4 update retain/defer fast path", "available-model-but-unusable-account can invoke existing login"]) {
       if (!design.includes(required) || !plan.includes(required)) {
         violations.push("SD19 fresh installer readiness trace missing: " + required);
       }
