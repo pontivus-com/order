@@ -2,7 +2,6 @@ import { useState, type ReactNode } from "react";
 import { Drawer } from "@astryxdesign/core/Drawer";
 import { Layout, LayoutContent, LayoutPanel } from "@astryxdesign/core/Layout";
 import { WorkbenchAction } from "./WorkbenchAction.tsx";
-import { WorkbenchTable } from "./WorkbenchTable.tsx";
 import { WorkbenchState } from "./WorkbenchState.tsx";
 import { useWorkbenchResponsiveClass } from "./workbench-responsive.ts";
 
@@ -25,24 +24,27 @@ export const WorkbenchMasterDetail = ({
   const responsiveClass = useWorkbenchResponsiveClass();
   const [masterOpen, setMasterOpen] = useState(false);
   const masterLabel = master.label;
-  const masterContent = master.items.length === 0 ? (
-    <WorkbenchState kind="empty" title="No approved tasks" />
-  ) : (
-    <WorkbenchTable label={masterLabel} selection="single"
-      columns={[{ key: "item", label: masterLabel }]}
-      rows={master.items.map((item) => ({
-        id: item.id,
-        selected: item.selected,
-        onSelect: () => { item.onSelect(); setMasterOpen(false); },
-        cells: { item: (
-          <div className="order-workbench-master-item">
-            <strong>{item.label}</strong>
-            {item.state}
-            {item.detail === undefined ? null : <span>{item.detail}</span>}
-          </div>
-        ) },
-      }))}
-    />
+  const masterContent = (
+    <nav aria-label={masterLabel} className="order-workbench-master-navigation">
+      <header className="order-workbench-master-heading"><strong>{masterLabel}</strong></header>
+      {master.items.length === 0 ? (
+        <WorkbenchState kind="empty" title="No approved tasks" />
+      ) : (
+        <ul className="order-workbench-master-list">
+          {master.items.map((item) => (
+            <li key={item.id}>
+              <button type="button" className="order-workbench-master-item"
+                aria-pressed={item.selected}
+                onClick={() => { item.onSelect(); setMasterOpen(false); }}>
+                <strong>{item.label}</strong>
+                {item.state}
+                {item.detail === undefined ? null : <span>{item.detail}</span>}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </nav>
   );
 
   if (responsiveClass === "wide") {

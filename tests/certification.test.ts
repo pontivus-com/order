@@ -1072,6 +1072,14 @@ describe("Order cross-boundary certification", () => {
     expect(masterDetail).not.toContain("masterWidth");
     expect(masterDetail).not.toContain("master: ReactNode");
     expect(masterDetail).toContain("items: readonly Readonly");
+    expect(masterDetail).not.toContain("WorkbenchTable");
+    expect(masterDetail).toContain('className="order-workbench-master-item"');
+    expect(masterDetail).toContain("aria-pressed={item.selected}");
+    const rail = read("ui/src/primitives/WorkbenchRail.tsx");
+    expect(rail).not.toContain("stateMarker");
+    expect(rail).not.toContain("order-workbench-rail-marker");
+    expect(execution).toContain('label="Task overview"');
+    expect(execution).toContain('label: "Validation boundary"');
 
     expect(documentWorkspace).not.toContain("RequirementsAuthorityFacts");
     expect(documentWorkspace).not.toContain('aria-label="Requirements authority"');
@@ -2562,6 +2570,9 @@ describe("0.6.0 Wave 4 Workbench and product-language certification", () => {
     expect(composer).toContain("ref={regionRef}");
     expect(composer).toContain("tabIndex={-1}");
     expect(composer).not.toContain("ChatComposerInputHandle");
+    expect(composer).not.toContain("<ChatComposer");
+    expect(composer).toContain("<TextInput");
+    expect(composer).toContain('<WorkbenchAction label="Send" type="submit"');
     expect(composer).not.toContain("handleRef=");
     expect(composer).not.toContain("Answer the question above");
     expect(composer).not.toContain("Continue current work");

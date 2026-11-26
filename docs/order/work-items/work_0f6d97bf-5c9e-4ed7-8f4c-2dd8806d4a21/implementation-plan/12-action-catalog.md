@@ -286,6 +286,23 @@ This tranche is the immediate implementation priority after the corrected P3/P4/
 **Ordering rationale:** IA29 lands first because IA30 and Approval supporting-document inspection consume the Document owner. IA31 follows because the rejected Review/Proposal/Approval surfaces are independent of the remaining IA30 productive-stage reconstruction once the Document owner is correct. IA30 then removes the historical/current-attention and productive-stage substitute grammar. This is an execution-priority change only; it does not change the 37-SURF ownership partition or the P4 semantic-component responsibilities.
 
 
+### Immediate integrated operator correction — 2026-11-26 (UI-01–UI-06)
+
+**Priority task P0.R — OPEN_BLOCKING.** Operator rejected the rendered candidate `53b1c0e543d8a44f8d77da3b51f11c3b0d802978` (PR #83, Actions 45735014352) despite all mechanical gates passing. These are binding specific rejection reasons under C19-F09/C20-F11 and the existing HUX acceptance law. They are not a new product design.
+
+| Finding | Existing authority / owning action | Required remediation |
+|---|---|---|
+| UI-01 | HUX-10; SURF-APP-001; IA27/IA28 | Replace the rejected application-global toolbar presentation with one compact, coherently bounded orientation/Project/account/navigation/theme row; no dominant email stack or arbitrary separators. |
+| UI-02 | HUX-05/HUX-09; SURF-WI-001/SURF-STEP-WR-001; IA27 | Remove the connected circular stepper grammar; render stable rectangular lifecycle navigation cells with distinct selected/current semantics. |
+| UI-03 | HUX-05/HUX-09; SURF-MAT-ACTIVITY-001; IA30 | Replace the pill-like chat composer with the reference-aligned bounded message field and explicit Send command using the existing approved leaves. Preserve input/focus/admission behavior. |
+| UI-04 | HUX-05/HUX-09; theme owner and shared primitives; IA20 | Correct the shared public radius roles, control and resource geometry, complete bounded collection perimeters, structural separators and current-attention anatomy. Do not add arbitrary cards or private foundation overrides. |
+| UI-05 | HUX-05/HUX-09; SURF-STEP-EXEC-001/SURF-SET-001; IA32/IA34 | Replace the generic one-column task table and unbounded Settings links with proper rectangular selectable navigation rows, visible selected treatment, and the existing constrained-layout semantics. |
+| UI-06 | SURF-STEP-EXEC-001/SURF-MAT-EXEC-TASK-001; IA32 | Reconstruct the full Implementation detail from DESIGN: current-owner action, task objective/state, current/recorded attempt and validation boundary visible before a Run exists, signed scope/details, chronological evidence and bounded resources. Do not fabricate events or change command ownership. |
+
+The operator directed that all six corrections be integrated as one immediate batch before the visual comparison. For this correction only, the priority ordering above includes the specifically affected IA32/IA34 presentation owners and does not require intermediate operator disposition between the six changes. All other phase boundaries, sign-off, gate/register state and HUX acceptance rules remain separate; this task definition is not a sign-off or a gate PASS. The prior rejected presentation is not a preservation target.
+
+**One consolidated proof:** run the mechanical gates and browser verification against the integrated candidate; extend the existing Priority-0 artifact with the affected Work request/Document/Dialogue/Implementation/Settings captures, both themes and applicable constrained states, with settled runtime surfaces and exact same-SURF/state/theme/viewport reference PNGs. Retain prior HUX capture obligations. Compare complete shared chrome, navigation selection, control and boundary geometry, and Implementation datum/action hierarchy. No row is accepted solely by artifact generation. Present the complete targeted evidence together for operator disposition; any remaining defect blocks P0.R.
+
 ### Exact IA27-IA34 rendered face ownership
 
 

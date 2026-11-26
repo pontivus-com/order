@@ -66,13 +66,26 @@ const huxPriorityCaptureIds = new Set<string>([
   "hux-shell-document-narrow-dark",
   "hux-shell-review-wide-light",
   "hux-shell-review-narrow-dark",
+  "ia26-work-request-step-narrow-light",
+  "ia26-work-request-step-wide-dark",
+  "ia26-source-document-editor-wide-light",
+  "ia26-stage-dialogue-open-wide-light",
+  "ia26-stage-dialogue-open-wide-dark",
+  "ia26-stage-dialogue-required-input-wide-light",
+  "ia26-stage-dialogue-processing-wide-light",
+  "ia26-settings-frame-wide-light",
+  "ia26-implementation-wide-light",
+  "ia26-implementation-wide-dark",
+  "ia26-implementation-task-wide-light",
+  "ia26-implementation-narrow-light",
+  "ia26-implementation-processing-wide-light",
+  "ia26-implementation-blocked-wide-light",
+  "ia26-implementation-validation-recorded-wide-light",
 ]);
 const renderedDiagnosticPhases = ["IA34", "IA29", "IA30", "IA31", "IA32", "IA33"] as const;
 type RenderedDiagnosticPhase = typeof renderedDiagnosticPhases[number];
 const runRenderedPhase = (phase: RenderedDiagnosticPhase): boolean =>
-  huxPriorityOnly
-    ? phase === "IA29" || phase === "IA30" || phase === "IA31"
-    : !diagnosticCurrentState || diagnosticPhase === phase;
+  !diagnosticCurrentState || diagnosticPhase === phase;
 
 type ReferenceViewportClass = "wide" | "narrow";
 type ReferenceTheme = "light" | "dark" | "system";
@@ -1893,6 +1906,11 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   const accountUtility = toolbar.getByTestId("opencode-account-trigger");
   await expect(accountUtility).toContainText("OpenCode");
   const accountLabel = accountUtility.locator(".order-workbench-account-label");
+  expect(await accountUtility.evaluate((node) => {
+    const css = getComputedStyle(node);
+    return ["borderTopWidth", "borderRightWidth", "borderBottomWidth", "borderLeftWidth"]
+      .every((side) => Number.parseFloat(css.getPropertyValue(side.replace(/[A-Z]/g, (s) => "-" + s.toLowerCase()))) > 0);
+  })).toBe(true);
   await expect(accountLabel).toHaveText("operator@example.com");
   await expect(accountLabel).toBeVisible();
   expect(await accountLabel.evaluate((node) => {
@@ -4062,6 +4080,9 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   // IA32 — Implementation master/detail and task detail.
   await openWorkItem(page, "Implementation action ready");
   const execution = page.getByTestId("execution-workspace");
+  await expect(execution.getByLabel("Task overview")).toContainText("Not started");
+  await expect(execution.getByRole("navigation", { name: "Approved tasks" })
+    .getByRole("button", { pressed: true })).toContainText("Current · Ready to start");
   await capture({
     id: "ia26-implementation-wide-light",
     workItemKind: "CHANGE",
@@ -5116,6 +5137,8 @@ test("canonical Run feedback remains visible in the owning workflow context with
   const requiredInputComposer = page.getByTestId("activity-composer");
   await expect(requiredInputComposer).not.toContainText("Answer the question above");
   await expect(requiredInputComposer.getByLabel("Message input")).toBeEditable();
+  await expect(requiredInputComposer.getByRole("button", { name: "Send", exact: true })).toBeVisible();
+  await expect(requiredInputComposer.getByRole("button", { name: "Send", exact: true })).toBeDisabled();
   await expect(requiredInputComposer).toBeFocused();
   const contextControl = page.getByRole("button", { name: "Context", exact: true });
   await contextControl.focus();
@@ -5305,7 +5328,10 @@ test("workflow mutations lock their owning controls while pending and keep failu
   await expect(implementationDetail.getByText("Change surface forecast", { exact: true })).toBeVisible();
   await expect(implementationDetail.getByText("Task id", { exact: true })).toHaveCount(0);
   await expect(implementationDetail.getByText("Provider session", { exact: true })).toHaveCount(0);
-  await expect(page.getByRole("table", { name: "Approved tasks" })).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "Approved tasks" })).toBeVisible();
+  await expect(implementationDetail.getByLabel("Task overview")).toContainText("Validation boundary");
+  await expect(implementationDetail.getByLabel("Task overview")).toContainText("Not started");
+  await expect(page.getByRole("navigation", { name: "Approved tasks" }).getByRole("button", { pressed: true })).toContainText("Current · Ready to start");
   await expect(page.getByRole("button", { name: "Technical details", exact: true })).toHaveCount(0);
   const implementationItem = await workItemForTitle(page, "Implementation action ready");
   const taskResponse = await page.context().request.get(
@@ -5343,9 +5369,8 @@ test("P5 keeps current execution ownership independent from historical selection
   expect(historicalTask).toBeDefined();
   expect(currentTask).toBeDefined();
 
-  const historicalTaskRow = page.getByRole("table", { name: "Approved tasks" })
-    .getByRole("row")
-    .filter({ hasText: "Completed prerequisite" });
+  const historicalTaskRow = page.getByRole("navigation", { name: "Approved tasks" })
+    .getByRole("button", { name: /Completed prerequisite/ });
   await expect(historicalTaskRow).toBeVisible();
   await historicalTaskRow.click();
   const detail = page.getByTestId("execution-task-detail");

@@ -46,6 +46,7 @@ export const WorkbenchTable = ({
   selection?: "single" | null;
 }>) => (
   <Table
+    className="order-workbench-data-table"
     density="compact"
     dividers="rows"
     hasHover={rows.some((row) => row.onSelect !== undefined)}

@@ -1,6 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { ChatComposer } from "@astryxdesign/core/Chat";
+import { TextInput } from "@astryxdesign/core/TextInput";
+import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import type { Run, RunEvent } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
 import { runIsActive } from "./workbench-presentation.ts";
@@ -18,6 +19,7 @@ export const ActivityComposer = ({
   onError?: (error: unknown) => void | Promise<void>;
 }>) => {
   const regionRef = useRef<HTMLDivElement>(null);
+  const [message, setMessage] = useState("");
   const requestId = pending?.event.tag === "HUMAN_INPUT_REQUESTED" ? pending.id : null;
 
   useEffect(() => {
@@ -35,7 +37,10 @@ export const ActivityComposer = ({
       }
       return api.submitRunInput(run.id, text.trim(), pending?.id ?? null);
     },
-    onSuccess: onSubmitted,
+    onSuccess: async (event) => {
+      setMessage("");
+      await onSubmitted(event);
+    },
     onError,
   });
   const required = pending?.event.tag === "HUMAN_INPUT_REQUESTED";
@@ -45,13 +50,19 @@ export const ActivityComposer = ({
       tone="danger" title="Workflow action failed"
       description={input.error instanceof Error ? input.error.message : String(input.error)}
     /> : null}
-    <ChatComposer
-      onSubmit={(value) => {
-        if (!mutationsDisabled && value.trim().length > 0) input.mutate(value);
-      }}
-      placeholder={required ? "Answer and continue" : "Send a message"}
-      isDisabled={mutationsDisabled || input.isPending}
-      elevation="none"
-    />
+    <form className="order-activity-message-form" onSubmit={(event) => {
+      event.preventDefault();
+      if (!mutationsDisabled && !input.isPending && message.trim().length > 0) {
+        input.mutate(message);
+      }
+    }}>
+      <TextInput label="Message input" isLabelHidden width="100%" size="sm"
+        value={message} onChange={setMessage}
+        placeholder={required ? "Answer and continue" : "Send a message"}
+        isDisabled={mutationsDisabled || input.isPending} />
+      <WorkbenchAction label="Send" type="submit" tone="primary"
+        disabled={mutationsDisabled || input.isPending || message.trim().length === 0}
+        loading={input.isPending} />
+    </form>
   </div>;
 };

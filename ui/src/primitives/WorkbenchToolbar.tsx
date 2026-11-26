@@ -4,7 +4,6 @@ import {
 } from "@astryxdesign/core/SegmentedControl";
 import { Selector } from "@astryxdesign/core/Selector";
 
-import { WorkbenchStatus } from "./WorkbenchStatus.tsx";
 import { WorkbenchUtilityLink } from "./WorkbenchUtilityLink.tsx";
 
 type WorkbenchToolbarTone = "neutral" | "success" | "warning" | "danger";
@@ -61,11 +60,8 @@ export const WorkbenchToolbar = ({
     projectContext.onChange !== undefined;
 
   return (
-    <header
-      className="order-workbench-toolbar"
-      data-testid="workbench-toolbar"
-      aria-label="Order application toolbar"
-    >
+    <header className="order-workbench-toolbar" data-testid="workbench-toolbar"
+      aria-label="Order application toolbar">
       <div className="order-workbench-toolbar-main">
         <div className="order-application-orientation" aria-label="Current application destination">
           <strong>{orientation.productLabel}</strong>
@@ -74,42 +70,39 @@ export const WorkbenchToolbar = ({
         {projectContext === undefined ? null : (
           <div className="order-workbench-toolbar-project">
             {projectSwitchable ? (
-              <Selector
-                label="Project"
+              <Selector label="Project"
                 options={projectContext.options.map((projectId) => ({ value: projectId, label: projectId }))}
-                value={projectContext.value}
-                onChange={projectContext.onChange}
-                width="100%"
-              />
+                value={projectContext.value} onChange={projectContext.onChange} width="100%" />
             ) : (
               <div className="order-workbench-project-context" aria-label="Current Project">
-                <span>Project</span>
-                <strong title={projectContext.value}>{projectContext.value}</strong>
+                <span>Project:</span><strong title={projectContext.value}>{projectContext.value}</strong>
               </div>
             )}
           </div>
         )}
       </div>
-      <div className="order-workbench-toolbar-utilities" data-testid="workbench-utilities">
+      <nav className="order-workbench-toolbar-utilities" data-testid="workbench-utilities"
+        aria-label="Application utilities">
         {account === undefined ? null : (
           <div className="order-workbench-toolbar-account">
-            <WorkbenchUtilityLink
-              label="OpenCode"
+            <WorkbenchUtilityLink label="OpenCode"
               detail={
                 <span className="order-workbench-account-detail">
+                  <span aria-hidden="true">·</span>
                   <span className="order-workbench-account-label" title={account.label}>{account.label}</span>
                   {account.readiness === undefined ? null : (
-                    <WorkbenchStatus tone={account.readiness.tone} label={account.readiness.label} />
+                    <span className="order-workbench-account-readiness" data-tone={account.readiness.tone}>
+                      {account.readiness.label}
+                    </span>
                   )}
                 </span>
               }
-              href={account.href}
-              testId="opencode-account-trigger"
-              onNavigate={navigate(account.onNavigate)}
-            />
+              href={account.href} testId="opencode-account-trigger"
+              onNavigate={navigate(account.onNavigate)} />
           </div>
         )}
-        <WorkbenchUtilityLink label={navigation.label} href={navigation.href} onNavigate={navigate(navigation.onNavigate)} />
+        <WorkbenchUtilityLink label={navigation.label} href={navigation.href}
+          onNavigate={navigate(navigation.onNavigate)} />
         <div className="order-workbench-toolbar-theme">
           <SegmentedControl label="Theme" value={theme.value} onChange={theme.onChange} size="sm">
             <SegmentedControlItem value="system" label="System" />
@@ -117,7 +110,7 @@ export const WorkbenchToolbar = ({
             <SegmentedControlItem value="dark" label="Dark" />
           </SegmentedControl>
         </div>
-      </div>
+      </nav>
     </header>
   );
 };

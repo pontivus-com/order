@@ -7,12 +7,6 @@ export type WorkbenchRailItem = Readonly<{
   onSelect: () => void;
 }>;
 
-const stateMarker = (state: WorkbenchRailItem["state"]): string => {
-  if (state === "reached" || state === "complete") return "✓";
-  if (state === "blocked") return "!";
-  return "";
-};
-
 export const WorkbenchRail = ({ items }: Readonly<{ items: readonly WorkbenchRailItem[] }>) => (
   <nav className="order-workbench-rail" aria-label="Workflow" data-testid="workflow-rail">
     <ol>
@@ -28,7 +22,6 @@ export const WorkbenchRail = ({ items }: Readonly<{ items: readonly WorkbenchRai
               aria-pressed={item.selected}
               onClick={item.onSelect}
             >
-              <span className="order-workbench-rail-marker" aria-hidden="true">{stateMarker(item.state)}</span>
               <span className="order-workbench-rail-label">{item.label}</span>
               {item.statusLabel === undefined ? null : <span id={descriptionId} hidden>{item.statusLabel}</span>}
             </button>

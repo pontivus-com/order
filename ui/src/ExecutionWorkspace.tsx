@@ -69,7 +69,7 @@ const validationBoundaryLabel = (
         ? scope + " boundary: passed through " + boundary.stage
         : boundary.tag === "COMPLETE"
           ? scope + " boundary: complete"
-          : scope + " boundary: none";
+          : scope + " boundary: not started";
 
 const validationBoundaryStatus = (
   boundary: ValidationBoundary | null,
@@ -225,11 +225,11 @@ const values = (items: readonly string[]): ReactNode =>
 
 const TaskContract = ({ task }: Readonly<{ task: ExecutionTask }>) => (
   <WorkbenchSection
-    title="Authorized scope"
+    title="Signed task contract"
     content={
       <>
         <WorkbenchFacts label="Authorized scope" items={[
-          { id: "scope", label: "Scope", value: values(task.scope), emphasis: "strong" },
+          { id: "scope", label: "Authorized scope", value: values(task.scope), emphasis: "strong" },
         ]} />
         <WorkbenchDisclosure
           label="Signed task details"
@@ -451,11 +451,12 @@ export const ExecutionWorkspace = ({
       />
     ) : currentAction === undefined ? undefined : (
       <WorkbenchAttention
-        title={
-          currentOwnerTask === null
-            ? "Implementation requires your action"
-            : currentOwnerTask.objective + " requires your action"
-        }
+        title={canStart ? "Ready to start current task" : "Current implementation attempt"}
+        description={currentOwnerTask === null ? undefined : (
+          canStart
+            ? currentOwnerTask.objective + " — the exact approved task is current and has no active Run."
+            : currentOwnerTask.objective
+        )}
         action={currentAction}
       />
     );
@@ -468,7 +469,7 @@ export const ExecutionWorkspace = ({
         id: task.id,
         label: task.objective,
         detail: selected && taskRuns.length === 0 ? "No attempts yet" : undefined,
-        state: <WorkbenchStatus tone={taskTone(task)} label={taskStateLabel(task)} />,
+        state: <span>{currentOwnerTask?.id === task.id ? "Current · " : ""}{taskStateLabel(task)}</span>,
         selected: selected && selectedRun === null,
         onSelect: () => onSelectMaterial({
           kind: "EXECUTION_TASK",
@@ -488,7 +489,7 @@ export const ExecutionWorkspace = ({
           id: run.id,
           label: runRoleLabel(run.role) + " · Attempt " + run.attempt,
           detail: new Date(run.startedAt).toLocaleString(),
-          state: <WorkbenchStatus tone={runTone(run)} label={runStatusLabel(run.status)} />,
+          state: <span>{runStatusLabel(run.status)}</span>,
           selected: run.id === selectedRun?.id,
           onSelect: () => onSelectMaterial({
             kind: "EXECUTION_TASK",
@@ -525,13 +526,29 @@ export const ExecutionWorkspace = ({
       <WorkbenchState kind="empty" title="No implementation tasks materialized" />
     ) : (
       <section className="order-implementation-detail" data-testid="execution-task-detail">
-        <WorkbenchSectionHeader
-          title={selectedTask.objective}
-          description="Approved implementation task"
-          action={<WorkbenchStatus tone={taskTone(selectedTask)} label={taskStateLabel(selectedTask)} />}
-        />
+        <header className="order-implementation-heading">
+          <div>
+            <h2>Implementation</h2>
+            <p>Approved implementation task</p>
+          </div>
+          <WorkbenchStatus tone={taskTone(selectedTask)} label={taskStateLabel(selectedTask)} />
+        </header>
+        <WorkbenchFacts label="Task overview" items={[
+          { id: "objective", label: "Objective", value: selectedTask.objective, emphasis: "strong" },
+          { id: "attempt", label: selectedRun !== null && !runIsActive(selectedRun) ? "Recorded attempt" : "Current attempt", value: selectedRun === null
+            ? "No active Run"
+            : runRoleLabel(selectedRun.role) + " · Attempt " + selectedRun.attempt + " · " + runStatusLabel(selectedRun.status) },
+          { id: "boundary", label: "Validation boundary", value: selectedRun === null && (selectedBoundary?.tag === "NONE" || (selectedBoundary === null && selectedTask.state === "TODO"))
+            ? "Not started"
+            : validationBoundaryLabel(selectedBoundary, currentOwnerTask?.id === selectedTask.id ? "Current" : "Recorded") },
+        ]} />
 
         <TaskContract task={selectedTask} />
+
+        {selectedRun === null ? (
+          <WorkbenchSection title="Chronology" description="No attempt events recorded."
+            content={null} />
+        ) : null}
 
         {selectedRun === null ? null : (
           <WorkbenchSection content={<>
@@ -620,7 +637,7 @@ export const ExecutionWorkspace = ({
                   action: (
                     <WorkbenchAction
                       label={"Open " + label}
-                      tone="ghost"
+                      tone="secondary"
                       onClick={() =>
                         onOpenEvidence({
                           kind: "ARTIFACT",

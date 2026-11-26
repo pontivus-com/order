@@ -102,16 +102,13 @@ const SettingsNavigation = ({
       ["opencode", "OpenCode"],
       ["model", "Model & runtime"],
     ] as const).map(([id, label]) => (
-      <WorkbenchUtilityLink
-        key={id}
-        label={label}
-        detail={section === id ? "Current section" : undefined}
-        href={"/settings/" + id}
-        onNavigate={(event) => {
-          event.preventDefault();
-          onNavigate(id);
-        }}
-      />
+      <div key={id} className="order-settings-nav-item" aria-current={section === id ? "page" : undefined}>
+        <WorkbenchUtilityLink label={label} href={"/settings/" + id}
+          onNavigate={(event) => {
+            event.preventDefault();
+            onNavigate(id);
+          }} />
+      </div>
     ))}
   </nav>
 );
