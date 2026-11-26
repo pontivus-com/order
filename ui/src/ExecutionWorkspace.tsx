@@ -469,7 +469,7 @@ export const ExecutionWorkspace = ({
         label: task.objective,
         detail: selected && taskRuns.length === 0 ? "No attempts yet" : undefined,
         state: <WorkbenchStatus tone={taskTone(task)} label={taskStateLabel(task)} />,
-        selected,
+        selected: selected && selectedRun === null,
         onSelect: () => onSelectMaterial({
           kind: "EXECUTION_TASK",
           taskId: task.id,
