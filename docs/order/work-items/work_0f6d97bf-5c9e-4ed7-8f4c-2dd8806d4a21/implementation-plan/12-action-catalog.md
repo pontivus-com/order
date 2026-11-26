@@ -79,7 +79,7 @@ Ownership of shared-path edits is semantic and ordered: IA01 owns manifest schem
 
 **Solution:** SD13; package atom `PL-C12-01`.  
 **Existing realization evidence owners:** existing `src/core/contracts.ts`, `src/core/execution.ts`, `src/daemon/execution.ts`, `src/daemon/validation.ts` and `src/shell/opencode.ts`.  
-**Required action:** no T1 production mutation. Before Wave 1, revalidate that BUILDER alone may emit one terminal signed `GATE_CHECKPOINT_REQUESTED`, the coordinator checks freshness/current V2 scope before the effect, executes the signed gate, records existing GATE_PASSED/GATE_FAILED evidence, continues the same Run/provider session and never grants provider shell/execute. The implementation waves then consume this DESIGN-positive capability exactly as scheduled by `13-verification-closeout.md`.  
+**Required action:** no T1 production mutation. Before Wave 1, revalidate that BUILDER alone may emit one terminal signed `GATE_CHECKPOINT_REQUESTED`, the coordinator checks freshness/current V2 scope before the effect, executes the signed gate, records existing GATE_PASSED/GATE_FAILED evidence, continues the same Run/provider session and never grants provider shell/execute. The implementation waves retain this DESIGN-positive capability and its actual native architecture-feedback proof; the external PR phase-evidence route is distinct as specified in `13-verification-closeout.md`.  
 **Failure:** if current evidence cannot prove the DESIGN-required capability, stop before mutation and return upstream; do not self-bootstrap the checkpoint protocol.  
 **Proof:** existing core/daemon/certification checkpoint success, failure, unsigned, out-of-scope and same-session cases plus exact current realization verification.
 
@@ -238,9 +238,9 @@ Ownership of shared-path edits is semantic and ordered: IA01 owns manifest schem
 ## IA24 — exact candidate closeout
 
 **Upstream:** complete T1 with IA26 rendered UX/UI acceptance PASS.  
-**Owner:** `CHANGELOG.md` plus coordinator-owned validation evidence.  
+**Owner:** `CHANGELOG.md` plus exact-candidate validation evidence under `13-verification-closeout.md`; native coordinator results remain owned only by Order's coordinator.  
 **Required mutation:** record user-visible/correctness consequences under Unreleased; run exact final six-gate union and V0-V7 with fresh V4/V5/V6, and bind closeout to the exact GitHub Actions rendered-acceptance run/evidence package accepted under IA26.  
-**Terminal:** only CANDIDATE_DONE or valid ALREADY_SATISFIED. PR merge/release/version bump remain outside T1.
+**Terminal:** external campaign closeout records reviewed exact PR candidate evidence, not a native task outcome. In an actual Order Run only the canonical coordinator may establish CANDIDATE_DONE or valid ALREADY_SATISFIED. All V0–V7 propositions remain mandatory; missing proof blocks closeout. PR merge/release/version bump remain outside T1.
 
 ## IA25 — guided productive installer completion
 
