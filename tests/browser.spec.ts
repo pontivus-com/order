@@ -1849,7 +1849,13 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   const toolbar = page.getByTestId("workbench-toolbar");
   const accountUtility = toolbar.getByTestId("opencode-account-trigger");
   await expect(accountUtility).toContainText("OpenCode");
-  await expect(accountUtility.locator(".order-workbench-account-label")).toHaveText("operator@example.com");
+  const accountLabel = accountUtility.locator(".order-workbench-account-label");
+  await expect(accountLabel).toHaveText("operator@example.com");
+  await expect(accountLabel).toBeVisible();
+  expect(await accountLabel.evaluate((node) => {
+    const rect = node.getBoundingClientRect();
+    return rect.width > 1 && rect.height > 1 && getComputedStyle(node).clipPath === "none";
+  })).toBe(true);
   await expect(toolbar.getByRole("radio")).toHaveCount(3);
 
   entries.push(await captureRenderedAcceptance(page, {
@@ -2370,6 +2376,14 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   const identity = page.getByTestId("workbench-identity");
   await expect(identity.getByRole("navigation", { name: "Work item navigation" }).getByRole("link", { name: "Back to queue" })).toBeVisible();
   await expect(identity.locator(".order-workbench-identity-primary").getByTestId("work-item-heading")).toBeVisible();
+  const expectIdentityOneRow = async (): Promise<void> => {
+    const centers = await identity.evaluate((node) => Array.from(node.children).map((child) => {
+      const bounds = child.getBoundingClientRect();
+      return bounds.top + bounds.height / 2;
+    }));
+    expect(Math.max(...centers) - Math.min(...centers)).toBeLessThanOrEqual(1);
+  };
+  await expectIdentityOneRow();
   await expect(identity.locator(".order-workbench-identity-primary .order-workitem-kind")).toHaveText("Change");
   await expect(identity.locator(".order-workitem-kind")).toHaveCSS("border-radius", "0px");
   await expect(identity.getByRole("group", { name: "Work item actions" }).getByRole("button", { name: "Edit title", exact: true })).toBeVisible();
@@ -2498,6 +2512,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     ],
     captureScope: "production application toolbar only; WorkItem body excluded",
   }, page.getByTestId("workbench-toolbar")));
+  await expectIdentityOneRow();
   entries.push(await captureRenderedAcceptance(page, {
     id: "workitem-shell-narrow-light-chrome",
     workItemKind: "CHANGE",

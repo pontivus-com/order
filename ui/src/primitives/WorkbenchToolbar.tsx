@@ -67,52 +67,39 @@ export const WorkbenchToolbar = ({
       aria-label="Order application toolbar"
     >
       <div className="order-workbench-toolbar-main">
-        <div
-          className="order-application-orientation"
-          aria-label="Current application destination"
-        >
+        <div className="order-application-orientation" aria-label="Current application destination">
           <strong>{orientation.productLabel}</strong>
           <span className="order-workbench-destination-label">{orientation.destinationLabel}</span>
         </div>
-        {projectContext === undefined ? null : projectSwitchable ? (
+        {projectContext === undefined ? null : (
           <div className="order-workbench-toolbar-project">
-            <Selector
-              label="Project"
-              options={projectContext.options.map((projectId) => ({
-                value: projectId,
-                label: projectId,
-              }))}
-              value={projectContext.value}
-              onChange={projectContext.onChange}
-              width="100%"
-            />
-          </div>
-        ) : (
-          <div
-            className="order-workbench-project-context"
-            aria-label="Current Project"
-          >
-            <span>Project</span>
-            <strong title={projectContext.value}>{projectContext.value}</strong>
+            {projectSwitchable ? (
+              <Selector
+                label="Project"
+                options={projectContext.options.map((projectId) => ({ value: projectId, label: projectId }))}
+                value={projectContext.value}
+                onChange={projectContext.onChange}
+                width="100%"
+              />
+            ) : (
+              <div className="order-workbench-project-context" aria-label="Current Project">
+                <span>Project</span>
+                <strong title={projectContext.value}>{projectContext.value}</strong>
+              </div>
+            )}
           </div>
         )}
       </div>
-      <div
-        className="order-workbench-toolbar-utilities"
-        data-testid="workbench-utilities"
-      >
+      <div className="order-workbench-toolbar-utilities" data-testid="workbench-utilities">
         {account === undefined ? null : (
-          <div className="order-workbench-toolbar-account" title={account.label}>
+          <div className="order-workbench-toolbar-account">
             <WorkbenchUtilityLink
               label="OpenCode"
               detail={
                 <span className="order-workbench-account-detail">
-                  <span className="order-workbench-account-label">{account.label}</span>
+                  <span className="order-workbench-account-label" title={account.label}>{account.label}</span>
                   {account.readiness === undefined ? null : (
-                    <WorkbenchStatus
-                      tone={account.readiness.tone}
-                      label={account.readiness.label}
-                    />
+                    <WorkbenchStatus tone={account.readiness.tone} label={account.readiness.label} />
                   )}
                 </span>
               }
@@ -122,18 +109,9 @@ export const WorkbenchToolbar = ({
             />
           </div>
         )}
-        <WorkbenchUtilityLink
-          label={navigation.label}
-          href={navigation.href}
-          onNavigate={navigate(navigation.onNavigate)}
-        />
+        <WorkbenchUtilityLink label={navigation.label} href={navigation.href} onNavigate={navigate(navigation.onNavigate)} />
         <div className="order-workbench-toolbar-theme">
-          <SegmentedControl
-            label="Theme"
-            value={theme.value}
-            onChange={theme.onChange}
-            size="sm"
-          >
+          <SegmentedControl label="Theme" value={theme.value} onChange={theme.onChange} size="sm">
             <SegmentedControlItem value="system" label="System" />
             <SegmentedControlItem value="light" label="Light" />
             <SegmentedControlItem value="dark" label="Dark" />

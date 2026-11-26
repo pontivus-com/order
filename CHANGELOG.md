@@ -8,6 +8,7 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Changed
 
+- Re-author the bounded IA27/IA28 toolbar and selected-WorkItem identity presentation from SURF-APP-001 and SURF-WI-001: expose subordinate account identity, restore the single-row title-first hierarchy and test actual account visibility and identity geometry (HUX-05/HUX-10/HUX-11); no downstream phase acceptance is claimed.
 - Complete the semantic-owner cutover of Implementation task contracts/master selection, Terminal result composition and Settings facts/sections; keep raw account labels out of ordinary toolbar presentation and require resolved Approval state before screenshot capture.
 - Rebuild Review heading/verdict hierarchy, Approval package-document and task information anatomy, canonical divided resource rows and discoverable actions; extend targeted HUX evidence to cover both shared chrome owners and Approval in wide/narrow light/dark states using the declared capture scope.
 - Reconstruct the shared Workbench toolbar and identity chrome under bounded IA27/IA28: separate product/Project orientation from compact account/navigation/theme utilities, make the active account label subordinate, restore the title as primary identity, move title edit into the utility group, remove pill styling from ordinary WorkItem kind and duplicate shell dividers, and capture the shared shell in a real Approval destination without claiming Review-body acceptance.
