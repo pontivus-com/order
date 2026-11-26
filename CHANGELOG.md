@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Record independent R3 rejection and reopen the affected installation/recovery specification and integrated proof obligations; no production mutation or authorization.
+
 - Close the affected vertical and horizontal specification audits on the exact installer-continuity candidate; preserve prior audit evidence and reserve readiness for independent R3.
 
 - Complete the affected upstream specification audits for the installer continuity/archive correction; retain prior evidence and advance only to final vertical alignment.
