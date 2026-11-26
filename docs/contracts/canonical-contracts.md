@@ -3143,7 +3143,7 @@ const InstallationReadinessSchema = z.strictObject({
 `ready === true` iff `blockers.length === 0`.
 
 
-The daemon is the single readiness-policy owner. The browser does not reconstruct readiness from separate repository/account/model queries.
+The daemon is the single readiness-policy owner. The browser and installer do not reconstruct readiness from separate repository/account/model queries. The existing `GET /api/settings/readiness` returns the same canonical `InstallationReadiness` to an authenticated browser session or a valid daemon Bearer header for the installed local process/installer read. Missing or invalid authentication is rejected; no other Settings endpoint gains Bearer admission. Public `/api/health` remains liveness/version only. The installer uses the already-proven loopback bind, existing owner-only daemon token and no redirects; it parses the canonical schema and requires `ready === true` and zero blockers. Inconsistent/malformed bytes, unavailable response or any blocker fail fresh installation. This read performs no lifecycle, configuration, account or repository mutation and exposes no credential values.
 
 ### 35.4 Focused Settings commands
 
@@ -3289,7 +3289,7 @@ The existing full-source parser remains the authority for externally edited repo
 
 Existing OpenCode account endpoints and `OpenCodeAccountState` remain canonical. Settings reuses them; no settings-specific account shape/endpoints duplicate that owner.
 
-New authenticated same-origin Settings endpoints are limited to canonical queries/commands for:
+Authenticated same-origin Settings endpoints are limited to canonical queries/commands for (the existing readiness GET also admits the bounded local installer Bearer read specified in §35.3):
 
 - config state;
 - installation readiness;
@@ -3362,7 +3362,7 @@ A configuration-capable daemon/recovery flow may persist:
 }
 ```
 
-as a valid non-productive configuration so authenticated Settings can expose and repair readiness blockers. The productive fresh installer may use the same canonical shape only as an intermediate rollback-safe state while guided setup is still in progress; **it must not treat that state as successful installation or defer mandatory first-run repository/OpenCode-account/model choices to the browser.** Successful productive installation exits only after the installer-owned guided setup has established the required choices and the normal installer health proof passes.
+as a valid non-productive configuration so authenticated Settings can expose and repair readiness blockers. The productive fresh installer may use the same canonical shape only as an intermediate rollback-safe state while guided setup is still in progress; **it must not treat that state as successful installation or defer mandatory first-run repository/OpenCode-account/model choices to the browser.** Successful fresh productive installation exits only after installer-owned guided setup has established required choices, normal installer health proof passes and the exact daemon-owned readiness observation in §35.3 proves readiness before success and rollback retirement. Supported update/recovery may remain configuration-capable and explicitly report recovery rather than claim productive readiness.
 
 Daemon startup under incomplete v4 configuration:
 

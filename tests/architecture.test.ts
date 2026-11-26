@@ -2747,11 +2747,17 @@ describe("architecture fitness", () => {
     const designSurface = [...designSurfaceSection.matchAll(/^- `([^\`]+)`(?:\s+—.*)?$/gm)].map(
       (match) => match[1],
     );
-    if (designSurface.length !== 41 || duplicates(designSurface).length > 0) {
+    if (designSurface.length !== 43 || duplicates(designSurface).length > 0) {
       violations.push(
-        "DESIGN implementation forecast must contain 41 unique paths; found " +
+        "DESIGN implementation forecast must contain 43 unique paths; found " +
           designSurface.length,
       );
+    }
+
+    for (const required of ["requireFreshInstallerReadiness", "GET `/api/settings/readiness`", "before `retireLegacyGateweftArtifacts`"]) {
+      if (!design.includes(required) || !plan.includes(required)) {
+        violations.push("SD19 fresh installer readiness trace missing: " + required);
+      }
     }
 
     const taskBlocks = [...plan.matchAll(/```order-tasks\n([\s\S]*?)\n```/g)];
@@ -2803,9 +2809,9 @@ describe("architecture fitness", () => {
             task.gateIds ?? [],
             ["architecture", "browser", "build", "dependency-lock", "test", "typecheck"],
           );
-          if ((task.scope ?? []).length !== 41 || duplicates(task.scope ?? []).length > 0) {
+          if ((task.scope ?? []).length !== 43 || duplicates(task.scope ?? []).length > 0) {
             violations.push(
-              "T1 hard scope must contain the exact 41 unique forecast paths; found " +
+              "T1 hard scope must contain the exact 43 unique forecast paths; found " +
                 (task.scope ?? []).length,
             );
           }
@@ -2814,6 +2820,8 @@ describe("architecture fitness", () => {
 
         const signedSurface = task?.changeSurface ?? [];
         for (const requiredPath of [
+          "src/installer.ts",
+          "src/shell/setup.ts",
           "src/shell/repository.ts",
           "ui/src/workbench-presentation.ts",
           "tests/e2e-server.ts",
@@ -2828,9 +2836,9 @@ describe("architecture fitness", () => {
         for (const excluded of task?.exclusions ?? []) {
           if ((task?.scope ?? []).includes(excluded)) violations.push("T1 scope overlaps exclusion: " + excluded);
         }
-        if (signedSurface.length !== 41 || duplicates(signedSurface).length > 0) {
+        if (signedSurface.length !== 43 || duplicates(signedSurface).length > 0) {
           violations.push(
-            "PLAN signed T1 changeSurface must contain 41 unique paths; found " +
+            "PLAN signed T1 changeSurface must contain 43 unique paths; found " +
               signedSurface.length,
           );
         }
@@ -2843,9 +2851,9 @@ describe("architecture fitness", () => {
         const documentedSurface = [...surfaceSection.matchAll(/^- \`([^\`]+)\`$/gm)].map(
           (match) => match[1],
         );
-        if (documentedSurface.length !== 41 || duplicates(documentedSurface).length > 0) {
+        if (documentedSurface.length !== 43 || duplicates(documentedSurface).length > 0) {
           violations.push(
-            "PLAN documented candidate surface must contain 41 unique paths; found " +
+            "PLAN documented candidate surface must contain 43 unique paths; found " +
               documentedSurface.length,
           );
         }
@@ -2873,7 +2881,6 @@ describe("architecture fitness", () => {
           "src/shell/project-config.ts",
           "src/shell/project.ts",
           "src/shell/runtime.ts",
-          "src/shell/setup.ts",
           "src/shell/sqlite.ts",
           "src/shell/work-item-source.ts",
           "tests/architecture.test.ts",
@@ -2939,6 +2946,8 @@ describe("architecture fitness", () => {
           }
         }
         exactSet("DESIGN corrected residual/proof forecast", designSurface, [
+          "src/installer.ts",
+          "src/shell/setup.ts",
           "README.md",
           "pontivus-order.toml.example",
           "src/core/contracts.ts",

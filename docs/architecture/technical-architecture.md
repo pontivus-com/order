@@ -97,7 +97,7 @@ These entry points come from the exact pinned package manifests recorded in [GW-
 
 The productive v1 installation surface is one user-invoked command and one continuous Order-owned installer experience. Root `install.sh` is deliberately minimal: after Linux/source-integrity checks it downloads the exact pinned Bun bootstrap runtime into a temporary directory and executes `src/installer.ts` from the verified source commit. It does not install Node/OpenCode/application dependencies, write Order configuration, invoke `order setup`, create launchers/services, or perform daemon health logic.
 
-`src/installer.ts` is the sole productive installer orchestrator. It owns the staged application/runtime installation, guided first-run/update choices, launcher and user-service materialization, activation/rollback, and final health proof. After the staged application dependency graph exists it may reuse exactly the canonical guided-setup boundary plus the shell-owned state-path and SQLite installer-upgrade functions required by the P6 update contract; it does not gain a general shell dependency and does not route first-run work through the ordinary CLI. It may ask for operator intent while it is running, but once it reports success no additional mandatory configuration or daemon-start action remains.
+`src/installer.ts` is the sole productive installer orchestrator. It owns the staged application/runtime installation, guided first-run/update choices, launcher and user-service materialization, activation/rollback, and final health plus fresh productive-readiness proof. After the staged application dependency graph exists it may reuse exactly the canonical guided-setup boundary plus the shell-owned state-path and SQLite installer-upgrade functions required by the P6 update contract; it does not gain a general shell dependency and does not route first-run work through the ordinary CLI. It may ask for operator intent while it is running, but once it reports success no additional mandatory configuration or daemon-start action remains.
 
 For the normal user-local install it must:
 
@@ -765,7 +765,7 @@ order provider login <provider>
 - `setup` is the explicit post-install reconfiguration/recovery surface for the same canonical P6 configuration. Bare `order setup` reuses an already-valid configuration/credential binding without prompting; `order setup --reconfigure` explicitly reopens model/root choices. The productive installer does not invoke either CLI form; both the installer and CLI reuse one canonical guided-configuration functional boundary;
 - `provider login <provider>` remains a narrow maintenance/recovery command for the same private OpenCode credential namespace; normal first-run authentication is driven directly by the custom installer through the same canonical provider shell functions;
 - `open` performs the one-time browser-session bootstrap in [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md) and emits the authenticated connect URL; core v1 does not depend on a host default-browser opener;
-- `status` and `tick` call daemon HTTP contracts through CLI Bearer authentication. `tick` is an operational/global coordinator command and is not the Workbench task-local Start action. Lifecycle resume, exact current-task start and sign-off remain Workbench actions rather than duplicate CLI workflows.
+- `status` uses the public liveness/version query; the installer separately uses the authenticated readiness query under P6 §35.3 for fresh completion. `tick` uses daemon/CLI Bearer authentication. `tick` is an operational/global coordinator command and is not the Workbench task-local Start action. Lifecycle resume, exact current-task start and sign-off remain Workbench actions rather than duplicate CLI workflows.
 
 `orderd` owns periodic scheduling directly:
 
@@ -2426,7 +2426,7 @@ Update from 0.2.0/v3:
 6. start the daemon even when post-update account readiness requires operator action;
 7. expose unresolved readiness through Settings instead of treating it as installation corruption.
 
-Fresh install may complete with an incomplete v4 config and route the operator into Settings. Guided terminal setup remains available, but it is no longer the only way to reach a valid daemon.
+Fresh installer completion is governed by `GW-FR-007-GUIDED-PRODUCTIVE-BOOTSTRAP` and `GW-FR-079-PRODUCTIVE-INSTALLATION-READINESS`. A configuration-capable daemon may start with incomplete v4 only as an intermediate rollback-safe installation state or for an already-installed/update/recovery system. A healthy HTTP process does not establish productive readiness. The installer consumes the existing daemon-owned readiness query under P6 §35.3 after service activation and normal liveness proof, before success or irreversible retirement of rollback material. Only fresh installation requires a canonical ready result; supported update/recovery remains configuration-capable. Missing, invalid, unavailable or non-ready observation fails fresh installation through existing rollback. No second readiness policy, state, account store, CLI command or browser setup path.
 
 Permanent migration tests must prove v3 choices survive byte-for-semantic-value conversion, retained private OpenCode state remains in place, and missing account/repository/model conditions reach Settings rather than daemon startup failure.
 
@@ -2434,9 +2434,9 @@ Permanent migration tests must prove v3 choices survive byte-for-semantic-value 
 
 **Required behavior:** the daemon starts from structurally valid OrderConfig v4 even when repository/model productive prerequisites are absent, and exposes canonical readiness/Settings while blocking only affected productive commands.
 
-**Acceptance criterion:** fresh or upgraded installations can reach authenticated Settings with zero repositories and/or no configured model; existing valid v3 choices migrate unchanged.
+**Acceptance criterion:** already-installed or upgraded systems can reach authenticated Settings with zero repositories and/or no configured model; fresh installer success is forbidden in that state. Existing valid v3 choices migrate unchanged.
 
-**Failure/negative behavior:** daemon startup must not require fake/default repository/model values, silently reset existing config, or force account/model/repository completion exclusively through installer prompts.
+**Failure/negative behavior:** daemon startup must not require fake/default repository/model values, silently reset existing config, or force already-installed recovery exclusively through installer prompts.
 
 #### GW-TR-071-OPENCODE-ACCOUNT-INTEGRATION-READINESS
 

@@ -16,7 +16,7 @@ T1 carries the same six logical gate IDs through final validation. During the li
 | Completed phase | Before next phase | Required retained evidence |
 |---|---|---|
 | read-only IA07/IA08 and current R3/G6 | normal sign-off | exact existing capability proof; no mutation before sign-off absent separate grant |
-| signed IA01→IA02→IA03→IA04, IA11, IA17 and existing capability proof | IA27/IA28 | exact refs/decision conformance, interrupted adoption, linked-remediation eligibility, shared admitted completion/reach and Approval query/route proof; paired fixture chronology |
+| signed IA01→IA02→IA03→IA04, IA11, IA17, IA25 and existing capability proof | IA27/IA28 | exact refs/decision conformance, interrupted adoption, linked-remediation eligibility, shared admitted completion/reach and Approval query/route proof; paired fixture chronology; exact fresh installer completion gate and auth/rollback/negative proof |
 | IA27/IA28 | IA29 | existing shell/Context/ResourceList, Queue/Create proof, accepted scope and exact residuals |
 | IA29 | IA16 | signed document membership and Document-first/narrow proof; IA17 exact query/selection already proven |
 | IA16 | IA31 | exact same-Run completed R3/conformance/contextHash/output ArtifactRef verdict and negative rejection/currentness proof; IA31 consumes the admitted verdict without deriving it again |
@@ -115,7 +115,7 @@ SD20 exact-pin OpenCode proof is a mandatory IA23 precondition to IA26 and IA24:
 
 ### Pre-Approval structural-sensor correction
 
-The permanent package sensor is protected pre-signoff material. It validates exact 41-path DESIGN/T1 scope and forecast, exclusions, existing closed API proof and required absence, authority/Approval integration paths, 37 SURF, 46 scenarios, single catalog and compiled blob identity.
+The permanent package sensor is protected pre-signoff material. It validates exact 43-path DESIGN/T1 scope and forecast, exclusions, existing closed API proof and required absence, authority/Approval integration paths, 37 SURF, 46 scenarios, single catalog and compiled blob identity.
 
 This sensor correction is campaign/package fitness only: `tests/architecture.test.ts` remains outside signed implementation tasks. Re-run architecture and root/modular compilation checks on the corrected package before G5 may return to PASS.
 
@@ -198,14 +198,14 @@ V4/V5/V6 explicitly verify:
 - all 112 stable rows retain their exact current R1 evidence and DESIGN disposition;
 - all 27 package-local atoms, including `PL-C12-02`, are satisfied by the single T1 owner and the exact catalog-defined mutation/proof responsibilities, without duplicate semantic implementations;
 - every `POSITIVE_NO_CHANGE` and DESIGN-positive-reuse obligation remains true;
-- T1 retains exact 41-path forecast and protected exclusions; no obsolete component recreation;
+- T1 retains exact 43-path forecast and protected exclusions; no obsolete component recreation;
 - every actual changed path is inside signed `scope`, outside exclusions/protected material, and either forecast or positively proven as minimum same-layer responsibility-preserving variance;
 - forecast variance changes no semantic owner, public contract, state meaning, effect boundary, dependency direction/external dependency, validation contract or authorized behavior;
 - current-v2 task non-vacuity is enforced without changing published v1 task semantics or creating a second task schema/parser/review owner;
 - bootstrap dependency-lock passed; exact residual/reuse proofs and normal V0–V7 closure retained;
 - FCIS/SoC/DRY/canonical ownership/strict typing/no-OOP/no-DTO;
 - no compatibility/fallback/shadow state/owner, deprecated prop/alias, translation adapter, hidden legacy DOM, dual old/new path, feature-flagged superseded topology or CSS shim;
-- corrected productive installer semantics without loss of incomplete-config recovery or upgrade continuity;
+- IA25 corrected actual fresh installer completion gate: existing daemon readiness GET, exact bounded Bearer read and strict schema; not-ready/unavailable/malformed response fails before retirement/success; preserve incomplete-config recovery and update continuity;
 - no implementation-derived product semantics.
 - IA26 exact-candidate rendered evidence is exhaustive and scope-valid; the Actions artifact is bound to the reviewed candidate; the separate acceptance ledger records PASS with rationale for every required schema/information, UX/interaction and visual/UI dimension; zero unresolved discrepancy remains. Capture generation success alone is not acceptance. Required-absent generic composition, direct Review/Dialogue ownership and zero legacy/adapter paths are proven; no parent-SURF PASS hides a visibly nonconforming descendant.
 
