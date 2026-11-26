@@ -16,7 +16,7 @@ T1 carries the same six logical gate IDs through final validation. During the li
 | Completed phase | Before next phase | Required retained evidence |
 |---|---|---|
 | read-only IA07/IA08 and current R3/G6 | normal sign-off | exact existing capability proof; no mutation before sign-off absent separate grant |
-| signed IA01→IA02→IA03→IA04, IA11, IA17, IA25 and existing capability proof | IA27/IA28 | exact refs/decision conformance, interrupted adoption, linked-remediation eligibility, shared admitted completion/reach and Approval query/route proof; paired fixture chronology; IA25 INST-01–INST-12 exact history/admission, guided retry, auth, partial transaction rollback, commit and post-commit finalization proof |
+| signed IA01→IA02→IA03→IA04, IA11, IA17, IA25 and existing capability proof | IA27/IA28 | exact refs/decision conformance, interrupted adoption, linked-remediation eligibility, shared admitted completion/reach and Approval query/route proof; paired fixture chronology; IA25 INST-01–INST-12 exact history/admission, root-first guided retry, auth, proven quiescence, config snapshot/publication/restore custody, partial transaction rollback, commit and post-commit finalization proof |
 | IA27/IA28 | IA29 | existing shell/Context/ResourceList, Queue/Create proof, accepted scope and exact residuals |
 | IA29 | IA16 | signed document membership and Document-first/narrow proof; IA17 exact query/selection already proven |
 | IA16 | IA31 | exact same-Run completed R3/conformance/contextHash/output ArtifactRef verdict and negative rejection/currentness proof; IA31 consumes the admitted verdict without deriving it again |

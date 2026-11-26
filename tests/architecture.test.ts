@@ -2839,9 +2839,9 @@ describe("architecture fitness", () => {
     const designSurface = [...designSurfaceSection.matchAll(/^- `([^\`]+)`(?:\s+—.*)?$/gm)].map(
       (match) => match[1],
     );
-    if (designSurface.length !== 44 || duplicates(designSurface).length > 0) {
+    if (designSurface.length !== 45 || duplicates(designSurface).length > 0) {
       violations.push(
-        "DESIGN implementation forecast must contain 44 unique paths; found " +
+        "DESIGN implementation forecast must contain 45 unique paths; found " +
           designSurface.length,
       );
     }
@@ -2905,6 +2905,11 @@ describe("architecture fitness", () => {
         "For absent config (only ENOENT/null)",
         "restoreOrderDatabaseAfterFailedInstall",
         "never gates established admission",
+        "R3-F01 — fresh/unproven retained recovery",
+        "before calling the existing model discovery or login",
+        "quiescence unproven",
+        "immediately after successful rename and before directory fsync/readback",
+        "no callback means no published config effect",
       ]],
       ["IA25 exact execution/proof", installerAction, [
         "one pre-mutation disposition",
@@ -2928,6 +2933,10 @@ describe("architecture fitness", () => {
         "no unsafe prior-service restart",
         "exact incomplete-restore callback/flag",
         "confirmed established missing config",
+        "failed stop after successful or partial restart",
+        "writer failure before rename (no publication)",
+        "failure after rename before fsync/readback (publication captured)",
+        "Present legacy config with external-root ENOENT",
       ]],
     ] as const;
     for (const [owner, source, requiredTokens] of installerTraces) {
@@ -2992,9 +3001,9 @@ describe("architecture fitness", () => {
             task.gateIds ?? [],
             ["architecture", "browser", "build", "dependency-lock", "test", "typecheck"],
           );
-          if ((task.scope ?? []).length !== 44 || duplicates(task.scope ?? []).length > 0) {
+          if ((task.scope ?? []).length !== 45 || duplicates(task.scope ?? []).length > 0) {
             violations.push(
-              "T1 hard scope must contain the exact 44 unique forecast paths; found " +
+              "T1 hard scope must contain the exact 45 unique forecast paths; found " +
                 (task.scope ?? []).length,
             );
           }
@@ -3006,6 +3015,7 @@ describe("architecture fitness", () => {
           "src/installer.ts",
           "src/shell/setup.ts",
           "src/shell/sqlite.ts",
+          "src/shell/config.ts",
           "src/shell/repository.ts",
           "ui/src/workbench-presentation.ts",
           "tests/e2e-server.ts",
@@ -3020,9 +3030,9 @@ describe("architecture fitness", () => {
         for (const excluded of task?.exclusions ?? []) {
           if ((task?.scope ?? []).includes(excluded)) violations.push("T1 scope overlaps exclusion: " + excluded);
         }
-        if (signedSurface.length !== 44 || duplicates(signedSurface).length > 0) {
+        if (signedSurface.length !== 45 || duplicates(signedSurface).length > 0) {
           violations.push(
-            "PLAN signed T1 changeSurface must contain 44 unique paths; found " +
+            "PLAN signed T1 changeSurface must contain 45 unique paths; found " +
               signedSurface.length,
           );
         }
@@ -3035,9 +3045,9 @@ describe("architecture fitness", () => {
         const documentedSurface = [...surfaceSection.matchAll(/^- \`([^\`]+)\`$/gm)].map(
           (match) => match[1],
         );
-        if (documentedSurface.length !== 44 || duplicates(documentedSurface).length > 0) {
+        if (documentedSurface.length !== 45 || duplicates(documentedSurface).length > 0) {
           violations.push(
-            "PLAN documented candidate surface must contain 44 unique paths; found " +
+            "PLAN documented candidate surface must contain 45 unique paths; found " +
               documentedSurface.length,
           );
         }
@@ -3058,7 +3068,6 @@ describe("architecture fitness", () => {
           "src/daemon/execution.ts",
           "src/daemon/validation.ts",
           "src/daemon/work-item-source.ts",
-          "src/shell/config.ts",
           "src/shell/file-write.ts",
           "src/shell/opencode.ts",
           "src/shell/process.ts",
@@ -3132,6 +3141,7 @@ describe("architecture fitness", () => {
           "src/installer.ts",
           "src/shell/setup.ts",
           "src/shell/sqlite.ts",
+          "src/shell/config.ts",
           "README.md",
           "pontivus-order.toml.example",
           "src/core/contracts.ts",
