@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Specify exact current versus historical Approval identity and signed artifact membership, including upstream-return and zero-task retained-history cases, without a new transport representation.
+
 - Reconcile all 112 DESIGN factual classifications with current R2, retain realized owners, and clarify exact PLAN inspection and execution terminal-cause projection.
 
 - Refine SD02's stage-authority declaration as an optional additive policy over mandatory pinned/concern/source/explicit-reference inputs; retain fail-closed required-reference/dependency resolution without blanket v2 manifest migration or self-authorizing root changes.
