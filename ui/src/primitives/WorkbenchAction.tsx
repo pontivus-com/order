@@ -12,9 +12,9 @@ export const WorkbenchAction = ({
   disabled?: boolean; loading?: boolean; icon?: ReactNode; iconOnly?: boolean;
   onClick?: MouseEventHandler<HTMLButtonElement>; testId?: string; ariaExpanded?: boolean;
 }>) => iconOnly && icon ? (
-  <IconButton className="order-workbench-command" type={type} label={label} variant={tone} size="sm" isDisabled={disabled}
+  <IconButton type={type} label={label} variant={tone} size="sm" isDisabled={disabled}
     isLoading={loading} icon={icon} onClick={onClick} data-testid={testId} aria-expanded={ariaExpanded} />
 ) : (
-  <Button className="order-workbench-command" type={type} label={label} variant={tone} size="sm" isDisabled={disabled}
+  <Button type={type} label={label} variant={tone} size="sm" isDisabled={disabled}
     isLoading={loading} icon={icon} onClick={onClick} data-testid={testId} aria-expanded={ariaExpanded} />
 );

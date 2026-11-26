@@ -8,7 +8,7 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Changed
 
-- Prioritize and reconstruct the six operator-rejected presentation areas as one integrated P0.R correction: bounded global toolbar, rectangular workflow navigation, explicit message field/Send action, consistent shared radius/boundary roles, selectable task and Settings navigation, and complete Implementation task overview/validation/contract/chronology/resources. Extend the existing targeted reference evidence and regression checks; retain open human acceptance.
+- Prioritize and reconstruct the six operator-rejected presentation areas as one integrated P0.R correction: bounded global toolbar, rectangular workflow navigation, explicit message field/Send action, consistent shared radius/boundary roles, selectable task and Settings navigation, and complete Implementation task overview/validation/contract/chronology/resources. Extend the existing targeted reference evidence and regression checks; retain open human acceptance. Record the operator's priority in the campaign owner without changing the reviewed PLAN bytes or excluded atomic adapters.
 
 - Complete the Priority-0 presentation correction with bounded document/editor scroll ownership, direct document inspection and historical-return navigation, container-responsive facts, canonical singleton action treatment, and contextual proposal change blocks with exact source-line checking. Preserve the existing component and workflow contracts.
 - Capture static authority-derived reference PNGs at the runtime viewport and theme, rather than embedding independently responsive reference iframes; keep visual disposition distinct from evidence generation.
