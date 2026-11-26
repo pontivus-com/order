@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Reconcile the exact campaign forecast sensor with the single installer archive owner addition; make stored-root conversion, absent-config recovery and incomplete compensation signaling explicit.
+
 - Reconcile installer continuity requirements FR080–082 with SD19/IA25; specify established v3/v4 recovery and existing SQLite archive/restore compensation, preserving primary errors and recoverable material. Correct only the associated scope and verification trace before sign-off.
 
 - Record targeted remaining 0.6.0 audit results: close unaffected local shell/factual checks, isolate installer continuity and database archive rollback custody findings under the existing IA25; retain prior semantic audit evidence.

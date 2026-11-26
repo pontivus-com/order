@@ -2900,6 +2900,9 @@ describe("architecture fitness", () => {
         "before live model discovery, login or live root proof",
         "prepareOrderDatabaseForInstall",
         "original error as the first cause",
+        "onIncompleteRestore: () => void",
+        "do not call the live-root `buildOrderConfig`",
+        "For absent config (only ENOENT/null)",
         "restoreOrderDatabaseAfterFailedInstall",
         "never gates established admission",
       ]],
@@ -2923,6 +2926,8 @@ describe("architecture fitness", () => {
         "primary effect and secondary compensation failure",
         "no sole-copy deletion",
         "no unsafe prior-service restart",
+        "exact incomplete-restore callback/flag",
+        "confirmed established missing config",
       ]],
     ] as const;
     for (const [owner, source, requiredTokens] of installerTraces) {
@@ -3126,6 +3131,7 @@ describe("architecture fitness", () => {
         exactSet("DESIGN corrected residual/proof forecast", designSurface, [
           "src/installer.ts",
           "src/shell/setup.ts",
+          "src/shell/sqlite.ts",
           "README.md",
           "pontivus-order.toml.example",
           "src/core/contracts.ts",
