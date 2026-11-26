@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Correct the G5 Priority-0 dependency contract: prove IA16's exact admitted R3 verdict after IA29 and before IA31; enforce both transitions in permanent fitness without changing T1 scope.
+
 - Finalize the 0.6.0 implementation specification through G5, resolving exact action/producer dependencies, forecast and proof ownership; preserve G5A/R3/sign-off barriers.
 
 - Close 0.6.0 technical design A07–A11/H3, binding current validation and complete result proof to exact Run/Approval lineage; retain 41-path draft scope and require fresh G5/ALIGN/R3.

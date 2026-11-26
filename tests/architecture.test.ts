@@ -2673,7 +2673,8 @@ describe("architecture fitness", () => {
     exactSet("PLAN P3 certification scenario allocation", scenarioProofIds, canonicalScenarioIds);
     if (duplicates(scenarioProofIds).length > 0) violations.push("PLAN certification scenario allocation contains duplicates");
     const priorityZeroTransitions = [
-      "| IA29 | IA31 |",
+      "| IA29 | IA16 |",
+      "| IA16 | IA31 |",
       "| IA31 | IA30 |",
       "| IA30 | P0.4 HUX-09 / IA20+IA26 targeted fidelity proof |",
       "| P0.4 HUX-09 / IA20+IA26 targeted fidelity proof | IA32 |",
@@ -2689,6 +2690,8 @@ describe("architecture fitness", () => {
       previousPriorityZeroTransition = offset;
     }
     for (const staleTransition of [
+      "| IA29 | IA31 |",
+      "| IA29 | IA16/IA31 |",
       "| IA29 | IA30 |",
       "| IA30 | IA31 |",
       "| IA31 | IA32 |",

@@ -26,8 +26,8 @@ Retain evidenced closed F6B owners and the operator-accepted foundation within s
 | `implementation-plan/09-a09-provider-settings.md` | `dc9988af7a2f63ae8a2843122e66911e14d595e9` |
 | `implementation-plan/10-a10-recovery-accessibility.md` | `3537f8f368001084e0844c4039235f85b0cbe532` |
 | `implementation-plan/11-a11-component-certification.md` | `39888364495850fe7b9fc3c486ad67bf6905678c` |
-| `implementation-plan/12-action-catalog.md` | `7b84dee67069e41787a24d5b025f98c9dcbec9f9` |
-| `implementation-plan/13-verification-closeout.md` | `f164ea98a3f723d7419af03123efed319d426dec` |
+| `implementation-plan/12-action-catalog.md` | `5de51657122fc4bcd718660591200357f8b4db9a` |
+| `implementation-plan/13-verification-closeout.md` | `1abe1a9e9ad9522440f8183085dc999c3dc3e0af` |
 
 A source hash mismatch makes PLAN non-current until recompiled. Directory files have no independent order-tasks block or lifecycle state.
 
@@ -1121,7 +1121,7 @@ This candidate confers no authority. Production mutation requires current G4/G5/
 0. Read-only IA07/IA08 checkpoint/scope preflight.
 1. Signed IA01 → IA02 → IA03 → IA04 exact authority, adoption-recovery and durable-decision residuals; IA11 corrects linked-remediation eligibility. IA05/IA06/IA09/IA10/IA12/IA25 are existing capability proof. IA17 establishes exact canonical Approval reads, shared conformed-completion selection and query/invalidation ownership before Context, Document and Review consumers.
 2. IA27/IA28 shell/Context/Queue/Create and ResourceList/Row revalidation; only forecast narrow residuals.
-3. IA13/IA14/IA29 exact signed document and narrow editor consume completed IA17 transport/selection; then IA16/IA31 exact admitted R3 and Approval/Review; then IA15/IA30 PLAN and current attention. Each consumer phase typechecks without compatibility or later unimplemented APIs.
+3. IA13/IA14/IA29 exact signed document and narrow editor consume completed IA17 transport/selection; then IA16 establishes the exact admitted R3 verdict and its proof before IA31 consumes it for Approval/Review; then IA15/IA30 PLAN and current attention. Each consumer phase typechecks without compatibility or later unimplemented APIs.
 4. IA26 first reconciles the exact authority-derived reference current marker and task-global attempt ordinal; targeted IA20/IA26 then perform P0.4 HUX-09 same-scope comparison and explicit outstanding HUX disposition.
 5. IA32 exact blocker, IA19/IA33 reached Complete/exact candidate lineage, IA18/IA34 Settings proof.
 6. IA20–IA23 semantic/component/theme/integration proof, IA26 exact 37-SURF acceptance, IA24 final V0–V7 closeout.
@@ -1386,12 +1386,12 @@ This tranche is the immediate implementation priority after the corrected P3/P4/
 |---|---|---|---|
 | **P0.0** | IA27 + IA28 foundation revalidation | HUX-05/HUX-10/HUX-11 | Retain accepted shell scope and closed APIs. Prove current-marker, narrow reachability, theme/radius and exact reference residuals; no blanket shell rework. |
 | **P0.1** | **IA29** | HUX-01, HUX-02, HUX-05, HUX-07 | Finish the Document intermediate schema exactly: Work request/editable/read-only lifecycle documents are owned by `WorkbenchDocument`; Markdown/editor is first dominant content; `Work request context` / `Document location` are subordinate named disclosures using `WorkbenchFacts`; narrow editor controls remain readable; Document-family geometry follows the flat semantic grammar. |
-| **P0.2** | **IA31** | HUX-03, HUX-04, HUX-05, HUX-08, HUX-09 | Retain existing Review schema and correct exact Approval residuals: one `WorkbenchReview` + one `WorkbenchReviewVerdict` + DESIGN-declared `WorkbenchReviewSection` children; repeated package/task/evidence/history objects use `WorkbenchResourceList`/`WorkbenchResourceRow` with explicit scan-efficient row/action anatomy; Proposal uses `DocumentChangeView` with visible in-context change marks and exact diff secondary; Approval task detail remains Review detail and uses the same section/facts/resource language rather than bare stacked headings or a second hierarchy. |
+| **P0.2** | **IA16 → IA31** | HUX-03, HUX-04, HUX-05, HUX-08, HUX-09 | Retain existing Review schema and correct exact Approval residuals: one `WorkbenchReview` + one `WorkbenchReviewVerdict` + DESIGN-declared `WorkbenchReviewSection` children; repeated package/task/evidence/history objects use `WorkbenchResourceList`/`WorkbenchResourceRow` with explicit scan-efficient row/action anatomy; Proposal uses `DocumentChangeView` with visible in-context change marks and exact diff secondary; Approval task detail remains Review detail and uses the same section/facts/resource language rather than bare stacked headings or a second hierarchy. |
 | **P0.3** | **IA30** | HUX-05, HUX-06, HUX-08 | Correct exact PLAN inspection and current-action collision: R1/R2/DESIGN/PLAN route directly to Document/Dialogue/Evidence/State; historical/current-owner return remains bounded navigation and cannot create a competing header/attention composition; local productive card/context grammar is deleted. |
 | **P0.4** | **IA27 + IA28 + IA29 + IA30 + IA31, verified by IA20/IA26** | **HUX-09** plus unresolved visual consequences of HUX-05/HUX-08/HUX-10/HUX-11 | Perform a dedicated reference-fidelity closure over the exact operator-rejected shared shell and Priority-0 surfaces. For every same-scope SURF/state/theme capture, compare the exact candidate against the active authority-bound Workbench reference atlas and close all material hierarchy, density, spacing, typography, facts/resources/decision anatomy, alignment, action-prominence, shell chrome and responsive differences using only the existing canonical semantic owners. This is not optional polish and must not introduce feature-local substitute UI. |
 | **P0 exit** | IA20 + IA26 targeted proof | HUX-01 through HUX-11 | Certification proves semantic ownership rather than import/name presence, targeted exact-candidate rendered evidence shows the corrected rejected surfaces, the HUX-09 same-scope fidelity comparison records no unexplained material divergence, and every HUX row reaches explicit operator `ACCEPTED`. Only then may IA32-IA34 resume. |
 
-**Ordering rationale:** IA29 lands first because IA30 and Approval supporting-document inspection consume the Document owner. IA31 follows because the rejected Review/Proposal/Approval surfaces are independent of the remaining IA30 productive-stage reconstruction once the Document owner is correct. IA30 then removes the historical/current-attention and productive-stage substitute grammar. This is an execution-priority change only; it does not change the 37-SURF ownership partition or the P4 semantic-component responsibilities.
+**Ordering rationale:** IA29 lands first because IA30 and Approval supporting-document inspection consume the Document owner. IA16 first establishes and proves the exact admitted R3 verdict using IA17's shared selection; IA31 follows as its presentation consumer because the rejected Review/Proposal/Approval surfaces are independent of the remaining IA30 productive-stage reconstruction once the Document owner is correct. IA30 then removes the historical/current-attention and productive-stage substitute grammar. This is an execution-priority change only; it does not change the 37-SURF ownership partition or the P4 semantic-component responsibilities.
 
 
 ###### Exact IA27-IA34 rendered face ownership
@@ -1599,7 +1599,8 @@ T1 carries the same six logical gate IDs through final validation. During the li
 | read-only IA07/IA08 and current R3/G6 | normal sign-off | exact existing capability proof; no mutation before sign-off absent separate grant |
 | signed IA01→IA02→IA03→IA04, IA11, IA17 and existing capability proof | IA27/IA28 | exact refs/decision conformance, interrupted adoption, linked-remediation eligibility, shared completion and Approval query/route proof |
 | IA27/IA28 | IA29 | existing shell/Context/ResourceList, Queue/Create proof, accepted scope and exact residuals |
-| IA29 | IA16/IA31 | signed document membership and Document-first/narrow proof; IA17 exact query/selection already proven |
+| IA29 | IA16 | signed document membership and Document-first/narrow proof; IA17 exact query/selection already proven |
+| IA16 | IA31 | exact same-Run completed R3/conformance/contextHash/output ArtifactRef verdict and negative rejection/currentness proof; IA31 consumes the admitted verdict without deriving it again |
 | IA31 | IA30 | exact current/historical Approval and existing Review/Proposal/Readiness component/action proof |
 | IA30 | P0.4 HUX-09 / IA20+IA26 targeted fidelity proof | exact PLAN/current attention and direct productive composition; IA26 authority-derived current-marker/attempt-ordinal comparison correction precedes capture review |
 | P0.4 HUX-09 / IA20+IA26 targeted fidelity proof | IA32 | exact same-scope comparison and explicit outstanding HUX disposition |
