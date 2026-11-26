@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Close the affected vertical and horizontal specification audits on the exact installer-continuity candidate; preserve prior audit evidence and reserve readiness for independent R3.
+
 - Complete the affected upstream specification audits for the installer continuity/archive correction; retain prior evidence and advance only to final vertical alignment.
 
 - Reconcile the exact campaign forecast sensor with the single installer archive owner addition; make stored-root conversion, absent-config recovery and incomplete compensation signaling explicit.
