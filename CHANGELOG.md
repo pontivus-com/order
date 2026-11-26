@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Record operator acceptance of the foundational Workbench milestone and exact green verification/IA07–IA08 read-only reuse evidence; retain separate corrected-package readiness and detailed implementation proof obligations.
+
 - Correct the 0.6.0 DESIGN/PLAN execution package for workflow-state and datum/action realization, six evidence-backed consumer dispositions, exact 81-path forecast, full 46-scenario proof allocation and pre-signoff sequencing; rebind derived evidence metadata and reopen package review without changing product behavior.
 
 ### Changed
