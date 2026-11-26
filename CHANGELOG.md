@@ -8,6 +8,7 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Changed
 
+- Capture static authority-derived reference PNGs at the runtime viewport and theme, rather than embedding independently responsive reference iframes; keep visual disposition distinct from evidence generation.
 - Reconstruct Priority-0 Document, Review and productive-stage presentation from current DESIGN/P4: canonical document-first flow without nested editor frames, structured fact groups and consistent task/package resource collections, non-overlapping current/historical navigation, readable narrow editor controls; correct theme-token violations. HUX acceptance remains subject to rendered evidence.
 - Re-author the bounded IA27/IA28 toolbar and selected-WorkItem identity presentation from SURF-APP-001 and SURF-WI-001: expose subordinate account identity, restore the single-row title-first hierarchy and test actual account visibility and identity geometry (HUX-05/HUX-10/HUX-11); no downstream phase acceptance is claimed.
 - Complete the semantic-owner cutover of Implementation task contracts/master selection, Terminal result composition and Settings facts/sections; keep raw account labels out of ordinary toolbar presentation and require resolved Approval state before screenshot capture.

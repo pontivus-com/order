@@ -890,9 +890,6 @@
   align-items: center;
   padding: var(--spacing-2) var(--spacing-6);
 }
-.order-productive-primary > .order-workbench-section {
-  padding-inline: var(--spacing-6);
-}
 .order-document-material {
   min-width: 0;
   min-height: 0;

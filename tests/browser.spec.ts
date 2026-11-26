@@ -127,11 +127,12 @@ type RenderedAcceptanceEntry = Readonly<{
   captureScope?: string;
   reference: RenderedAcceptanceReference;
   screenshot: string;
+  referenceScreenshot?: string;
 }>;
 
 type RenderedAcceptanceInput = Omit<
   RenderedAcceptanceEntry,
-  "reference" | "screenshot"
+  "reference" | "screenshot" | "referenceScreenshot"
 >;
 
 const referenceManifestPath =
@@ -404,7 +405,7 @@ const writeRenderedAcceptanceEvidence = (
         " | " + (entry.captureScope ?? "viewport") +
         " | `" + entry.reference.surface + "` via `reference-manifest.json`" +
         (entry.reference.state === null ? " (no state-equivalent atlas reference)" : " / `" + entry.reference.state + "`") +
-        (entry.reference.comparisonEligible ? " (scope-valid comparison)" : " (not presented as equivalent)") +
+        (entry.referenceScreenshot === undefined ? " (not presented as equivalent)" : " (static reference PNG; visual disposition pending)") +
         " | " + entry.authorityRefs.map((value) => "`" + value + "`").join(", ") + " |"
       ),
       "",
@@ -427,17 +428,16 @@ const writeRenderedAcceptanceEvidence = (
       '<html lang="en"><head><meta charset="utf-8">',
       "<title>Order 0.6.0 " + escapeHtml(renderedAcceptanceLabel) + " rendered acceptance</title>",
       "<style>",
-      "body{font-family:system-ui,sans-serif;margin:0;background:#f6f7f9;color:#111827}header{position:sticky;top:0;background:white;border-bottom:1px solid #d1d5db;padding:16px 24px;z-index:2}main{padding:24px;display:grid;gap:24px}.case{background:white;border:1px solid #d1d5db;border-radius:8px;padding:16px}.meta{display:flex;gap:12px;flex-wrap:wrap;margin:8px 0 16px;color:#4b5563}.pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}.visual{border:1px solid #e5e7eb;background:#fff;padding:8px;overflow:auto}.visual img,.visual iframe{display:block;width:100%;min-height:520px;border:0}.refs{display:grid;gap:12px}@media(max-width:900px){.pair{grid-template-columns:1fr}}code{font-size:.9em}h2{margin-bottom:4px}",
+      "body{font-family:system-ui,sans-serif;margin:0;background:#f6f7f9;color:#111827}header{position:sticky;top:0;background:white;border-bottom:1px solid #d1d5db;padding:16px 24px;z-index:2}main{padding:24px;display:grid;gap:24px}.case{background:white;border:1px solid #d1d5db;border-radius:8px;padding:16px}.meta{display:flex;gap:12px;flex-wrap:wrap;margin:8px 0 16px;color:#4b5563}.pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}.visual{border:1px solid #e5e7eb;background:#fff;padding:8px;overflow:auto}.visual img{display:block;width:auto;max-width:none;height:auto;border:0}.refs{display:grid;gap:12px}@media(max-width:900px){.pair{grid-template-columns:1fr}}code{font-size:.9em}h2{margin-bottom:4px}",
       "</style></head><body>",
       "<header><strong>Order 0.6.0 " + escapeHtml(renderedAcceptanceLabel) + "</strong> · exact candidate <code>" + escapeHtml(renderedAcceptanceCandidateSha) + "</code></header>",
       "<main>",
       ...merged.map((entry) => {
-        const refs = entry.reference.comparisonEligible && entry.reference.query !== null
+        const refs = entry.referenceScreenshot !== undefined
           ? '<div class="visual"><strong>Authority-bound derived reference: ' +
             escapeHtml(entry.reference.surface + " / " + entry.reference.state) +
-            '</strong><iframe src="references/reference-atlas.html' +
-            escapeHtml(entry.reference.query) +
-            '" title="Derived reference ' + escapeHtml(entry.reference.surface) + '"></iframe></div>'
+            '</strong><img src="references/' + encodeURIComponent(entry.referenceScreenshot) +
+            '" alt="Derived reference ' + escapeHtml(entry.reference.surface) + '"></div>'
           : '<div class="visual"><strong>Reference comparison withheld</strong><p>' +
             'No state/scope/viewport-equivalent atlas comparison is declared for this capture. ' +
             'See <code>references/reference-manifest.json</code>; do not infer a target from a fallback image.</p></div>';
@@ -493,21 +493,63 @@ const captureRenderedAcceptance = async (
       path: join(renderedAcceptanceDir, screenshot),
       fullPage: false,
       animations: "disabled",
+      scale: "css",
     });
   } else {
     await acceptanceTarget.screenshot({
       path: join(renderedAcceptanceDir, screenshot),
       animations: "disabled",
+      scale: "css",
     });
   }
   const captureScope = diagnosticCurrentState
       ? entry.captureScope ?? (target === undefined ? "full application viewport" : "explicit locator crop")
       : declaredReference.captureScope;
+  const reference = resolveRenderedReference(entry, captureScope);
+  let referenceScreenshot: string | undefined;
+  if (reference.comparisonEligible && reference.query !== null) {
+    const referenceDir = join(renderedAcceptanceDir, "references");
+    mkdirSync(referenceDir, { recursive: true });
+    const referencePage = await page.context().newPage();
+    try {
+      await referencePage.setViewportSize(entry.viewport);
+      await referencePage.emulateMedia({
+        colorScheme: entry.theme === "Dark" || entry.theme === "System/dark" ? "dark" : "light",
+      });
+      await referencePage.route("https://order-reference.invalid/**", async (route) => {
+        await route.fulfill({
+          status: 200,
+          contentType: "text/html",
+          body: readFileSync(referenceAtlasPath, "utf8"),
+        });
+      });
+      await referencePage.goto("https://order-reference.invalid/" + reference.query);
+      const referenceSurface = referencePage.locator(reference.selector);
+      await expect(referenceSurface).toBeVisible();
+      await expect(referenceSurface).toHaveAttribute("data-state", reference.state!);
+      await referencePage.evaluate(async () => { await document.fonts.ready; });
+      referenceScreenshot = entry.id + "-reference.png";
+      const options = {
+        path: join(referenceDir, referenceScreenshot),
+        animations: "disabled" as const,
+        scale: "css" as const,
+      };
+      if (reference.captureScope === "component-reference") {
+        const component = entry.surface === "SURF-MAT-APPROVAL-TASK-001" ? ".review" : ".dialog";
+        await referenceSurface.locator(component).screenshot(options);
+      } else {
+        await referencePage.screenshot({ ...options, fullPage: false });
+      }
+    } finally {
+      await referencePage.close();
+    }
+  }
   const captured = {
     ...entry,
     captureScope,
-    reference: resolveRenderedReference(entry, captureScope),
+    reference,
     screenshot,
+    ...(referenceScreenshot === undefined ? {} : { referenceScreenshot }),
   };
   if (diagnosticCurrentState) {
     writeRenderedAcceptanceEvidence([captured]);
@@ -4275,6 +4317,8 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
       expect(entry.reference.sourcePath).toBe(referenceAtlasPath);
       expect(referenceSurfaceById.has(entry.reference.surface)).toBe(true);
       expect(entry.reference.comparisonEligible, entry.id).toBe(true);
+      expect(entry.referenceScreenshot, entry.id).toBeDefined();
+      expect(readFileSync(join(renderedAcceptanceDir!, "references", entry.referenceScreenshot!)).length).toBeGreaterThan(0);
     }
     expect(runtimeErrors).toEqual([]);
     return;
