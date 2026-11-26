@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Correct the 0.6.0 DESIGN/PLAN execution package for workflow-state and datum/action realization, six evidence-backed consumer dispositions, exact 81-path forecast, full 46-scenario proof allocation and pre-signoff sequencing; rebind derived evidence metadata and reopen package review without changing product behavior.
+
 ### Changed
 
 - Capture separately selected builder and independent-review attempt evidence, retaining the recorded task boundary without attributing reviewer validation results to the builder.

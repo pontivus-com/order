@@ -2,7 +2,7 @@
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C13 + C14.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `0a2f56f03d52b1e700a4782babc3b7a420f282f3`; current DESIGN `539169962251392e5d97010e82351aa93c4fdcd5`.
+**Upstream:** current R1 `6ba550c89bd746772cb874e51268cba8b55e3c30`; current R2 `8164c48f9bf9e8b7bf4fc1144a966a0b295b7a45`; current DESIGN `074e3b2f9d0cbc2707017039e60aa44a73cae9f2`.
 
 ## Stable requirement execution dispositions
 
@@ -11,10 +11,10 @@
 | `GW-FR-028-NONDELIVERY-TERMINAL-VIEW` | `C13-O01`, `C13-O05` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C13-O01`, `C13-O05` via tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-207-PROPOSAL-AUTHORITY-BOUNDARY` | `C14-O05`, `C14-O06` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C14-O05`, `C14-O06` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-208-ACTIVE-RUN-AUTHORITY-EXCLUSION` | `C14-O09`, `C05-O09` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C14-O09`, `C05-O09` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
-| `GW-FR-224-TERMINAL-RESULT-PRIMACY` | `C13-O04` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C13-O04` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-224-TERMINAL-RESULT-PRIMACY` | `C13-O04`, `DIRECT-FR224` | `MIXED_TECHNICAL_DELTA` | `SD01`, `SD27` | `IA19`, `IA33` | — | Reached Complete only; exact outcome-owned result and qualifying execution proof, exact bytes in Evidence. Required proof: owning IA and P3 §23 allocation in 13-verification-closeout.md. |
 | `GW-FR-238-PROPOSAL-CANCEL-CLOSURE` | `C14-O05`, `C14-O06` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C14-O05`, `C14-O06` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
-| `GW-FR-241-DERIVED-MATERIAL-MATURITY` | `C14-O03`, `C14-O04` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C14-O03`, `C14-O04` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
-| `GW-FR-242-DIALOGUE-REPLY-CONTEXT` | `C14-O08`, `DIRECT-FR242` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C14-O08`, `DIRECT-FR242` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-241-DERIVED-MATERIAL-MATURITY` | `C14-O03`, `C14-O04`, `DIRECT-FR241` | `MIXED_TECHNICAL_DELTA` | `SD06`, `SD23` | `IA13`, `IA29` | — | All six canonical maturity labels distinct from Git/editability; guarded Save consequence and Draft without reach. Required proof: owning IA and P3 §23 allocation in 13-verification-closeout.md. |
+| `GW-FR-242-DIALOGUE-REPLY-CONTEXT` | `C14-O08`, `DIRECT-FR242` | `MIXED_TECHNICAL_DELTA` | `SD24` | `IA30` | — | Preceding completed-turn anchor/exact question/category-specific explanation; preserve request admission. Required proof: owning IA and P3 §23 allocation in 13-verification-closeout.md. |
 
 Stable rows in phase: **7**.
 
@@ -45,3 +45,8 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 4. every package atom is satisfied by its one execution owner;
 5. action-specific tests plus `13-verification-closeout.md` pass;
 6. any evidence contradiction returns upstream rather than broadening scope.
+
+
+## Realization trace consequence
+
+IA13/29 own maturity/Save presentation; IA30 reply context; IA19/33 exact outcome material/proof and Evidence. Preserve read purity and mutation admission; no fabricated reach or result.

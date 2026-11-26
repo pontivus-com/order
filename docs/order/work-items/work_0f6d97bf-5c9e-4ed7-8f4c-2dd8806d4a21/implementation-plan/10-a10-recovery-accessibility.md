@@ -2,7 +2,7 @@
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C17 + C18.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `0a2f56f03d52b1e700a4782babc3b7a420f282f3`; current DESIGN `539169962251392e5d97010e82351aa93c4fdcd5`.
+**Upstream:** current R1 `6ba550c89bd746772cb874e51268cba8b55e3c30`; current R2 `8164c48f9bf9e8b7bf4fc1144a966a0b295b7a45`; current DESIGN `074e3b2f9d0cbc2707017039e60aa44a73cae9f2`.
 
 ## Stable requirement execution dispositions
 
@@ -14,7 +14,7 @@
 | `GW-FR-206-CURRENT-ATTENTION-PRECEDENCE` | `C17-O05` | `TECHNICAL_DELTA` | `SD07` | `IA14` | — | Recheck `C17-O05` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-210-ASYNC-WORKFLOW-CONVERGENCE` | `C17-O07` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C17-O07` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-225-RESPONSIVE-SEMANTIC-CONTINUITY` | `C18-O01`, `C18-O04` | `MIXED_TECHNICAL_AND_VERIFICATION_DELTA` | `SD29`, `SD30` | `IA27`-`IA34`, `IA26` | — | Preserve semantic continuity through the single foundation responsive owner while every IA28-IA34 renderer is freshly revalidated against the new semantic component set; feature-local breakpoint-specific section/review/resource topology is forbidden and every domain receives rendered responsive proof. |
-| `GW-FR-226-WORKFLOW-CRITICAL-FEEDBACK` | `C17-O08` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C17-O08` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-226-WORKFLOW-CRITICAL-FEEDBACK` | `C17-O08`, `DIRECT-FR226` | `MIXED_TECHNICAL_DELTA` | `SD07`, `SD25`, `SD26` | `IA14`, `IA31`, `IA32` | — | Retain inline feedback for all admitted decisions/inspections and actual current recovery owner. Required proof: owning IA and P3 §23 allocation in 13-verification-closeout.md. |
 
 Stable rows in phase: **7**.
 
@@ -43,3 +43,8 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 4. every package atom is satisfied by its one execution owner;
 5. action-specific tests plus `13-verification-closeout.md` pass;
 6. any evidence contradiction returns upstream rather than broadening scope.
+
+
+## Realization trace consequence
+
+IA14 owns reason/action through historical/supporting/transient selection, IA31 decision-local feedback, IA32 execution recovery, IA15 focus. Prove rejection, no competing action, focus/return and viewport continuity.

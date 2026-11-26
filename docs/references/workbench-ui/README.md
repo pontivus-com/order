@@ -13,7 +13,7 @@ The active corpus is valid only for these exact inputs:
 - `GW-DOC-WORKBENCH-UX-V2` — blob `64184232833b59a9e6db5e1a28b841f48b3217cd`;
 - `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2` — blob `8fccbe031436a9eb54da8ae493b614e94cc957b1`;
 - `GW-DOC-WORKBENCH-THEME-V1` — blob `03dfc6be3600a1128b5639d011f4c0159d3497dd`;
-- current 0.6.0 DESIGN — blob `539169962251392e5d97010e82351aa93c4fdcd5`.
+- current 0.6.0 DESIGN — blob `074e3b2f9d0cbc2707017039e60aa44a73cae9f2`.
 
 These are the exact current authority versions projected by this corpus. If any bound owner changes, this corpus is stale until regenerated and reviewed. The owner wins on every conflict.
 
@@ -24,6 +24,8 @@ These are the exact current authority versions projected by this corpus. If any 
 - Git history is the only retained provenance for the superseded 0.5.0 SVG pack. Those SVGs are not live comparison material.
 
 ## Evidence integrity
+
+The 2026-11-26 DESIGN forecast/disposition correction rebinds the authority identity without changing settled SURF contracts. This metadata binding is not visual acceptance or new rendered proof; IA26 must revalidate actual state/scope/selection equivalence.
 
 Reference fixtures are canonical semantic placeholders. They demonstrate information hierarchy, component anatomy, geometry, responsive recomposition and visual hierarchy without claiming that a runtime event occurred.
 

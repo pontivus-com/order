@@ -2,7 +2,7 @@
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C19 + C20.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `0a2f56f03d52b1e700a4782babc3b7a420f282f3`; current DESIGN `539169962251392e5d97010e82351aa93c4fdcd5`.
+**Upstream:** current R1 `6ba550c89bd746772cb874e51268cba8b55e3c30`; current R2 `8164c48f9bf9e8b7bf4fc1144a966a0b295b7a45`; current DESIGN `074e3b2f9d0cbc2707017039e60aa44a73cae9f2`.
 
 ## Stable requirement execution dispositions
 
@@ -52,3 +52,8 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 4. every package atom is satisfied by its one execution owner;
 5. action-specific tests plus `13-verification-closeout.md` pass;
 6. any evidence contradiction returns upstream rather than broadening scope.
+
+
+## Realization trace consequence
+
+IA20/21/22/23/26 consume complete P3 §23 allocation in closeout and 37 DESIGN datum/action contracts. Phase-local and final proof are independent. Fixture/reference maintenance is SD30 verification only.

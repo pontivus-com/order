@@ -2658,6 +2658,11 @@ describe("architecture fitness", () => {
       }
     }
 
+    const scenarioProofIds = [...closeout.matchAll(/^\| S(\d{2}) \|/gm)].map((match) => match[1]);
+    const canonicalScenarioText = p3Workbench.split("## 23. Required certification scenarios")[1]?.split("## 24.")[0] ?? "";
+    const canonicalScenarioIds = [...canonicalScenarioText.matchAll(/^(\d+)\. /gm)].map((match) => match[1].padStart(2, "0"));
+    exactSet("PLAN P3 certification scenario allocation", scenarioProofIds, canonicalScenarioIds);
+    if (duplicates(scenarioProofIds).length > 0) violations.push("PLAN certification scenario allocation contains duplicates");
     const priorityZeroTransitions = [
       "| IA29 | IA31 |",
       "| IA31 | IA30 |",
@@ -2730,9 +2735,9 @@ describe("architecture fitness", () => {
     const designSurface = [...designSurfaceSection.matchAll(/^- `([^\`]+)`(?:\s+—.*)?$/gm)].map(
       (match) => match[1],
     );
-    if (designSurface.length !== 76 || duplicates(designSurface).length > 0) {
+    if (designSurface.length !== 81 || duplicates(designSurface).length > 0) {
       violations.push(
-        "DESIGN implementation forecast must contain 76 unique paths; found " +
+        "DESIGN implementation forecast must contain 81 unique paths; found " +
           designSurface.length,
       );
     }
@@ -2786,9 +2791,9 @@ describe("architecture fitness", () => {
             task.gateIds ?? [],
             ["architecture", "browser", "build", "dependency-lock", "test", "typecheck"],
           );
-          if ((task.scope ?? []).length !== 76 || duplicates(task.scope ?? []).length > 0) {
+          if ((task.scope ?? []).length !== 81 || duplicates(task.scope ?? []).length > 0) {
             violations.push(
-              "T1 hard scope must contain the exact 76 unique forecast paths; found " +
+              "T1 hard scope must contain the exact 81 unique forecast paths; found " +
                 (task.scope ?? []).length,
             );
           }
@@ -2796,9 +2801,23 @@ describe("architecture fitness", () => {
         }
 
         const signedSurface = task?.changeSurface ?? [];
-        if (signedSurface.length !== 76 || duplicates(signedSurface).length > 0) {
+        for (const requiredPath of [
+          "ui/src/workbench-presentation.ts",
+          "tests/e2e-server.ts",
+          "docs/references/workbench-ui/reference-atlas.html",
+          "docs/references/workbench-ui/reference-manifest.json",
+          "docs/references/workbench-ui/README.md",
+        ]) {
+          if (!signedSurface.includes(requiredPath) || (task?.exclusions ?? []).includes(requiredPath)) {
+            violations.push("T1 required semantic/proof owner missing or excluded: " + requiredPath);
+          }
+        }
+        for (const excluded of task?.exclusions ?? []) {
+          if ((task?.scope ?? []).includes(excluded)) violations.push("T1 scope overlaps exclusion: " + excluded);
+        }
+        if (signedSurface.length !== 81 || duplicates(signedSurface).length > 0) {
           violations.push(
-            "PLAN signed T1 changeSurface must contain 76 unique paths; found " +
+            "PLAN signed T1 changeSurface must contain 81 unique paths; found " +
               signedSurface.length,
           );
         }
@@ -2811,9 +2830,9 @@ describe("architecture fitness", () => {
         const documentedSurface = [...surfaceSection.matchAll(/^- \`([^\`]+)\`$/gm)].map(
           (match) => match[1],
         );
-        if (documentedSurface.length !== 76 || duplicates(documentedSurface).length > 0) {
+        if (documentedSurface.length !== 81 || duplicates(documentedSurface).length > 0) {
           violations.push(
-            "PLAN documented candidate surface must contain 76 unique paths; found " +
+            "PLAN documented candidate surface must contain 81 unique paths; found " +
               documentedSurface.length,
           );
         }
@@ -2829,7 +2848,6 @@ describe("architecture fitness", () => {
         ]);
         const retainedUiPaths = new Set([
           "ui/src/MarkdownSourceEditor.tsx",
-          "ui/src/workbench-presentation.ts",
           "ui/src/http.ts",
           "ui/src/query-keys.ts",
           "ui/src/markdown-source-formatting.ts",
