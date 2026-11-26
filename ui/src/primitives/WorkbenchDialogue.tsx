@@ -18,12 +18,14 @@ export const WorkbenchDialogueMessage = ({
   timestamp: string;
   name?: string;
 }>) => (
-  <ChatMessage sender={sender} name={name}>
-    <ChatMessageBubble variant={sender === "assistant" ? "ghost" : undefined}>
-      {children}
-    </ChatMessageBubble>
-    <ChatMessageMetadata timestamp={timestamp} />
-  </ChatMessage>
+  <div className="order-workbench-dialogue-message" data-sender={sender}>
+    <ChatMessage sender={sender} name={name}>
+      <ChatMessageBubble>
+        {children}
+      </ChatMessageBubble>
+      <ChatMessageMetadata timestamp={timestamp} />
+    </ChatMessage>
+  </div>
 );
 
 export const WorkbenchDialogueMessages = ({
@@ -55,18 +57,21 @@ export const WorkbenchDialogue = ({
         <ChatLayout
           density="compact"
           composer={
-            composer === undefined
+            composer === undefined && state === undefined
               ? null
-              : <div className="order-workbench-dialogue-composer">{composer}</div>
+              : <div className="order-workbench-dialogue-composer">
+                  {state === undefined ? null : (
+                    <div className="order-workbench-dialogue-state">{state}</div>
+                  )}
+                  {composer}
+                </div>
           }
           scrollButton={null}
           emptyState={null}
         >
           {transcript}
         </ChatLayout>
-        {state === undefined ? null : (
-          <div className="order-workbench-dialogue-state">{state}</div>
-        )}
+
       </div>
       {activity === undefined ? null : (
         <aside className="order-workbench-dialogue-activity" aria-label="Agent activity">

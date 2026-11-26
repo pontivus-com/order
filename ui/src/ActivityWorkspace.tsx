@@ -109,7 +109,8 @@ export const StageRunMaterial = ({
         if (event.event.tag === "HUMAN_INPUT_RECEIVED") return <WorkbenchDialogueMessage
           key={event.id} sender="user" timestamp={timestamp} name="You">{event.event.text}</WorkbenchDialogueMessage>;
         if (event.event.tag === "HUMAN_INPUT_REQUESTED") return <WorkbenchDialogueMessage
-          key={event.id} sender="assistant" timestamp={timestamp} name="Agent · Waiting for you">{event.event.question}</WorkbenchDialogueMessage>;
+          key={event.id} sender="assistant" timestamp={timestamp}
+          name={pending?.id === event.id ? "Agent · Waiting for you" : "Agent"}>{event.event.question}</WorkbenchDialogueMessage>;
         if (event.event.tag === "AGENT_MESSAGE_FINAL") return <WorkbenchDialogueMessage
           key={event.id} sender="assistant" timestamp={timestamp} name="Agent">{event.event.text}</WorkbenchDialogueMessage>;
         return null;
@@ -134,9 +135,7 @@ export const StageRunMaterial = ({
   const header=<div className="order-activity-heading" data-testid="selected-run-header">
     <WorkbenchSectionHeader title="Conversation"
       description={workflowPresentation(stage).label+" · Attempt "+selectedRun.attempt+" · "+new Date(selectedRun.startedAt).toLocaleString()}
-      action={canCancel ? <WorkbenchAction label="Cancel current activity" tone="destructive"
-        loading={cancel.isPending} disabled={mutationsDisabled || cancel.isPending}
-        onClick={() => cancel.mutate()} /> : undefined} />
+    />
     {interactionStatus === null ? null : (
       <WorkbenchStatus tone={statusTone(selectedRun.status)} label={interactionStatus} />
     )}
@@ -145,22 +144,31 @@ export const StageRunMaterial = ({
 
   return <section className="order-activity-material" data-testid="stage-run-material">
     <div className="order-activity-detail" data-testid="activity-detail">
-      {header}
-      <WorkbenchDialogue transcript={transcript}
-        activity={operational === undefined && companion === undefined ? undefined
-          : <div className="order-activity-support">{operational}{companion}</div>}
-        state={actionError === null && workflow === undefined && stateNotice === undefined && stateAction === undefined
+      <WorkbenchDialogue
+        transcript={<>{header}{transcript}</>}
+        activity={operational === undefined && workflow === undefined && companion === undefined ? undefined
+          : <div className="order-activity-support">
+              <h2>Activity</h2>
+              {operational}
+              {workflow}
+              {companion}
+            </div>}
+        state={actionError === null && stateNotice === undefined && stateAction === undefined && !canCancel
           ? undefined
           : <div className="order-activity-workflow-state">
               {actionError ? <WorkbenchNotice tone="danger" title="Workflow action failed"
                 description={actionError instanceof Error ? actionError.message : String(actionError)} /> : null}
               {stateNotice}
-              {workflow}
-              {stateAction === undefined ? null : (
-                <div className="order-inline-actions">{stateAction}</div>
+              {stateAction === undefined && !canCancel ? null : (
+                <div className="order-inline-actions">
+                  {stateAction}
+                  {canCancel ? <WorkbenchAction label="Cancel current activity" tone="secondary"
+                    loading={cancel.isPending} disabled={mutationsDisabled || cancel.isPending}
+                    onClick={() => cancel.mutate()} /> : null}
+                </div>
               )}
             </div>}
-        composer={canReply ? <ActivityComposer run={selectedRun} pending={pending}
+        composer={canReply ? <ActivityComposer key={selectedRun.id} run={selectedRun} pending={pending}
           focusedRequiredInputEventId={focusedRequiredInputEventId}
           mutationsDisabled={mutationsDisabled} onRequiredInputFocused={onRequiredInputFocused}
           onSubmitted={async (event) => { setInputError(null); await onMutationRefresh(event); }}

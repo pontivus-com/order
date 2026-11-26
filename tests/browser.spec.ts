@@ -3765,6 +3765,15 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
 
   await openWorkItem(page, "Workflow input required");
   const requiredInputActivity = page.getByTestId("activity-detail");
+  await expect(requiredInputActivity.getByLabel("Message input")).toBeEditable();
+  await expect(requiredInputActivity.getByText("Your response", { exact: true })).toBeVisible();
+  await expect(requiredInputActivity.locator(".order-workbench-dialogue-message").first()).toBeVisible();
+  const dialogue = requiredInputActivity.locator(".order-workbench-dialogue");
+  const activityTop = await dialogue.evaluate((node) => ({
+    canvas: node.getBoundingClientRect().top,
+    sidebar: node.querySelector(".order-workbench-dialogue-activity")!.getBoundingClientRect().top,
+  }));
+  expect(Math.abs(activityTop.canvas - activityTop.sidebar)).toBeLessThanOrEqual(1);
   await capture({
     id: "ia26-stage-dialogue-required-input-wide-light",
     workItemKind: "CHANGE",

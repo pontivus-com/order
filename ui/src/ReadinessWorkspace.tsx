@@ -170,7 +170,9 @@ export const ReadinessWorkspace = ({
   const verdict =
     outcome !== null
       ? readinessOutcomeLabel(outcome)
-      : latestRun?.status === "BLOCKED"
+      : latestRun === null
+        ? "Not started"
+        : latestRun?.status === "BLOCKED"
         ? "Blocked"
         : latestRun?.status === "FAILED"
           ? "Review failed"
@@ -186,10 +188,16 @@ export const ReadinessWorkspace = ({
           : "info";
   const verdictDescription =
     readyForSignoff
-      ? "The typed R3 result admits the exact package to Approval."
+      ? "The package passed readiness review. Human authorization takes place in Approval."
       : outcome === null
-        ? "Verdict is derived only from the current canonical R3 result."
-        : "The typed R3 result returns workflow ownership to the named upstream stage.";
+        ? latestRun === null
+          ? "Start the independent review of the exact package."
+          : latestRun.status === "FAILED" || latestRun.status === "BLOCKED"
+            ? "The review has not established readiness. Resolve the current review condition."
+            : "The independent review has not yet recorded a verdict."
+        : outcome.startsWith("RETURN_TO_")
+          ? "Readiness returned ownership to the upstream stage named in the findings."
+          : "The review did not establish readiness for sign-off.";
 
   const packageArtifacts = artifacts
     .filter((artifact) => packageRoles.has(artifact.role))
@@ -311,7 +319,7 @@ export const ReadinessWorkspace = ({
     )
   ) {
     return (
-      <div className={material.kind === "SUPPORTING_DOCUMENT" ? "order-document-inspection" : undefined} data-testid="review-workspace">
+      <div className={material.kind === "SUPPORTING_DOCUMENT" ? "order-document-inspection" : "order-readiness-dialogue"} data-testid="review-workspace">
         {requiredInputOwnsAttention ? null : (
           <div className="order-inline-actions">
             <WorkbenchAction

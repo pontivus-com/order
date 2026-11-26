@@ -8,6 +8,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Changed
 
+- Reconstruct the shared conversation and activity canvas: bounded messages, exact question/response context, a full-height activity region, distinct workflow history, and cancellation subordinate to the current interaction. Keep Readiness verdict copy aligned with automatic R3 progression.
+
 - Start the expanded P0.R reconstruction with the compact WorkItem identity composition and restore connected, checkmarked lifecycle visualization with independent current and inspection states. Record the dependency order and restart checkpoint; no intermediate visual acceptance.
 
 - Record the expanded P0.R operator rejection and full-corpus component/interaction audit (UI-07–UI-20) in the existing campaign owner. Correct the lifecycle rail versus subordinate-navigation interpretation; distinguish canonical lifecycle behavior, actual runtime deficiencies and reference/evidence mismatches. No UI implementation or acceptance state is changed by this audit.

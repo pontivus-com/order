@@ -50,6 +50,10 @@ export const ActivityComposer = ({
       tone="danger" title="Workflow action failed"
       description={input.error instanceof Error ? input.error.message : String(input.error)}
     /> : null}
+    <div className="order-activity-composer-context">
+      <strong>{required ? "Your response" : "Continue conversation"}</strong>
+      {required ? <span>Answer the current agent question to continue.</span> : null}
+    </div>
     <form className="order-activity-message-form" onSubmit={(event) => {
       event.preventDefault();
       if (!mutationsDisabled && !input.isPending && message.trim().length > 0) {
