@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Record the exact-package 0.6.0 readiness review following targeted PLAN and vertical alignment revalidation of REV-F04–F06; retain separate operator authorization and full implementation verification boundaries.
+
 - Specify shell-invariant versus global consumer acceptance and deterministic independent signed phase capture invocation (REV-F05/F06), retaining exhaustive final proof and the unchanged T1 scope.
 
 - Record targeted 0.6.0 PLAN revalidation counterexamples for shared-shell acceptance and independent signed evidence invocation (REV-F05/F06).
