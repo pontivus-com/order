@@ -16,6 +16,8 @@ export const WorkbenchMasterDetail = ({
       detail?: string;
       state?: ReactNode;
       selected: boolean;
+      parentId?: string;
+      containsSelection?: boolean;
       onSelect: () => void;
     }>[];
   }>;
@@ -31,17 +33,35 @@ export const WorkbenchMasterDetail = ({
         <WorkbenchState kind="empty" title="No approved tasks" />
       ) : (
         <ul className="order-workbench-master-list">
-          {master.items.map((item) => (
-            <li key={item.id}>
-              <button type="button" className="order-workbench-master-item"
-                aria-pressed={item.selected}
-                onClick={() => { item.onSelect(); setMasterOpen(false); }}>
-                <strong>{item.label}</strong>
-                {item.state}
-                {item.detail === undefined ? null : <span>{item.detail}</span>}
-              </button>
-            </li>
-          ))}
+          {master.items.filter((item) => item.parentId === undefined).map((item) => {
+            const attempts = master.items.filter((attempt) => attempt.parentId === item.id);
+            return (
+              <li key={item.id} data-contains-selection={item.containsSelection || item.selected}>
+                <button type="button" className="order-workbench-master-item"
+                  aria-pressed={item.selected}
+                  onClick={() => { item.onSelect(); setMasterOpen(false); }}>
+                  <strong>{item.label}</strong>
+                  {item.state}
+                  {item.detail === undefined ? null : <span>{item.detail}</span>}
+                </button>
+                {attempts.length === 0 ? null : (
+                  <ul className="order-workbench-master-attempts" aria-label={"Attempts for " + item.label}>
+                    {attempts.map((attempt) => (
+                      <li key={attempt.id}>
+                        <button type="button" className="order-workbench-master-item"
+                          aria-pressed={attempt.selected}
+                          onClick={() => { attempt.onSelect(); setMasterOpen(false); }}>
+                          <strong>{attempt.label}</strong>
+                          {attempt.state}
+                          {attempt.detail === undefined ? null : <span>{attempt.detail}</span>}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            );
+          })}
         </ul>
       )}
     </nav>

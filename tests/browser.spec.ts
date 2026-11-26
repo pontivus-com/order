@@ -6692,6 +6692,7 @@ test("candidate Complete surface and reached Implementation expose V0-V7, exact 
     page.getByText("Candidate state recorded", { exact: true }),
   ).toBeVisible();
 
+  await expect(page.getByTestId("validation-matrix")).toContainText("No validation results in this attempt");
   await selectWorkflowMaterial(page, "Independent review · Attempt 1");
   await expect(page.getByRole("region", { name: "Agent activity" })).toBeVisible();
   await expect(page.getByRole("region", { name: "Agent activity" }))

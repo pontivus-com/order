@@ -401,13 +401,7 @@ export const SignoffReview = ({
             />
           ),
         },
-        ...(reviewNotice === undefined
-          ? []
-          : [{
-            id: "notice",
-            title: "Status",
-            content: reviewNotice,
-          }]),
+
         ...(signoff.error === null
           ? []
           : [{
@@ -424,6 +418,9 @@ export const SignoffReview = ({
           }]),
       ]
       : [...taskDetailSections(selectedTask)];
+  const reviewSections = reviewNotice === undefined
+    ? sections
+    : [{ id: "notice", title: "Current package status", content: reviewNotice }, ...sections];
 
   const decisions =
     selectedTask === null
@@ -436,7 +433,7 @@ export const SignoffReview = ({
             tone="ghost"
             onClick={() => setSelection({ kind: "OVERVIEW" })}
           />
-          {currentApproval ? approvalDecision : null}
+          {currentApproval ? reviewAction ?? approvalDecision : reviewAction}
         </>
       );
 
@@ -449,7 +446,7 @@ export const SignoffReview = ({
           (currentApproval ? "Authorize the current governed package." : undefined)
         }
         verdict={verdict}
-        sections={sections}
+        sections={reviewSections}
         decisions={decisions}
       />
     </div>

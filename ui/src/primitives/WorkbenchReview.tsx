@@ -26,7 +26,6 @@ export const WorkbenchReview = ({
   <section className="order-workbench-review">
     <header className="order-workbench-review-header">
       <div className="order-workbench-review-heading">
-        <span className="order-workbench-review-eyebrow">Review</span>
         <h2>{title}</h2>
         {description === undefined ? null : <p>{description}</p>}
       </div>

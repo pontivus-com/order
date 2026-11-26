@@ -650,8 +650,11 @@
 }
 .order-workbench-review-section-content { min-width: 0; }
 .order-workbench-review-section-content > .order-workbench-facts {
-  padding-block: var(--spacing-1);
+  padding-block: var(--spacing-2);
+  gap: var(--spacing-3);
 }
+.order-workbench-review-section-content > .order-workbench-facts ul { margin: 0; padding-inline-start: var(--spacing-4); }
+.order-workbench-review-section-content > p { margin: 0; max-width: var(--order-prose-max-width); }
 .order-workbench-resource-list {
   border: 1px solid var(--color-border-emphasized);
   border-radius: var(--radius-container);
@@ -739,6 +742,25 @@
   outline-offset: calc(-1 * var(--focus-outline-offset));
 }
 .order-workbench-master-item > span { color: var(--color-text-secondary); font-size: var(--font-size-sm); }
+.order-workbench-master-list > li[data-contains-selection="true"] > .order-workbench-master-item {
+  border-inline-start-color: var(--color-accent);
+}
+.order-workbench-master-attempts {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 var(--spacing-4);
+  background: var(--color-background-muted);
+  border-bottom: 1px solid var(--color-border-emphasized);
+}
+.order-workbench-master-attempts .order-workbench-master-item {
+  padding: var(--spacing-2) var(--spacing-3);
+  font-size: var(--font-size-sm);
+}
+.order-workbench-master-attempts .order-workbench-master-item strong { font-weight: 500; }
+.order-workbench-timeline-list {
+  border: 1px solid var(--color-border-emphasized);
+  border-radius: var(--radius-container);
+}
 .order-workbench-master-detail-constrained {
   height: 100%;
   min-height: 0;
@@ -881,7 +903,7 @@
   flex: 0 0 auto;
 }
 .order-workbench-document-content {
-  flex: 1 1 0;
+  flex: 0 1 auto;
   min-height: 0;
   min-width: 0;
   display: flex;
@@ -889,6 +911,7 @@
   gap: var(--spacing-2);
   overflow: auto;
 }
+.order-workbench-document-content:has(.order-markdown-editor) { flex: 1 1 0; }
 .order-workbench-document-details {
   min-width: 0;
   flex: 0 0 auto;
@@ -1249,8 +1272,12 @@
   display: grid;
   align-content: start;
   gap: var(--spacing-4);
-  padding-block: var(--spacing-3) var(--spacing-5);
+  padding: var(--spacing-3) var(--spacing-4) var(--spacing-5);
 }
+.order-implementation-detail > .order-workbench-facts {
+  padding: var(--spacing-3) 0;
+}
+.order-implementation-detail .order-workbench-facts ul { margin: 0; padding-inline-start: var(--spacing-4); }
 .order-implementation-heading {
   display: flex;
   align-items: flex-start;

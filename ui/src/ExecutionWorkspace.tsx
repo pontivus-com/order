@@ -160,11 +160,15 @@ const ValidationSummary = ({
   active,
   boundary,
   boundaryScope,
+  pending,
+  failed,
 }: Readonly<{
   events: readonly RunEvent[];
   active: boolean;
   boundary: ValidationBoundary | null;
   boundaryScope: "Current" | "Recorded";
+  pending: boolean;
+  failed: boolean;
 }>) => {
   const recordedStages = validationStages.filter(
     (stage) => latestValidationEvent(events, stage) !== null,
@@ -172,17 +176,18 @@ const ValidationSummary = ({
 
   return (
     <div data-testid="validation-matrix">
-      <WorkbenchSection title="Validation"
+      <WorkbenchSection title="Validation for selected attempt"
+        description="Task boundary and attempt-specific evidence are distinct."
         action={validationBoundaryStatus(boundary, boundaryScope)}
-        content={recordedStages.length === 0 ? (
+        content={pending ? (
+          <WorkbenchState kind="loading" title="Loading validation evidence…" />
+        ) : failed ? (
+          <WorkbenchState kind="error" title="Validation evidence unavailable" />
+        ) : recordedStages.length === 0 ? (
         <WorkbenchState
           kind={active ? "pending" : "empty"}
-          title={active ? "Validation in progress" : "Validation not started"}
-          description={
-            active
-              ? "Recorded validation stages will appear while this attempt advances."
-              : "No durable validation result has been recorded for this attempt."
-          }
+          title={active ? "Awaiting validation evidence for this attempt" : "No validation results in this attempt"}
+          description="Inspect other recorded attempts for their own validation evidence."
         />
       ) : (
         <>
@@ -312,6 +317,7 @@ export const ExecutionWorkspace = ({
               left.startedAt.localeCompare(right.startedAt) ||
               left.id.localeCompare(right.id),
           );
+  const activeTaskRun = taskRuns.find(runIsActive) ?? null;
   const materialRun =
     material.kind === "EXECUTION_TASK"
       ? taskRuns.find((run) => run.id === material.runId) ?? null
@@ -471,6 +477,7 @@ export const ExecutionWorkspace = ({
         detail: selected && taskRuns.length === 0 ? "No attempts yet" : undefined,
         state: <span>{currentOwnerTask?.id === task.id ? "Current · " : ""}{taskStateLabel(task)}</span>,
         selected: selected && selectedRun === null,
+        containsSelection: selected,
         onSelect: () => onSelectMaterial({
           kind: "EXECUTION_TASK",
           taskId: task.id,
@@ -487,6 +494,7 @@ export const ExecutionWorkspace = ({
         taskItem,
         ...(selected ? taskRuns.map((run) => ({
           id: run.id,
+          parentId: task.id,
           label: runRoleLabel(run.role) + " · Attempt " + run.attempt,
           detail: new Date(run.startedAt).toLocaleString(),
           state: <span>{runStatusLabel(run.status)}</span>,
@@ -535,9 +543,9 @@ export const ExecutionWorkspace = ({
         </header>
         <WorkbenchFacts label="Task overview" items={[
           { id: "objective", label: "Objective", value: selectedTask.objective, emphasis: "strong" },
-          { id: "attempt", label: selectedRun !== null && !runIsActive(selectedRun) ? "Recorded attempt" : "Current attempt", value: selectedRun === null
+          { id: "attempt", label: "Current attempt", value: activeTaskRun === null
             ? "No active Run"
-            : runRoleLabel(selectedRun.role) + " · Attempt " + selectedRun.attempt + " · " + runStatusLabel(selectedRun.status) },
+            : runRoleLabel(activeTaskRun.role) + " · Attempt " + activeTaskRun.attempt + " · " + runStatusLabel(activeTaskRun.status) },
           { id: "boundary", label: "Validation boundary", value: selectedRun === null && (selectedBoundary?.tag === "NONE" || (selectedBoundary === null && selectedTask.state === "TODO"))
             ? "Not started"
             : validationBoundaryLabel(selectedBoundary, currentOwnerTask?.id === selectedTask.id ? "Current" : "Recorded") },
@@ -551,7 +559,7 @@ export const ExecutionWorkspace = ({
         ) : null}
 
         {selectedRun === null ? null : (
-          <WorkbenchSection content={<>
+          <WorkbenchSection title="Attempt detail" content={<>
             <div data-testid="selected-run-header">
               <WorkbenchSectionHeader
                 title={runRoleLabel(selectedRun.role) + " · Attempt " + selectedRun.attempt}
@@ -573,6 +581,8 @@ export const ExecutionWorkspace = ({
             <ValidationSummary
               events={events}
               active={runIsActive(selectedRun)}
+              pending={eventsQuery.isPending}
+              failed={eventsQuery.isError}
               boundary={selectedBoundary}
               boundaryScope={
                 currentOwnerTask?.id === selectedTask.id

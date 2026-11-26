@@ -88,11 +88,6 @@ export const ProposalReview = ({
         verdict={verdict}
         sections={[
           {
-            id: "target",
-            title: "Target",
-            content: <p>{lifecycleArtifactLabel(proposal.role)}</p>,
-          },
-          {
             id: "rationale",
             title: "Rationale",
             content: <p>{proposal.rationale}</p>,

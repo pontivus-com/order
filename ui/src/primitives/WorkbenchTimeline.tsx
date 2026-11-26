@@ -14,7 +14,7 @@ export const WorkbenchTimeline = ({
   label, items,
 }: Readonly<{ label: string; items: readonly WorkbenchTimelineItem[] }>) => (
   <section className="order-workbench-timeline" aria-label={label}>
-    <List density="compact" hasDividers edge="flush">
+    <List density="compact" hasDividers edge="padded" className="order-workbench-timeline-list">
       {items.map((item) => (
         <ListItem
           key={item.id}

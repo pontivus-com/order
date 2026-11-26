@@ -8,6 +8,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Changed
 
+- Reconstruct Implementation task/attempt navigation and selected-attempt validation, retain task-level boundary meaning, distinguish loading from absent evidence, and make Approval recovery available when inspecting a task. Tighten governed document and review information grouping.
+
 - Reconstruct the shared conversation and activity canvas: bounded messages, exact question/response context, a full-height activity region, distinct workflow history, and cancellation subordinate to the current interaction. Keep Readiness verdict copy aligned with automatic R3 progression.
 
 - Start the expanded P0.R reconstruction with the compact WorkItem identity composition and restore connected, checkmarked lifecycle visualization with independent current and inspection states. Record the dependency order and restart checkpoint; no intermediate visual acceptance.

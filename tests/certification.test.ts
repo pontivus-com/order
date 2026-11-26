@@ -1075,6 +1075,9 @@ describe("Order cross-boundary certification", () => {
     expect(masterDetail).not.toContain("WorkbenchTable");
     expect(masterDetail).toContain('className="order-workbench-master-item"');
     expect(masterDetail).toContain("aria-pressed={item.selected}");
+    expect(masterDetail).toContain("attempt.parentId === item.id");
+    expect(execution).toContain('title="Validation for selected attempt"');
+    expect(execution).toContain("No validation results in this attempt");
     const rail = read("ui/src/primitives/WorkbenchRail.tsx");
     expect(rail).toContain("order-workbench-process-marker");
     expect(rail).toContain('reached || terminal ? "✓" : index + 1');
