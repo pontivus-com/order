@@ -340,7 +340,6 @@ export const ReadinessWorkspace = ({
   const packageItems = packageArtifacts.map((artifact) => ({
       id: "package-" + artifact.id,
       label: lifecycleArtifactLabel(artifact.role),
-      detail: "Governed package document",
       action: (
         <WorkbenchAction
           label={"View " + lifecycleArtifactLabel(artifact.role)}
@@ -433,16 +432,22 @@ export const ReadinessWorkspace = ({
             content: readinessArtifact === null
               ? <WorkbenchState kind="empty" title="Readiness review is in progress" />
               : (
-                <WorkbenchAction
-                  label="Read readiness review"
-                  icon={<WorkbenchIcon name="document" />}
-                  tone="secondary"
-                  onClick={() =>
-                    onSelectMaterial({
-                      kind: "SUPPORTING_DOCUMENT",
-                      artifactId: readinessArtifact.id,
-                    })}
-                />
+                <WorkbenchResourceList items={[{
+                  id: "readiness-" + readinessArtifact.id,
+                  label: "Readiness review",
+                  action: (
+                    <WorkbenchAction
+                      label="Read readiness review"
+                      icon={<WorkbenchIcon name="document" />}
+                      tone="secondary"
+                      onClick={() =>
+                        onSelectMaterial({
+                          kind: "SUPPORTING_DOCUMENT",
+                          artifactId: readinessArtifact.id,
+                        })}
+                    />
+                  ),
+                }]} />
               ),
           },
           {

@@ -93,7 +93,7 @@
   display: flex;
   align-items: center;
   min-width: 0;
-  max-width: 16rem;
+  max-width: var(--order-master-width);
   padding-inline-start: var(--spacing-3);
   border-inline-start: 1px solid var(--color-border-emphasized);
 }
@@ -145,7 +145,7 @@
 .order-workbench-account-label {
   display: inline-block;
   min-width: 0;
-  max-width: 12rem;
+  max-width: 24ch;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -197,7 +197,6 @@
   color: var(--color-text-accent);
   font-size: var(--font-size-xl);
   font-weight: 700;
-  letter-spacing: -0.025em;
 }
 .order-workbench-destination-label {
   color: var(--color-text-primary);
@@ -504,16 +503,15 @@
 .order-workbench-facts {
   margin: 0;
   display: grid;
-  grid-template-columns: fit-content(35%) minmax(0, 1fr);
-  gap: var(--spacing-2) var(--spacing-3);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+  gap: var(--spacing-3) var(--spacing-6);
 }
 .order-workbench-fact {
   min-width: 0;
   display: grid;
-  grid-template-columns: subgrid;
-  grid-column: 1 / -1;
-  align-items: baseline;
-  gap: var(--spacing-3);
+  align-content: start;
+  gap: var(--spacing-1);
 }
 .order-workbench-fact dt {
   color: var(--color-text-secondary);
@@ -523,9 +521,13 @@
   min-width: 0;
   margin: 0;
   overflow-wrap: anywhere;
+  font-weight: 500;
 }
 .order-workbench-fact[data-emphasis="strong"] dd { font-weight: 700; }
-.order-workbench-section-header p { color: var(--color-text-secondary); }
+.order-workbench-section-header p {
+  margin: var(--spacing-1) 0 0;
+  color: var(--color-text-secondary);
+}
 
 .order-workbench-section-header {
   display: flex;
@@ -535,6 +537,7 @@
   padding-block: var(--spacing-2);
 }
 .order-workbench-section-header h3 {
+  margin: 0;
   font-size: var(--order-font-size-section);
   font-weight: 650;
 }
@@ -545,7 +548,8 @@
   margin-inline: auto;
   display: grid;
   gap: var(--spacing-4);
-  padding: var(--spacing-4);
+  padding: var(--spacing-6);
+  align-content: start;
 }
 .order-workbench-review-header {
   min-width: 0;
@@ -553,6 +557,7 @@
   grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
   align-items: start;
   gap: var(--spacing-6);
+  padding-block-end: var(--spacing-3);
 }
 .order-workbench-review-heading {
   min-width: 0;
@@ -603,16 +608,19 @@
 .order-workbench-review-section {
   min-width: 0;
   display: grid;
+  align-content: start;
   gap: var(--spacing-2);
+  padding-block: var(--spacing-2);
 }
 .order-workbench-review-section-content { min-width: 0; }
 .order-workbench-review-section-content > .order-workbench-facts {
   padding-block: var(--spacing-1);
 }
 .order-workbench-resource-list {
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border-emphasized);
   border-radius: var(--radius-container);
   min-width: 0;
+  overflow: hidden;
 }
 .order-workbench-fact dd ul {
   margin: 0;
@@ -802,23 +810,30 @@
   flex-wrap: wrap;
 }
 .order-workbench-document {
-  height: 100%;
   min-height: 0;
   min-width: 0;
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
-  overflow: hidden;
-  padding-inline: var(--spacing-6);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3) var(--spacing-6);
+}
+.order-workbench-document > .order-workbench-section-header {
+  flex: 0 0 auto;
 }
 .order-workbench-document-content {
   min-height: 0;
   min-width: 0;
-  overflow: hidden;
-  padding-block: var(--spacing-2) var(--spacing-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
 }
 .order-workbench-document-details {
   min-width: 0;
-  padding-block: 0 var(--spacing-3);
+  flex: 0 0 auto;
+  max-width: var(--order-prose-max-width);
+  border-top: 1px solid var(--color-border-emphasized);
+  padding-block: var(--spacing-3);
 }
 
 .order-workbench-result {
@@ -857,9 +872,31 @@
 }
 
 /* IA30 — productive Research/Requirements/Design/Plan composition. */
-.order-productive-stage{height:100%;min-height:0;display:flex;flex-direction:column}
-.order-productive-primary{min-height:0;flex:1 1 auto;overflow:auto}
-.order-productive-navigation{flex:0 0 auto;display:flex;align-items:center;padding:var(--spacing-2) var(--spacing-6)}
+.order-productive-stage {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.order-productive-primary {
+  min-height: 0;
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: auto;
+}
+.order-productive-navigation {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-2) var(--spacing-6);
+}
+.order-productive-primary > .order-workbench-section {
+  padding-inline: var(--spacing-6);
+}
+.order-document-material {
+  min-width: 0;
+  min-height: 0;
+}
 .order-activity-support,.order-activity-workflow-state{min-width:0;display:grid;gap:var(--spacing-3)}
 .order-activity-material,.order-proposal-review{min-width:0}
 .order-activity-detail{min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:var(--spacing-3)}
@@ -1065,7 +1102,6 @@
   font-size: var(--font-size-xl);
   line-height: 1.25;
   font-weight: 700;
-  letter-spacing: -0.025em;
 }
 .order-workitem-identity-detail {
   color: var(--color-text-secondary);
@@ -1194,11 +1230,13 @@
   font-size: var(--font-size-sm);
 }
 .order-markdown-document-view {
-  height: 100%;
+  min-width: 0;
   min-height: 0;
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.order-markdown-document-view > .order-markdown-preview {
+  flex: 1 1 auto;
 }
 
 .order-markdown-format-toolbar {
@@ -1215,13 +1253,11 @@
 }
 
 .order-markdown-editor {
-  height: 100%;
-  min-height: 0;
+  min-height: min(65vh, var(--order-prose-max-width));
+  min-width: 0;
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr);
-  border: 1px solid var(--color-border-emphasized);
   background: var(--color-background-surface);
-  overflow: hidden;
 }
 .order-editor-notices {
   display: grid;
@@ -1231,8 +1267,7 @@
   min-height: 0;
   display: grid;
   overflow: hidden;
-  padding: var(--spacing-3);
-  gap: var(--spacing-3);
+  gap: 0;
 }
 .order-editor-mode-edit,
 .order-editor-mode-preview {
@@ -1246,7 +1281,6 @@
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  border: 1px solid var(--color-border-emphasized);
 }
 .order-editor-source-pane-hidden {
   display: none;
@@ -1260,9 +1294,12 @@
 }
 .order-markdown-preview,
 .order-markdown-readonly {
-  min-height: 100%;
-  padding: var(--spacing-4);
+  min-width: 0;
+  padding: var(--spacing-3) 0;
   color: var(--color-text-primary);
+}
+.order-editor-preview-pane .order-markdown-preview {
+  padding: var(--spacing-3);
 }
 .order-editor-technical-content {
   display: grid;
@@ -1353,7 +1390,7 @@
     justify-content: safe end;
   }
   .order-workbench-toolbar-account { padding-inline-end: var(--spacing-2); }
-  .order-workbench-account-label { max-width: 7rem; }
+  .order-workbench-account-label { max-width: 14ch; }
   .order-queue-search {
     width: auto;
     min-width: min-content;
@@ -1371,7 +1408,9 @@
   .order-workbench-review-header { grid-template-columns: minmax(0, 1fr); gap: var(--spacing-3); }
   .order-workbench-review-verdict, .order-workbench-review-verdict-label { justify-items: start; text-align: start; }
   .order-workbench-facts { grid-template-columns: minmax(0, 1fr); }
-  .order-workbench-fact { grid-template-columns: minmax(0, 1fr); gap: var(--spacing-1); }
+  .order-workbench-document { padding-inline: var(--spacing-3); }
+  .order-workbench-document > .order-workbench-section-header { flex-wrap: wrap; }
+  .order-workbench-fact { gap: var(--spacing-1); }
   .order-approval-decision { grid-template-columns: minmax(0, 1fr); }
   .order-markdown-editor-controls {
     display: grid;
@@ -1379,8 +1418,10 @@
     align-items: start;
   }
   .order-markdown-editor-controls > :first-child {
-    min-width: max-content;
+    min-width: 0;
+    max-width: 100%;
     justify-self: start;
+    overflow-x: auto;
   }
   .order-markdown-format-toolbar {
     width: 100%;
@@ -1399,7 +1440,7 @@
   .order-evidence-composition { padding: var(--spacing-3); }
   .order-settings-screen { padding: var(--spacing-3); }
   .order-workitem-title-edit {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) auto auto;
   }
   .order-editor-mode-split {
     grid-template-columns: minmax(0, 1fr);

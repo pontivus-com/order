@@ -309,7 +309,7 @@ export const SourceDocumentMaterial = ({
 
   if (git.sourceQuery.isPending || schemasQuery.isPending) {
     return (
-      <div data-testid="source-document-material">
+      <div className="order-document-material" data-testid="source-document-material">
         <WorkbenchState kind="loading" title="Loading work request…" />
       </div>
     );
@@ -322,7 +322,7 @@ export const SourceDocumentMaterial = ({
     schemasQuery.data === undefined
   ) {
     return (
-      <div data-testid="source-document-material">
+      <div className="order-document-material" data-testid="source-document-material">
         <WorkbenchState
           kind="error"
           title="Work request unavailable"
@@ -338,7 +338,7 @@ export const SourceDocumentMaterial = ({
   );
   if (sourceSchema === undefined) {
     return (
-      <div data-testid="source-document-material">
+      <div className="order-document-material" data-testid="source-document-material">
         <WorkbenchState
           kind="error"
           title="Work request schema unavailable"
@@ -360,7 +360,7 @@ export const SourceDocumentMaterial = ({
   );
 
   return (
-    <div data-testid="source-document-material">
+    <div className="order-document-material" data-testid="source-document-material">
       <WorkbenchDocument
         title="Work request"
         description={
@@ -526,7 +526,7 @@ export const LifecycleDocumentMaterial = ({
     contentQuery.isPending
   ) {
     return (
-      <div data-testid="lifecycle-document-material">
+      <div className="order-document-material" data-testid="lifecycle-document-material">
         <WorkbenchState kind="loading" title="Loading lifecycle document…" />
       </div>
     );
@@ -540,7 +540,7 @@ export const LifecycleDocumentMaterial = ({
       ? artifactsQuery.error ?? contentQuery.error
       : contentQuery.error;
     return (
-      <div data-testid="lifecycle-document-material">
+      <div className="order-document-material" data-testid="lifecycle-document-material">
         <WorkbenchState
           kind="error"
           title="Lifecycle document unavailable"
@@ -552,7 +552,7 @@ export const LifecycleDocumentMaterial = ({
 
   if (selectedArtifact === null || contentQuery.data === undefined) {
     return (
-      <div data-testid="lifecycle-document-material">
+      <div className="order-document-material" data-testid="lifecycle-document-material">
         <WorkbenchState
           kind="empty"
           title="Lifecycle document is no longer current"
@@ -633,7 +633,7 @@ export const LifecycleDocumentMaterial = ({
   );
 
   return (
-    <div data-testid="lifecycle-document-material">
+    <div className="order-document-material" data-testid="lifecycle-document-material">
       <WorkbenchDocument
         title={title}
         description={description}

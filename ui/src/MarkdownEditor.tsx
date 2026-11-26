@@ -166,7 +166,7 @@ export const MarkdownEditor = ({
   const preview = (
     <div
       data-testid={readOnly ? "markdown-readonly" : "markdown-preview"}
-      className="order-markdown-preview"
+      className={readOnly ? "order-markdown-readonly" : "order-markdown-preview"}
     >
       <Markdown contentWidth="var(--order-prose-max-width)" contentAlign="start">
         {presentationMarkdown(buffer)}

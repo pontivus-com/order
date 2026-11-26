@@ -3948,6 +3948,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
       route: routeValue(), authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
     });
   }
+  await expect(approval.locator('[data-review-section="tasks"]').getByTestId("workbench-resource-list")).toBeVisible();
   await expect(approval.locator('[data-review-section="documents"]').getByTestId("workbench-resource-list")).toBeVisible();
   await expect(approval.locator('[data-review-section="documents"]').getByRole("button", { name: "View Implementation plan", exact: true })).toContainText("View Implementation plan");
   await approval.getByRole("button", {

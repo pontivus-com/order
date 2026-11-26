@@ -377,18 +377,10 @@ export const SignoffReview = ({
           id: "tasks",
           title: currentApproval ? "Signed tasks" : "Approved tasks",
           content: (
-            taskItems.length === 1 ? (
-              <WorkbenchFacts label="Signed task" items={[
-                { id: "objective", label: "Objective", value: taskItems[0]!.label, emphasis: "strong" },
-                { id: "scope-gates", label: "Authorization", value: taskItems[0]!.detail },
-                { id: "inspect", label: "Task contract", value: taskItems[0]!.action },
-              ]} />
-            ) : (
-              <WorkbenchResourceList
-                items={taskItems}
-                empty={<WorkbenchState kind="empty" title="No signed tasks" />}
-              />
-            )
+            <WorkbenchResourceList
+              items={taskItems}
+              empty={<WorkbenchState kind="empty" title="No signed tasks" />}
+            />
           ),
         },
         {

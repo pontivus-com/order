@@ -170,7 +170,6 @@ export const PreSignoffStageWorkspace = ({
         onOpenEvidence={onOpenEvidence} onOpenProposalReview={onOpenProposalReview}
         onMutationRefresh={onMutationRefresh} onMutationError={onMutationError} />;
       case "STAGE_DOCUMENT": return <>
-        {documentAttention}
         {materialState?.tag==="DRAFT" || materialState?.tag==="HISTORICAL" ||
           materialState?.tag==="SIGNED_LOCKED"
           ? <ReadOnlyLifecycleDocumentMaterial workItem={workItem} artifactId={material.artifactId}
@@ -228,6 +227,7 @@ export const PreSignoffStageWorkspace = ({
     {historicalReturn === undefined ? null : (
       <div className="order-productive-navigation">{historicalReturn}</div>
     )}
+    {material.kind === "STAGE_DOCUMENT" && historicalReturn === undefined ? documentAttention : null}
     <div className="order-productive-primary">
       {primary}
       {material.kind === "STAGE_RUN" ? null : supportingMaterial}
