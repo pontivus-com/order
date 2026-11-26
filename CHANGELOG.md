@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Close 0.6.0 technical design A07–A11/H3, binding current validation and complete result proof to exact Run/Approval lineage; retain 41-path draft scope and require fresh G5/ALIGN/R3.
+
 - Specify exact interrupted governance-proposal recovery and conformed Readiness verdict selection; reconcile the one newly justified existing repository-shell path in the 0.6.0 draft scope and campaign fitness.
 
 - Align the campaign fitness assertion with the canonical closed-by-default document-location disclosure and reject the superseded visibility rule.

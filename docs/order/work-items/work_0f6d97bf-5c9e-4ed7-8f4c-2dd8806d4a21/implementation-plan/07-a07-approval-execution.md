@@ -55,4 +55,4 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 
 ## Realization trace consequence
 
-IA17/31 own exact package/task currentness, Context provenance and decision feedback; IA32 current execution owner, task/Run selection, validation and actual blocker. Preserve IA07/08 reuse proof. Prove complete signed contract and actual state/action outcomes.
+IA17/31 own exact package/task currentness, Context provenance and decision feedback; IA32 current execution owner, task/Run selection, latest-reviewer-only current validation boundary, exact causal remediator failure and actual blocker; historical attempt detail cannot reuse current progress. Preserve IA07/08 reuse proof. Prove complete signed contract and actual state/action outcomes.

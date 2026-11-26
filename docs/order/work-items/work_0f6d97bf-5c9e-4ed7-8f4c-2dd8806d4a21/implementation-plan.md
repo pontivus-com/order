@@ -4,7 +4,7 @@
 
 ## Canonical PLAN authority
 
-This root is the single deterministic P7 artifact for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. Its modular directory is the maintainable authoring decomposition, not independent executable authority. This synchronized candidate binds R1 `682e9bbc9246704a2ad3abc32822ad9639a2191d`, R2 `65f0797ca5915012044a7f5d6fc285f116779376`, DESIGN `b7e2751daa29fce804045f822ef4762c8ac1f16d`, current P4 and P6. G4 must close before G5 finalizes it; campaign §17A/§18 own gate state and authorization. No gate advance or sign-off is inferred.
+This root is the single deterministic P7 artifact for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. Its modular directory is the maintainable authoring decomposition, not independent executable authority. This synchronized candidate binds R1 `b01e3f2886f9cad08ab141d4227d7ca67a676cc1`, R2 `aced1290b8aaa398dbbc9bef966bf064a6148fd3`, DESIGN `a9a9b137f610c31b0387af9b13cb4fa943b4a75f`, current P4 and P6. G4 must close before G5 finalizes it; campaign §17A/§18 own gate state and authorization. No gate advance or sign-off is inferred.
 
 ## Current Workbench implementation plan
 
@@ -14,19 +14,19 @@ Retain evidenced closed F6B owners and the operator-accepted foundation within s
 
 | Source component | Git blob |
 |---|---|
-| `implementation-plan/00-governance.md` | `8229f18b76b24ebe74e9542210ba166bb8468548` |
+| `implementation-plan/00-governance.md` | `e18d73353781f819a0e21e7916c46be8e1fb90e8` |
 | `implementation-plan/01-a01-lifecycle-product.md` | `94707df41608c41756d04f452b2f982fdbdd8338` |
 | `implementation-plan/02-a02-governance-intake.md` | `1f496e6221987a58b5f1aed9c783eb67a3e5492c` |
 | `implementation-plan/03-a03-queue-source.md` | `b0f9bd32f6f3bce513e9668a31f7d388fa0cecb8` |
 | `implementation-plan/04-a04-workbench-research.md` | `7c6b144887894a019a3b605a0d35cbfa8a274a35` |
 | `implementation-plan/05-a05-requirements-design.md` | `b207ae12ca717f76a8bc37b701fe1da4c1d78ec9` |
 | `implementation-plan/06-a06-plan-readiness.md` | `3f50065b39413011675c8bc7013a5d757013ca9b` |
-| `implementation-plan/07-a07-approval-execution.md` | `36cf09789f9bfd4c352864d4c6bce0f905564667` |
-| `implementation-plan/08-a08-complete-materials.md` | `cc7df16a0b1fe49b1596075cbd7e38530edb47eb` |
+| `implementation-plan/07-a07-approval-execution.md` | `32c08d56f5bafa08ba724a90b4e5e3491ea653af` |
+| `implementation-plan/08-a08-complete-materials.md` | `9f414ba89efd58cc3c73555d8268b4864a732750` |
 | `implementation-plan/09-a09-provider-settings.md` | `dc9988af7a2f63ae8a2843122e66911e14d595e9` |
 | `implementation-plan/10-a10-recovery-accessibility.md` | `3537f8f368001084e0844c4039235f85b0cbe532` |
 | `implementation-plan/11-a11-component-certification.md` | `39888364495850fe7b9fc3c486ad67bf6905678c` |
-| `implementation-plan/12-action-catalog.md` | `2643a4aa837b3e015608c75ef0a42f7759d71c7a` |
+| `implementation-plan/12-action-catalog.md` | `de2a115972ebcda08d817f70d99147f1727ac25d` |
 | `implementation-plan/13-verification-closeout.md` | `362516ec871380274d15226efdfd38ed5b8ff8dd` |
 
 A source hash mismatch makes PLAN non-current until recompiled. Directory files have no independent order-tasks block or lifecycle state.
@@ -343,9 +343,9 @@ This decomposition is revalidated under C19-F09/C20-F11 after the prior G4-G6 cl
 
 ##### Exact upstream package
 
-- R1 `research.md`: `682e9bbc9246704a2ad3abc32822ad9639a2191d`.
-- R2 `requirements.md`: `65f0797ca5915012044a7f5d6fc285f116779376`.
-- DESIGN `solution-design.md`: `b7e2751daa29fce804045f822ef4762c8ac1f16d` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 41-path forecast.
+- R1 `research.md`: `b01e3f2886f9cad08ab141d4227d7ca67a676cc1`.
+- R2 `requirements.md`: `aced1290b8aaa398dbbc9bef966bf064a6148fd3`.
+- DESIGN `solution-design.md`: `a9a9b137f610c31b0387af9b13cb4fa943b4a75f` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 41-path forecast.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `9c2ec83a9552b7583f90e91080c014df4d6870df`.
 - P3 `GW-DOC-WORKBENCH-UX-V2`: `64184232833b59a9e6db5e1a28b841f48b3217cd` — §11.4A/§12/§13/§14 own semantic information classes, state-is-not-interface behavior, direct primary interaction composition, no generic workflow-material selector, continuous Dialogue semantics, Terminal-result primacy, singular technical inspection, task anatomy and composition invariants.
 - P3 `GW-DOC-MARKDOWN-WORKBENCH-V1`: `da89bd08e4f78f353d7b3062758e9d78e21375b2` — §17.4 owns one compact Markdown editor-control region, overflow-before-wrap formatting and control→canvas adjacency.
@@ -844,7 +844,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 
 ##### Realization trace consequence
 
-IA17/31 own exact package/task currentness, Context provenance and decision feedback; IA32 current execution owner, task/Run selection, validation and actual blocker. Preserve IA07/08 reuse proof. Prove complete signed contract and actual state/action outcomes.
+IA17/31 own exact package/task currentness, Context provenance and decision feedback; IA32 current execution owner, task/Run selection, latest-reviewer-only current validation boundary, exact causal remediator failure and actual blocker; historical attempt detail cannot reuse current progress. Preserve IA07/08 reuse proof. Prove complete signed contract and actual state/action outcomes.
 
 
 ### Compiled component: `implementation-plan/08-a08-complete-materials.md`
@@ -862,7 +862,7 @@ IA17/31 own exact package/task currentness, Context provenance and decision feed
 | `GW-FR-028-NONDELIVERY-TERMINAL-VIEW` | `C13-O01`, `C13-O05` | `MIXED_TECHNICAL_DELTA` | `SD03`, `SD27` | `IA11`, `IA33` | — | Retain terminal transition; prove exact terminal R1 result and canonical linked-remediation eligibility for every admitted completed Investigation/Audit outcome, negative kinds/project/stage; via tests/core.test.ts; tests/daemon.test.ts; tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-207-PROPOSAL-AUTHORITY-BOUNDARY` | `C14-O05`, `C14-O06` | `MIXED_TECHNICAL_DELTA` | `SD09` | `IA03` | — | Retain proposal decision/authority owner; correct exact interrupted adoption recovery via tests/daemon.test.ts; tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-208-ACTIVE-RUN-AUTHORITY-EXCLUSION` | `C14-O09`, `C05-O09` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C14-O09`, `C05-O09` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
-| `GW-FR-224-TERMINAL-RESULT-PRIMACY` | `C13-O04`, `DIRECT-FR224` | `MIXED_TECHNICAL_DELTA` | `SD01`, `SD27` | `IA19`, `IA33` | — | Reached Complete only; exact outcome-owned result and qualifying execution proof, exact bytes in Evidence. Required proof: owning IA and P3 §23 allocation in 13-verification-closeout.md. |
+| `GW-FR-224-TERMINAL-RESULT-PRIMACY` | `C13-O04`, `DIRECT-FR224` | `MIXED_TECHNICAL_DELTA` | `SD01`, `SD27` | `IA19`, `IA33` | — | Reached Complete only; exact outcome-owned result and complete qualifying proof for every candidate task under exact final Approval, with missing proof explicitly unavailable; exact bytes in Evidence. Required proof: owning IA and P3 §23 allocation in 13-verification-closeout.md. |
 | `GW-FR-238-PROPOSAL-CANCEL-CLOSURE` | `C14-O05`, `C14-O06` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C14-O05`, `C14-O06` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-241-DERIVED-MATERIAL-MATURITY` | `C14-O03`, `C14-O04`, `DIRECT-FR241` | `MIXED_TECHNICAL_DELTA` | `SD06`, `SD23` | `IA13`, `IA29` | — | All six canonical maturity labels distinct from Git/editability; guarded Save consequence and Draft without reach. Required proof: owning IA and P3 §23 allocation in 13-verification-closeout.md. |
 | `GW-FR-242-DIALOGUE-REPLY-CONTEXT` | `C14-O08`, `DIRECT-FR242` | `VERIFICATION_DELTA` | `SD24` | `IA30` | — | Retain evidenced preceding-turn anchor, exact question/category and canonical RunEvent admission; prove reply context and continuity. Proof: tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
@@ -1507,8 +1507,8 @@ The IA27-IA34 union remains exactly **37 unique SURF rows** with no duplicate or
 **Binding intermediate-layer finding:** C19-F09/G-F38 plus HUX-08. IA32 is not complete while `ExecutionWorkspace.tsx` or its feature CSS owns recurring task-contract/section/facts/resource anatomy that P4 assigns to MasterDetail/Section/Facts/ResourceList.
 
 **Solution:** SD26.  
-**Owner:** bounded `ExecutionWorkspace.tsx`; existing MasterDetail/Section/Facts/ResourceList proof-only.
-**Required mutation:** exact current Approval/task and task-scoped latest Run ordinal; match terminal classification to owning typed VALIDATION_FAILED, builder STAGE_BLOCKED or provider/invocation failure, otherwise recorded classification. Nonterminal GATE_FAILED is not terminal blocker. Human current reason/recovery independent of history. Retain MasterDetail/Section/Facts/ResourceList, chronology/validation, Context/Evidence; no purge.  
+**Owner:** existing `src/core/lifecycle.ts` validation-boundary derivation and bounded `ExecutionWorkspace.tsx`; existing MasterDetail/Section/Facts/ResourceList proof-only.
+**Required mutation:** exact current Approval/task and task-scoped latest Run ordinal; match terminal classification to owning typed VALIDATION_FAILED, builder STAGE_BLOCKED or provider/invocation failure, otherwise recorded classification. Nonterminal GATE_FAILED is not terminal blocker. Human current reason/recovery independent of history. Current reviewer validation uses its own ordered V0–V7 events, not earlier same-trigger attempts; keep exact remediator causal failure until new candidate. Selected historical attempt shows only its own recorded evidence, separately from current boundary. Prove earlier reviewer V3/new reviewer V0 yields current V0, stale failure cannot leak, and history cannot retarget. Retain MasterDetail/Section/Facts/ResourceList, chronology/validation, Context/Evidence; no purge.  
 
 **Functional realization beyond cutover:** independent current ExecutionOwner, selected task, selected builder/reviewer/remediator Run, task ValidationBoundary and exact attempt events/results. Current blocker reason/consequence/recovery/action remains visible during historical selection; no retargeting. Signed task contract/history/validation/resources follow DESIGN classes; full matrix named same-task expansion, not fabricated before a Run. Prove ready/manual exact task start, running, validation, failure/block, retry/resume/cancel, independent review/remediation, successful/no-change, upstream return, historical selection and aggregate completion. Never inherit another Run's results; wide master/narrow Drawer/focus return. No browser progression policy.
 
@@ -1520,7 +1520,7 @@ The IA27-IA34 union remains exactly **37 unique SURF rows** with no duplicate or
 
 **Solution:** SD27 plus IA19 product-language projection.  
 **Owner dispositions:** bounded `WorkItemWorkspace.tsx`, `TerminalResult.tsx` and workbench-presentation; proof-only `WorkbenchResult.tsx`, `EvidenceViewer.tsx`; Context proof remains IA27.
-**Required mutation:** UNREACHED Complete routes to State, not TerminalResult; candidate evidence binds exact final Approval.id and canonical qualifying reviewer chain. Distinguish admitted terminal R1 from signed all-no-op ALREADY_SATISFIED using the exact P6 §6 provenance observation; use neutral ALREADY_SATISFIED explanation without implying sign-off. Use the shared pure lifecycle terminal-R1 selection (SD27) over canonical Run/RunEvent and exact ArtifactRef identity, consuming listRuns/listRunEvents/listArtifacts and readArtifactContent by output id. Never choose the last same-role/current working-tree artifact; missing, multiple or mismatched terminal evidence is unresolved/unavailable. Neither route may manufacture candidate resources. Preserve one Result/Section/ResourceList and exact-byte Evidence; no new Result.  
+**Required mutation:** UNREACHED Complete routes to State, not TerminalResult; candidate evidence binds exact final Approval.id and complete canonical qualifying reviewer chain for every CANDIDATE_DONE task. Validate exact WorkItem/task/baseline, candidate trigger, unique final CANDIDATE_RECORDED, eight distinct same-Run V0–V7 passes in sequence and preceding V4 REVIEW_PASSED, with P6 V6 minimum-change semantics; missing/mismatched proof for any candidate task is explicit unavailable/error, never partial aggregate evidence. Prove mixed no-op/candidate tasks, missing one candidate chain, cross-Run/baseline and out-of-order proof. Distinguish admitted terminal R1 from signed all-no-op ALREADY_SATISFIED using the exact P6 §6 provenance observation; use neutral ALREADY_SATISFIED explanation without implying sign-off. Use the shared pure lifecycle terminal-R1 selection (SD27) over canonical Run/RunEvent and exact ArtifactRef identity, consuming listRuns/listRunEvents/listArtifacts and readArtifactContent by output id. Never choose the last same-role/current working-tree artifact; missing, multiple or mismatched terminal evidence is unresolved/unavailable. Neither route may manufacture candidate resources. Preserve one Result/Section/ResourceList and exact-byte Evidence; no new Result.  
 
 **Functional realization beyond cutover:** reached Complete only, canonical WorkOutcome and exact outcome-owned material (terminal R1 result/evidence for schema-admitted R1 completion; exact signed provenance for all-no-op execution), verified-candidate proof from actual qualifying validated execution lineage rather than all historical Runs. Non-delivery omits candidate resources; exact linked-remediation eligibility consumes the existing pure predicate corrected by IA11, including schema-admitted completed Investigation/Audit DUPLICATE/ALREADY_SATISFIED. Result owns the one explicit action, no duplicate current-attention action, no action for delivery-kind or unreached Complete. Failed/cancelled attempts remain Implementation inspection. Exact bytes/identity through Evidence with origin/return, text/binary/unavailable/recovery. IA19 shared vocabulary; no guessed result ordering, lineage or fallback. Prove all outcome classes, direct terminal R1 including DUPLICATE/ALREADY_SATISFIED, competing historical R1 artifacts, missing/mismatched terminal event or bytes, returned execution then terminal R1, exact all-no-op signed and mixed aggregate provenance, negative unreached/action and resource provenance.
 
