@@ -100,6 +100,7 @@ export const EvidenceViewer = ({
                     ? query.error.message
                     : String(query.error)
                 }
+                action={<WorkbenchAction label="Retry evidence read" onClick={() => { void query.refetch(); }} />}
               />
             ) : (
               <div

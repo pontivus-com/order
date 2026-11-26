@@ -255,7 +255,7 @@ export const OpenCodeAccountSettings = () => {
         className="order-settings-pane"
         data-testid="settings-opencode"
       >
-        <div data-testid="rename-opencode-account">
+        <div className="order-settings-bounded-task" data-testid="rename-opencode-account">
         <WorkbenchSectionHeader
           title="Rename OpenCode account"
           description={"Rename " + renaming.label + "."}
@@ -293,6 +293,7 @@ export const OpenCodeAccountSettings = () => {
               />
               <WorkbenchAction
                 label="Cancel rename"
+                disabled={rename.isPending}
                 onClick={() => {
                   setRenameAccountId(null);
                   setRenameLabel("");
@@ -321,7 +322,7 @@ export const OpenCodeAccountSettings = () => {
         className="order-settings-pane"
         data-testid="settings-opencode"
       >
-        <div data-testid="add-opencode-account">
+        <div className="order-settings-bounded-task" data-testid="add-opencode-account">
           <WorkbenchSectionHeader
             title="Add OpenCode account"
             description="Create a human saved-account label, then complete one bounded sign-in."
@@ -355,6 +356,7 @@ export const OpenCodeAccountSettings = () => {
                 />
                 <WorkbenchAction
                   label="Cancel add account"
+                  disabled={startLogin.isPending}
                   onClick={resetAdd}
                 />
               </>
@@ -390,13 +392,14 @@ export const OpenCodeAccountSettings = () => {
           />
           {loginAttempt ? (
             <>
-              <p>{loginAttempt.instructions}</p>
-              <Link
-                href={loginAttempt.authorizationUrl}
-                isExternalLink
-              >
-                Open OpenCode sign-in
-              </Link>
+              {loginAttempt.status === "PENDING" ? (
+                <div className="order-settings-login-instructions">
+                  <p>{loginAttempt.instructions}</p>
+                  <Link href={loginAttempt.authorizationUrl} isExternalLink>
+                    Open OpenCode sign-in
+                  </Link>
+                </div>
+              ) : null}
               <WorkbenchStatus
                 tone={
                   loginAttempt.status === "PENDING"
@@ -424,19 +427,23 @@ export const OpenCodeAccountSettings = () => {
                   <WorkbenchFacts items={[
                     { id: "expiry", label: "Authorization expires", value: new Date(loginAttempt.expiresAt).toLocaleString() },
                   ]} />
-                  <WorkbenchAction
-                    label="Cancel OpenCode sign-in"
-                    loading={cancelLogin.isPending}
-                    onClick={() =>
-                      cancelLogin.mutate(loginAttempt.id)}
-                  />
+                  <div className="order-inline-actions">
+                    <WorkbenchAction
+                      label="Cancel OpenCode sign-in"
+                      loading={cancelLogin.isPending}
+                      disabled={cancelLogin.isPending}
+                      onClick={() => cancelLogin.mutate(loginAttempt.id)}
+                    />
+                  </div>
                 </>
               ) : (
-                <WorkbenchAction
-                  label="Done"
-                  tone="primary"
-                  onClick={resetAdd}
-                />
+                <div className="order-inline-actions">
+                  <WorkbenchAction
+                    label="Done"
+                    tone="primary"
+                    onClick={resetAdd}
+                  />
+                </div>
               )}
             </>
           ) : loginQuery.isPending ? (
@@ -446,11 +453,17 @@ export const OpenCodeAccountSettings = () => {
             />
           ) : null}
           {loginQuery.error ? (
-            <WorkbenchNotice
-              tone="danger"
-              title="OpenCode sign-in state unavailable"
-              description={errorText(loginQuery.error)}
-            />
+            <>
+              <WorkbenchNotice
+                tone="danger"
+                title="OpenCode sign-in state unavailable"
+                description={errorText(loginQuery.error)}
+              />
+              <div className="order-inline-actions">
+                <WorkbenchAction label="Retry sign-in status"
+                  onClick={() => { void loginQuery.refetch(); }} />
+              </div>
+            </>
           ) : null}
         </div>
       </section>

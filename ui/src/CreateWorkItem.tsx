@@ -103,7 +103,7 @@ export const CreateWorkItem = ({
           className="order-create-supporting"
           data-testid="create-work-item-location"
         >
-          <span>Repository documentation root</span>
+          <strong>Repository documentation root</strong>
           <code>{selectedProject.workItems.root}</code>
         </div>
       )}

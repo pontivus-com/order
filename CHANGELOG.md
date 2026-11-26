@@ -8,6 +8,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Changed
 
+- Refine configuration, queue, review, result, evidence and confirmation compositions; preserve the approved lifecycle and action boundaries, improve pending/retry behavior, decision visibility, exact-path confirmation and settled readiness/validation evidence.
+
 - Reconstruct Implementation task/attempt navigation and selected-attempt validation, retain task-level boundary meaning, distinguish loading from absent evidence, and make Approval recovery available when inspecting a task. Tighten governed document and review information grouping.
 
 - Reconstruct the shared conversation and activity canvas: bounded messages, exact question/response context, a full-height activity region, distinct workflow history, and cancellation subordinate to the current interaction. Keep Readiness verdict copy aligned with automatic R3 progression.

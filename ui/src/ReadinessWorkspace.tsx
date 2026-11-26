@@ -54,23 +54,32 @@ const decodeCanonicalMarkdown = (bytes: Uint8Array): string | null => {
 };
 
 const readinessFindingsMarkdown = (markdown: string): string | null => {
-  const lines = markdown.split("\n");
   const selected: string[] = [];
-  let include = false;
-
-  for (const line of lines) {
-    const heading = /^(#{2,6})\s+(.+?)\s*$/.exec(line);
-    if (heading !== null) {
-      const label = (heading[2] ?? "").trim().toLowerCase();
-      include =
-        label === "findings" ||
-        label === "r3 findings" ||
-        label === "package judgment";
+  let includedHeadingLevel: number | null = null;
+  let fence: string | null = null;
+  for (const line of markdown.split("\n")) {
+    const fenceMatch = /^\s{0,3}(`{3,}|~{3,})/.exec(line)?.[1] ?? null;
+    if (fenceMatch !== null) {
+      if (fence === null) fence = fenceMatch;
+      else if (fence[0] === fenceMatch[0] && fenceMatch.length >= fence.length) fence = null;
+      if (includedHeadingLevel !== null) selected.push(line);
       continue;
     }
-    if (include) selected.push(line);
+    const heading = fence === null ? /^(#{2,6})\s+(.+?)\s*$/.exec(line) : null;
+    if (heading !== null) {
+      const level = heading[1]!.length;
+      const label = heading[2]!.trim().toLowerCase();
+      if (includedHeadingLevel !== null && level > includedHeadingLevel) {
+        selected.push(line);
+        continue;
+      }
+      includedHeadingLevel =
+        label === "findings" || label === "r3 findings" || label === "package judgment"
+          ? level : null;
+      continue;
+    }
+    if (includedHeadingLevel !== null) selected.push(line);
   }
-
   const value = selected.join("\n").trim();
   return value.length === 0 ? null : value;
 };
@@ -408,7 +417,7 @@ export const ReadinessWorkspace = ({
   }));
 
   return (
-    <div data-testid="review-workspace">
+    <div className="order-review-workspace" data-testid="review-workspace">
       <WorkbenchReview
         title="Readiness review"
         description="Independent package readiness."

@@ -84,9 +84,14 @@ export const ProposalReview = ({
     <section data-testid="proposal-review-workspace" className="order-proposal-review">
       <WorkbenchReview
         title="Proposed document change"
-        description={lifecycleArtifactLabel(proposal.role)}
+        description="Review the proposed change against the governed target."
         verdict={verdict}
         sections={[
+          {
+            id: "target",
+            title: "Target",
+            content: <p>{lifecycleArtifactLabel(proposal.role)}</p>,
+          },
           {
             id: "rationale",
             title: "Rationale",

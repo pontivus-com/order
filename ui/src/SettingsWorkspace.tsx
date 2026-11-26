@@ -282,6 +282,7 @@ const RepositorySettings = ({
                 />
                 <WorkbenchAction
                   label="Cancel move"
+                  disabled={migrate.isPending}
                   onClick={() => {
                     setMigrationRepositoryRoot(null);
                     setTargetWorkItemsRoot("");
@@ -310,7 +311,7 @@ const RepositorySettings = ({
         className="order-settings-pane"
         data-testid="settings-repositories"
       >
-        <div data-testid="add-repository-form">
+        <div className="order-settings-bounded-task" data-testid="add-repository-form">
           <WorkbenchSectionHeader
             title="Add repository"
             description="Connect an existing Git repository. Order does not create or initialize repositories here."

@@ -164,6 +164,20 @@ export const WorkItemQueue = ({
       <WorkbenchSurface
         material={
           <div className="order-queue-scan-content">
+            <WorkbenchSectionHeader
+              title="Work items"
+              description={
+                showArchived
+                  ? "Active and archived governed work from repository-backed WorkItem sources."
+                  : "Active governed work from repository-backed WorkItem sources."
+              }
+              action={
+                <WorkbenchAction
+                  label={showArchived ? "Hide archived" : "Show archived"}
+                  onClick={() => onShowArchivedChange(!showArchived)}
+                />
+              }
+            />
             <div className="order-queue-commandbar">
               <span className="order-inline-actions">
                 <WorkbenchAction
@@ -212,20 +226,6 @@ export const WorkItemQueue = ({
                 />
               </div>
             ) : null}
-            <WorkbenchSectionHeader
-              title="Work items"
-              description={
-                showArchived
-                  ? "Active and archived governed work from repository-backed WorkItem sources."
-                  : "Active governed work from repository-backed WorkItem sources."
-              }
-              action={
-                <WorkbenchAction
-                  label={showArchived ? "Hide archived" : "Show archived"}
-                  onClick={() => onShowArchivedChange(!showArchived)}
-                />
-              }
-            />
             {restore.error ? (
               <WorkbenchNotice
                 tone="danger"

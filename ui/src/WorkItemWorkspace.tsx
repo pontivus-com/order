@@ -1474,11 +1474,12 @@ export const WorkItemWorkspace = ({
         open={confirmArchive}
         onOpenChange={setConfirmArchive}
         title={workItem.archived ? "Restore work item?" : "Archive work item?"}
-        description={
-          workItem.archived
+        description={<>
+          <strong>{workItem.title}</strong>
+          <p>{workItem.archived
             ? "Restore this WorkItem to the active queue. Its lifecycle and history are unchanged."
-            : "Archive this WorkItem from the active queue. Its source, lifecycle documents, Runs, evidence, approvals and history remain intact."
-        }
+            : "Archive this WorkItem from the active queue. Its source, lifecycle documents, Runs, evidence, approvals and history remain intact."}</p>
+        </>}
         confirmLabel={workItem.archived ? "Restore work item" : "Archive work item"}
         pending={archiveMutation.isPending}
         onConfirm={() => {

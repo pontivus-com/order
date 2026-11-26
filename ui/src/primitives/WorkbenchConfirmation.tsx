@@ -1,5 +1,6 @@
 import { AlertDialog } from "@astryxdesign/core/AlertDialog";
 import { Dialog } from "@astryxdesign/core/Dialog";
+import type { ReactNode } from "react";
 import { WorkbenchAction } from "./WorkbenchAction.tsx";
 
 export type WorkbenchConfirmationKind = "safety" | "destructive";
@@ -14,15 +15,16 @@ export const WorkbenchConfirmation = ({
   onConfirm,
   onOpenChange,
 }: Readonly<{
-  kind: WorkbenchConfirmationKind;
   open: boolean;
   title: string;
-  description: string;
   confirmLabel: string;
   pending: boolean;
   onConfirm: () => void | Promise<void>;
   onOpenChange: (open: boolean) => void;
-}>) => {
+}> & (
+  | Readonly<{ kind: "safety"; description: ReactNode }>
+  | Readonly<{ kind: "destructive"; description: string }>
+)) => {
   const onGuardedOpenChange = (nextOpen: boolean): void => {
     if (!pending) onOpenChange(nextOpen);
   };
@@ -51,7 +53,7 @@ export const WorkbenchConfirmation = ({
     >
       <section className="order-workbench-confirmation">
         <h2>{title}</h2>
-        <p className="order-workbench-confirmation-description">{description}</p>
+        <div className="order-workbench-confirmation-description">{description}</div>
         <div className="order-workbench-confirmation-actions">
           <WorkbenchAction
             label="Cancel"

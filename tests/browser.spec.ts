@@ -3940,6 +3940,9 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   await openWorkItem(page, "Awaiting sign-off");
   await selectWorkflowStep(page, "Readiness review");
   const readinessReview = page.getByTestId("review-workspace");
+  await expect(readinessReview.getByTestId("review-verdict")).toContainText("Ready for sign-off");
+  await expect(readinessReview.getByText("Loading readiness findings…", { exact: true })).toHaveCount(0);
+  await expect(readinessReview.getByRole("button", { name: "Return to Approval", exact: true })).toBeVisible();
   await capture({
     id: "ia26-readiness-review-wide-light",
     workItemKind: "CHANGE",
@@ -4083,6 +4086,8 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   await backToQueue(page);
 
   await openWorkItem(page, "Readiness input required");
+  await expect(page.getByTestId("review-workspace").getByLabel("Message input")).toBeEditable();
+  await expect(page.getByTestId("review-workspace").getByText("Which readiness finding should be resolved before approval?", { exact: true })).toBeVisible();
   await capture({
     id: "ia26-readiness-required-input-wide-light",
     workItemKind: "CHANGE",
@@ -4240,6 +4245,8 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   await page.setViewportSize(light);
   await selectWorkflowStep(page, "Implementation");
   await expect(page.getByTestId("execution-workspace")).toBeVisible();
+  await selectWorkflowMaterial(page, "Independent review · Attempt 1");
+  await expect(page.getByTestId("validation-matrix").getByTestId("validation-stage-V7")).toContainText("Passed");
   await capture({
     id: "ia26-implementation-validation-recorded-wide-light",
     workItemKind: "CHANGE",

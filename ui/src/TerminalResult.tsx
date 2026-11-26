@@ -138,6 +138,7 @@ export const TerminalResult = ({
       eventEvidence(event).map((proof) => ({
         runId: run.id,
         role: run.role,
+        attempt: run.attempt,
         proof,
       }))
     );
@@ -192,11 +193,11 @@ export const TerminalResult = ({
                 return {
                   id: candidate.runId + ":" + candidate.proof.relativePath,
                   label,
-                  detail: "Verified implementation evidence",
+                  detail: "Attempt " + candidate.attempt + " · " + candidate.proof.mediaType,
                   action: (
                     <WorkbenchAction
                       label={"Open " + label}
-                      tone="ghost"
+                      tone="secondary"
                       onClick={() =>
                         onOpenEvidence({
                           kind: "EVIDENCE",

@@ -467,7 +467,15 @@
 .order-workbench-confirmation { display: grid; gap: var(--spacing-3); padding: var(--spacing-4); background: var(--color-background-surface); color: var(--color-text-primary); }
 .order-workbench-confirmation h2,
 .order-workbench-confirmation p { margin: 0; }
-.order-workbench-confirmation-description { color: var(--color-text-secondary); white-space: pre-line; }
+.order-workbench-confirmation-description {
+  min-width: 0;
+  display: grid;
+  gap: var(--spacing-3);
+  color: var(--color-text-secondary);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+.order-workbench-confirmation-description strong { color: var(--color-text-primary); }
 .order-workbench-confirmation-actions { display: flex; justify-content: flex-end; gap: var(--spacing-2); flex-wrap: wrap; }
 
 .order-workbench-section-header h3,
@@ -680,6 +688,10 @@
   overflow-wrap: anywhere;
 }
 .order-workbench-review-decisions {
+  position: sticky;
+  inset-block-end: 0;
+  z-index: 1;
+  background: var(--color-background-surface);
   display: flex;
   align-items: end;
   justify-content: flex-end;
@@ -792,6 +804,11 @@
   padding-bottom: var(--spacing-2);
   border-bottom: 1px solid var(--color-border-emphasized);
 }
+.order-workbench-context-panel .order-workbench-facts {
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing-2);
+}
+.order-workbench-context-panel code { overflow-wrap: anywhere; }
 .order-workbench-context-panel h2 {
   margin: 0;
   font-size: var(--order-font-size-section);
@@ -947,6 +964,22 @@
 /* 4. Specialist content and feature-semantic layout. */
 
 /* IA31 — Review structure is owned only by WorkbenchReview/Verdict/Section. */
+.order-review-workspace { min-height: 100%; min-width: 0; }
+.order-document-reviewed-paths {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--color-border-emphasized);
+  border-radius: var(--radius-container);
+}
+.order-document-reviewed-paths li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--spacing-3);
+  padding: var(--spacing-2) var(--spacing-3);
+}
+.order-document-reviewed-paths li + li { border-top: 1px solid var(--color-border-emphasized); }
+.order-document-reviewed-paths code { overflow-wrap: anywhere; }
 .order-approval-decision {
   min-width: 0;
   display: grid;
@@ -1115,8 +1148,9 @@
   gap: var(--spacing-1);
 }
 .order-create-supporting {
-  padding-block: var(--spacing-2);
-  border-block: 1px solid var(--color-border-emphasized);
+  padding: var(--spacing-2) var(--spacing-3);
+  border: 1px solid var(--color-border-emphasized);
+  border-radius: var(--radius-element);
   color: var(--color-text-secondary);
 }
 .order-create-context {
@@ -1173,8 +1207,19 @@
   gap: var(--spacing-1);
 }
 .order-settings-account-help { color: var(--color-text-secondary); }
+.order-settings-bounded-task,
 .order-settings-login-task {
   align-content: start;
+  max-width: var(--order-prose-max-width);
+  gap: var(--spacing-4);
+}
+.order-settings-login-instructions {
+  display: grid;
+  justify-items: start;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3);
+  border: 1px solid var(--color-border-emphasized);
+  border-radius: var(--radius-container);
 }
 .order-app-readiness {
   min-width: 0;
@@ -1540,12 +1585,16 @@
   .order-workbench-toolbar-utilities a { padding: var(--spacing-1) var(--spacing-2); }
   .order-application-orientation strong { font-size: var(--font-size-lg); }
   .order-workbench-project-context { overflow: hidden; }
+  .order-workbench-toolbar-main { flex: 0 1 auto; }
+  .order-workbench-toolbar-project { max-width: 16ch; }
   .order-workbench-toolbar-utilities {
-    max-width: 58vw;
-    gap: var(--spacing-2);
+    flex: 1 1 auto;
+    min-width: 0;
+    gap: var(--spacing-1);
     justify-content: safe end;
   }
-  .order-workbench-account-label { max-width: 14ch; }
+  .order-workbench-account-label { max-width: 12ch; }
+  .order-workbench-account-readiness { font-size: var(--font-size-xs); }
   .order-queue-search {
     width: auto;
     min-width: min-content;

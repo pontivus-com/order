@@ -438,7 +438,7 @@ export const SignoffReview = ({
       );
 
   return (
-    <div data-testid="review-workspace">
+    <div className="order-review-workspace" data-testid="review-workspace">
       <WorkbenchReview
         title={selectedTask === null ? "Approval" : selectedTask.objective}
         description={

@@ -231,19 +231,20 @@ const DocumentationGitFeedback = ({
 const DocumentationGitReview = ({
   projection,
 }: Readonly<{ projection: DocumentationGitProjection }>) => {
-  const reviewedPaths = projection.changedPaths.map(
-    (path) => path.repositoryPath + " [" + path.state + "]",
-  );
   return (
     <WorkbenchConfirmation
       kind="safety"
       open={projection.reviewOpen}
       onOpenChange={projection.setReviewOpen}
       title="Save WorkItem documentation to Git?"
-      description={[
-        "Only the exact governed paths reviewed in WorkItemDocumentationGitStatus will be committed.",
-        ...reviewedPaths,
-      ].join("\n")}
+      description={<>
+        <p>Only the exact governed paths reviewed in WorkItemDocumentationGitStatus will be committed.</p>
+        <ul className="order-document-reviewed-paths">
+          {projection.changedPaths.map((path) => (
+            <li key={path.repositoryPath}><code>{path.repositoryPath}</code><span>{"[" + path.state + "]"}</span></li>
+          ))}
+        </ul>
+      </>}
       confirmLabel="Save documentation to Git"
       pending={projection.commit.isPending}
       onConfirm={() => projection.commit.mutate()}
