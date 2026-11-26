@@ -46,6 +46,6 @@ No unresolved material specification contradiction identified for the explicitly
 
 ## Readiness verdict
 
-`READY_FOR_SIGNOFF`
+`RETURN_TO_PLAN`
 
-Under GW-DOC-SYSTEMS-GOVERNANCE-PYRAMID-V1, explicit normal operator sign-off must separately bind this exact package and authorized repository starting head before T1 mutation. The selected external repository execution route is not a native Order BUILDER run. If native execution is required instead, return upstream before mutation to establish required baseline capability. Current bounded authorization remains NONE. All phase-local and final human/independent/mechanical evidence remains mandatory; full current PR CI and merge/release readiness are not asserted. Any new material contradiction returns to its owning stage and invalidates readiness as applicable.
+Independent evaluation of `8b4e283f523da6259dae18f90314ac21e6a5648c` found REV-F08: mandatory architecture fitness rehashes every live tracked input against the pre-sign-off review snapshot, so any authorized T1 source/test/CI mutation necessarily invalidates it before phase evidence. The sensor is excluded from T1. REV-F09: IA24 changelog mutation follows IA26 acceptance despite requiring final changelog bytes in the accepted candidate. The prior readiness record above is historical evidence only. Correct both at their owners before sign-off, validate the lifecycle boundary, re-audit affected PLAN and ALIGN and perform a fresh R3. No normal sign-off or bounded grant is active.
