@@ -44,6 +44,6 @@ No unresolved material P1–P7 decision or specification contradiction identifie
 
 ## Readiness verdict
 
-`READY_FOR_SIGNOFF`
+`RETURN_TO_PLAN`
 
-Under GW-DOC-SYSTEMS-GOVERNANCE-PYRAMID-V1, current R3/G6 precedes any separate exact-package bounded grant or ordinary explicit sign-off. Current bounded authorization is NONE. Normal explicit sign-off is the practical path when the existing bounded evidence machinery cannot establish its prerequisites without signed verification changes. This verdict is not sign-off, a grant, implementation acceptance, a green full CI result, merge or release authority. If any new material contradiction is discovered, return to its owning stage and invalidate readiness as applicable.
+Independent challenge of exact baseline `7a7deb76f23598486538dd5023d9204a11b9aba3`: REV-F07 invalidates the prior executability conclusion. PLAN module 13 line 165 equates seven parameterized Playwright invocations with native signed checkpoints. P6 §37.6 and execution-control-plane §12 admit only gateId; `pontivus-order.toml` binds browser to the full unfiltered command. The coordinator cannot select a phase or emit a scoped result without changing the execution contract. The GitHub PR evidence lane requires explicit exact candidate custody and operator continuation rules, not provider shell access or fabricated RunEvents. Prior positive checks above are historical evidence only. Return to PLAN, revalidate affected ALIGN, then conduct fresh R3. No sign-off or bounded grant.
