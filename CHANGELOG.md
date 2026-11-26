@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Reconcile the two stale closeout-module scope counts and compiled PLAN binding with the exact 45-path candidate.
+
 - Specify R3-F01–F03 guided root-first recovery, verified service quiescence and exact canonical config snapshot/publication/restore custody; narrowly add the existing config owner (45 paths/68 exclusions) and preserve historical UI rejection evidence without obsolete authorization. No production code changes.
 
 - Record independent R3 rejection and reopen the affected installation/recovery specification and integrated proof obligations; no production mutation or authorization.

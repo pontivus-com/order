@@ -27,7 +27,7 @@ Retain evidenced closed F6B semantic APIs and responsibilities; correct rejected
 | `implementation-plan/10-a10-recovery-accessibility.md` | `e0fada55f15bcfd70eb1380bdf257fe52b68be7b` |
 | `implementation-plan/11-a11-component-certification.md` | `b89af8fe98c14bbbd4afcfc29211fe3fab1f676e` |
 | `implementation-plan/12-action-catalog.md` | `ecba2ccde68a287b4e5f136495b4ec970dab4090` |
-| `implementation-plan/13-verification-closeout.md` | `ec8f983a8cb0c5988945d46985ff7956775d2fe1` |
+| `implementation-plan/13-verification-closeout.md` | `e268372cdffebe7f44dd8e5697bb3e58965a4ce0` |
 
 A source hash mismatch makes PLAN non-current until recompiled. Directory files have no independent order-tasks block or lifecycle state.
 

@@ -115,7 +115,7 @@ SD20 exact-pin OpenCode proof is a mandatory IA23 precondition to IA26 and IA24:
 
 ### Pre-Approval structural-sensor correction
 
-The permanent package sensor is protected pre-signoff material. It validates exact 44-path DESIGN/T1 scope and forecast, exclusions, existing closed API proof and required absence, authority/Approval integration paths, 37 SURF, 46 scenarios, single catalog and compiled blob identity.
+The permanent package sensor is protected pre-signoff material. It validates exact 45-path DESIGN/T1 scope and forecast, exclusions, existing closed API proof and required absence, authority/Approval integration paths, 37 SURF, 46 scenarios, single catalog and compiled blob identity.
 
 This sensor correction is campaign/package fitness only: `tests/architecture.test.ts` remains outside signed implementation tasks. Re-run architecture and root/modular compilation checks on the corrected package before G5 may return to PASS.
 
@@ -198,7 +198,7 @@ V4/V5/V6 explicitly verify:
 - all 112 stable rows retain their exact current R1 evidence and DESIGN disposition;
 - all 27 package-local atoms, including `PL-C12-02`, are satisfied by the single T1 owner and the exact catalog-defined mutation/proof responsibilities, without duplicate semantic implementations;
 - every `POSITIVE_NO_CHANGE` and DESIGN-positive-reuse obligation remains true;
-- T1 retains exact 44-path forecast and protected exclusions; no obsolete component recreation;
+- T1 retains exact 45-path forecast and protected exclusions; no obsolete component recreation;
 - every actual changed path is inside signed `scope`, outside exclusions/protected material, and either forecast or positively proven as minimum same-layer responsibility-preserving variance;
 - forecast variance changes no semantic owner, public contract, state meaning, effect boundary, dependency direction/external dependency, validation contract or authorized behavior;
 - current-v2 task non-vacuity is enforced without changing published v1 task semantics or creating a second task schema/parser/review owner;
