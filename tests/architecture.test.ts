@@ -2839,9 +2839,9 @@ describe("architecture fitness", () => {
     const designSurface = [...designSurfaceSection.matchAll(/^- `([^\`]+)`(?:\s+—.*)?$/gm)].map(
       (match) => match[1],
     );
-    if (designSurface.length !== 43 || duplicates(designSurface).length > 0) {
+    if (designSurface.length !== 44 || duplicates(designSurface).length > 0) {
       violations.push(
-        "DESIGN implementation forecast must contain 43 unique paths; found " +
+        "DESIGN implementation forecast must contain 44 unique paths; found " +
           designSurface.length,
       );
     }
@@ -2896,6 +2896,12 @@ describe("architecture fitness", () => {
         "same-directory temporary then rename, unchanged source SHA plus newline",
         "Move `retireLegacyGateweftArtifacts`, profile update and backup deletion outside reversible rollback",
         "committed-but-finalization-incomplete and nonzero",
+        "confirmed established v3/v4",
+        "before live model discovery, login or live root proof",
+        "prepareOrderDatabaseForInstall",
+        "original error as the first cause",
+        "restoreOrderDatabaseAfterFailedInstall",
+        "never gates established admission",
       ]],
       ["IA25 exact execution/proof", installerAction, [
         "one pre-mutation disposition",
@@ -2913,6 +2919,10 @@ describe("architecture fitness", () => {
         "interruption before publish cannot be automatic established proof",
         "no pre-commit rollback, admitted app/launcher/config/service/marker remain",
         "predecessor-conflict rerun stops without mutation",
+        "v3→v4 retains exact model/repository/reference fields",
+        "primary effect and secondary compensation failure",
+        "no sole-copy deletion",
+        "no unsafe prior-service restart",
       ]],
     ] as const;
     for (const [owner, source, requiredTokens] of installerTraces) {
@@ -2977,9 +2987,9 @@ describe("architecture fitness", () => {
             task.gateIds ?? [],
             ["architecture", "browser", "build", "dependency-lock", "test", "typecheck"],
           );
-          if ((task.scope ?? []).length !== 43 || duplicates(task.scope ?? []).length > 0) {
+          if ((task.scope ?? []).length !== 44 || duplicates(task.scope ?? []).length > 0) {
             violations.push(
-              "T1 hard scope must contain the exact 43 unique forecast paths; found " +
+              "T1 hard scope must contain the exact 44 unique forecast paths; found " +
                 (task.scope ?? []).length,
             );
           }
@@ -2990,6 +3000,7 @@ describe("architecture fitness", () => {
         for (const requiredPath of [
           "src/installer.ts",
           "src/shell/setup.ts",
+          "src/shell/sqlite.ts",
           "src/shell/repository.ts",
           "ui/src/workbench-presentation.ts",
           "tests/e2e-server.ts",
@@ -3004,9 +3015,9 @@ describe("architecture fitness", () => {
         for (const excluded of task?.exclusions ?? []) {
           if ((task?.scope ?? []).includes(excluded)) violations.push("T1 scope overlaps exclusion: " + excluded);
         }
-        if (signedSurface.length !== 43 || duplicates(signedSurface).length > 0) {
+        if (signedSurface.length !== 44 || duplicates(signedSurface).length > 0) {
           violations.push(
-            "PLAN signed T1 changeSurface must contain 43 unique paths; found " +
+            "PLAN signed T1 changeSurface must contain 44 unique paths; found " +
               signedSurface.length,
           );
         }
@@ -3019,9 +3030,9 @@ describe("architecture fitness", () => {
         const documentedSurface = [...surfaceSection.matchAll(/^- \`([^\`]+)\`$/gm)].map(
           (match) => match[1],
         );
-        if (documentedSurface.length !== 43 || duplicates(documentedSurface).length > 0) {
+        if (documentedSurface.length !== 44 || duplicates(documentedSurface).length > 0) {
           violations.push(
-            "PLAN documented candidate surface must contain 43 unique paths; found " +
+            "PLAN documented candidate surface must contain 44 unique paths; found " +
               documentedSurface.length,
           );
         }
@@ -3049,7 +3060,6 @@ describe("architecture fitness", () => {
           "src/shell/project-config.ts",
           "src/shell/project.ts",
           "src/shell/runtime.ts",
-          "src/shell/sqlite.ts",
           "src/shell/work-item-source.ts",
           "tests/architecture.test.ts",
           "ui/src/ActivityComposer.tsx",

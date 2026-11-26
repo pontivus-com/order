@@ -6,9 +6,9 @@ This decomposition is revalidated under C19-F09/C20-F11 after the prior G4-G6 cl
 
 ## Exact upstream package
 
-- R1 `research.md`: `fafee0a2a5a92ca748dc9aa8bbfdfc1f5e0b3e47`.
-- R2 `requirements.md`: `2fc54978b378f08dc197d9e15fdb5cead393656e`.
-- DESIGN `solution-design.md`: `6d0e62a3e36f041807d0c8ed338384bcc900b07c` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 43-path forecast.
+- R1 `research.md`: `24ebb69b729f5c47b100137ea842561dd9ba224b`.
+- R2 `requirements.md`: `639b90550f9ed28650ab0ff1f1bac170fcbd2b41`.
+- DESIGN `solution-design.md`: `b82b16baca90e55adf547581f43a2cb287ac240f` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 44-path forecast.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `ee8acad4e39f4641476eb46d99ca168afab3db3d`.
 - P3 `GW-DOC-WORKBENCH-UX-V2`: `64184232833b59a9e6db5e1a28b841f48b3217cd` — §11.4A/§12/§13/§14 own semantic information classes, state-is-not-interface behavior, direct primary interaction composition, no generic workflow-material selector, continuous Dialogue semantics, Terminal-result primacy, singular technical inspection, task anatomy and composition invariants.
 - P3 `GW-DOC-MARKDOWN-WORKBENCH-V1`: `da89bd08e4f78f353d7b3062758e9d78e21375b2` — §17.4 owns one compact Markdown editor-control region, overflow-before-wrap formatting and control→canvas adjacency.
@@ -79,4 +79,4 @@ Presence-only browser assertions are nonconforming when they force technical/dia
 
 Return to DESIGN/PLAN before editing when execution requires a new semantic owner, public contract, state meaning, persistence/transport/effect boundary, dependency direction or external dependency, validation contract, provider capability, verification authority, authorized behavior, or any path outside signed scope/exclusions.
 
-Because scope equals the exact 43-path forecast, a newly required out-of-scope path returns to DESIGN/PLAN.
+Because scope equals the exact 44-path forecast, a newly required out-of-scope path returns to DESIGN/PLAN.

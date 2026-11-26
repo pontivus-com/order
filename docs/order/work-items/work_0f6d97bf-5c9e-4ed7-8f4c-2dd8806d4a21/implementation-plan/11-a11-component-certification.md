@@ -60,4 +60,4 @@ IA20/21/22/23/26 consume complete P3 §23 allocation in closeout and 37 DESIGN d
 
 ### A09/A10 installation certification dependency
 
-IA25 owns the executable transaction matrix and actual-orchestrator evidence; A11 verifies complete allocation and exact candidate results alongside IA23 integrated proof. Helper-level and structural assertions alone cannot discharge transaction fault-injection cases. No separate installation certification framework or new proof-only production policy.
+IA25 owns the executable transaction matrix and actual-orchestrator evidence; A11 verifies complete allocation and exact candidate results alongside IA23 integrated proof. Helper-level and structural assertions alone cannot discharge transaction fault-injection cases, including AUD-01/02 established v3/v4 recovery and per-file SQLite archive/restore custody. No separate installation certification framework or new proof-only production policy.

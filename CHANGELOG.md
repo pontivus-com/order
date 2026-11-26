@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Reconcile installer continuity requirements FR080–082 with SD19/IA25; specify established v3/v4 recovery and existing SQLite archive/restore compensation, preserving primary errors and recoverable material. Correct only the associated scope and verification trace before sign-off.
+
 - Record targeted remaining 0.6.0 audit results: close unaffected local shell/factual checks, isolate installer continuity and database archive rollback custody findings under the existing IA25; retain prior semantic audit evidence.
 
 - Make 0.6.0 campaign revalidation semantic-delta driven: retain unchanged proven audit bodies using one exact current input/evidence binding, reopen only affected obligations and real dependencies, and keep final exact-package R3/Approval gates unchanged.
