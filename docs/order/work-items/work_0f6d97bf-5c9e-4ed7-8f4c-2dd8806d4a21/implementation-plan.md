@@ -4,7 +4,7 @@
 
 ## Canonical PLAN authority
 
-This root is the single deterministic P7 artifact for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. Its modular directory is the maintainable authoring decomposition, not independent executable authority. This revalidation-candidate implementation specification binds R1 `ab540ed7161cb6cbb505bb1553d463ceb975cd7f`, R2 `a4bc9b9cdb7e12d130f38e3b8fe6c5a69e143fa4`, DESIGN `3bf28d72de3ed727d66e5772c853bf8c815e8fec`, current P4 and P6. Prior closure was reopened by ALIGN-A01-F03; campaign §17A/§18 own gate state and authorization. No gate advance or sign-off is inferred.
+This root is the single deterministic P7 artifact for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. Its modular directory is the maintainable authoring decomposition, not independent executable authority. This revalidation-candidate implementation specification binds R1 `eee069265ce226d5ce7cfbd1d7640f93582076fb`, R2 `86b5de52e943fa25c8c4bd4799c1b413bd0ee73b`, DESIGN `2c64638ab42c50c9cd62c6a7d7ede7e301660e3f`, current P4 and P6. Prior closures were reopened by ALIGN-A01-F03 and ALIGN-A07-F01; campaign §17A/§18 own gate state and authorization. No gate advance or sign-off is inferred.
 
 ## Current Workbench implementation plan
 
@@ -14,14 +14,14 @@ Retain evidenced closed F6B owners and the operator-accepted foundation within s
 
 | Source component | Git blob |
 |---|---|
-| `implementation-plan/00-governance.md` | `a75b99e45ce65800ba6a5b1b1d89b6525b99c6fd` |
+| `implementation-plan/00-governance.md` | `bfd18e5556dddffbadbe13e7b164a0e408363a8a` |
 | `implementation-plan/01-a01-lifecycle-product.md` | `b1d70c05a8175406db455fd6c75e170959258eca` |
 | `implementation-plan/02-a02-governance-intake.md` | `1f496e6221987a58b5f1aed9c783eb67a3e5492c` |
 | `implementation-plan/03-a03-queue-source.md` | `b0f9bd32f6f3bce513e9668a31f7d388fa0cecb8` |
 | `implementation-plan/04-a04-workbench-research.md` | `165f92a9044f2e4219aad109be3525bedce234da` |
 | `implementation-plan/05-a05-requirements-design.md` | `b207ae12ca717f76a8bc37b701fe1da4c1d78ec9` |
 | `implementation-plan/06-a06-plan-readiness.md` | `5793e5a64a1c576787b516374bb8704d8237b49f` |
-| `implementation-plan/07-a07-approval-execution.md` | `32c08d56f5bafa08ba724a90b4e5e3491ea653af` |
+| `implementation-plan/07-a07-approval-execution.md` | `6186cb517f94c008354a6560db7bf036d69552c9` |
 | `implementation-plan/08-a08-complete-materials.md` | `9f414ba89efd58cc3c73555d8268b4864a732750` |
 | `implementation-plan/09-a09-provider-settings.md` | `dc9988af7a2f63ae8a2843122e66911e14d595e9` |
 | `implementation-plan/10-a10-recovery-accessibility.md` | `3537f8f368001084e0844c4039235f85b0cbe532` |
@@ -349,9 +349,9 @@ This decomposition is revalidated under C19-F09/C20-F11 after the prior G4-G6 cl
 
 ##### Exact upstream package
 
-- R1 `research.md`: `ab540ed7161cb6cbb505bb1553d463ceb975cd7f`.
-- R2 `requirements.md`: `a4bc9b9cdb7e12d130f38e3b8fe6c5a69e143fa4`.
-- DESIGN `solution-design.md`: `3bf28d72de3ed727d66e5772c853bf8c815e8fec` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 41-path forecast.
+- R1 `research.md`: `eee069265ce226d5ce7cfbd1d7640f93582076fb`.
+- R2 `requirements.md`: `86b5de52e943fa25c8c4bd4799c1b413bd0ee73b`.
+- DESIGN `solution-design.md`: `2c64638ab42c50c9cd62c6a7d7ede7e301660e3f` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 41-path forecast.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `9c2ec83a9552b7583f90e91080c014df4d6870df`.
 - P3 `GW-DOC-WORKBENCH-UX-V2`: `64184232833b59a9e6db5e1a28b841f48b3217cd` — §11.4A/§12/§13/§14 own semantic information classes, state-is-not-interface behavior, direct primary interaction composition, no generic workflow-material selector, continuous Dialogue semantics, Terminal-result primacy, singular technical inspection, task anatomy and composition invariants.
 - P3 `GW-DOC-MARKDOWN-WORKBENCH-V1`: `da89bd08e4f78f353d7b3062758e9d78e21375b2` — §17.4 owns one compact Markdown editor-control region, overflow-before-wrap formatting and control→canvas adjacency.
@@ -810,11 +810,11 @@ IA30 consumes PLAN R1/R2/DESIGN/source/evidence and derived parsed task/change-s
 | `GW-FR-003-DURABLE-BOUNDED-EXECUTION` | `C12-O01`, `C12-O02`, `C12-O07` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C12-O01`, `C12-O02`, `C12-O07` via tests/core.test.ts; tests/daemon.test.ts; tests/browser.spec.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-006-MINIMUM-VERIFIED-CANDIDATE` | `C12-O12`, `C12-O13`, `C12-O19` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C12-O12`, `C12-O13`, `C12-O19` via tests/core.test.ts; tests/daemon.test.ts; tests/browser.spec.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-017-SOURCE-SIGNOFF-BINDING` | `C11-O01`, `C11-O03`, `C12-O20` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C11-O01`, `C11-O03`, `C12-O20` via tests/daemon.test.ts; tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
-| `GW-FR-026-SOURCE-BOUND-SIGNOFF-INTEGRATION` | `C11-O01`, `C11-O02`, `C11-O07` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C11-O01`, `C11-O02`, `C11-O07` via tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-026-SOURCE-BOUND-SIGNOFF-INTEGRATION` | `C11-O01`, `C11-O02`, `C11-O07` | `MIXED_TECHNICAL_AND_VERIFICATION_DELTA` | `SD06`, `SD12`, `SD23`, `SD25` | `IA17`, `IA29`, `IA31` | — | Exact prospective SignoffPackage vs selected historic Approval; two approvals, retained zero-task/unsigned returned history, stage-aware current/null, exact committed artifact and task membership, same-role/hash nonmember, foreign/missing id, loading/error/no writes and exact decision adjacency. Proof: tests/daemon.test.ts; tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-027-READONLY-EXECUTION-EDITOR-BOUNDARY` | `C04-O15`, `C12-O03`, `C12-O17` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C04-O15`, `C12-O03`, `C12-O17` via tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
-| `GW-FR-212-APPROVAL-PURITY-AND-CURRENTNESS` | `C11-O02`, `C11-O03`, `C11-O10`, `C11-O11` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C11-O02`, `C11-O03`, `C11-O10`, `C11-O11` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-212-APPROVAL-PURITY-AND-CURRENTNESS` | `C11-O02`, `C11-O03`, `C11-O10`, `C11-O11` | `MIXED_TECHNICAL_AND_VERIFICATION_DELTA` | `SD06`, `SD12`, `SD23`, `SD25` | `IA17`, `IA29`, `IA31` | — | Exact prospective SignoffPackage vs selected historic Approval; two approvals, retained zero-task/unsigned returned history, stage-aware current/null, exact committed artifact and task membership, same-role/hash nonmember, foreign/missing id, loading/error/no writes and exact decision adjacency. Proof: tests/daemon.test.ts; tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-213-EXECUTION-BLOCKER-PRECEDENCE` | `C12-O17`, `C17-O10`, `DIRECT-FR213` | `MIXED_TECHNICAL_DELTA` | `SD07`, `SD26` | `IA14`, `IA32` | — | Actual current blocker reason/consequence/recovery remains visible independent of selected task/Run; preserve pure execution ownership. Required proof: owning IA and P3 §23 allocation in 13-verification-closeout.md. |
-| `GW-FR-222-APPROVAL-REVIEW-HIERARCHY` | `C11-O06`, `C11-O07` | `VERIFICATION_DELTA` | `SD12` | `IA17`, `IA31` | — | Retain evidenced current Approval hierarchy; verify currentness and hidden technical identity. Historical signed membership remains separately allocated to SD12/SD23. Proof: tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-222-APPROVAL-REVIEW-HIERARCHY` | `C11-O06`, `C11-O07` | `MIXED_TECHNICAL_AND_VERIFICATION_DELTA` | `SD12`, `SD23`, `SD25` | `IA17`, `IA29`, `IA31` | — | Exact prospective SignoffPackage vs selected historic Approval; two approvals, retained zero-task/unsigned returned history, stage-aware current/null, exact committed artifact and task membership, same-role/hash nonmember, foreign/missing id, loading/error/no writes and exact decision adjacency. Proof: tests/daemon.test.ts; tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-223-IMPLEMENTATION-MASTER-DETAIL` | `C12-O17`, `DIRECT-FR223` | `MIXED_TECHNICAL_DELTA` | `SD26` | `IA32` | — | Stable master/detail consumes actual current blocker and next action independently of selected task/Run. Required proof: owning IA and P3 §23 allocation in 13-verification-closeout.md. |
 | `GW-FR-239-TASK-SCOPED-MANUAL-IMPLEMENTATION` | `C12-O16` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C12-O16` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 

@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Reconcile ALIGN-A07-F01: exact Approval package/document identity requires technical and verification correction under existing IA17/29/31; correct FR026/212/222 dispositions and proof bindings without changing T1 scope or sign-off authority.
+
 - Correct the ALIGN-A01-F03 specification: historical destination reach requires exact admitted same-Run conformance, not raw provider completion; allocate the correction and fixture/proof obligations to existing IA17 without expanding T1.
 
 - Correct the G5 Priority-0 dependency contract: prove IA16's exact admitted R3 verdict after IA29 and before IA31; enforce both transitions in permanent fitness without changing T1 scope.

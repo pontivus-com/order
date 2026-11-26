@@ -6,7 +6,7 @@ This R2 artifact is rebuilt from the fresh post-corrective-foundation R1 record 
 
 Current implementation, UI, tests, 0.5.0 behavior, historical design and prior R2/DESIGN/PLAN text are evidence only. They do not define 0.6.0 behavior, preservation scope, compatibility fallback or regression semantics.
 
-The current R1 basis is `research.md` blob `ab540ed7161cb6cbb505bb1553d463ceb975cd7f`. It retains the G-F12 reconstruction, C19-F03/C20-F06 and post-IA28 C19-F04/C19-F05/C20-F07 findings, and now records C19-F06/C19-F07/C19-F08/C20-F08/C20-F09/C20-F10 with zero material `UNPROVEN`: a mandatory semantic attention slot contradicted the closed interaction grammar, Evidence could nest one primary surface inside another, terminal rendering duplicated outcome semantics and leaked specification/container terminology, and rendered/certification evidence could positively protect those defects. Current canonical Workbench P3 is `GW-DOC-WORKBENCH-UX-V2` blob `64184232833b59a9e6db5e1a28b841f48b3217cd`; current Markdown Workbench P3 is `GW-DOC-MARKDOWN-WORKBENCH-V1` blob `da89bd08e4f78f353d7b3062758e9d78e21375b2`. P3 owns the permanent semantic classes and composition invariants, including semantic-region ownership, exactly one selected primary interaction composition, terminal-result primacy without a duplicate attention band, one semantic material/history owner, one explicit technical-inspection boundary per scope, no generic local Technical-details bars, no disclosure accumulation, task-modal header/body/footer anatomy and Markdown editor-control→canvas adjacency. R2 owns the complete 0.6.0 package-specific functional consequences. Technical primitive ownership and implementation scope remain DESIGN/PLAN decisions. The current document-first/supporting-context correction is a P3 hierarchy clarification over R2's existing Primary/Supporting classification: governed document content remains Primary, same-task orientation facts remain Supporting, and the correction introduces no new package-local behavior or functional contradiction.
+The current R1 basis is `research.md` blob `eee069265ce226d5ce7cfbd1d7640f93582076fb`. It retains the G-F12 reconstruction, C19-F03/C20-F06 and post-IA28 C19-F04/C19-F05/C20-F07 findings, and now records C19-F06/C19-F07/C19-F08/C20-F08/C20-F09/C20-F10 with zero material `UNPROVEN`: a mandatory semantic attention slot contradicted the closed interaction grammar, Evidence could nest one primary surface inside another, terminal rendering duplicated outcome semantics and leaked specification/container terminology, and rendered/certification evidence could positively protect those defects. Current canonical Workbench P3 is `GW-DOC-WORKBENCH-UX-V2` blob `64184232833b59a9e6db5e1a28b841f48b3217cd`; current Markdown Workbench P3 is `GW-DOC-MARKDOWN-WORKBENCH-V1` blob `da89bd08e4f78f353d7b3062758e9d78e21375b2`. P3 owns the permanent semantic classes and composition invariants, including semantic-region ownership, exactly one selected primary interaction composition, terminal-result primacy without a duplicate attention band, one semantic material/history owner, one explicit technical-inspection boundary per scope, no generic local Technical-details bars, no disclosure accumulation, task-modal header/body/footer anatomy and Markdown editor-control→canvas adjacency. R2 owns the complete 0.6.0 package-specific functional consequences. Technical primitive ownership and implementation scope remain DESIGN/PLAN decisions. The current document-first/supporting-context correction is a P3 hierarchy clarification over R2's existing Primary/Supporting classification: governed document content remains Primary, same-task orientation facts remain Supporting, and the correction introduces no new package-local behavior or functional contradiction.
 
 ## Functional authority disposition ledger
 
@@ -173,7 +173,7 @@ This ledger records the exact factual basis consumed by R2 after G-F10 plus the 
 | `GW-FR-023-MARKDOWN-SOURCE-FIDELITY` | `CONFORMS` | `C04-O01`, `C04-O02` | `REFERENCE` | C04 |
 | `GW-FR-024-LIFECYCLE-FRESHNESS-VISIBILITY` | `MIXED` | `C17-O02`, `C17-O05`, `C17-O09` | `REFERENCE` | C17 |
 | `GW-FR-025-DURABLE-INTENT-INTERACTION` | `MIXED` | `C06-O13` | `REFERENCE` | C06 |
-| `GW-FR-026-SOURCE-BOUND-SIGNOFF-INTEGRATION` | `CONFORMS` | `C11-O01`, `C11-O02`, `C11-O07` | `REFERENCE` | C11 |
+| `GW-FR-026-SOURCE-BOUND-SIGNOFF-INTEGRATION` | `MIXED` | `C11-O01`, `C11-O02`, `C11-O07` | `REFERENCE` | C11 |
 | `GW-FR-027-READONLY-EXECUTION-EDITOR-BOUNDARY` | `CONFORMS` | `C04-O15`, `C12-O03`, `C12-O17` | `REFERENCE` | C12  |
 | `GW-FR-028-NONDELIVERY-TERMINAL-VIEW` | `MIXED` | `C13-O01`, `C13-O05` | `REFERENCE` | C13 |
 | `GW-FR-029-NO-IDE-SCOPE` | `CONFORMS` | `C04-O15` | `REFERENCE` | C02 |
@@ -229,7 +229,7 @@ This ledger records the exact factual basis consumed by R2 after G-F10 plus the 
 | `GW-FR-209-SOURCE-BLOCKER-ADMISSION` | `CONFORMS` | `C03-O04`, `C04-O14` | `REFERENCE` | C04 |
 | `GW-FR-210-ASYNC-WORKFLOW-CONVERGENCE` | `CONFORMS` | `C17-O07` | `REFERENCE` | C17 |
 | `GW-FR-211-READINESS-RETURN-CONTINUITY` | `CONFORMS_WITH_DEPENDENCY` | `C10-O04`, `C01-O10` | `REFERENCE` | C10 |
-| `GW-FR-212-APPROVAL-PURITY-AND-CURRENTNESS` | `CONFORMS` | `C11-O02`, `C11-O03`, `C11-O10`, `C11-O11` | `REFERENCE` | C11 |
+| `GW-FR-212-APPROVAL-PURITY-AND-CURRENTNESS` | `MIXED` | `C11-O02`, `C11-O03`, `C11-O10`, `C11-O11` | `REFERENCE` | C11 |
 | `GW-FR-213-EXECUTION-BLOCKER-PRECEDENCE` | `MIXED` | `C12-O17`, `C17-O10`, `DIRECT-FR213` | `REFERENCE` | C12 |
 | `GW-FR-214-STABLE-WORKBENCH-GEOMETRY` | `CONFORMS` | `C05-O08` | `REFERENCE` | C05 |
 | `GW-FR-215-STABLE-WORKFLOW-RAIL` | `CONFORMS` | `C05-O01`, `C05-O08` | `REFERENCE` | C05 |
@@ -239,7 +239,7 @@ This ledger records the exact factual basis consumed by R2 after G-F10 plus the 
 | `GW-FR-219-EXPLICIT-CONTEXT` | `CONFORMS` | `C05-O04` | `REFERENCE` | C05 |
 | `GW-FR-220-PRESIGNOFF-CONTINUITY` | `MIXED` | `C05-O05`, `C05-O06`, `C05-O12` | `REFERENCE` | C05 |
 | `GW-FR-221-READINESS-REVIEW-HIERARCHY` | `MIXED` | `C10-O06`, `C10-O07` | `REFERENCE` | C10 |
-| `GW-FR-222-APPROVAL-REVIEW-HIERARCHY` | `CONFORMS_WITH_VERIFICATION_GAP` | `C11-O06`, `C11-O07` | `REFERENCE` | C11 |
+| `GW-FR-222-APPROVAL-REVIEW-HIERARCHY` | `MIXED` | `C11-O06`, `C11-O07` | `REFERENCE` | C11 |
 | `GW-FR-223-IMPLEMENTATION-MASTER-DETAIL` | `MIXED` | `C12-O17`, `DIRECT-FR223` | `REFERENCE` | C12 |
 | `GW-FR-224-TERMINAL-RESULT-PRIMACY` | `MIXED` | `C13-O04`, `DIRECT-FR224` | `REFERENCE` | C13 |
 | `GW-FR-225-RESPONSIVE-SEMANTIC-CONTINUITY` | `CONFORMS` | `C18-O01`, `C18-O04` | `REFERENCE` | C18 |
@@ -639,3 +639,6 @@ Historical schema pins and valid historical WorkItems remain resolvable under th
 NONE.
 
 Every fresh R1 finding has an explicit functional disposition. Remaining open work is technical realization/verification owned by DESIGN and then PLAN; no implementation worker is authorized by this R2 artifact.
+
+
+**ALIGN-A07-F01 trace clarification (REFERENCE only).** FR026/212/222 require exact prospective SignoffPackage versus explicitly selected historical Approval membership, including committed document identity, task membership, visible currentness and non-mutating history; current source freshness and sign-off admission remain canonical. Existing C11 and C14 functional behavior is unchanged. Corrected factual classifications point to the already-defined SD06/12/23/25 and IA17/29/31, rather than claiming full existing conformance. No P2/P3 amendment or new functional behavior.
