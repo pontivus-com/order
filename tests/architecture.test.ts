@@ -2051,15 +2051,14 @@ describe("architecture fitness", () => {
           if (allowed.size === 0 || [...allowed].some((path) => !scope.has(path) || exclusions.has(path))) {
             throw new Error("authorization exceeds exact T1 scope");
           }
-          // The optional grant must not grant downstream production owners.
+          // The existing bounded-authorization owner declares the maximum
+          // IA27/IA28 surface; the actual grant may only narrow it.
           if (bounded) {
-            const boundedOwners = new Set([
-              "ui/src/primitives/WorkbenchToolbar.tsx", "ui/src/app.tsx",
-              "ui/src/WorkItemWorkspace.tsx", "ui/src/WorkItemContext.tsx",
-              "ui/src/styles.css", "ui/src/theme.css", "tests/browser.spec.ts",
-              "tests/certification.test.ts", "CHANGELOG.md",
-            ]);
-            if ([...allowed].some((path) => !boundedOwners.has(path))) {
+            const maxima = [...boundedSection.matchAll(/^\*\*Bounded IA27\/IA28 maximum mutable paths:\*\* ([^\r\n]+)$/gm)];
+            if (maxima.length !== 1 || !maxima[0]?.[1]) throw new Error("missing exact bounded maximum");
+            const boundedOwners = new Set(maxima[0][1].split(", "));
+            if ([...allowed].some((path) => !boundedOwners.has(path)) ||
+                [...boundedOwners].some((path) => !scope.has(path) || exclusions.has(path))) {
               throw new Error("bounded authorization exceeds IA27/IA28 mutable owners");
             }
           }
