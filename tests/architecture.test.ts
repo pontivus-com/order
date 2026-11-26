@@ -2735,9 +2735,9 @@ describe("architecture fitness", () => {
     const designSurface = [...designSurfaceSection.matchAll(/^- `([^\`]+)`(?:\s+—.*)?$/gm)].map(
       (match) => match[1],
     );
-    if (designSurface.length !== 81 || duplicates(designSurface).length > 0) {
+    if (designSurface.length !== 40 || duplicates(designSurface).length > 0) {
       violations.push(
-        "DESIGN implementation forecast must contain 81 unique paths; found " +
+        "DESIGN implementation forecast must contain 40 unique paths; found " +
           designSurface.length,
       );
     }
@@ -2791,9 +2791,9 @@ describe("architecture fitness", () => {
             task.gateIds ?? [],
             ["architecture", "browser", "build", "dependency-lock", "test", "typecheck"],
           );
-          if ((task.scope ?? []).length !== 81 || duplicates(task.scope ?? []).length > 0) {
+          if ((task.scope ?? []).length !== 40 || duplicates(task.scope ?? []).length > 0) {
             violations.push(
-              "T1 hard scope must contain the exact 81 unique forecast paths; found " +
+              "T1 hard scope must contain the exact 40 unique forecast paths; found " +
                 (task.scope ?? []).length,
             );
           }
@@ -2815,9 +2815,9 @@ describe("architecture fitness", () => {
         for (const excluded of task?.exclusions ?? []) {
           if ((task?.scope ?? []).includes(excluded)) violations.push("T1 scope overlaps exclusion: " + excluded);
         }
-        if (signedSurface.length !== 81 || duplicates(signedSurface).length > 0) {
+        if (signedSurface.length !== 40 || duplicates(signedSurface).length > 0) {
           violations.push(
-            "PLAN signed T1 changeSurface must contain 81 unique paths; found " +
+            "PLAN signed T1 changeSurface must contain 40 unique paths; found " +
               signedSurface.length,
           );
         }
@@ -2830,9 +2830,9 @@ describe("architecture fitness", () => {
         const documentedSurface = [...surfaceSection.matchAll(/^- \`([^\`]+)\`$/gm)].map(
           (match) => match[1],
         );
-        if (documentedSurface.length !== 81 || duplicates(documentedSurface).length > 0) {
+        if (documentedSurface.length !== 40 || duplicates(documentedSurface).length > 0) {
           violations.push(
-            "PLAN documented candidate surface must contain 81 unique paths; found " +
+            "PLAN documented candidate surface must contain 40 unique paths; found " +
               documentedSurface.length,
           );
         }
@@ -2847,50 +2847,60 @@ describe("architecture fitness", () => {
           "ui/src/primitives/WorkbenchStatus.tsx",
         ]);
         const retainedUiPaths = new Set([
+          "AGENTS.md",
+          "pontivus-order.toml",
+          "src/core/execution.ts",
+          "src/daemon/execution.ts",
+          "src/daemon/validation.ts",
+          "src/daemon/work-item-source.ts",
+          "src/shell/config.ts",
+          "src/shell/file-write.ts",
+          "src/shell/opencode.ts",
+          "src/shell/process.ts",
+          "src/shell/project-config.ts",
+          "src/shell/project.ts",
+          "src/shell/repository.ts",
+          "src/shell/runtime.ts",
+          "src/shell/setup.ts",
+          "src/shell/sqlite.ts",
+          "src/shell/work-item-source.ts",
+          "tests/architecture.test.ts",
+          "ui/src/ActivityComposer.tsx",
+          "ui/src/CreateWorkItem.tsx",
+          "ui/src/DocumentChangeView.tsx",
+          "ui/src/EvidenceViewer.tsx",
           "ui/src/MarkdownSourceEditor.tsx",
-          "ui/src/http.ts",
-          "ui/src/query-keys.ts",
-          "ui/src/markdown-source-formatting.ts",
-          "ui/src/theme.ts",
+          "ui/src/OpenCodeAccountControl.tsx",
+          "ui/src/OpenCodeAccountSettings.tsx",
+          "ui/src/ProposalReview.tsx",
+          "ui/src/RunEventTimeline.tsx",
+          "ui/src/SettingsWorkspace.tsx",
+          "ui/src/WorkItemIdentityRow.tsx",
+          "ui/src/WorkItemQueue.tsx",
+          "ui/src/WorkflowMaterialSelector.tsx",
+          "ui/src/WorkflowRail.tsx",
+          "ui/src/WorkflowStepFrame.tsx",
           "ui/src/main.tsx",
-        ]);
-        const illegallyMutableRetained = signedSurface.filter(
-          (value) => retainedAtomicUiPaths.has(value) || retainedUiPaths.has(value),
-        );
-        if (illegallyMutableRetained.length > 0) {
-          violations.push(
-            "PLAN must retain exact atomic/non-screen UI capability outside changeSurface: " +
-              illegallyMutableRetained.join(", "),
-          );
-        }
-        for (const retained of [...retainedAtomicUiPaths, ...retainedUiPaths]) {
-          if (!(task?.exclusions ?? []).includes(retained)) {
-            violations.push("T1 must explicitly exclude retained UI path " + retained);
-          }
-        }
-        if (!(task?.exclusions ?? []).includes("tests/architecture.test.ts")) {
-          violations.push("T1 must exclude the pre-signoff architecture/package sensor");
-        }
-        for (const sharedStyle of ["ui/src/styles.css", "ui/src/theme.css"]) {
-          if ((task?.exclusions ?? []).includes(sharedStyle)) {
-            violations.push("T1 must permit shared stylesheet mutation: " + sharedStyle);
-          }
-        }
-
-        const governedFoundationAndShell = [
+          "ui/src/markdown-source-formatting.ts",
+          "ui/src/primitives/WorkbenchAction.tsx",
+          "ui/src/primitives/WorkbenchAppShell.tsx",
           "ui/src/primitives/WorkbenchAttention.tsx",
           "ui/src/primitives/WorkbenchConfirmation.tsx",
           "ui/src/primitives/WorkbenchContextPanel.tsx",
+          "ui/src/primitives/WorkbenchDialogue.tsx",
+          "ui/src/primitives/WorkbenchDisclosure.tsx",
           "ui/src/primitives/WorkbenchDocument.tsx",
           "ui/src/primitives/WorkbenchFacts.tsx",
-          "ui/src/primitives/WorkbenchDialogue.tsx",
+          "ui/src/primitives/WorkbenchField.tsx",
           "ui/src/primitives/WorkbenchForm.tsx",
+          "ui/src/primitives/WorkbenchIcon.tsx",
           "ui/src/primitives/WorkbenchIdentity.tsx",
           "ui/src/primitives/WorkbenchLayout.tsx",
           "ui/src/primitives/WorkbenchMasterDetail.tsx",
+          "ui/src/primitives/WorkbenchNotice.tsx",
           "ui/src/primitives/WorkbenchRail.tsx",
-          "ui/src/primitives/WorkbenchResourceRow.tsx",
           "ui/src/primitives/WorkbenchResourceList.tsx",
+          "ui/src/primitives/WorkbenchResourceRow.tsx",
           "ui/src/primitives/WorkbenchResult.tsx",
           "ui/src/primitives/WorkbenchReview.tsx",
           "ui/src/primitives/WorkbenchReviewSection.tsx",
@@ -2899,102 +2909,76 @@ describe("architecture fitness", () => {
           "ui/src/primitives/WorkbenchSectionHeader.tsx",
           "ui/src/primitives/WorkbenchSelector.tsx",
           "ui/src/primitives/WorkbenchSettingsLayout.tsx",
+          "ui/src/primitives/WorkbenchState.tsx",
+          "ui/src/primitives/WorkbenchStatus.tsx",
           "ui/src/primitives/WorkbenchSurface.tsx",
           "ui/src/primitives/WorkbenchTable.tsx",
           "ui/src/primitives/WorkbenchTaskPanel.tsx",
           "ui/src/primitives/WorkbenchTimeline.tsx",
-          "ui/src/primitives/WorkbenchToolbar.tsx",
-          "ui/src/primitives/WorkbenchState.tsx",
           "ui/src/primitives/WorkbenchUtilityLink.tsx",
-          "ui/src/primitives/WorkbenchAppShell.tsx",
           "ui/src/primitives/WorkbenchWorkItemShell.tsx",
           "ui/src/primitives/workbench-responsive.ts",
+          "ui/src/theme.ts",
+        ]);
+        exactSet("T1 explicit retained/protected exclusions", task?.exclusions ?? [], [...retainedUiPaths]);
+        for (const retained of [...retainedAtomicUiPaths, ...retainedUiPaths]) {
+          if (signedSurface.includes(retained) || !(task?.exclusions ?? []).includes(retained)) {
+            violations.push("T1 must retain excluded owner outside signed scope: " + retained);
+          }
+        }
+        exactSet("DESIGN corrected residual/proof forecast", designSurface, [
+          "README.md",
+          "pontivus-order.toml.example",
+          "src/core/contracts.ts",
+          "src/core/governance.ts",
+          "src/core/lifecycle.ts",
+          "src/core/work-item-source.ts",
+          "src/daemon/authority.ts",
+          "src/daemon/coordinator.ts",
+          "src/daemon/server.ts",
+          "src/daemon/stage.ts",
+          "ui/src/http.ts",
+          "ui/src/query-keys.ts",
           "ui/src/app.tsx",
           "ui/src/WorkItemWorkspace.tsx",
-          "ui/src/WorkItemIdentityRow.tsx",
-          "ui/src/WorkflowRail.tsx",
-          "ui/src/WorkflowStepFrame.tsx",
-          "ui/src/styles.css",
-          "ui/src/theme.css",
-        ];
-        for (const requiredPath of governedFoundationAndShell) {
-          if (!signedSurface.includes(requiredPath)) {
-            violations.push("T1 foundation/component/shell surface missing " + requiredPath);
-          }
-        }
-
-        const requiredNewComponentPaths = [
-          "ui/src/primitives/WorkbenchDocument.tsx",
-          "ui/src/primitives/WorkbenchFacts.tsx",
-          "ui/src/primitives/WorkbenchResourceList.tsx",
-          "ui/src/primitives/WorkbenchResult.tsx",
-          "ui/src/primitives/WorkbenchReviewSection.tsx",
-          "ui/src/primitives/WorkbenchReviewVerdict.tsx",
-          "ui/src/primitives/WorkbenchSection.tsx",
-          "ui/src/DocumentChangeView.tsx",
-        ];
-        for (const requiredPath of requiredNewComponentPaths) {
-          if (!signedSurface.includes(requiredPath)) {
-            violations.push("T1 corrected component forecast missing " + requiredPath);
-          }
-        }
-
-        const objective = task?.objective ?? "";
-        for (const required of [
-          "corrected authority-driven Order 0.6.0 candidate",
-          "fresh G4-G6/sign-off",
-          "P4/SD21/F6B as closed component authority",
-          "bounded IA27 realizes the compile-closed shell/Context foundation",
-          "IA28 accepts it in Queue/Create",
-          "post-signoff IA27 completes the ResourceRow/ResourceList cutover",
-          "IA29 reconstructs Document composition",
-          "IA30 reconstructs productive stages excluding Proposal Review",
-          "IA31 atomically cuts over Proposal/Readiness/Approval Review with DocumentChangeView",
-          "IA32 rebuilds Implementation",
-          "IA33 rebuilds Complete around WorkbenchResult",
-          "IA34 rebuilds Settings",
-          "physical SoC",
-          "all 37 governed surfaces",
-          "No prior RZ16/IA27-IA34 PASS",
-        ]) {
-          if (!objective.includes(required)) {
-            violations.push("T1 objective must encode current Workbench execution invariant " + required);
-          }
-        }
-
-        const expectedReplacementScreens = [
-          "ui/src/app.tsx",
-          "ui/src/WorkItemQueue.tsx",
-          "ui/src/CreateWorkItem.tsx",
-          "ui/src/WorkItemWorkspace.tsx",
-          "ui/src/WorkItemIdentityRow.tsx",
-          "ui/src/WorkflowRail.tsx",
-          "ui/src/WorkflowStepFrame.tsx",
           "ui/src/DocumentWorkspace.tsx",
-          "ui/src/DocumentChangeView.tsx",
-          "ui/src/MarkdownEditor.tsx",
           "ui/src/PreSignoffStageWorkspace.tsx",
-          "ui/src/ActivityWorkspace.tsx",
-          "ui/src/ActivityComposer.tsx",
-          "ui/src/WorkflowMaterialSelector.tsx",
-          "ui/src/ProposalReview.tsx",
-          "ui/src/RunEventTimeline.tsx",
-          "ui/src/ReadinessWorkspace.tsx",
           "ui/src/SignoffReview.tsx",
           "ui/src/ExecutionWorkspace.tsx",
           "ui/src/TerminalResult.tsx",
-          "ui/src/EvidenceViewer.tsx",
           "ui/src/WorkItemContext.tsx",
-          "ui/src/SettingsWorkspace.tsx",
-          "ui/src/OpenCodeAccountControl.tsx",
-          "ui/src/OpenCodeAccountSettings.tsx",
-        ];
-        const replacementScreenSet = new Set(expectedReplacementScreens);
-        exactSet(
-          "PLAN UI presentation surface set",
-          signedSurface.filter((value) => replacementScreenSet.has(value)),
-          expectedReplacementScreens,
-        );
+          "ui/src/workbench-presentation.ts",
+          "ui/src/MarkdownEditor.tsx",
+          "ui/src/primitives/WorkbenchToolbar.tsx",
+          "ui/src/styles.css",
+          "ui/src/theme.css",
+          "ui/src/ReadinessWorkspace.tsx",
+          "ui/src/ActivityWorkspace.tsx",
+          "tests/browser.spec.ts",
+          "tests/certification.test.ts",
+          "tests/core.test.ts",
+          "tests/daemon.test.ts",
+          "tests/e2e-server.ts",
+          "tests/installer.test.ts",
+          "tests/opencode.test.ts",
+          "tests/workbench-presentation.test.ts",
+          "docs/references/workbench-ui/reference-atlas.html",
+          "docs/references/workbench-ui/reference-manifest.json",
+          "docs/references/workbench-ui/README.md",
+          ".github/workflows/ci.yml",
+          "CHANGELOG.md",
+        ]);
+        for (const absent of [
+          "ui/src/primitives/WorkbenchLayout.tsx",
+          "ui/src/primitives/WorkbenchSelector.tsx",
+          "ui/src/WorkflowStepFrame.tsx",
+          "ui/src/WorkflowMaterialSelector.tsx",
+        ]) {
+          if (existsSync(join(repositoryRoot, absent))) violations.push("Required-absent owner exists: " + absent);
+        }
+        for (const required of ["exact authority declarations/dependency closure", "exact signed document membership", "exact current/historical Approval", "all 37 governed surfaces", "46 P3 scenarios", "outstanding HUX", "Out-of-scope discoveries return upstream"]) {
+          if (!(task?.objective ?? "").includes(required)) violations.push("T1 residual objective missing " + required);
+        }
 
         const referenceManifest = JSON.parse(
           sourceText("docs/references/workbench-ui/reference-manifest.json"),
@@ -3132,7 +3116,7 @@ describe("architecture fitness", () => {
           "Do not add compatibility props or temporary old/new paths",
           "DocumentChangeView.tsx",
           "No prior RZ16 PASS is inherited",
-          "Remove all `order-review-*` local structural/card/grid systems",
+          "Reject any feature-local `order-review-*` structural/card/grid systems",
           "WorkbenchResult",
         ]) {
           if (!actionCatalog.includes(required)) {
@@ -3157,52 +3141,12 @@ describe("architecture fitness", () => {
           }
         }
 
-        const requiredCutoverContracts = [
-          "| new `WorkbenchSection.tsx` | `REQUIRED_NEW` | bounded IA27 |",
-          "| new `WorkbenchFacts.tsx` | `REQUIRED_NEW` | bounded IA27 |",
-          "| new `WorkbenchResourceList.tsx` | `REQUIRED_NEW` | **post-signoff IA27 completion** |",
-          "| `WorkbenchResourceRow.tsx` | `DECOMPOSE_REFACTOR` | **post-signoff IA27 completion** |",
-          "| `WorkbenchContextPanel.tsx` | `DESTRUCTIVE_REPLACEMENT` | bounded IA27 |",
-          "| `WorkItemContext.tsx` | `DECOMPOSE_REFACTOR` | bounded IA27 |",
-          "create `WorkbenchDocument` and atomically migrate its complete",
-          "new `WorkbenchReviewVerdict.tsx`, `WorkbenchReviewSection.tsx` and `DocumentChangeView.tsx` = `REQUIRED_NEW`",
-          "existing `WorkbenchReview.tsx` = `DESTRUCTIVE_REPLACEMENT`",
-          "migrate **all three** current WorkbenchReview consumers",
-          "create `WorkbenchResult` and atomically migrate `TerminalResult`",
-          "Do not add compatibility props or temporary old/new paths",
-        ];
-        for (const contract of requiredCutoverContracts) {
-          if (!actionCatalog.includes(contract)) {
-            violations.push("PLAN consumer-atomic cutover contract missing " + contract);
-          }
+        for (const required of ["CONFORMING_NO_EDIT", "REQUIRED_ABSENT", "exact signed ArtifactRef", "proof-only", "Do not add compatibility props or temporary old/new paths"]) {
+          if (!actionCatalog.includes(required)) violations.push("PLAN closed-owner/residual contract missing " + required);
         }
-        if (
-          actionCatalog.includes(
-            "| `WorkbenchReview.tsx` | `CONFORMING_NO_EDIT` |",
-          )
-        ) {
-          violations.push(
-            "PLAN must not retain the superseded WorkbenchReview CONFORMING_NO_EDIT disposition",
-          );
-        }
-        const requiredAbsentRow = actionCatalog.split(/\r?\n/).find((line) =>
-          line.includes("`WorkbenchLayout.tsx`") &&
-          line.includes("`WorkbenchSelector.tsx`") &&
-          line.includes("`WorkflowStepFrame.tsx`") &&
-          line.includes("`WorkflowMaterialSelector.tsx`") &&
-          line.includes("`REQUIRED_ABSENT`")
-        );
-        if (requiredAbsentRow === undefined) {
-          violations.push("PLAN IA27 required-absent component owner row is incomplete");
-        }
-        const destructiveHeaderRow = actionCatalog.split(/\r?\n/).find((line) =>
-          line.includes("`WorkbenchToolbar.tsx`") &&
-          line.includes("`WorkbenchAppShell.tsx`") &&
-          line.includes("`DESTRUCTIVE_REPLACEMENT`")
-        );
-        if (destructiveHeaderRow === undefined) {
-          violations.push("PLAN IA27 application-header destructive replacement row is incomplete");
-        }
+        const requiredAbsentRow = actionCatalog.split(/\r?\n/).find((line) => ["`WorkbenchLayout.tsx`", "`WorkbenchSelector.tsx`", "`WorkflowStepFrame.tsx`", "`WorkflowMaterialSelector.tsx`", "`REQUIRED_ABSENT`"].every((value) => line.includes(value)));
+        if (requiredAbsentRow === undefined) violations.push("PLAN required-absent owner ledger incomplete");
+        if (/\| new `Workbench(?:Section|Facts|ResourceList)\.tsx` \| `REQUIRED_NEW`/.test(actionCatalog) || actionCatalog.includes("existing `WorkbenchReview.tsx` = `DESTRUCTIVE_REPLACEMENT`")) violations.push("PLAN orders obsolete shared-owner creation or replacement");
 
         for (const [label, textValue] of [
           ["DESIGN", design],

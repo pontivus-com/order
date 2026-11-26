@@ -6,15 +6,15 @@ This decomposition is revalidated under C19-F09/C20-F11 after the prior G4-G6 cl
 
 ## Exact upstream package
 
-- R1 `research.md`: `6ba550c89bd746772cb874e51268cba8b55e3c30`.
-- R2 `requirements.md`: `8164c48f9bf9e8b7bf4fc1144a966a0b295b7a45`.
-- DESIGN `solution-design.md`: `074e3b2f9d0cbc2707017039e60aa44a73cae9f2` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 81-path forecast.
+- R1 `research.md`: `25004c458a188b130b2a479688e6322c537baefe`.
+- R2 `requirements.md`: `466f92adfe7955b7bae744fc3088f5716cf53631`.
+- DESIGN `solution-design.md`: `c18272aa145c8c40c6158c83fa89b880efda6dcd` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 40-path forecast.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `9c2ec83a9552b7583f90e91080c014df4d6870df`.
 - P3 `GW-DOC-WORKBENCH-UX-V2`: `64184232833b59a9e6db5e1a28b841f48b3217cd` — §11.4A/§12/§13/§14 own semantic information classes, state-is-not-interface behavior, direct primary interaction composition, no generic workflow-material selector, continuous Dialogue semantics, Terminal-result primacy, singular technical inspection, task anatomy and composition invariants.
 - P3 `GW-DOC-MARKDOWN-WORKBENCH-V1`: `da89bd08e4f78f353d7b3062758e9d78e21375b2` — §17.4 owns one compact Markdown editor-control region, overflow-before-wrap formatting and control→canvas adjacency.
 - P4 `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`: `8fccbe031436a9eb54da8ae493b614e94cc957b1` — sole permanent owner of structural + semantic Workbench component responsibilities/APIs, consumer boundaries, composition laws and remediation disposition semantics.
 - P4 `GW-DOC-WORKBENCH-THEME-V1`: `03dfc6be3600a1128b5639d011f4c0159d3497dd` — owns the corrected semantic-disclosure, technical-inspection and task-panel visual roles.
-- P6 `GW-DOC-CANONICAL-CONTRACTS-V2`: `71f829cff8824db18194689eccdec83da6f5d19f`.
+- P6 `GW-DOC-CANONICAL-CONTRACTS-V2`: `e0d348abc3f8d4326d374c4678abffb5fe0365ef`.
 - SD13 checkpoint and SD10 scope/forecast/V4-V6 realization are consumed only because current DESIGN positively proves those canonical capabilities; T1 does not reimplement them.
 
 ## Traceability law
@@ -38,19 +38,11 @@ A positive no-change or baseline-reuse disposition is an implementation instruct
 
 This PLAN carries no implementation authority by itself. Current campaign gate state, bounded authorization and sign-off are owned only by campaign §17A/§18. These bytes remain a candidate until those registers establish the required gates and explicit authorization; any bounded pre-sign-off grant must bind the exact current P4/DESIGN/PLAN package.
 
-For the Workbench tranche, SD21/F6B already closes every component responsibility/API and consumer mapping. Physical breaking cutover is consumer-atomic: bounded IA27 realizes only the compile-closed shell/Context + Section/Facts slice; IA28 accepts that bounded slice in Queue/Create; after explicit sign-off IA27 completes the all-caller ResourceRow/ResourceList cutover; IA29/IA31/IA33 atomically cut over Document/Review/Result with their complete consumer sets. IA30 excludes Proposal Review so WorkbenchReview changes only once, in IA31 with Proposal/Readiness/Approval together. No phase derives component architecture and IA26 remains terminal exact-candidate acceptance.
+Retain existing closed P4/F6B APIs and the operator-accepted foundation within evidenced scope. IA27/IA28 own revalidation, IA29/IA31/IA30 exact residuals, IA32/IA33/IA34 remaining semantic/proof obligations. The catalog alone owns mutation definitions.
 
-## Candidate scope and forecast law
 ## Signed scope and forecast law
 
-The canonical PLAN contains exactly one cumulative execution-task **candidate**. It becomes signed/executable only after the campaign-required gates and operator sign-off bind these exact bytes. The candidate uses:
-
-- the exact same **81 repository paths** for `scope` and `changeSurface`; these include the eight authority-required new semantic component/specialist paths in DESIGN F6B; no directory-wide `src/**`, `ui/src/**` or `tests/**` mutation envelope is authorized;
-- explicit `exclusions` for DESIGN-positive-reuse paths, positively retained atomic UI adapters and approved non-screen helpers that must remain unchanged;
-- IA01-IA34 as ordered internal implementation/proof phases. IA phase ownership constrains what a phase may change but is not a second P6 task/scope representation.
-
-The baseline V4/V5/V6 forecast-variance capability remains canonical execution machinery, but the 81-path candidate already includes every currently required physical decomposition owner. A newly required path outside this set returns to DESIGN/PLAN; implementation may not suppress a required component split merely to preserve the forecast.
-The five exact additions to the forecast are the shared pure presentation owner, deterministic browser fixture server and three existing derived reference-corpus files. Their allocation is restricted to the action catalog; no general documentation or fixture mutation envelope is created. The package sensor is pre-sign-off campaign material only and remains excluded from T1. The settled P3/P4/P6 behavior is unchanged.
+One cumulative T1 candidate uses the exact same **40 repository paths** for scope and changeSurface, with obligation-specific reasons in DESIGN. Explicit exclusions protect retained/required-absent owners and authorizing manifest/instructions/architecture sensor. No directory-wide envelope. Unexpected out-of-scope change returns upstream; existing V4/V5/V6 variance rules remain unchanged. No gate state or signed authority is conferred.
 
 ## Architecture constraints
 
@@ -58,24 +50,11 @@ FCIS, SoC, DRY/canonical ownership, strict typing, no OOP/DTO/service/repository
 
 For SD02, manifest authority selection is the reachable source set; IA02 must project only the lifecycle-applicable stable/versioned material selected by the pinned schema/stage/explicit refs. A retained historical source may remain reachable without entering current v2 context by raw layer membership.
 
-Published `change-v1`/`defect-v1` schema semantics remain immutable. SD10 may add only the current-v2 mechanical non-vacuity admission and matching PLAN/R3 authoring instruction while reusing the one existing SignedTaskBlock shape/parser. Material task sufficiency remains owned by PLAN semantic conformance and independent R3.
+Published change-v1/defect-v1 semantics remain unchanged. SD10 reuses existing v2 non-vacuity parser/admission. SD02 exact declarations and dependency closure and SD08 material decision coverage use existing pure and conformance owners.
 
 ## Workbench presentation realization law
 
-The authority-driven target is current P4 plus SD21-SD30/F6B. Current UI bytes and historical IA27-IA34 results are evidence only; no prior `CONFORMING_NO_EDIT`, RZ16 acceptance or screen reconstruction status is inherited.
-
-The complete Workbench mutation/disposition procedure is defined once in `12-action-catalog.md` IA27-IA34. In summary only: bounded IA27 realizes the compile-closed shell/Context slice; IA28 accepts only that slice; post-signoff IA27 performs the all-caller ResourceRow/ResourceList cutover; IA29/IA31/IA33 own Document/Review/Result breaking cutovers; the remaining phases revalidate their owned renderers and execute their catalogued dispositions. Phase files cannot redefine these decisions or introduce compatibility paths.
-
-`ui/src/styles.css` / `ui/src/theme.css` remain shared physical owners. Bounded IA27 owns shell/Context/Section/Facts foundation selectors; later component cutover checkpoints may add their canonical ResourceList/Document/Review/Result treatments and remove only the corresponding migrated feature selectors. No phase may recreate shared semantic grammar locally.
-
-No IA27-IA34 phase may resurrect a required-absent generic owner, widen a corrected component API for compatibility, introduce DTO/view-model/browser-state families, duplicate shell/responsive/Context ownership, or treat current JSX/SVG shape as product authority.
-
-## Visual-language → foundation execution law
-## Visual-language → foundation execution law
-
-SD21's realization ledger is **DESIGN authority for this package**, not implementation-derived evidence and not a runtime schema. IA27 consumes it and may realize a recurring visual/composition role only through the P4 owner, canonical theme/token role and the exact SD21/F6B consumer mapping.
-
-After bounded IA27 readiness PASS, IA28 consumes the shell/Context candidate in the first real screen family. IA28 accepts/finalizes only the bounded foundation slice it exercises. Shared breaking semantic APIs are frozen separately when their complete consumer sets cut over at post-signoff IA27 (ResourceList/Row), IA29 (Document), IA31 (Review) and IA33 (Result). Screen phases may not add or locally vary recurring color/token meaning, typography/spacing/density scales, control/button/action treatments, status/notice chrome, progressive-disclosure lanes, overlay mechanics, shell/region hierarchy, foundation geometry or breakpoint/responsive grammar. A screen that appears to require a new recurring role returns to DESIGN/PLAN rather than solving it locally.
+Current authority and SD21/F6B define the target. Retain existing closed APIs, required absence and the explicit foundation milestone only within proved scope. All 37 SURF and 46 scenarios remain in verification. IA27–IA34 consume the catalog and correct only forecast residuals; a disproven retained owner returns upstream. No new component or compatibility path is authorized. Optional bounded evidence is separate after current R3 and exact grant; ordinary signed execution follows sign-off.
 
 ## Information visibility / disclosure execution law
 
@@ -99,4 +78,4 @@ Presence-only browser assertions are nonconforming when they force technical/dia
 
 Return to DESIGN/PLAN before editing when execution requires a new semantic owner, public contract, state meaning, persistence/transport/effect boundary, dependency direction or external dependency, validation contract, provider capability, verification authority, authorized behavior, or any path outside signed scope/exclusions.
 
-Because the current T1 candidate sets `scope` equal to the same exact 81-path `changeSurface`, any newly required physical path outside that set returns upstream for DESIGN/PLAN correction. The eight new semantic component/specialist files are already governed members of the candidate and are not variance.
+Because scope equals the exact 40-path forecast, a newly required out-of-scope path returns to DESIGN/PLAN.

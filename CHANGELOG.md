@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Reconcile the exact 40-path residual/proof forecast, protect 72 excluded owners, compile the modular PLAN candidate and update the protected architecture sensor; preserve all surface/scenario/HUX proof obligations without advancing G4–G6.
+
 - Specify exact current versus historical Approval identity and signed artifact membership, including upstream-return and zero-task retained-history cases, without a new transport representation.
 
 - Reconcile all 112 DESIGN factual classifications with current R2, retain realized owners, and clarify exact PLAN inspection and execution terminal-cause projection.

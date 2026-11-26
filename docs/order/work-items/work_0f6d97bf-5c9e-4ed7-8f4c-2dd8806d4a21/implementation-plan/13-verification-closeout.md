@@ -15,23 +15,18 @@ T1 carries the same six logical gate IDs through final validation. During the li
 
 | Completed phase | Before next phase | Required retained evidence |
 |---|---|---|
-| read-only IA07/IA08 preflight and current R3 plus exact bounded authorization (if granted) | IA27 bounded shell lane | no ordinary production mutation before Approval; only exact grant owners |
-| IA27 shell rework checkpoint | IA28 | Compile-closed shell/Context proof is complete: Section/Facts exist, ContextPanel + WorkItemContext are atomically cut over, required-absent generic owners remain zero, the application Toolbar/AppShell and selected-WorkItem Identity/WorkItemShell have been re-authored from the closed P4 APIs, shell/header/responsive/theme consumer allowlists pass, IA27 SURF rows PASS, and HUX-10/HUX-11 have fresh rendered proof. The rejected current two top chrome bands are not preservation targets. Review/Resource/Document/Result breaking APIs remain untouched. |
-| IA28 | **HUMAN SHELL EVIDENCE ACCEPTANCE → HUMAN SIGN-OFF; then post-signoff IA27 completion** | Fresh Queue/Create/application-shell proof against the IA27 rework candidate + actual production-browser captures independently PASS `schema_information`, `ux_interaction`, `visual_ui`, `component_ownership` and foundation realization. HUX-10/HUX-11 must be explicitly operator `ACCEPTED`; a mechanically green capture cannot carry the old shell forward. Current R3/G6 `READY_FOR_SIGNOFF` is the prerequisite for any bounded pre-signoff rework grant. |
-| human sign-off → signed IA01–IA06/IA09–IA12/IA25 → post-signoff IA27 completion | IA29 | ResourceList is created, every current ResourceRow caller is migrated, ResourceRow is narrowed in the same typecheck-clean checkpoint, and no superseded Row API consumer remains. |
-| IA29 | IA31 | WorkbenchDocument/Facts/Section composition proof; required repository/document/Git supporting facts visible; no screen-local document-facts/aside grammar, generic workflow chrome, duplicate heading or technical leakage; all IA29 rows PASS. |
-| IA31 | IA30 | Proposal/Readiness/Approval atomically cut over the single WorkbenchReview API with ReviewVerdict + ReviewSections/Facts/ResourceList; Proposal uses DocumentChangeView with raw diff secondary; Approval Package documents render as scan-efficient ResourceList rows with explicit actions and Approval task detail uses bounded ReviewSection/Facts/ResourceList anatomy rather than bare headings/whitespace; no local `order-review-*` structural grammar, whole-R3-under-Findings duplication, raw enum or selector; all IA31 rows PASS and HUX-03/HUX-09 receive fresh proof. |
-| IA30 | P0.4 HUX-09 / IA20+IA26 targeted fidelity proof | direct Document/Dialogue/Evidence/State resolution for productive stages excluding Proposal Review; continuous Dialogue semantics; all IA30-owned rows PASS; the IA31 Review owner remains unchanged. |
-| P0.4 HUX-09 / IA20+IA26 targeted fidelity proof | IA32 | Same-SURF/state/theme/viewport comparison for the complete operator-rejected set, now including `SURF-APP-001` and `SURF-WI-001`, records no unexplained material hierarchy, density, spacing, alignment, typography, geometry/radius-language, Facts/ResourceList/Review-section/decision, action-prominence, content-measure, shell-chrome or responsive divergence; HUX-01 through HUX-11 are explicitly operator `ACCEPTED`. |
-| IA32 | IA33 | Implementation purge/rebuild proof + canonical MasterDetail/Section/Facts/ResourceList ownership + both IA32 rows PASS; no local recurring card/section/resource grammar. |
-| IA33 | IA34 | Complete uses WorkbenchResult/Section/ResourceList and Evidence remains exact-byte owner; no local terminal/resource grammar; all IA33 rows PASS. |
-| IA34 | IA20-IA23 integrated certification | Settings uses Section/Facts/ResourceList with one diagnostics owner; all eleven IA34 rows PASS; 37/37 IA27-IA34 SURF union complete. |
-| IA20-IA23 | IA26 | complete semantic/component/theme/responsive/scenario/regression certification PASS |
-| IA26 | IA24 | exhaustive exact-candidate **scope-valid** evidence artifact + separately reviewable per-row `schema_information` / `ux_interaction` / `visual_ui` PASS/FAIL ledger with rationale + zero unresolved FAIL |
-
-These are **in-task phase boundaries**, not ExecutionTask dependencies. P6 does not promote candidate bytes between tasks; all phases mutate and inspect the same T1 candidate from the one Approval baseline. A phase advances only after its own coherent implementation and required proof are available. IA27 is not accepted/frozen merely by crossing into IA28; IA28 is the consumer-proven acceptance gate. After IA28 acceptance, a later phase discovering a foundation responsibility/semantic defect returns to IA27/DESIGN rather than patching the accepted foundation locally.
-
-A failed in-task checkpoint permits only correction inside T1's signed semantic scope/accepted design or an explicit execution block. It does not grant provider shell/execute or authorize redesign. Checkpoints never substitute for V3/V5/V7 or T1's complete logical gate union.
+| read-only IA07/IA08 and current R3/G6 | normal sign-off | exact existing capability proof; no mutation before sign-off absent separate grant |
+| signed IA01/IA02/IA04 and existing capability proof | IA27/IA28 | exact ref/decision conformance and reuse |
+| IA27/IA28 | IA29 | existing shell/Context/ResourceList, Queue/Create proof, accepted scope and exact residuals |
+| IA29 | IA31 | signed document membership and Document-first/narrow proof |
+| IA31 | IA30 | exact current/historical Approval and existing Review/Proposal/Readiness component/action proof |
+| IA30 | P0.4 HUX-09 / IA20+IA26 targeted fidelity proof | exact PLAN/current attention and direct productive composition |
+| P0.4 HUX-09 / IA20+IA26 targeted fidelity proof | IA32 | exact same-scope comparison and explicit outstanding HUX disposition |
+| IA32 | IA33 | exact current blocker and chronology/validation/evidence |
+| IA33 | IA34 | reached Complete, exact candidate chain, non-delivery/Evidence |
+| IA34 | IA20-IA23 integrated certification | Settings/diagnostic negative-state matrix |
+| IA20-IA23 | IA26 | all 46 scenarios and component/theme proof |
+| IA26 | IA24 | 37 SURF independently judged, zero unresolved FAIL, explicit human HUX and exact candidate |
 
 ## UI reconstruction evidence law
 
@@ -39,7 +34,7 @@ A failed in-task checkpoint permits only correction inside T1's signed semantic 
 
 For every affected physical owner, retained evidence records: canonical P4/SD/F6B authority; catalogued disposition; pre-mutation evidence where destructive/decompose work is required; exact resulting API/consumer set; removed obsolete selectors/owners; and the phase-local semantic/browser/rendered result. A final-looking screen is insufficient if a forbidden owner, compatibility API, duplicate semantic component responsibility or feature-local substitute grammar remains.
 
-Bounded IA27 proof demonstrates only the catalogued compile-closed shell/Context dispositions. Post-signoff IA27 completion proves the all-caller ResourceRow/ResourceList cutover. IA29/IA31/IA33 prove Document/Review/Result breaking semantic-component cutovers with their complete consumer sets; IA28-IA34 prove the remaining catalogued renderer dispositions and owned SURF rows. Historical purge/RZ16 evidence may explain the defect but never satisfies the new proof.
+IA27/IA28 prove existing shell/Context/ResourceList and exact residuals; later phases own consumer proof.
 
 Phase-local rendered proof remains bounded to each IA's owned SURF rows plus shared invariants exercised there. After all owning phases, IA20/IA26 prove the global component API/consumer/SoC matrix, no local substitute semantic grammar, no nested/synthetic primary composition, and the complete 37-SURF union.
 
@@ -120,7 +115,7 @@ SD20 exact-pin OpenCode proof is a mandatory IA23 precondition to IA26 and IA24:
 
 ### Pre-Approval structural-sensor correction
 
-The permanent package sensor is pre-signoff campaign material, not signed implementation surface. Before G5/G5A/R3 may return to PASS it must validate the current **81-path** DESIGN forecast against the exact one-task PLAN `changeSurface`; exactly one task candidate with empty `dependsOn`; the seven required-new semantic primitives plus `DocumentChangeView`; the P4/F6B disposition set; one application-shell, WorkItem-shell, Context and structural-responsive owner; exact IA27-IA34 owner/SURF allocation; and zero duplicate/shadow IA definitions outside `12-action-catalog.md`. It derives the 37-surface universe directly from current `solution-design.md`; the derived reference manifest must match that universe but cannot define it.
+The permanent package sensor is protected pre-signoff material. It validates exact 40-path DESIGN/T1 scope and forecast, exclusions, existing closed API proof and required absence, authority/Approval integration paths, 37 SURF, 46 scenarios, single catalog and compiled blob identity.
 
 This sensor correction is campaign/package fitness only: `tests/architecture.test.ts` remains outside signed implementation tasks. Re-run architecture and root/modular compilation checks on the corrected package before G5 may return to PASS.
 
@@ -158,28 +153,9 @@ The pre-sign-off IA27/IA28 lane is conditional evidence machinery only. It is el
 
 The bounded lane is not a waiver, test skip or alternate browser gate. It exists solely to make the campaign's phase-local pre-sign-off evidence boundary executable without authorizing downstream implementation.
 
-## First rendered foundation acceptance — IA28
+## Foundation revalidation — IA27/IA28
 
-SD21/F6B's closed ledger plus IA27 implementation/disposition evidence, semantic checks, browser proof and `SURF-WI-001` render establish **foundation readiness**, not product acceptance. Foundation correctness must be demonstrated through a real consumer screen family.
-
-IA28 is therefore the first acceptance test for the Workbench foundation. **The earlier IA28 acceptance is invalidated by the explicit HUX-10/HUX-11 operator rejection of the shared chrome.** Before IA29 may begin, the exact IA28 candidate must produce actual browser-rendered evidence for `SURF-APP-001`, `SURF-QUEUE-001` and `SURF-CREATE-001`, plus IA27 `SURF-WI-001` shell evidence across representative Document and Review destinations, covering the re-authored application toolbar, selected-WorkItem identity composition, Queue states, application notices/readiness, Create WorkItem, linked remediation and active-account utility states required by the IA27/IA28 face ledger. This evidence is produced only after R3/G6 `READY_FOR_SIGNOFF` by the bounded phase-local lane above and is reviewed for the subsequent human evidence-acceptance/sign-off decision even when the ordinary browser suite remains red solely on explicitly later-phase obligations; such red results remain recorded blockers and cannot be reclassified as pass. The review uses current P3/P4/DESIGN/theme authority as normative truth and only authority-bound reference entries whose manifest pins those exact owners as derived visual comparison material.
-
-The reviewer must record for every IA28 SURF row:
-
-- `schema_information = PASS | FAIL`;
-- `ux_interaction = PASS | FAIL`;
-- `visual_ui = PASS | FAIL`.
-
-The checkpoint must also record one **foundation-realization PASS/FAIL** covering the shared hierarchy, geometry, primitive composition, action/status treatment, typography/spacing/density, disclosure behavior, theme realization and responsive behavior actually visible in those screens. This is review evidence only; it is not a runtime schema or second design specification.
-
-Failure routing is exact:
-
-- recurring primitive/token/shell/hierarchy/disclosure/theme/responsive defect → IA27;
-- Queue/Create/application-utility-local defect → IA28;
-- missing, ambiguous or contradictory product/information/interaction classification → DESIGN;
-- no IA29 advance while any IA28 row or foundation-realization verdict is FAIL/unreviewed.
-
-Only this checkpoint accepts the bounded shell/Context foundation slice. It does not freeze Review/Resource/Document/Result APIs that have not yet cut over; each is frozen only after its consumer-atomic checkpoint. IA26 remains the separate final exhaustive 37-SURF exact-candidate acceptance and can still reopen any defective owner.
+Retain explicit operator milestone within scope; no blanket HUX/IA26 acceptance. Prove current-marker, narrow toolbar and reference/consumer residuals through existing IA27/IA28 SURF. Optional bounded evidence requires current R3 and separate grant; no mandatory reconstruction. Record independent schema_information, ux_interaction, visual_ui and component-ownership evidence. Disproven retained owner returns upstream. IA26 remains exhaustive exact-candidate acceptance.
 
 ## Final exhaustive rendered 0.6.0 UX/UI acceptance — IA26
 
@@ -222,11 +198,11 @@ V4/V5/V6 explicitly verify:
 - all 112 stable rows retain their exact current R1 evidence and DESIGN disposition;
 - all 27 package-local atoms, including `PL-C12-02`, are satisfied by their one implementation or DESIGN-positive-reuse proof owner;
 - every `POSITIVE_NO_CHANGE` and DESIGN-positive-reuse obligation remains true;
-- T1 retains the exact 81-path `changeSurface`, including the eight C19-F09 component/specialist paths; it remains the cumulative immutable forecast for the corrected package;
+- T1 retains exact 40-path forecast and protected exclusions; no obsolete component recreation;
 - every actual changed path is inside signed `scope`, outside exclusions/protected material, and either forecast or positively proven as minimum same-layer responsibility-preserving variance;
 - forecast variance changes no semantic owner, public contract, state meaning, effect boundary, dependency direction/external dependency, validation contract or authorized behavior;
 - current-v2 task non-vacuity is enforced without changing published v1 task semantics or creating a second task schema/parser/review owner;
-- bootstrap `dependency-lock` passed before T1 mutation; IA27 realized every catalogued REQUIRED_NEW/DECOMPOSE_REFACTOR/DESTRUCTIVE_REPLACEMENT/REQUIRED_ABSENT outcome and freshly proved any retained no-edit/bounded owner; IA28 freshly accepted the foundation in real consumers; IA29-IA34 completed their exact renderer dispositions and SURF proofs; IA20-IA23/IA26 proved global component ownership/SoC plus integrated/final acceptance before IA24;
+- bootstrap dependency-lock passed; exact residual/reuse proofs and normal V0–V7 closure retained;
 - FCIS/SoC/DRY/canonical ownership/strict typing/no-OOP/no-DTO;
 - no compatibility/fallback/shadow state/owner, deprecated prop/alias, translation adapter, hidden legacy DOM, dual old/new path, feature-flagged superseded topology or CSS shim;
 - corrected productive installer semantics without loss of incomplete-config recovery or upgrade continuity;
