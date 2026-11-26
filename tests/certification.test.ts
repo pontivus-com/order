@@ -150,7 +150,8 @@ describe("Order cross-boundary certification", () => {
     expect(context).toContain("value:<code>{workItem.id}</code>");
 
     const terminal = read("ui/src/TerminalResult.tsx");
-    expect(terminal).toContain('data-testid="final-governed-outcome"');
+    expect(terminal).toContain("<WorkbenchResult");
+    expect(read("ui/src/primitives/WorkbenchResult.tsx")).toContain('data-testid="final-governed-outcome"');
   });
 
   it("proves V-07 activity extraction remains bounded, secret-blind, and observational", () => {
@@ -1087,8 +1088,7 @@ describe("Order cross-boundary certification", () => {
     expect(markdownEditor).not.toContain("order-markdown-document-view-actions");
     expect(markdownEditor).not.toContain("WorkbenchDisclosure");
     expect(markdownEditor).not.toContain('label="Technical details"');
-    expect(markdownEditor).toContain("toolbarAccessory?: ReactNode");
-    expect(markdownEditor).toContain("{toolbarAccessory}");
+    expect(markdownEditor).not.toContain("toolbarAccessory");
     expect(documentWorkspace).not.toContain("toolbarAccessory=");
     expect(markdownEditor).not.toContain("viewAside");
     expect(markdownEditor).not.toContain("editingTitle");

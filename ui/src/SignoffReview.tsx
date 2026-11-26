@@ -368,8 +368,8 @@ export const SignoffReview = ({
     selectedTask === null
       ? undefined
       : taskState === null
-        ? selectedTask.objective
-        : selectedTask.objective + " · " + taskState;
+        ? "Approval task detail"
+        : "Approval task detail · " + taskState;
 
   const sections =
     selectedTask === null
@@ -444,7 +444,7 @@ export const SignoffReview = ({
   return (
     <div data-testid="review-workspace">
       <WorkbenchReview
-        title={selectedTask === null ? "Approval" : "Approval task detail"}
+        title={selectedTask === null ? "Approval" : selectedTask.objective}
         description={
           selectedTaskDescription ??
           (currentApproval ? "Authorize the current governed package." : undefined)

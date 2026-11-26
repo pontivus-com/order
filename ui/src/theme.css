@@ -598,10 +598,12 @@
 }
 .order-workbench-review-section-content { min-width: 0; }
 .order-workbench-review-section-content > .order-workbench-facts {
-  padding: var(--spacing-3) var(--spacing-4);
-  background: var(--color-background-muted);
-  border: 1px solid var(--color-border-emphasized);
+  padding-block: var(--spacing-2);
+}
+.order-workbench-resource-list {
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-container);
+  min-width: 0;
 }
 .order-workbench-fact dd ul {
   margin: 0;

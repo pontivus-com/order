@@ -12,7 +12,7 @@ export const WorkbenchResourceList = ({
   items: readonly WorkbenchResourceItem[];
   empty?: ReactNode;
 }>) => items.length === 0 ? empty : (
-  <List header={label} density="balanced" hasDividers edge="padded" data-testid="workbench-resource-list">
+  <List header={label} density="balanced" hasDividers edge="padded" className="order-workbench-resource-list" data-testid="workbench-resource-list">
     {items.map((item) => (
       <WorkbenchResourceRow key={item.id} {...item} />
     ))}

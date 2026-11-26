@@ -154,7 +154,7 @@ export const TerminalResult = ({
   const material = (
     <WorkbenchResult
       title={workOutcomeProductLabel(workItem.outcome)}
-      status={<WorkbenchStatus tone="success" label="Complete" />}
+      status={<WorkbenchStatus tone={candidateDone || evidenceBacked ? "success" : "neutral"} label="Complete" />}
       summary={resultExplanation(workItem)}
       action={evidenceBacked && onCreateRemediation !== undefined ? (
         <WorkbenchAction label="Create linked remediation" tone="primary"
