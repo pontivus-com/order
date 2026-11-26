@@ -4,7 +4,7 @@
 
 ## Canonical PLAN authority
 
-This root is the single deterministic P7 artifact for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. Its modular directory is the maintainable authoring decomposition, not independent executable authority. This G5-reviewed implementation specification binds R1 `b01e3f2886f9cad08ab141d4227d7ca67a676cc1`, R2 `aced1290b8aaa398dbbc9bef966bf064a6148fd3`, DESIGN `a9a9b137f610c31b0387af9b13cb4fa943b4a75f`, current P4 and P6. G4 technical-design closure was recorded and passed exact-package architecture fitness before this G5 review; campaign §17A/§18 own gate state and authorization. No gate advance or sign-off is inferred.
+This root is the single deterministic P7 artifact for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. Its modular directory is the maintainable authoring decomposition, not independent executable authority. This revalidation-candidate implementation specification binds R1 `ab540ed7161cb6cbb505bb1553d463ceb975cd7f`, R2 `a4bc9b9cdb7e12d130f38e3b8fe6c5a69e143fa4`, DESIGN `3bf28d72de3ed727d66e5772c853bf8c815e8fec`, current P4 and P6. Prior closure was reopened by ALIGN-A01-F03; campaign §17A/§18 own gate state and authorization. No gate advance or sign-off is inferred.
 
 ## Current Workbench implementation plan
 
@@ -14,20 +14,20 @@ Retain evidenced closed F6B owners and the operator-accepted foundation within s
 
 | Source component | Git blob |
 |---|---|
-| `implementation-plan/00-governance.md` | `496465899bfd8116c06dbad60bd9809a56c99ac1` |
-| `implementation-plan/01-a01-lifecycle-product.md` | `94707df41608c41756d04f452b2f982fdbdd8338` |
+| `implementation-plan/00-governance.md` | `a75b99e45ce65800ba6a5b1b1d89b6525b99c6fd` |
+| `implementation-plan/01-a01-lifecycle-product.md` | `b1d70c05a8175406db455fd6c75e170959258eca` |
 | `implementation-plan/02-a02-governance-intake.md` | `1f496e6221987a58b5f1aed9c783eb67a3e5492c` |
 | `implementation-plan/03-a03-queue-source.md` | `b0f9bd32f6f3bce513e9668a31f7d388fa0cecb8` |
-| `implementation-plan/04-a04-workbench-research.md` | `7c6b144887894a019a3b605a0d35cbfa8a274a35` |
+| `implementation-plan/04-a04-workbench-research.md` | `165f92a9044f2e4219aad109be3525bedce234da` |
 | `implementation-plan/05-a05-requirements-design.md` | `b207ae12ca717f76a8bc37b701fe1da4c1d78ec9` |
-| `implementation-plan/06-a06-plan-readiness.md` | `3f50065b39413011675c8bc7013a5d757013ca9b` |
+| `implementation-plan/06-a06-plan-readiness.md` | `5793e5a64a1c576787b516374bb8704d8237b49f` |
 | `implementation-plan/07-a07-approval-execution.md` | `32c08d56f5bafa08ba724a90b4e5e3491ea653af` |
 | `implementation-plan/08-a08-complete-materials.md` | `9f414ba89efd58cc3c73555d8268b4864a732750` |
 | `implementation-plan/09-a09-provider-settings.md` | `dc9988af7a2f63ae8a2843122e66911e14d595e9` |
 | `implementation-plan/10-a10-recovery-accessibility.md` | `3537f8f368001084e0844c4039235f85b0cbe532` |
 | `implementation-plan/11-a11-component-certification.md` | `39888364495850fe7b9fc3c486ad67bf6905678c` |
-| `implementation-plan/12-action-catalog.md` | `5de51657122fc4bcd718660591200357f8b4db9a` |
-| `implementation-plan/13-verification-closeout.md` | `1abe1a9e9ad9522440f8183085dc999c3dc3e0af` |
+| `implementation-plan/12-action-catalog.md` | `166cf857d3fb58810a564af8cddcff91b0763f32` |
+| `implementation-plan/13-verification-closeout.md` | `1b6c8e4272cbbc8ec126793e057f4af892a0d1fa` |
 
 A source hash mismatch makes PLAN non-current until recompiled. Directory files have no independent order-tasks block or lifecycle state.
 
@@ -349,9 +349,9 @@ This decomposition is revalidated under C19-F09/C20-F11 after the prior G4-G6 cl
 
 ##### Exact upstream package
 
-- R1 `research.md`: `b01e3f2886f9cad08ab141d4227d7ca67a676cc1`.
-- R2 `requirements.md`: `aced1290b8aaa398dbbc9bef966bf064a6148fd3`.
-- DESIGN `solution-design.md`: `a9a9b137f610c31b0387af9b13cb4fa943b4a75f` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 41-path forecast.
+- R1 `research.md`: `ab540ed7161cb6cbb505bb1553d463ceb975cd7f`.
+- R2 `requirements.md`: `a4bc9b9cdb7e12d130f38e3b8fe6c5a69e143fa4`.
+- DESIGN `solution-design.md`: `3bf28d72de3ed727d66e5772c853bf8c815e8fec` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 41-path forecast.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `9c2ec83a9552b7583f90e91080c014df4d6870df`.
 - P3 `GW-DOC-WORKBENCH-UX-V2`: `64184232833b59a9e6db5e1a28b841f48b3217cd` — §11.4A/§12/§13/§14 own semantic information classes, state-is-not-interface behavior, direct primary interaction composition, no generic workflow-material selector, continuous Dialogue semantics, Terminal-result primacy, singular technical inspection, task anatomy and composition invariants.
 - P3 `GW-DOC-MARKDOWN-WORKBENCH-V1`: `da89bd08e4f78f353d7b3062758e9d78e21375b2` — §17.4 owns one compact Markdown editor-control region, overflow-before-wrap formatting and control→canvas adjacency.
@@ -438,7 +438,7 @@ Because scope equals the exact 41-path forecast, a newly required out-of-scope p
 |---|---|---|---|---|---|---|
 | `GW-FR-001-GOVERNED-LIFECYCLE` | `C01-O03`, `C01-O05`, `C01-O08` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C01-O03`, `C01-O05`, `C01-O08` via tests/core.test.ts; tests/daemon.test.ts; tests/browser.spec.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-002-REPRODUCIBLE-AUTHORITY` | `C01-O01`, `C01-O07` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C01-O01`, `C01-O07` via tests/core.test.ts; tests/daemon.test.ts; tests/browser.spec.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
-| `GW-FR-205-MONOTONIC-REACH-HISTORY` | `C01-O10` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C01-O10` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-205-MONOTONIC-REACH-HISTORY` | `C01-O10` | `MIXED_TECHNICAL_AND_VERIFICATION_DELTA` | `SD12` | `IA17` | — | IA17 proves actual admitted destination and monotonic reach; IA27 proves rail consumption. Proof: tests/core.test.ts; tests/daemon.test.ts; tests/workbench-presentation.test.ts; tests/browser.spec.ts; tests/e2e-server.ts fixture provenance + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-228-FUNCTIONAL-STATE-TRANSITION-CLOSURE` | `C01-O05` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C01-O05` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-232-CLOSED-WORKFLOW-STATE-LANGUAGE` | `C01-O03`, `C01-O11` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C01-O03`, `C01-O11` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 
@@ -467,6 +467,8 @@ No-code rows in phase: **5**.
 Package atoms in phase: **1**.
 
 ##### Referenced actions
+
+- **IA17** — consume the single SD12 definition in `12-action-catalog.md`; this phase owns no second reach selector.
 
 - **IA19** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA33** — consume the single Complete/Evidence residual and proof definition for terminal-result composition.
@@ -627,7 +629,7 @@ SD03/05/06: IA11/12 consume the complete Create/Queue datum and diagnostic contr
 | `GW-FR-005-LOCAL-WORKBENCH` | `C05-O01`, `C05-O04`, `C05-O12`, `C19-O06`, `C19-O08` | `VERIFICATION_DELTA` | `SD21`, `SD23`, `SD29`, `SD30` | `IA27`, `IA29`, `IA26` | — | Retain evidenced local Workbench and shared structural ownership; prove rendered coverage and separately allocated consumer residuals. Proof: tests/core.test.ts; tests/daemon.test.ts; tests/browser.spec.ts; tests/certification.test.ts + rendered acceptance + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-015-SOURCE-CONTEXT-PROJECTION` | `C06-O02`, `C22-O06` | `DEPENDENCY_DELTA` | `SD02` | — | `IA01`, `IA02` | Recheck `C06-O02`, `C22-O06` via tests/daemon.test.ts; tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-019-SOURCE-CLARIFICATION-DURABILITY` | `C06-O13` | `MIXED_TECHNICAL_AND_VERIFICATION_DELTA` | `SD08` | `IA04` | `IA03` | Reuse the existing deterministic later-adoption gate and human guidance. The existing semantic conformance owner must prove that adopted canonical authority captures each material decision before promotion; conversation is evidence only. No new deterministic semantic classifier or duplicate guard. Proof: tests/daemon.test.ts; tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
-| `GW-FR-021-MARKDOWN-WORKSPACE` | `C04-O15`, `C05-O02`, `C05-O10` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C04-O15`, `C05-O02`, `C05-O10` via tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-021-MARKDOWN-WORKSPACE` | `C04-O15`, `C05-O02`, `C05-O10` | `DEPENDENCY_DELTA` | `SD12` | — | `IA17` | Consume IA17 exact reach; IA29 proves draft inspection without fabricated reach and document maturity. Proof: tests/core.test.ts; tests/daemon.test.ts; tests/workbench-presentation.test.ts; tests/browser.spec.ts; tests/e2e-server.ts fixture provenance + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-025-DURABLE-INTENT-INTERACTION` | `C06-O13` | `MIXED_TECHNICAL_AND_VERIFICATION_DELTA` | `SD08` | `IA04` | `IA03` | Reuse the existing deterministic later-adoption gate and human guidance. The existing semantic conformance owner must prove that adopted canonical authority captures each material decision before promotion; conversation is evidence only. No new deterministic semantic classifier or duplicate guard. Proof: tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-200-CANONICAL-WORKFLOW-OBSERVATION` | `C05-O05`, `C05-O06`, `C05-O11` | `MIXED_TECHNICAL_DELTA` | `SD07` | `IA14` | — | Recheck `C05-O05`, `C05-O06`, `C05-O11` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-201-OBSERVATIONAL-READS` | `C05-O03`, `C05-O09` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C05-O03`, `C05-O09` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
@@ -640,7 +642,7 @@ SD03/05/06: IA11/12 consume the complete Create/Queue datum and diagnostic contr
 | `GW-FR-219-EXPLICIT-CONTEXT` | `C05-O04` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C05-O04` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-220-PRESIGNOFF-CONTINUITY` | `C05-O05`, `C05-O06`, `C05-O12` | `MIXED_TECHNICAL_DELTA` | `SD07` | `IA14` | — | Recheck `C05-O05`, `C05-O06`, `C05-O12` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-230-CLOSED-WORKBENCH-INTERACTION-GRAMMAR` | `C05-O08`, `C05-O12`, `C19-O01` | `VERIFICATION_DELTA` | `SD21`-`SD29` | `IA27`-`IA34` | — | Retain evidenced closed grammar; verify required-absent generic owners, no nested primary spaces, direct class selection. Proof: tests/certification.test.ts; tests/browser.spec.ts + rendered acceptance + V4/V5/V6 requirement-specific semantic review |
-| `GW-FR-233-CANONICAL-WORKFLOW-RAIL-PROJECTION` | `C05-O01`, `C05-O02` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C05-O01`, `C05-O02` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-233-CANONICAL-WORKFLOW-RAIL-PROJECTION` | `C05-O01`, `C05-O02` | `MIXED_TECHNICAL_AND_VERIFICATION_DELTA` | `SD12` | `IA17` | — | IA17 corrects core reach; IA27 proves canonical rail projection and one current marker. Proof: tests/core.test.ts; tests/daemon.test.ts; tests/workbench-presentation.test.ts; tests/browser.spec.ts; tests/e2e-server.ts fixture provenance + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-236-WORK-TYPE-AWARE-TASK-INFORMATION` | `C06-O03`, `C06-O04`, `C06-O05`, `C06-O06`, `C20-O07` | `VERIFICATION_DELTA` | `SD17` | `IA21` | — | Recheck `C06-O03`, `C06-O04`, `C06-O05`, `C06-O06`, `C20-O07` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 
 Stable rows in phase: **18**.
@@ -753,7 +755,7 @@ IA30 owns R2/DESIGN primary routing and upstream material; IA03 canonical author
 | Requirement | R1 evidence | DESIGN disposition | Solution(s) | Execution owner | Consumer dependency | Required proof |
 |---|---|---|---|---|---|---|
 | `GW-FR-098-READINESS-AUTHORITY-TOPOLOGY-REVIEW` | `C10-O01`, `C10-O09`, `C10-O10` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C10-O01`, `C10-O09`, `C10-O10` via tests/architecture.test.ts; tests/daemon.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
-| `GW-FR-211-READINESS-RETURN-CONTINUITY` | `C10-O04`, `C01-O10` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C10-O04`, `C01-O10` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-211-READINESS-RETURN-CONTINUITY` | `C10-O04`, `C01-O10` | `DEPENDENCY_DELTA` | `SD12` | — | `IA17` | Consume IA17 exact reach; IA16/IA31 prove admitted return history and exact upstream owner/reason. Proof: tests/core.test.ts; tests/daemon.test.ts; tests/workbench-presentation.test.ts; tests/browser.spec.ts; tests/e2e-server.ts fixture provenance + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-221-READINESS-REVIEW-HIERARCHY` | `C10-O06`, `C10-O07` | `MIXED_TECHNICAL_AND_VERIFICATION_DELTA` | `SD11` | `IA16`, `IA31` | — | Bind typed R3 verdict to exact conformed Run/output and currentness; reject unadmitted completion and competing artifact; correct attention ownership through SD07/SD11. Proof: tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 
 Stable rows in phase: **3**.
@@ -768,6 +770,8 @@ Stable rows in phase: **3**.
 Package atoms in phase: **2**.
 
 ##### Referenced actions
+
+- **IA17** — consume the single SD12 definition in `12-action-catalog.md`; this phase owns no second reach selector.
 
 Action mutation/disposition semantics are owned only by `12-action-catalog.md`; the bullets below are dependency/traceability references, not alternate IA definitions.
 
@@ -1270,9 +1274,11 @@ Ownership of shared-path edits is semantic and ordered: IA01 owns manifest schem
 **Owners/anchors:** `src/core/lifecycle.ts` shared pure same-Run conformance selection; `src/daemon/authority.ts` exact Approval/closure reads, coordinator/server canonical routes; `ui/src/http.ts`, `query-keys.ts`, `app.tsx` exact query parsing and invalidation, `WorkItemWorkspace.tsx` exact current/final Approval and task filtering. IA31 owns the `SignoffReview.tsx` presentation consumer.  
 **Required mutation/proof disposition:** Bind exact lifecycle/completion-evidence-gated current/final Approval and history via P6 §6 observational routes. In COMPLETE distinguish admitted terminal R1 from actual complete signed task aggregate, including signed all-ALREADY_SATISFIED, through existing RunEvent/Run facts and aggregateTaskCompletion; validate exact signed task membership and outcome. No inference from outcome alone, count or historical reach. Filter current tasks by exact Approval.id; IA29 owns committed artifact membership/display and IA31 owns prospective versus historical Review. Preserve sign-off admission and typed loading/error.  
 
+**SD12 admitted reach:** Correct `deriveReachedStages` in the existing `src/core/lifecycle.ts` owner using the same exact stage-completion/conformance selection as SD11/SD27. Only the same WorkItem's COMPLETED STAGE Run with one matching stage completion and one subsequent same-Run conformance with matching context hash and exact output identity proves a destination. Missing/rejected/foreign/conflicting/reversed evidence proves no destination; retain actual stage, actual Run stage and legitimate historic entry independent of current material freshness. Correct `tests/e2e-server.ts` paired-event chronology, never allow legacy reversed ordering. IA17 owns mutation and core/daemon proof; IA27/IA29/IA16/IA31/IA33 consume before their respective proof. No new carrier, state, persistence or UI-derived reach.
+
 **SD12 closure:** preserve non-mutating query and exact package admission/recomputation; verify current/stale/returned/historical package and selected signed/approved task lineage against P6, including selected task identity in IA27 Context. No current readiness inferred from latest artifact. Decision feedback in task detail and overview; IA31 owns shared Review.
 
-**Proof:** core/daemon/browser/presentation exact R1/R3 completion selection, current/final/history reads, missing and contradictory provenance, current/stale package cases, exact bytes/no writes and cache invalidation.
+**Proof:** core/daemon/browser/presentation exact R1/R3 completion selection, negative raw/rejected/foreign/missing/duplicate/reversed/mismatched evidence, positive admitted historic entry surviving return/staleness/failure, current/final/history reads, missing and contradictory provenance, current/stale package cases, exact bytes/no writes and cache invalidation.
 
 ##### IA18 — operator-first Settings hierarchy
 
@@ -1360,7 +1366,7 @@ Ownership of shared-path edits is semantic and ordered: IA01 owns manifest schem
 |---|---|---|
 | WorkbenchSection.tsx, WorkbenchFacts.tsx, WorkbenchContextPanel.tsx | CONFORMING_NO_EDIT | closed API and Context proof |
 | WorkbenchToolbar.tsx, WorkbenchAppShell.tsx | CONFORMING_NO_EDIT for API; BOUNDED_RESIDUAL for toolbar narrow reachability only | accepted hierarchy, narrow/reference proof |
-| WorkbenchWorkItemShell.tsx, workbench-responsive.ts, WorkbenchIdentity, WorkflowRail | CONFORMING_NO_EDIT | accepted scope; current-marker/responsive proof |
+| WorkbenchWorkItemShell.tsx, workbench-responsive.ts, WorkbenchIdentity, WorkflowRail | CONFORMING_NO_EDIT | accepted scope; IA17 admitted-reach/current-marker/responsive proof |
 | MarkdownEditor.tsx and WorkItemQueue.tsx Toolbar dependencies | CONFORMING_NO_EDIT | existing specialist/scan separation |
 | WorkbenchResourceList.tsx, WorkbenchResourceRow.tsx | CONFORMING_NO_EDIT | all-caller List→Row proof |
 | `WorkbenchLayout.tsx`, `WorkbenchSelector.tsx`, `WorkflowStepFrame.tsx`, `WorkflowMaterialSelector.tsx` | `REQUIRED_ABSENT` | zero substitutes/imports |
@@ -1597,7 +1603,7 @@ T1 carries the same six logical gate IDs through final validation. During the li
 | Completed phase | Before next phase | Required retained evidence |
 |---|---|---|
 | read-only IA07/IA08 and current R3/G6 | normal sign-off | exact existing capability proof; no mutation before sign-off absent separate grant |
-| signed IA01→IA02→IA03→IA04, IA11, IA17 and existing capability proof | IA27/IA28 | exact refs/decision conformance, interrupted adoption, linked-remediation eligibility, shared completion and Approval query/route proof |
+| signed IA01→IA02→IA03→IA04, IA11, IA17 and existing capability proof | IA27/IA28 | exact refs/decision conformance, interrupted adoption, linked-remediation eligibility, shared admitted completion/reach and Approval query/route proof; paired fixture chronology |
 | IA27/IA28 | IA29 | existing shell/Context/ResourceList, Queue/Create proof, accepted scope and exact residuals |
 | IA29 | IA16 | signed document membership and Document-first/narrow proof; IA17 exact query/selection already proven |
 | IA16 | IA31 | exact same-Run completed R3/conformance/contextHash/output ArtifactRef verdict and negative rejection/currentness proof; IA31 consumes the admitted verdict without deriving it again |
@@ -1643,8 +1649,8 @@ Each Snn references the corresponding numbered scenario of `GW-DOC-WORKBENCH-UX-
 | S02 | IA30/IA23 | `tests/core.test.ts`, `tests/daemon.test.ts`, `tests/browser.spec.ts` | A Run processing a provider turn cannot accept another message. |
 | S03 | IA30 | `tests/core.test.ts`, `tests/daemon.test.ts`, `tests/browser.spec.ts` | An active Run that is idle/open can accept exactly one continuation and becomes processing. |
 | S04 | IA30/IA15 | `tests/core.test.ts`, `tests/daemon.test.ts`, `tests/browser.spec.ts` | A required-input request accepts one bound answer and rejects duplicate/stale answers. |
-| S05 | IA14/IA16/IA31 | `tests/browser.spec.ts`, `tests/workbench-presentation.test.ts` | R3 returns to Plan; R3 remains reached/historical and inspectable. |
-| S06 | IA14/IA32 | `tests/core.test.ts`, `tests/daemon.test.ts`, `tests/browser.spec.ts` | Implementation returns to Design/Plan; Approval and prior Implementation remain reached/historical. |
+| S05 | IA17/IA14/IA16/IA31 | `tests/browser.spec.ts`, `tests/workbench-presentation.test.ts` | R3 returns to Plan; R3 remains reached/historical and inspectable. Rejected R3 cannot establish Approval reach. |
+| S06 | IA17/IA14/IA32 | `tests/core.test.ts`, `tests/daemon.test.ts`, `tests/browser.spec.ts` | Implementation returns to Design/Plan; Approval and prior Implementation remain reached/historical. Preserve legitimately admitted prior entry after return. |
 | S07 | IA17/IA31 | `tests/daemon.test.ts`, `tests/browser.spec.ts` | Stale Approval package inspection performs no hidden transition. |
 | S08 | IA09/IA10/IA29 | `tests/daemon.test.ts`, `tests/browser.spec.ts` | Source diagnostic blocks Start before the operator invokes it. |
 | S09 | IA13/IA29 | `tests/core.test.ts`, `tests/daemon.test.ts`, `tests/browser.spec.ts` | Editing upstream authority while a Run is active cannot be canonically saved. |
@@ -1660,7 +1666,7 @@ Each Snn references the corresponding numbered scenario of `GW-DOC-WORKBENCH-UX-
 | S19 | IA09/IA10/IA29 | `tests/daemon.test.ts`, `tests/browser.spec.ts` | Saving/refining an unprogressed Work request remains at IDEA; only explicit Start Research enters R1. |
 | S20 | IA23/IA30 | `tests/core.test.ts`, `tests/daemon.test.ts`, `tests/browser.spec.ts` | A provider turn containing contradictory controlling events applies none of those returned workflow effects, fails the Run, leaves the WorkItem at the same workflow step and exposes governed Retry/recovery where eligible. |
 | S21 | IA03/IA04/IA30 | `tests/core.test.ts`, `tests/daemon.test.ts`, `tests/browser.spec.ts` | A required-input request cannot coexist with a lifecycle proposal in the same provider turn and cannot be answered twice. |
-| S22 | IA14/IA16/IA32 | `tests/core.test.ts`, `tests/workbench-presentation.test.ts`, `tests/browser.spec.ts` | Returning from R3 or Implementation preserves every previously reached downstream step as historical. |
+| S22 | IA17/IA14/IA16/IA32 | `tests/core.test.ts`, `tests/workbench-presentation.test.ts`, `tests/browser.spec.ts` | Returning from R3 or Implementation preserves every previously reached downstream step as historical. A subsequent failed attempt or stale material cannot erase admitted historical reach. |
 | S23 | IA17/IA31 | `tests/daemon.test.ts`, `tests/browser.spec.ts` | Approval package read can expose stale currentness but cannot itself execute the upstream return. |
 | S24 | IA14/IA23 | `tests/core.test.ts`, `tests/daemon.test.ts`, `tests/browser.spec.ts` | Rejected/stale commands and historical navigation are proven state-preserving across every workflow step. |
 | S25 | IA20/IA27–IA34 | `tests/certification.test.ts`, `tests/browser.spec.ts` | Every rendered Workbench service resolves to one §13 primary interaction class; subordinate selector/context/task-panel/confirmation behavior does not introduce an undeclared persistent screen grammar. |
@@ -1668,7 +1674,7 @@ Each Snn references the corresponding numbered scenario of `GW-DOC-WORKBENCH-UX-
 | S27 | IA20 | `tests/certification.test.ts` | Every production rendering owner is accounted for by the P4 renderer-to-primitive coverage matrix; an unclassified renderer or direct recreation of an owned UI mechanic fails architecture fitness. |
 | S28 | IA03/IA31 | `tests/core.test.ts`, `tests/daemon.test.ts`, `tests/browser.spec.ts` | Proposal adoption survives interruption as ADOPTION_IN_PROGRESS for the exact durable proposal; Reject/free continuation remain unavailable until exact reconciliation/disposition completes. |
 | S29 | IA14/IA23 | `tests/core.test.ts`, `tests/workbench-presentation.test.ts`, `tests/browser.spec.ts` | Every canonical state fixture resolves to one closed current-attention category and one recovery route; no fixture exposes two competing current actions. |
-| S30 | IA27 | `tests/core.test.ts`, `tests/workbench-presentation.test.ts`, `tests/browser.spec.ts` | Every stage in every forward/backward lifecycle fixture produces a deterministic rail reach state, and the current stage produces exactly one READY/PROCESSING/ACTION_REQUIRED/BLOCKED/STALE/COMPLETE marker. |
+| S30 | IA17/IA27 | `tests/core.test.ts`, `tests/workbench-presentation.test.ts`, `tests/browser.spec.ts` | Every stage in every forward/backward lifecycle fixture produces a deterministic rail reach state, and the current stage produces exactly one READY/PROCESSING/ACTION_REQUIRED/BLOCKED/STALE/COMPLETE marker. Raw/rejected/mismatched/ambiguous completion cannot establish a destination; paired fixtures use production order. |
 | S31 | IA14/IA23 | `tests/workbench-presentation.test.ts`, `tests/browser.spec.ts` | A RunEvent/WorkItem/task observation that has not yet converged produces CONVERGING/PROCESSING presentation with mutation controls suppressed, then resolves without inventing the missing transition locally. |
 | S32 | IA32 | `tests/core.test.ts`, `tests/workbench-presentation.test.ts`, `tests/browser.spec.ts` | Execution fixtures deterministically identify the current task owner and durable validation boundary independently from historical task/Run selection. |
 | S33 | IA20/IA22 | `tests/certification.test.ts`, `tests/browser.spec.ts` | Primary/secondary/ghost/destructive actions, fields, status/notices, operational rows, headings, disclosures and overlays render with the same semantic component language in Queue, Create, Settings and representative WorkItem workflow services. |
@@ -1678,7 +1684,7 @@ Each Snn references the corresponding numbered scenario of `GW-DOC-WORKBENCH-UX-
 | S37 | IA13/IA29 | `tests/core.test.ts`, `tests/daemon.test.ts`, `tests/browser.spec.ts` | While any Run is active, Work request/title and editable lifecycle-document Save remain unavailable in the browser and rejected by the daemon. |
 | S38 | IA03/IA30/IA31 | `tests/core.test.ts`, `tests/daemon.test.ts`, `tests/browser.spec.ts` | A pending proposal makes Cancel unavailable; rejection restores ordinary open continuation and only then may Cancel become available. |
 | S39 | IA32 | `tests/daemon.test.ts`, `tests/browser.spec.ts` | With two runnable WorkItems/tasks, the manual Implementation current-task action starts exactly the displayed canonical current task and cannot advance the other WorkItem. |
-| S40 | IA29 | `tests/workbench-presentation.test.ts`, `tests/browser.spec.ts` | A deterministic repository lifecycle draft with no historical Run remains visible as Draft without fabricated reach/completion/conformance/readiness/approval state. |
+| S40 | IA17/IA29 | `tests/workbench-presentation.test.ts`, `tests/browser.spec.ts` | A deterministic repository lifecycle draft with no historical Run remains visible as Draft without fabricated reach/completion/conformance/readiness/approval state. A rejected terminal R1 cannot expose Complete; drafts remain inspection-only. |
 | S41 | IA21 | `tests/daemon.test.ts`, `tests/browser.spec.ts` | Change/Defect/Investigation/Audit task fixtures render the correct kind-specific Work request/Research information, and shared Change/Defect delivery steps preserve their distinct upstream obligations. |
 | S42 | IA30 | `tests/daemon.test.ts`, `tests/browser.spec.ts` | Processing can display bounded activity without exposing raw provider/session/tool payloads; optional activity telemetry loss does not alter canonical workflow state. |
 | S43 | IA30 | `tests/workbench-presentation.test.ts`, `tests/browser.spec.ts` | Every free-form continuation fixture shows the preceding substantive agent message and prior accepted operator/agent turns in the same Dialogue surface; removing that conversational anchor makes the composer unavailable. |

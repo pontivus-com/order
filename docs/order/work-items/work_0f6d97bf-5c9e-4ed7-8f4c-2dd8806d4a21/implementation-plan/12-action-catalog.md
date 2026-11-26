@@ -168,9 +168,11 @@ Ownership of shared-path edits is semantic and ordered: IA01 owns manifest schem
 **Owners/anchors:** `src/core/lifecycle.ts` shared pure same-Run conformance selection; `src/daemon/authority.ts` exact Approval/closure reads, coordinator/server canonical routes; `ui/src/http.ts`, `query-keys.ts`, `app.tsx` exact query parsing and invalidation, `WorkItemWorkspace.tsx` exact current/final Approval and task filtering. IA31 owns the `SignoffReview.tsx` presentation consumer.  
 **Required mutation/proof disposition:** Bind exact lifecycle/completion-evidence-gated current/final Approval and history via P6 §6 observational routes. In COMPLETE distinguish admitted terminal R1 from actual complete signed task aggregate, including signed all-ALREADY_SATISFIED, through existing RunEvent/Run facts and aggregateTaskCompletion; validate exact signed task membership and outcome. No inference from outcome alone, count or historical reach. Filter current tasks by exact Approval.id; IA29 owns committed artifact membership/display and IA31 owns prospective versus historical Review. Preserve sign-off admission and typed loading/error.  
 
+**SD12 admitted reach:** Correct `deriveReachedStages` in the existing `src/core/lifecycle.ts` owner using the same exact stage-completion/conformance selection as SD11/SD27. Only the same WorkItem's COMPLETED STAGE Run with one matching stage completion and one subsequent same-Run conformance with matching context hash and exact output identity proves a destination. Missing/rejected/foreign/conflicting/reversed evidence proves no destination; retain actual stage, actual Run stage and legitimate historic entry independent of current material freshness. Correct `tests/e2e-server.ts` paired-event chronology, never allow legacy reversed ordering. IA17 owns mutation and core/daemon proof; IA27/IA29/IA16/IA31/IA33 consume before their respective proof. No new carrier, state, persistence or UI-derived reach.
+
 **SD12 closure:** preserve non-mutating query and exact package admission/recomputation; verify current/stale/returned/historical package and selected signed/approved task lineage against P6, including selected task identity in IA27 Context. No current readiness inferred from latest artifact. Decision feedback in task detail and overview; IA31 owns shared Review.
 
-**Proof:** core/daemon/browser/presentation exact R1/R3 completion selection, current/final/history reads, missing and contradictory provenance, current/stale package cases, exact bytes/no writes and cache invalidation.
+**Proof:** core/daemon/browser/presentation exact R1/R3 completion selection, negative raw/rejected/foreign/missing/duplicate/reversed/mismatched evidence, positive admitted historic entry surviving return/staleness/failure, current/final/history reads, missing and contradictory provenance, current/stale package cases, exact bytes/no writes and cache invalidation.
 
 ## IA18 — operator-first Settings hierarchy
 
@@ -258,7 +260,7 @@ Ownership of shared-path edits is semantic and ordered: IA01 owns manifest schem
 |---|---|---|
 | WorkbenchSection.tsx, WorkbenchFacts.tsx, WorkbenchContextPanel.tsx | CONFORMING_NO_EDIT | closed API and Context proof |
 | WorkbenchToolbar.tsx, WorkbenchAppShell.tsx | CONFORMING_NO_EDIT for API; BOUNDED_RESIDUAL for toolbar narrow reachability only | accepted hierarchy, narrow/reference proof |
-| WorkbenchWorkItemShell.tsx, workbench-responsive.ts, WorkbenchIdentity, WorkflowRail | CONFORMING_NO_EDIT | accepted scope; current-marker/responsive proof |
+| WorkbenchWorkItemShell.tsx, workbench-responsive.ts, WorkbenchIdentity, WorkflowRail | CONFORMING_NO_EDIT | accepted scope; IA17 admitted-reach/current-marker/responsive proof |
 | MarkdownEditor.tsx and WorkItemQueue.tsx Toolbar dependencies | CONFORMING_NO_EDIT | existing specialist/scan separation |
 | WorkbenchResourceList.tsx, WorkbenchResourceRow.tsx | CONFORMING_NO_EDIT | all-caller List→Row proof |
 | `WorkbenchLayout.tsx`, `WorkbenchSelector.tsx`, `WorkflowStepFrame.tsx`, `WorkflowMaterialSelector.tsx` | `REQUIRED_ABSENT` | zero substitutes/imports |

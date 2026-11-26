@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Correct the ALIGN-A01-F03 specification: historical destination reach requires exact admitted same-Run conformance, not raw provider completion; allocate the correction and fixture/proof obligations to existing IA17 without expanding T1.
+
 - Correct the G5 Priority-0 dependency contract: prove IA16's exact admitted R3 verdict after IA29 and before IA31; enforce both transitions in permanent fitness without changing T1 scope.
 
 - Finalize the 0.6.0 implementation specification through G5, resolving exact action/producer dependencies, forecast and proof ownership; preserve G5A/R3/sign-off barriers.
