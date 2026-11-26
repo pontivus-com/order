@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Close G2 factual revalidation through A11 and H1, preserving the bounded operator foundation acceptance and classified implementation/proof gaps; enter G3 revalidation without production mutation or sign-off.
+
 - Revalidate G2 A04–A10 source facts, including current authority proposal/task/approval admission, exact candidate evidence, guided installation and focus. Retain attention, unreached routing, exact lock/lineage and verification residuals at existing owners.
 
 - Revalidate G2 A02–A03 against the current authority, intake, queue and documentation owners; classify residual applicable-authority closure without duplicating realized changes; correct A01 audit formatting.
