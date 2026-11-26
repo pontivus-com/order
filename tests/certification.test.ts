@@ -1080,7 +1080,9 @@ describe("Order cross-boundary certification", () => {
     expect(execution).toContain("No validation results in this attempt");
     const rail = read("ui/src/primitives/WorkbenchRail.tsx");
     expect(rail).toContain("order-workbench-process-marker");
-    expect(rail).toContain('reached || terminal ? "✓" : index + 1');
+    expect(rail).toContain('reached ? "✓" : item.markerSymbol ?? index + 1');
+    expect(rail).toContain('data-tone={reached ? "success" : item.statusTone ?? "neutral"}');
+    expect(rail).toContain("Previously reached (not a validation verdict)");
     expect(rail).toContain('aria-current={item.state === "current" ? "step" : undefined}');
     expect(rail).toContain("aria-pressed={item.selected}");
     expect(rail).toContain('hidden={item.state !== "current"}');

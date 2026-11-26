@@ -45,7 +45,9 @@ export const WorkbenchMasterDetail = ({
                   {item.detail === undefined ? null : <span>{item.detail}</span>}
                 </button>
                 {attempts.length === 0 ? null : (
-                  <ul className="order-workbench-master-attempts" aria-label={"Attempts for " + item.label}>
+                  <div className="order-workbench-master-attempt-group">
+                    <div className="order-workbench-master-attempt-heading">Attempts</div>
+                    <ul className="order-workbench-master-attempts" aria-label={"Attempts for " + item.label}>
                     {attempts.map((attempt) => (
                       <li key={attempt.id}>
                         <button type="button" className="order-workbench-master-item"
@@ -57,7 +59,8 @@ export const WorkbenchMasterDetail = ({
                         </button>
                       </li>
                     ))}
-                  </ul>
+                    </ul>
+                  </div>
                 )}
               </li>
             );

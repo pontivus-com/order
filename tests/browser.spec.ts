@@ -626,7 +626,8 @@ const captureRenderedAcceptance = async (
         if (entry.workflowStep !== null) await expect(referenceRail.locator(".rail-cell.selected .process-label")).toHaveText(entry.workflowStep);
       }
       if (entry.id === "ia26-implementation-validation-recorded-wide-light") {
-        await expect(referenceSurface.locator(".attempts .masteritem.current")).toHaveText("Independent review · Attempt 1");
+        await expect(referenceSurface.locator(".attempts .masteritem.current strong")).toHaveText("Independent review · Attempt 1");
+        await expect(referenceSurface.locator(".attempt-heading")).toHaveText("Attempts");
       }
       await referencePage.evaluate(async () => { await document.fonts.ready; });
       referenceScreenshot = entry.id + "-reference.png";
@@ -3875,6 +3876,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   await openWorkItem(page, "Workflow input required");
   const requiredInputActivity = page.getByTestId("activity-detail");
   await expect(requiredInputActivity.getByLabel("Message input")).toBeEditable();
+  await expect(page.getByTestId("workflow-rail").locator('li[data-state="current"][data-tone="warning"] .order-workbench-rail-status')).toHaveText("Action required");
   await expect(requiredInputActivity.getByText("Your response", { exact: true })).toBeVisible();
   await expect(requiredInputActivity.locator(".order-workbench-dialogue-message").first()).toBeVisible();
   const dialogue = requiredInputActivity.locator(".order-workbench-dialogue");
@@ -3901,6 +3903,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   await fixtureMutation(request, "/start-stage", { workItemId: processingDialogueItem.id });
   await openWorkItem(page, "Research processing attention visual");
   await expect(page.getByTestId("selected-run-header")).toContainText("Processing");
+  await expect(page.getByTestId("workflow-rail").locator('li[data-state="current"][data-tone="info"] .order-workbench-rail-status')).toHaveText("Processing");
   await capture({
     id: "ia26-stage-dialogue-processing-wide-light",
     workItemKind: "CHANGE",
@@ -4292,6 +4295,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   await backToQueue(page);
 
   await openWorkItem(page, "Failed implementation feedback");
+  await expect(page.getByTestId("workflow-rail").locator('li[data-state="current"][data-tone="danger"] .order-workbench-rail-status')).toHaveText("Blocked");
   await capture({
     id: "ia26-implementation-blocked-wide-light",
     workItemKind: "CHANGE",
@@ -5192,6 +5196,30 @@ test("completed pre-signoff history never suppresses the canonical next-stage ac
     if (entry.currentStep === "Requirements") {
       const reachedResearch = rail.getByRole("button", { name: "Research", exact: true });
       await expect(reachedResearch.locator(".order-workbench-process-marker")).toHaveText("✓");
+      await expect(rail.locator('li[data-state="reached"][data-tone="success"]').filter({ has: reachedResearch })).toHaveCount(1);
+      const markerGeometry = await reachedResearch.locator(".order-workbench-process-marker").evaluate((marker) => {
+        const cell = marker.closest("li")!;
+        const cellRect = cell.getBoundingClientRect();
+        const markerRect = marker.getBoundingClientRect();
+        const before = getComputedStyle(cell, "::before");
+        const after = getComputedStyle(cell, "::after");
+        return {
+          leftGap: markerRect.left - cellRect.left - parseFloat(before.width),
+          rightGap: cellRect.right - markerRect.right - parseFloat(after.width),
+          markerColor: getComputedStyle(marker).color,
+          successColor: (() => {
+            const probe = document.createElement("span");
+            probe.style.color = "var(--color-text-success)";
+            cell.append(probe);
+            const color = getComputedStyle(probe).color;
+            probe.remove();
+            return color;
+          })(),
+        };
+      });
+      expect(markerGeometry.leftGap).toBeGreaterThan(0);
+      expect(markerGeometry.rightGap).toBeGreaterThan(0);
+      expect(markerGeometry.markerColor).toBe(markerGeometry.successColor);
       await selectWorkflowStep(page, "Research");
       await expect(reachedResearch).toHaveAttribute("aria-pressed", "true");
       await expect(rail.getByRole("button", { name: "Requirements", exact: true })).toHaveAttribute("aria-current", "step");
@@ -6227,11 +6255,14 @@ test("Readiness keeps verdict and findings primary while subordinate material ch
   const review = page.getByTestId("review-workspace");
   await expect(review).toBeVisible();
   await expect(review.getByTestId("review-verdict")).toBeVisible();
-  await expect(review.getByTestId("review-verdict"))
-    .toContainText("Review in progress");
+  // The fixture has completed Plan, but has no R3 Run or verdict.
+  await expect(review.getByTestId("review-verdict")).toContainText("Not started");
   await expect(
-    review.getByTestId("review-verdict").getByText("Review in progress", { exact: true }),
+    review.getByTestId("review-verdict").getByText("Not started", { exact: true }),
   ).toHaveCount(1);
+  await expect(review.getByText("Review in progress", { exact: true })).toHaveCount(0);
+  await expect(review.getByText("No review findings yet", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Start Readiness review", exact: true })).toBeVisible();
   await expect(review.getByText("Findings", { exact: true })).toBeVisible();
   await review.getByRole("button", {
     name: "View Implementation plan",
@@ -6771,6 +6802,9 @@ test("candidate Complete surface and reached Implementation expose V0-V7, exact 
   await openWorkItem(page, "Verified candidate");
 
   await expect(page.getByTestId("result-workspace")).toContainText("Verified candidate");
+  const completeRail = page.getByTestId("workflow-rail");
+  await expect(completeRail.locator('li[data-state="current"][data-tone="success"] .order-workbench-process-marker')).toHaveText("✓");
+  await expect(completeRail.getByRole("button", { name: "Complete", exact: true })).toHaveAttribute("aria-current", "step");
   await expect(page.getByTestId("candidate-result-material")).toBeVisible();
   await expect(page.getByRole("button", { name: "Open in Activity" })).toHaveCount(0);
 
@@ -6806,7 +6840,23 @@ test("candidate Complete surface and reached Implementation expose V0-V7, exact 
     await page.getByRole("button", { name: "Back to workflow context" }).click();
     await expect(page.getByTestId("execution-workspace")).toBeVisible();
   }
+  const approvedTasks = page.getByRole("navigation", { name: "Approved tasks" });
+  const attempts = approvedTasks.getByRole("list", { name: "Attempts for Prove the browser candidate surface" });
+  await expect(attempts).toBeVisible();
+  await expect(approvedTasks.getByText("Attempts", { exact: true })).toBeVisible();
+  const builderRow = attempts.getByRole("button", { name: /Implementation agent · Attempt 1/ });
+  const reviewerRow = attempts.getByRole("button", { name: /Independent review · Attempt 1/ });
+  await expect(builderRow.locator('[data-tone="success"]')).toContainText("Completed");
+  await expect(reviewerRow.locator('[data-tone="success"]')).toContainText("Completed");
+  const rowGeometry = await builderRow.evaluate((button) => {
+    const parent = button.closest(".order-workbench-master-attempt-group")?.previousElementSibling;
+    if (!(parent instanceof HTMLElement)) throw new Error("Attempt has no visible parent task");
+    return { task: parent.getBoundingClientRect().left, attempt: button.getBoundingClientRect().left, taskWidth: parent.getBoundingClientRect().width, attemptWidth: button.getBoundingClientRect().width };
+  });
+  expect(Math.abs(rowGeometry.task - rowGeometry.attempt)).toBeLessThanOrEqual(1);
+  expect(Math.abs(rowGeometry.taskWidth - rowGeometry.attemptWidth)).toBeLessThanOrEqual(1);
   await selectWorkflowMaterial(page, "Implementation agent · Attempt 1");
+  await expect(builderRow).toHaveAttribute("aria-pressed", "true");
   await expect(
     page.getByText("Candidate state recorded", { exact: true }),
   ).toBeVisible();

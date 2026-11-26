@@ -64,13 +64,13 @@ const validationBoundaryLabel = (
 
 const taskTone = (
   task: ExecutionTask,
-): "danger" | "warning" | "success" | "neutral" =>
+): "danger" | "success" | "info" | "neutral" =>
   task.state === "BLOCKED"
     ? "danger"
     : task.state === "CANDIDATE_DONE" || task.state === "ALREADY_SATISFIED"
       ? "success"
-      : task.state === "TODO"
-        ? "warning"
+      : task.state === "RUNNING"
+        ? "info"
         : "neutral";
 
 const taskStateLabel = (task: ExecutionTask): string => {
@@ -451,7 +451,7 @@ export const ExecutionWorkspace = ({
         id: task.id,
         label: task.objective,
         detail: selected && taskRuns.length === 0 ? "No attempts yet" : undefined,
-        state: <span>{currentOwnerTask?.id === task.id ? "Current · " : ""}{taskStateLabel(task)}</span>,
+        state: <WorkbenchStatus tone={taskTone(task)} label={(currentOwnerTask?.id === task.id ? "Current · " : "") + taskStateLabel(task)} />,
         selected: selected && selectedRun === null,
         containsSelection: selected,
         onSelect: () => onSelectMaterial({
@@ -473,7 +473,7 @@ export const ExecutionWorkspace = ({
           parentId: task.id,
           label: runRoleLabel(run.role) + " · Attempt " + run.attempt,
           detail: new Date(run.startedAt).toLocaleString(),
-          state: <span>{runStatusLabel(run.status)}</span>,
+          state: <WorkbenchStatus tone={runTone(run)} label={runStatusLabel(run.status)} />,
           selected: run.id === selectedRun?.id,
           onSelect: () => onSelectMaterial({
             kind: "EXECUTION_TASK",

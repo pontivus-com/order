@@ -1,9 +1,13 @@
+import type { WorkbenchStatusTone } from "./WorkbenchStatus.tsx";
+
 export type WorkbenchRailItem = Readonly<{
   id: string;
   label: string;
-  state: "unreached" | "reached" | "current" | "complete" | "blocked";
+  state: "unreached" | "reached" | "current";
   selected: boolean;
   statusLabel?: string;
+  statusTone?: WorkbenchStatusTone;
+  markerSymbol?: string;
   onSelect: () => void;
 }>;
 
@@ -12,11 +16,12 @@ export const WorkbenchRail = ({ items }: Readonly<{ items: readonly WorkbenchRai
     <ol>
       {items.map((item, index) => {
         const descriptionId = "workflow-rail-status-" + item.id;
-        const reached = item.state === "reached" || item.state === "complete";
-        const description = item.statusLabel ?? (reached ? "Previously reached" : "Not yet reached");
-        const terminal = item.state === "current" && item.statusLabel === "complete";
+        const reached = item.state === "reached";
+        const description = item.statusLabel ?? (reached ? "Previously reached (not a validation verdict)" : "Not yet reached");
         return (
-          <li key={item.id} data-state={item.state} data-selected={item.selected ? "true" : "false"}>
+          <li key={item.id} data-state={item.state}
+            data-tone={reached ? "success" : item.statusTone ?? "neutral"}
+            data-selected={item.selected ? "true" : "false"}>
             <button
               type="button"
               aria-label={item.label}
@@ -25,8 +30,8 @@ export const WorkbenchRail = ({ items }: Readonly<{ items: readonly WorkbenchRai
               aria-pressed={item.selected}
               onClick={item.onSelect}
             >
-              <span className="order-workbench-process-marker" aria-hidden="true">
-                {reached || terminal ? "✓" : index + 1}
+              <span className="order-workbench-process-marker" aria-hidden="true" title={description}>
+                {reached ? "✓" : item.markerSymbol ?? index + 1}
               </span>
               <span className="order-workbench-rail-label">{item.label}</span>
               <span id={descriptionId} className="order-workbench-rail-status"

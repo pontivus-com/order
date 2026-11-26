@@ -181,11 +181,15 @@ export const ReadinessWorkspace = ({
       ? readinessOutcomeLabel(outcome)
       : latestRun === null
         ? "Not started"
-        : latestRun?.status === "BLOCKED"
-        ? "Blocked"
-        : latestRun?.status === "FAILED"
-          ? "Review failed"
-          : "Review in progress";
+        : latestRun.status === "BLOCKED"
+          ? "Blocked"
+          : latestRun.status === "FAILED"
+            ? "Review failed"
+            : latestRun.status === "CANCELLED"
+              ? "Review cancelled"
+              : latestRun.status === "COMPLETED"
+                ? "No recorded verdict"
+                : "Review in progress";
   const readyForSignoff = outcome !== null && verdict === "Ready for sign-off";
   const verdictTone =
     readyForSignoff
@@ -194,7 +198,11 @@ export const ReadinessWorkspace = ({
         ? "warning"
         : latestRun?.status === "BLOCKED" || latestRun?.status === "FAILED"
           ? "danger"
-          : "info";
+          : latestRun === null || latestRun.status === "CANCELLED"
+            ? "neutral"
+            : latestRun.status === "COMPLETED"
+              ? "warning"
+              : "info";
   const verdictDescription =
     readyForSignoff
       ? "The package passed readiness review. Human authorization takes place in Approval."
@@ -223,8 +231,10 @@ export const ReadinessWorkspace = ({
       ? (
         <WorkbenchState
           kind="empty"
-          title="Readiness review is in progress"
-          description="The governed review findings will appear here when available."
+          title={latestRun === null ? "No review findings yet" : "No recorded review findings"}
+          description={latestRun === null
+            ? "Start Readiness review to obtain the independent findings."
+            : "The governed review findings will appear here when available."}
         />
       )
       : readinessContentQuery.isPending
