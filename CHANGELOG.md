@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Match the existing installer trace fitness assertions to the strengthened strict-presence and no-publication proof clauses.
+
 - Reconcile the R3 correction's strict config-read and quiescence instructions with the earlier F7 sequence; preserve exact publication identity and pre-effect recovery custody.
 
 - Reconcile the two stale closeout-module scope counts and compiled PLAN binding with the exact 45-path candidate.
