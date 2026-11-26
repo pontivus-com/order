@@ -21,12 +21,14 @@ const applyUnifiedDiff = (
   currentMarkdown: string,
   unifiedDiff: string,
 ): readonly ProposedLine[] | null => {
-  const source = currentMarkdown.split("\n");
+  const source = currentMarkdown.length === 0 ? [] : currentMarkdown.split("\n");
   const output: ProposedLine[] = [];
   let sourceIndex = 0;
   let inHunk = false;
   let sawHunk = false;
   let pendingRemoved = 0;
+  let oldRemaining = 0;
+  let newRemaining = 0;
 
   const flushRemoved = (): void => {
     if (pendingRemoved === 0) return;
@@ -36,11 +38,14 @@ const applyUnifiedDiff = (
 
   for (const line of unifiedDiff.split("\n")) {
     if (line.startsWith("@@")) {
+      if (inHunk && (oldRemaining !== 0 || newRemaining !== 0)) return null;
       flushRemoved();
       const match = /^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/.exec(line);
       if (match === null) return null;
       const oldStart = Number(match[1]);
       const oldCount = match[2] === undefined ? 1 : Number(match[2]);
+      oldRemaining = oldCount;
+      newRemaining = match[4] === undefined ? 1 : Number(match[4]);
       const targetIndex = oldCount === 0 ? oldStart : Math.max(0, oldStart - 1);
       if (targetIndex < sourceIndex || targetIndex > source.length) return null;
       while (sourceIndex < targetIndex && sourceIndex < source.length) {
@@ -63,7 +68,9 @@ const applyUnifiedDiff = (
     const text = line.slice(1);
 
     if (marker === " ") {
-      if (source[sourceIndex] !== text) return null;
+      if (oldRemaining <= 0 || newRemaining <= 0 || source[sourceIndex] !== text) return null;
+      oldRemaining -= 1;
+      newRemaining -= 1;
       flushRemoved();
       output.push({
         text: source[sourceIndex] ?? text,
@@ -75,13 +82,16 @@ const applyUnifiedDiff = (
     }
 
     if (marker === "-") {
-      if (source[sourceIndex] !== text) return null;
+      if (oldRemaining <= 0 || source[sourceIndex] !== text) return null;
+      oldRemaining -= 1;
       pendingRemoved += 1;
       sourceIndex += 1;
       continue;
     }
 
     if (marker === "+") {
+      if (newRemaining <= 0) return null;
+      newRemaining -= 1;
       output.push({
         text,
         changed: true,
@@ -94,7 +104,7 @@ const applyUnifiedDiff = (
     return null;
   }
 
-  if (!sawHunk) return null;
+  if (!sawHunk || oldRemaining !== 0 || newRemaining !== 0) return null;
   flushRemoved();
 
   while (sourceIndex < source.length) {
@@ -208,10 +218,10 @@ export const DocumentChangeView = ({
   currentMarkdown,
   unifiedDiff,
 }: Readonly<{
-  currentMarkdown: string;
+  currentMarkdown: string | null;
   unifiedDiff: string;
 }>) => {
-  const proposed = applyUnifiedDiff(currentMarkdown, unifiedDiff);
+  const proposed = currentMarkdown === null ? null : applyUnifiedDiff(currentMarkdown, unifiedDiff);
 
   return (
     <div className="order-document-change-view" data-testid="document-change-view">

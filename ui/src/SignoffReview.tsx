@@ -270,7 +270,8 @@ export const SignoffReview = ({
   if (selection.kind === "TASK" && selectedTask === null) {
     return (
       <div data-testid="review-workspace">
-        <WorkbenchState kind="empty" title="Signed task is no longer available" />
+        <WorkbenchState kind="empty" title="Signed task is no longer available"
+          action={<WorkbenchAction label="Back to Approval" onClick={() => setSelection({ kind: "OVERVIEW" })} />} />
       </div>
     );
   }
@@ -406,7 +407,12 @@ export const SignoffReview = ({
           ),
         },
 
-        ...(signoff.error === null
+      ]
+      : [...taskDetailSections(selectedTask)];
+  const reviewSections = [
+    ...(reviewNotice === undefined ? [] : [{ id: "notice", title: "Current package status", content: reviewNotice }]),
+    ...sections,
+    ...(signoff.error === null
           ? []
           : [{
             id: "signoff-error",
@@ -420,11 +426,7 @@ export const SignoffReview = ({
               />
             ),
           }]),
-      ]
-      : [...taskDetailSections(selectedTask)];
-  const reviewSections = reviewNotice === undefined
-    ? sections
-    : [{ id: "notice", title: "Current package status", content: reviewNotice }, ...sections];
+  ];
 
   const decisions =
     selectedTask === null

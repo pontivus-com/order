@@ -92,7 +92,10 @@ export const StageRunMaterial = ({
 
   const runOwnsAttention = !["PROPOSAL_DECISION","PROPOSAL_ADOPTION","MUTATION_CONFLICT","CONVERGING"].includes(currentAttention);
   const canCancel = selectedIsCurrent && runOwnsAttention && stageRunCancellationIsAdmitted(selectedRun, events);
-  const hasAgentAnchor = conversationEvents.some((event) =>
+  const latestTurnTrigger = events.findLast((event) =>
+    event.event.tag === "STAGE_STARTED" || event.event.tag === "HUMAN_INPUT_RECEIVED");
+  const hasAgentAnchor = latestTurnTrigger !== undefined && conversationEvents.some((event) =>
+    event.sequence > latestTurnTrigger.sequence &&
     event.event.tag === "AGENT_MESSAGE_FINAL" && event.event.text.trim().length > 0);
   const canReply = selectedIsCurrent && (
     (runOwnsAttention && interaction?.tag === "OPEN" && hasAgentAnchor) ||

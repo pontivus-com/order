@@ -443,6 +443,11 @@ export const OpenCodeAccountSettings = () => {
                     tone="primary"
                     onClick={resetAdd}
                   />
+                  {loginAttempt.status !== "COMPLETED" ? <WorkbenchAction
+                    label="Try sign-in again" tone="secondary"
+                    disabled={startLogin.isPending || mutationBlocked || addLabel.trim().length === 0}
+                    loading={startLogin.isPending}
+                    onClick={() => startLogin.mutate(addLabel)} /> : null}
                 </div>
               )}
             </>
@@ -452,6 +457,10 @@ export const OpenCodeAccountSettings = () => {
               title="Starting OpenCode sign-in…"
             />
           ) : null}
+          {startLogin.error ? <WorkbenchNotice tone="danger" title="OpenCode sign-in could not be started"
+            description={errorText(startLogin.error)} /> : null}
+          {cancelLogin.error ? <WorkbenchNotice tone="danger" title="OpenCode sign-in could not be cancelled"
+            description={errorText(cancelLogin.error)} /> : null}
           {loginQuery.error ? (
             <>
               <WorkbenchNotice

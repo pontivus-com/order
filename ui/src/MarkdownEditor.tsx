@@ -3,6 +3,7 @@ import {
   useRef,
   useState,
   type FormEvent,
+  type ReactNode,
 } from "react";
 import { Markdown } from "@astryxdesign/core/Markdown";
 import {
@@ -33,6 +34,7 @@ export type MarkdownEditorProps = Readonly<{
   onSave: (expectedSha256: Sha256, markdown: string) => Promise<ExpectedHashWriteResult>;
   onDirtyChange?: (dirty: boolean) => void;
   saveConsequence?: string;
+  toolbarAccessory?: ReactNode;
 }>;
 
 type MarkdownPresentationMode = "EDIT" | "PREVIEW" | "SPLIT";
@@ -81,6 +83,7 @@ export const MarkdownEditor = ({
   onSave,
   onDirtyChange,
   saveConsequence,
+  toolbarAccessory,
 }: MarkdownEditorProps) => {
   const sourceEditorRef = useRef<MarkdownSourceEditorHandle | null>(null);
   const onDirtyChangeRef = useRef(onDirtyChange);
@@ -245,6 +248,7 @@ export const MarkdownEditor = ({
         {readOnly ? null : (
           <div className="order-markdown-editor-controls" data-testid="markdown-editor-controls">
             <div className="order-markdown-editor-actions">
+              {toolbarAccessory}
               <WorkbenchAction
                 label="Edit"
                 tone="secondary"
@@ -268,6 +272,7 @@ export const MarkdownEditor = ({
         {presentation}
         {formatting}
         <div className="order-markdown-editor-actions">
+          {toolbarAccessory}
           <WorkbenchStatus
             tone={dirty ? "warning" : "success"}
             label={dirty ? "Unsaved" : "No unsaved edits"}

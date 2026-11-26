@@ -236,6 +236,7 @@ export const ExecutionWorkspace = ({
   material,
   tasks,
   runs,
+  runEvents,
   artifacts,
   statePending,
   stateError,
@@ -251,6 +252,7 @@ export const ExecutionWorkspace = ({
   material: WorkflowMaterial;
   tasks: readonly ExecutionTask[];
   runs: readonly Run[];
+  runEvents: readonly RunEvent[];
   artifacts: readonly ArtifactRef[];
   statePending: boolean;
   stateError: unknown;
@@ -410,6 +412,8 @@ export const ExecutionWorkspace = ({
     ) : undefined;
 
   const mutationError = start.error ?? cancel.error ?? resume.error;
+  const ownerFailureRun = currentOwnerTask === null ? undefined : [...runs].filter((run) => run.executionTaskId === currentOwnerTask.id).sort((left, right) => left.attempt - right.attempt || left.startedAt.localeCompare(right.startedAt) || left.id.localeCompare(right.id)).at(-1);
+  const ownerFailure = ownerFailureRun === undefined ? undefined : runEvents.filter((event) => event.runId === ownerFailureRun.id).sort((left, right) => left.sequence - right.sequence).findLast((event) => event.event.tag === "VALIDATION_FAILED" || event.event.tag === "PRODUCTIVE_INVOCATION_FAILED" || event.event.tag === "PROVIDER_FAILED" || event.event.tag === "REVIEW_FAILED" || event.event.tag === "GATE_FAILED");
   const attention =
     mutationError !== null ? (
       <WorkbenchAttention
@@ -428,7 +432,7 @@ export const ExecutionWorkspace = ({
             ? "Implementation is blocked"
             : currentOwnerTask.objective + " is blocked"
         }
-        description="Resolve the recorded blocker before resuming the approved task."
+        description={ownerFailure === undefined ? "Resolve the recorded blocker before resuming the approved task." : runEventPresentation(ownerFailure).detail + " Resolve this blocker before resuming the approved task."}
         action={currentAction}
       />
     ) : currentAction === undefined ? undefined : (

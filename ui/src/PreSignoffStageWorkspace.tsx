@@ -35,7 +35,7 @@ const documentLabel=(stage: SharedPreSignoffStage): string =>
   stage==="R2" ? "Requirements document" :
   stage==="DESIGN" ? "Solution design document" : "Implementation plan document";
 const supportingRoles=(stage: SharedPreSignoffStage): readonly ArtifactRef["role"][] =>
-  stage==="R1" ? [] : stage==="R2" ? ["R1"] : stage==="DESIGN" ? ["R2","R1"] : ["DESIGN","R2"];
+  stage==="R1" ? [] : stage==="R2" ? ["R1"] : stage==="DESIGN" ? ["R2","R1"] : ["DESIGN","R2","R1"];
 
 export const PreSignoffStageWorkspace = ({
   workItem, stage, runs, runEvents, artifacts, material, materialState, materialStateForArtifact,
@@ -95,6 +95,7 @@ export const PreSignoffStageWorkspace = ({
       id:"supporting-"+artifact.id,
       label:lifecycleArtifactLabel(artifact.role),
       description:"Read-only upstream authority",
+      statusLabel:(()=>{const state=materialStateForArtifact(artifact); return state===null ? undefined : materialPresentationStateLabel(state);})(),
       selected:material.kind==="SUPPORTING_DOCUMENT" && material.artifactId===artifact.id,
       onSelect:()=>onOpenSupportingMaterial({kind:"SUPPORTING_DOCUMENT",artifactId:artifact.id}),
     })),

@@ -16,6 +16,8 @@ import {
 } from "../src/core/contracts.ts";
 import {
   agentActivityRunEvents,
+  latestApprovalTasks,
+  verifiedCandidateProofEvents,
   conversationRunEvents,
   pendingProposalForEvents,
   resolveWorkflowMaterial,
@@ -948,5 +950,27 @@ describe("Run presentation", () => {
       detail: "test is awaiting coordinator verification.",
       tone: "neutral",
     });
+  });
+});
+
+
+describe("verified candidate evidence projection", () => {
+  it("uses only the final approval's exact candidate state and validation references", () => {
+    const historical = task(uuidC, "CANDIDATE_DONE");
+    const current = ExecutionTaskSchema.parse({ ...task(uuidD, "CANDIDATE_DONE"), approvalId: "approval_" + uuidE });
+    const builder = RunSchema.parse({ ...executionRun(current, "COMPLETED", uuidF), terminalClassification: "CANDIDATE_DONE" });
+    const event = (run: Run, sequence: number, identity: number, payload: RunEventPayload) =>
+      RunEventSchema.parse({ id: "event_00000000-0000-4000-8000-" + String(identity).padStart(12, "0"), runId: run.id, sequence, occurredAt: stamp, event: payload });
+    const state = event(builder, 1, 1, { tag: "CANDIDATE_STATE_RECORDED", patch: { relativePath: "candidate.patch", sha256: hash, mediaType: "text/x-diff" }, changedPaths: ["ui/src/WorkItemWorkspace.tsx"] });
+    const reviewer = RunSchema.parse({ ...executionRun(current, "COMPLETED", uuidG), role: "REVIEWER", triggerEventId: state.id, terminalClassification: "CANDIDATE_DONE" });
+    const validations = (["V0","V1","V2","V3","V4","V5","V6","V7"] as const).map((stage, i) => event(reviewer, i + 1, i + 2, { tag: "VALIDATION_PASSED", stage, evidence: [] }));
+    const record = event(reviewer, 9, 10, { tag: "CANDIDATE_RECORDED", candidateStateEventId: state.id, validationEventIds: validations.map((v) => v.id) });
+    const oldRun = executionRun(historical, "FAILED", uuidH);
+    const oldEvent = event(oldRun, 1, 11, { tag: "PROVIDER_FAILED", detail: "Unrelated failed attempt", evidence: [] });
+    const all = [state, ...validations, record, oldEvent];
+    expect(latestApprovalTasks([historical, current])).toEqual([current]);
+    expect(verifiedCandidateProofEvents([historical, current], [builder, reviewer, oldRun], all)).toEqual([state, ...validations]);
+    expect(verifiedCandidateProofEvents([current], [builder, reviewer], all.filter((v) => v.id !== validations[2]!.id))).toEqual([]);
+    expect(verifiedCandidateProofEvents([current], [builder, reviewer], all.filter((v) => v.id !== record.id))).toEqual([]);
   });
 });

@@ -25,6 +25,7 @@ import {
   lifecycleArtifactLabel,
   materialPresentationStateLabel,
   readinessOutcomeLabel,
+  runIsActive,
   runStatusLabel,
   type EvidenceSelection,
   type WorkflowMaterial,
@@ -464,7 +465,7 @@ export const ReadinessWorkspace = ({
             id: "governed-review",
             title: "Governed review",
             content: readinessArtifact === null
-              ? <WorkbenchState kind="empty" title="Readiness review is in progress" />
+              ? <WorkbenchState kind="empty" title={latestRun === null ? "No governed review yet" : runIsActive(latestRun) ? "Readiness review is in progress" : "No governed review is available"} />
               : (
                 <WorkbenchAction
                   label="Read readiness review"

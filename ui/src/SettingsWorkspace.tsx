@@ -333,7 +333,7 @@ const RepositorySettings = ({
                   tone="primary"
                   loading={connect.isPending}
                   disabled={
-                    connect.isPending ||
+                    connect.isPending || configQuery.data === undefined ||
                     repositoryRoot.trim().length === 0
                   }
                   onClick={() => connect.mutate()}
@@ -384,6 +384,8 @@ const RepositorySettings = ({
         }
       />
 
+      {configQuery.isError ? <WorkbenchNotice tone="danger" title="Configuration unavailable"
+        description={errorText(configQuery.error)} action={<WorkbenchAction label="Retry configuration" onClick={() => { void configQuery.refetch(); }} />} /> : null}
       {repositoriesQuery.isPending ? (
         <WorkbenchState kind="loading" title="Checking repositories…" />
       ) : null}
@@ -457,7 +459,7 @@ const RepositorySettings = ({
                       disconnect.isPending &&
                       disconnect.variables === repository.repositoryRoot
                     }
-                    disabled={disconnect.isPending}
+                    disabled={disconnect.isPending || configQuery.data === undefined}
                     onClick={() =>
                       setDisconnectRepositoryRoot(
                         repository.repositoryRoot,
@@ -623,6 +625,8 @@ const ModelRuntimeSettings = () => {
         title="Model & runtime"
         description="Select the OpenCode model Order will use for productive agent work."
       />
+      {configQuery.isError ? <WorkbenchNotice tone="danger" title="Configuration unavailable"
+        description={errorText(configQuery.error)} action={<WorkbenchAction label="Retry configuration" onClick={() => { void configQuery.refetch(); }} />} /> : null}
       {modelsQuery.isPending ? (
         <WorkbenchState
           kind="loading"
@@ -634,6 +638,7 @@ const ModelRuntimeSettings = () => {
           tone="danger"
           title="Available models could not be loaded"
           description={errorText(modelsQuery.error)}
+          action={<WorkbenchAction label="Retry available models" onClick={() => { void modelsQuery.refetch(); }} />}
         />
       ) : null}
       {!modelsQuery.isPending &&
@@ -667,8 +672,8 @@ const ModelRuntimeSettings = () => {
               tone="primary"
               loading={updateModel.isPending}
               disabled={
-                updateModel.isPending ||
-                selection.length === 0 ||
+                updateModel.isPending || configQuery.data === undefined || modelsQuery.isError ||
+                !availableModels.some((model) => modelKey(model) === selection) ||
                 selection === configuredKey
               }
               onClick={() => updateModel.mutate()}

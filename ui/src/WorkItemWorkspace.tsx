@@ -24,6 +24,7 @@ import * as api from "./http.ts";
 import { invalidateWorkbenchMutation, workbenchQueryKeys } from "./query-keys.ts";
 import {
   resolveWorkflowMaterial,
+  latestApprovalTasks,
   runIsActive,
   workflowStepState,
   workflowMaterialIdentity,
@@ -285,8 +286,7 @@ export const WorkItemWorkspace = ({
       ]
     : artifacts;
   const tasks = tasksQuery.data ?? [];
-  const currentExecutionTasks =
-    workItem.stage === "EXECUTION" ? tasks : [];
+  const currentExecutionTasks = workItem.stage === "EXECUTION" ? latestApprovalTasks(tasks) : [];
   const coherenceTasks =
     workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE"
       ? tasks
@@ -1371,6 +1371,7 @@ export const WorkItemWorkspace = ({
             material={material}
             tasks={tasks}
             runs={runs}
+            runEvents={allRunEvents}
             artifacts={allArtifacts}
             statePending={
               runsQuery.isPending ||

@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Continue IA29–IA34 realization: restore the narrow editor control contract, retain exact proposal inspection across unavailable targets, show sign-off failure on task detail, explain durable-decision input, preserve upstream material access, separate current execution ownership from historical approvals, bind terminal resources to recorded candidate validation lineage, and improve Settings recovery controls.
+
 - Close IA29 Document presentation residuals: render canonical lifecycle maturity separately from edit/Git state, preserve exact historical inspection, disclose upstream Save consequences, and explain active authoring exclusion. Add browser assertions for these interaction contracts.
 
 - Record operator acceptance of the foundational Workbench milestone and exact green verification/IA07–IA08 read-only reuse evidence; retain separate corrected-package readiness and detailed implementation proof obligations.

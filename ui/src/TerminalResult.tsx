@@ -18,6 +18,7 @@ import {
   lifecycleArtifactRoleRank,
   runRoleLabel,
   workOutcomeProductLabel,
+  verifiedCandidateProofEvents,
   type EvidenceSelection,
 } from "./workbench-presentation.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
@@ -95,6 +96,12 @@ export const TerminalResult = ({
     enabled: candidateDone,
   });
 
+  const tasksQuery = useQuery({
+    queryKey: workbenchQueryKeys.tasks(workItem.id),
+    queryFn: () => api.listExecutionTasks(workItem.id),
+    enabled: candidateDone,
+  });
+
   const candidateRuns = candidateDone
     ? (runsQuery.data ?? []).filter((run) => run.executionTaskId !== null)
     : [];
@@ -108,7 +115,7 @@ export const TerminalResult = ({
 
   const artifacts = useMemo(
     () =>
-      [...(artifactsQuery.data ?? [])].sort(
+      [...(artifactsQuery.data ?? [])].filter((artifact) => artifact.role === "R1").sort(
         (left, right) =>
           lifecycleArtifactRoleRank(left.role) -
           lifecycleArtifactRoleRank(right.role),
@@ -132,16 +139,18 @@ export const TerminalResult = ({
     enabled: selectedArtifact !== null,
   });
 
-  const candidateEvidence = candidateRuns.flatMap((run, runIndex) => {
-    const events = eventQueries[runIndex]?.data ?? [];
-    return events.flatMap((event: RunEvent) =>
-      eventEvidence(event).map((proof) => ({
-        runId: run.id,
-        role: run.role,
-        attempt: run.attempt,
-        proof,
-      }))
-    );
+  const candidateEvidence = verifiedCandidateProofEvents(
+    tasksQuery.data ?? [],
+    candidateRuns,
+    eventQueries.flatMap((query) => query.data ?? []),
+  ).flatMap((event: RunEvent) => {
+    const run = candidateRuns.find((candidate) => candidate.id === event.runId);
+    return run === undefined ? [] : eventEvidence(event).map((proof) => ({
+      runId: run.id,
+      role: run.role,
+      attempt: run.attempt,
+      proof,
+    }));
   });
   const uniqueCandidateEvidence = candidateEvidence.filter(
     (candidate, index, all) =>
@@ -164,13 +173,13 @@ export const TerminalResult = ({
       resources={candidateDone ? {
         title: "Verified candidate resources",
         content: <div data-testid="candidate-result-material">
-          {runsQuery.isPending ||
+          {runsQuery.isPending || tasksQuery.isPending ||
           eventQueries.some((query) => query.isPending) ? (
             <WorkbenchState
               kind="loading"
               title="Loading candidate resources…"
             />
-          ) : runsQuery.isError ||
+          ) : runsQuery.isError || tasksQuery.isError ||
             eventQueries.some((query) => query.isError) ? (
             <WorkbenchState
               kind="error"
@@ -180,7 +189,7 @@ export const TerminalResult = ({
           ) : uniqueCandidateEvidence.length === 0 ? (
             <WorkbenchState
               kind="empty"
-              title="No separate candidate resource is recorded"
+              title="No exact verified candidate resource is available"
               description="The verified task and attempt history remains available under Implementation."
             />
           ) : (

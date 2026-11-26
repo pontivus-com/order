@@ -44,6 +44,8 @@ export const ActivityComposer = ({
     onError,
   });
   const required = pending?.event.tag === "HUMAN_INPUT_REQUESTED";
+  const durableDecision = pending?.event.tag === "HUMAN_INPUT_REQUESTED" &&
+    (pending.event.category === "STAGE_CHOICE" || pending.event.category === "AUTHORITY_DECISION" || pending.event.category === "AUTHORITY_CONFLICT");
 
   return <div ref={regionRef} tabIndex={-1} data-testid="activity-composer" className="order-activity-composer">
     {input.error && onError === undefined ? <WorkbenchNotice
@@ -53,6 +55,7 @@ export const ActivityComposer = ({
     <div className="order-activity-composer-context">
       <strong>{required ? "Your response" : "Continue conversation"}</strong>
       {required ? <span>Answer the current agent question to continue.</span> : null}
+      {durableDecision ? <span data-testid="durable-decision-guidance">Your reply is not itself durable authority. Progression requires adoption of the owning governed artifact or proposal.</span> : null}
     </div>
     <form className="order-activity-message-form" onSubmit={(event) => {
       event.preventDefault();

@@ -763,6 +763,45 @@ export const runEventPresentation = (
   return exhaustive;
 };
 
+// Task API projects approvals in canonical approvedAt/id order; the last group
+// is the only authority for an active or successfully completed execution.
+export const latestApprovalTasks = (tasks: readonly ExecutionTask[]): readonly ExecutionTask[] => {
+  const approval = tasks.at(-1)?.approvalId;
+  return approval === undefined ? [] : tasks.filter((task) => task.approvalId === approval);
+};
+
+// Resolve evidence through the durable final candidate record, never by
+// treating all historical execution events as evidence for the final outcome.
+export const verifiedCandidateProofEvents = (
+  tasks: readonly ExecutionTask[],
+  runs: readonly Run[],
+  events: readonly RunEvent[],
+): readonly RunEvent[] => {
+  const byId = new Map(events.map((event) => [event.id, event]));
+  const runById = new Map(runs.map((run) => [run.id, run]));
+  return latestApprovalTasks(tasks).filter((task) => task.state === "CANDIDATE_DONE").flatMap((task) => {
+    const records = events.filter((event) => {
+      const run = runById.get(event.runId);
+      return event.event.tag === "CANDIDATE_RECORDED" && run?.executionTaskId === task.id &&
+        run.role === "REVIEWER" && run.status === "COMPLETED" && run.terminalClassification === "CANDIDATE_DONE";
+    });
+    if (records.length !== 1) return [];
+    const record = records[0]!;
+    if (record.event.tag !== "CANDIDATE_RECORDED") return [];
+    const state = byId.get(record.event.candidateStateEventId);
+    const stateRun = state === undefined ? undefined : runById.get(state.runId);
+    const reviewer = runById.get(record.runId);
+    if (state?.event.tag !== "CANDIDATE_STATE_RECORDED" ||
+      stateRun?.executionTaskId !== task.id || (stateRun.role !== "BUILDER" && stateRun.role !== "REMEDIATOR") ||
+      reviewer?.triggerEventId !== state.id || reviewer.baselineCommit !== stateRun.baselineCommit) return [];
+    const validations = record.event.validationEventIds.map((id) => byId.get(id));
+    if (validations.length !== 8 || validations.some((event, index) =>
+      event?.event.tag !== "VALIDATION_PASSED" || event.runId !== record.runId ||
+      event.sequence >= record.sequence || event.event.stage !== "V" + index)) return [];
+    return [state, ...validations.filter((event): event is RunEvent => event !== undefined)];
+  });
+};
+
 export const eventEvidence = (
   event: RunEvent,
 ): readonly import("../../src/core/contracts.ts").EvidenceRef[] => {
