@@ -1191,19 +1191,17 @@ export const WorkItemWorkspace = ({
           <span className="order-workitem-back"><WorkbenchIcon name="back" />Back to queue</span>
         </Link>
       }
-      title={
+      title={workItem.title}
+      kind={workItemKindLabel}
+      headingRef={headingRef}
+      editing={
         titleEditing ? (
           <div className="order-workitem-title-edit">
             <TextInput label="Work item title" isLabelHidden size="sm" width="100%" value={titleDraft} hasAutoFocus onChange={setTitleDraft} />
             <WorkbenchAction label="Save title" tone="primary" loading={titleMutation.isPending} disabled={documentMutationsDisabled || titleDraft.trim().length === 0 || titleMutation.isPending} onClick={() => titleMutation.mutate()} />
             <WorkbenchAction label="Cancel title edit" disabled={titleMutation.isPending} onClick={() => { setTitleDraft(workItem.title); setTitleError(null); setTitleEditing(false); }} />
           </div>
-        ) : (
-          <div className="order-workitem-title-row">
-            <h1 ref={headingRef} tabIndex={-1} data-testid="work-item-heading">{workItem.title}</h1>
-            <span className="order-workitem-kind">{workItemKindLabel}</span>
-          </div>
-        )
+        ) : undefined
       }
       detail={
         titleError || titleMutation.error ? (

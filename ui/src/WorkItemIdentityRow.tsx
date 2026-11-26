@@ -1,11 +1,14 @@
-import type { ReactNode } from "react";
+import type { ReactNode, Ref } from "react";
 import { WorkbenchIdentity } from "./primitives/WorkbenchIdentity.tsx";
 
 export const WorkItemIdentityRow = ({
-  navigation, title, detail, utilities,
+  navigation, title, kind, headingRef, editing, detail, utilities,
 }: Readonly<{
   navigation: ReactNode;
-  title: ReactNode;
+  title: string;
+  kind: string;
+  headingRef: Ref<HTMLHeadingElement>;
+  editing?: ReactNode;
   detail?: ReactNode;
   utilities: ReactNode;
 }>) => (
@@ -13,7 +16,12 @@ export const WorkItemIdentityRow = ({
     navigation={navigation}
     identity={
       <div className="order-workitem-identity-copy">
-        <div className="order-workitem-identity-title">{title}</div>
+        {editing === undefined ? (
+          <div className="order-workitem-title-row">
+            <h1 ref={headingRef} tabIndex={-1} data-testid="work-item-heading" title={title}>{title}</h1>
+            <span className="order-workitem-kind">{kind}</span>
+          </div>
+        ) : editing}
         {detail === undefined ? null : <div className="order-workitem-identity-detail">{detail}</div>}
       </div>
     }

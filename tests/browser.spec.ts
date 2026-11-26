@@ -2445,6 +2445,10 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     expect(Math.max(...centers) - Math.min(...centers)).toBeLessThanOrEqual(1);
   };
   await expectIdentityOneRow();
+  const processRail = page.getByTestId("workflow-rail");
+  await expect(processRail.locator(".order-workbench-process-marker")).toHaveCount(9);
+  await expect(processRail.getByRole("button", { name: "Work request", exact: true }).locator(".order-workbench-rail-status")).toBeVisible();
+  await expect(processRail.getByRole("button", { name: "Work request", exact: true })).toHaveAttribute("aria-current", "step");
   await expect(identity.locator(".order-workbench-identity-primary .order-workitem-kind")).toHaveText("Change");
   await expect(identity.locator(".order-workitem-kind")).toHaveCSS("border-radius", "0px");
   await expect(identity.getByRole("group", { name: "Work item actions" }).getByRole("button", { name: "Edit title", exact: true })).toBeVisible();
@@ -2573,7 +2577,17 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     ],
     captureScope: "production application toolbar only; WorkItem body excluded",
   }, page.getByTestId("workbench-toolbar")));
-  await expectIdentityOneRow();
+  const narrowIdentity = await identity.evaluate((node) => {
+    const navigation = node.querySelector(".order-workbench-identity-navigation")!.getBoundingClientRect();
+    const primary = node.querySelector(".order-workbench-identity-primary")!.getBoundingClientRect();
+    const utilities = node.querySelector(".order-workbench-identity-utilities")!.getBoundingClientRect();
+    return { navigationTop: navigation.top, utilitiesTop: utilities.top,
+      primaryTop: primary.top, primaryWidth: primary.width, identityWidth: node.getBoundingClientRect().width,
+      navigationBottom: navigation.bottom, utilitiesBottom: utilities.bottom };
+  });
+  expect(Math.abs(narrowIdentity.navigationTop - narrowIdentity.utilitiesTop)).toBeLessThanOrEqual(8);
+  expect(narrowIdentity.primaryTop).toBeGreaterThanOrEqual(Math.max(narrowIdentity.navigationBottom, narrowIdentity.utilitiesBottom));
+  expect(narrowIdentity.primaryWidth).toBeGreaterThan(narrowIdentity.identityWidth * 0.85);
   entries.push(await captureRenderedAcceptance(page, {
     id: "workitem-shell-narrow-light-chrome",
     workItemKind: "CHANGE",
@@ -5048,7 +5062,11 @@ test("completed pre-signoff history never suppresses the canonical next-stage ac
     await expect(page.getByRole("radio", { name: "Activity" })).toHaveCount(0);
 
     if (entry.currentStep === "Requirements") {
+      const reachedResearch = rail.getByRole("button", { name: "Research", exact: true });
+      await expect(reachedResearch.locator(".order-workbench-process-marker")).toHaveText("✓");
       await selectWorkflowStep(page, "Research");
+      await expect(reachedResearch).toHaveAttribute("aria-pressed", "true");
+      await expect(rail.getByRole("button", { name: "Requirements", exact: true })).toHaveAttribute("aria-current", "step");
       await expect(page.getByRole("button", { name: "Supporting material and history", exact: true })).toHaveCount(0);
       await selectCurrentWorkflowMaterial(page, "Attempt 1");
       await expect(page.getByTestId("stage-run-material")).toBeVisible();

@@ -8,6 +8,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Changed
 
+- Start the expanded P0.R reconstruction with the compact WorkItem identity composition and restore connected, checkmarked lifecycle visualization with independent current and inspection states. Record the dependency order and restart checkpoint; no intermediate visual acceptance.
+
 - Record the expanded P0.R operator rejection and full-corpus component/interaction audit (UI-07–UI-20) in the existing campaign owner. Correct the lifecycle rail versus subordinate-navigation interpretation; distinguish canonical lifecycle behavior, actual runtime deficiencies and reference/evidence mismatches. No UI implementation or acceptance state is changed by this audit.
 
 - Prioritize and reconstruct the six operator-rejected presentation areas as one integrated P0.R correction: bounded global toolbar, rectangular workflow navigation, explicit message field/Send action, consistent shared radius/boundary roles, selectable task and Settings navigation, and complete Implementation task overview/validation/contract/chronology/resources. Extend the existing targeted reference evidence and regression checks; retain open human acceptance. Record the operator's priority in the campaign owner without changing the reviewed PLAN bytes or excluded atomic adapters.
