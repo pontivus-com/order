@@ -25,7 +25,7 @@ Stable rows in phase: **8**.
 |---|---|---|---|---|---|
 | `PL-C22-01` | C22-F01/C22-F02 | `SD02` | `IA01`, `IA02` | — | Resolve same-layer precedence/default/override/extension and fitness bindings over the reachable graph, then derive stage materiality from the pinned schema/stage/explicit refs so retained semantic versions remain live by exact versioned ref without leaking into unrelated current-schema context; IA02 owns the production-path proof. |
 | `PL-C02-01` | C02-F01 | `SD03`, `SD22` | `IA11`, `IA28` | — | Ordinary Create language is Concerns and the existing Create composition realizes the controlled authoring hierarchy. |
-| `PL-C02-02` | C02-F02 | `SD03`, `SD22` | `IA11`, `IA28` | — | Linked remediation project is fixed to parent project and the existing remediation task panel exposes no editable cross-project choice. |
+| `PL-C02-02` | C02-F02 | `SD03`, `SD22` | `IA11`, `IA28` | — | Linked remediation Project is fixed; SD03/IA11 shares catalog-admitted completed-parent eligibility with IA33, no outcome-only exclusion or automatic remediation. |
 | `PL-C02-03` | C02-F03/C04-F01 | `SD04` | `IA09`, `IA10` | — | Created and discovered sources share one productive admission/persistence owner. |
 
 Package atoms in phase: **4**.

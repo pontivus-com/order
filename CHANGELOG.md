@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Reconcile linked-remediation admission, document orientation, producing-stage material and durable-decision/current-attention specification across DESIGN A02–A04; rebind exact R1/R2/DESIGN/PLAN identities and proof obligations without extending implementation scope.
+
 - Clarify producing-stage authority material closure and conformance freshness in SD02/IA02; record the remaining linked-remediation eligibility challenge and correct A01's exact audit bindings.
 
 - Close the terminal-origin factual/functional/technical trace, including signed no-op and exact conformed R1 result material, and record the A01 technical audit against the corrected package.

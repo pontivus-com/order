@@ -34,7 +34,7 @@ Stable rows in phase: **18**.
 | Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
 |---|---|---|---|---|---|
 | `PL-C05-01` | C05-F01 | `SD07`, `SD21`, `SD24` | `IA14`, `IA27`, `IA30` | — | Exact current owner/reason/action remains visible when required, but no generic state tuple is rendered as a current-attention strip. Historical inspection uses at most one human return-to-current-work affordance; productive screens use direct interaction classes. |
-| `PL-C06-01` | C06-F01 | `SD08` | `IA04` | `IA03` | Authority-changing input is not sufficient durable authority until a later adopted canonical proposal exists. |
+| `PL-C06-01` | C06-F01 | `SD08` | `IA04` | `IA03` | Authority-changing input remains evidence; later adoption is necessary in the same Run but insufficient for semantic coverage. Fresh Run/Save recovery requires exact current durable authority and prior applicable decision evidence. |
 
 Package atoms in phase: **2**.
 
