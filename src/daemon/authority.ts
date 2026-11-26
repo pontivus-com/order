@@ -618,7 +618,7 @@ export const currentStageDraftArtifacts = async (
 ): Promise<readonly ArtifactRef[]> => {
   if (stage === "R3") return [];
   const candidates = latestRunCandidateArtifacts(
-    runtime, workItem.id, stage, workItem.schemaId.endsWith("-v2") && stage !== "R3",
+    runtime, workItem.id, stage, workItem.schemaId.endsWith("-v2"),
   );
   const semantic = new Map<string, ArtifactRef>();
   for (const candidate of candidates) {
