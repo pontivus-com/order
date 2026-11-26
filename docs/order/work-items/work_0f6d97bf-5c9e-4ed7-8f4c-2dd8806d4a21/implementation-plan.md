@@ -4,7 +4,7 @@
 
 ## Canonical PLAN authority
 
-This root is the single deterministic P7 artifact for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. Its modular directory is the maintainable authoring decomposition, not independent executable authority. This synchronized candidate binds R1 `ae515f383c395a54fae48505bc236377d5428631`, R2 `56d7420dab12f004be0bdb401d5f3bb5caf89a32`, DESIGN `fe41c2c2f52ef35991a4a986ee301369953cbe16`, current P4 and P6. G4 must close before G5 finalizes it; campaign §17A/§18 own gate state and authorization. No gate advance or sign-off is inferred.
+This root is the single deterministic P7 artifact for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. Its modular directory is the maintainable authoring decomposition, not independent executable authority. This synchronized candidate binds R1 `ae515f383c395a54fae48505bc236377d5428631`, R2 `56d7420dab12f004be0bdb401d5f3bb5caf89a32`, DESIGN `d507b2f62317dc4b3f39cd0fa241723640768294`, current P4 and P6. G4 must close before G5 finalizes it; campaign §17A/§18 own gate state and authorization. No gate advance or sign-off is inferred.
 
 ## Current Workbench implementation plan
 
@@ -14,7 +14,7 @@ Retain evidenced closed F6B owners and the operator-accepted foundation within s
 
 | Source component | Git blob |
 |---|---|
-| `implementation-plan/00-governance.md` | `2bcf91a481ad6db8d77ca75d6d1b623de5133d6c` |
+| `implementation-plan/00-governance.md` | `7c4046a721d508ec08b3b503acc6783fca6b327d` |
 | `implementation-plan/01-a01-lifecycle-product.md` | `94707df41608c41756d04f452b2f982fdbdd8338` |
 | `implementation-plan/02-a02-governance-intake.md` | `790ff546f060699dbc202627137af241fc04ba2a` |
 | `implementation-plan/03-a03-queue-source.md` | `b0f9bd32f6f3bce513e9668a31f7d388fa0cecb8` |
@@ -26,7 +26,7 @@ Retain evidenced closed F6B owners and the operator-accepted foundation within s
 | `implementation-plan/09-a09-provider-settings.md` | `dc9988af7a2f63ae8a2843122e66911e14d595e9` |
 | `implementation-plan/10-a10-recovery-accessibility.md` | `3537f8f368001084e0844c4039235f85b0cbe532` |
 | `implementation-plan/11-a11-component-certification.md` | `8d24929b9444178a917e04be08302ea2c70e4952` |
-| `implementation-plan/12-action-catalog.md` | `0202338d90d4de579732c0966e7281b1f06bc021` |
+| `implementation-plan/12-action-catalog.md` | `0b198d61cd0e76478ed7fc50707a2c329eb0e511` |
 | `implementation-plan/13-verification-closeout.md` | `3ca250e562c04fdeb95ea54bd960a5ef9600996f` |
 
 A source hash mismatch makes PLAN non-current until recompiled. Directory files have no independent order-tasks block or lifecycle state.
@@ -343,7 +343,7 @@ This decomposition is revalidated under C19-F09/C20-F11 after the prior G4-G6 cl
 
 - R1 `research.md`: `ae515f383c395a54fae48505bc236377d5428631`.
 - R2 `requirements.md`: `56d7420dab12f004be0bdb401d5f3bb5caf89a32`.
-- DESIGN `solution-design.md`: `fe41c2c2f52ef35991a4a986ee301369953cbe16` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 40-path forecast.
+- DESIGN `solution-design.md`: `d507b2f62317dc4b3f39cd0fa241723640768294` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 40-path forecast.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `9c2ec83a9552b7583f90e91080c014df4d6870df`.
 - P3 `GW-DOC-WORKBENCH-UX-V2`: `64184232833b59a9e6db5e1a28b841f48b3217cd` — §11.4A/§12/§13/§14 own semantic information classes, state-is-not-interface behavior, direct primary interaction composition, no generic workflow-material selector, continuous Dialogue semantics, Terminal-result primacy, singular technical inspection, task anatomy and composition invariants.
 - P3 `GW-DOC-MARKDOWN-WORKBENCH-V1`: `da89bd08e4f78f353d7b3062758e9d78e21375b2` — §17.4 owns one compact Markdown editor-control region, overflow-before-wrap formatting and control→canvas adjacency.
@@ -1130,10 +1130,10 @@ Phase ownership is unchanged. Breaking APIs are not forecast; a disproven retain
 
 **Solution:** SD02. Depends on IA01.  
 **Anchors:** `src/daemon/authority.ts::resolveStageContextState/resolveStageContext`; `src/daemon/stage.ts::stagePrompt` and stage admission.  
-**Required mutation/proof disposition:** Use core/work-item-source.ts existing template header/R2 ledger parsers, core/execution.ts existing task parser, and daemon/authority.ts existing applicable selection to collect exact refs before lookup, expand dependencies and materialize only applicable refs under pinned schema/stage/concern/P1/explicit authority. daemon/stage.ts validates current-v2 declarations and semantic completeness. Retain v1; absent additive map is empty, unresolved required ref blocks before provider. Update example and fixtures, not authorizing root. R3/sign-off/freshness share selection.  
+**Required mutation/proof disposition:** Use core/work-item-source.ts existing template header/R2 ledger parsers, core/execution.ts existing task parser, and daemon/authority.ts existing applicable selection to collect exact refs before lookup, expand dependencies and materialize only applicable refs under pinned schema/stage/concern/P1/explicit authority. daemon/stage.ts validates current-v2 declarations and stage-owned semantic completeness. Consume SD02 producing-stage closure: include exact canonical draft/output-declared governing sources in the producing context; re-resolve against the exact completion candidate before promotion and use existing stale-context recovery if material differs. Revalidate conformance with the same admitted output declaration; never add the output as its own dependency or retrofit context evidence. Retain v1; absent additive map is empty, unresolved required ref blocks before provider. Update example and fixtures, not authorizing root. R3/sign-off/freshness share selection.  
 **Forbidden:** provider interpretation of raw manifest order as precedence; daemon-owned second authority graph; include-every-selected-source context projection; implicit promotion of retained historical sources into current-schema context; context construction that bypasses the IA01 resolved projection or the canonical lifecycle-context applicability rule.  
 **Proof:**
-- `tests/daemon.test.ts` — productive-context admission consumes the resolved projection, derives the schema/stage-applicable material subset, excludes an unrelated retained V1 source from a current-v2 context, includes the exact retained source when a pinned historical schema or explicit versioned ref requires it, and blocks unresolved applicable bindings before provider use;
+- `tests/daemon.test.ts` — productive-context admission consumes the resolved projection, derives the schema/stage-applicable material subset, excludes an unrelated retained V1 source from a current-v2 context, includes the exact retained source when a pinned historical schema or explicit versioned ref requires it, and blocks unresolved applicable bindings before provider use; proves newly declared output material cannot promote against the old Run context, fresh-turn recovery, exact same-projection conformance revalidation and no output self-dependency;
 - `tests/certification.test.ts` — representative production project manifest with both current and retained semantic sources plus same-layer precedence/default/override/extension reaches the real STAGE context with only the applicable material set in resolved order. Current-v2 and historical exact-version cases are both proved, and an equivalent unresolved simultaneously-applicable relation fails before any provider turn. The certification must fail if production falls back to raw manifest array/filesystem order, include-every-selected-source projection, or provider interpretation.
 
 ##### IA03 — one GOVERNANCE proposal/adoption mechanism
