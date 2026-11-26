@@ -6,16 +6,16 @@ This decomposition is revalidated under C19-F09/C20-F11 after the prior G4-G6 cl
 
 ## Exact upstream package
 
-- R1 `research.md`: `42e43567f5083a7f2404968c226109954c41dc47`.
-- R2 `requirements.md`: `44aa2cf535005ca275177587429117b575246bac`.
-- DESIGN `solution-design.md`: `187c6e16073a482cd962d3bcf584e6574515bd24` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 43-path forecast.
+- R1 `research.md`: `704491e24774542428783bfd07f81f861d6dc206`.
+- R2 `requirements.md`: `791b7dce75335d6b00146adca7a1973f7db162b0`.
+- DESIGN `solution-design.md`: `3e8a8aeb408385b11091cb4fe8b9d5796b9ba340` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 43-path forecast.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `9c2ec83a9552b7583f90e91080c014df4d6870df`.
 - P3 `GW-DOC-WORKBENCH-UX-V2`: `64184232833b59a9e6db5e1a28b841f48b3217cd` — §11.4A/§12/§13/§14 own semantic information classes, state-is-not-interface behavior, direct primary interaction composition, no generic workflow-material selector, continuous Dialogue semantics, Terminal-result primacy, singular technical inspection, task anatomy and composition invariants.
 - P3 `GW-DOC-MARKDOWN-WORKBENCH-V1`: `da89bd08e4f78f353d7b3062758e9d78e21375b2` — §17.4 owns one compact Markdown editor-control region, overflow-before-wrap formatting and control→canvas adjacency.
 - P4 `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`: `8fccbe031436a9eb54da8ae493b614e94cc957b1` — sole permanent owner of structural + semantic Workbench component responsibilities/APIs, consumer boundaries, composition laws and remediation disposition semantics.
 - P4 `GW-DOC-WORKBENCH-THEME-V1`: `03dfc6be3600a1128b5639d011f4c0159d3497dd` — owns the corrected semantic-disclosure, technical-inspection and task-panel visual roles.
-- P4 `GW-DOC-TECHNICAL-ARCHITECTURE-V2`: `63f3edf59908411f1b44e77fa2cb134d613a22f8` — canonical installer/readiness and technical ownership.
-- P6 `GW-DOC-CANONICAL-CONTRACTS-V2`: `9cbb581ae2262d4572be6519da46bbf47152ab51`.
+- P4 `GW-DOC-TECHNICAL-ARCHITECTURE-V2`: `12a47df7837002cb445d084b3b4a2faa00f1997d` — canonical installer/readiness and technical ownership.
+- P6 `GW-DOC-CANONICAL-CONTRACTS-V2`: `bc06069c03751bbf00ac731d344b31dd4e8de75a`.
 - SD13 checkpoint and SD10 scope/forecast/V4-V6 realization are consumed only because current DESIGN positively proves those canonical capabilities; T1 does not reimplement them.
 
 ## Traceability law

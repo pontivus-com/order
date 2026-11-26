@@ -16,7 +16,7 @@ T1 carries the same six logical gate IDs through final validation. During the li
 | Completed phase | Before next phase | Required retained evidence |
 |---|---|---|
 | read-only IA07/IA08 and current R3/G6 | normal sign-off | exact existing capability proof; no mutation before sign-off absent separate grant |
-| signed IA01→IA02→IA03→IA04, IA11, IA17, IA25 and existing capability proof | IA27/IA28 | exact refs/decision conformance, interrupted adoption, linked-remediation eligibility, shared admitted completion/reach and Approval query/route proof; paired fixture chronology; exact fresh installer completion gate and auth/rollback/negative proof |
+| signed IA01→IA02→IA03→IA04, IA11, IA17, IA25 and existing capability proof | IA27/IA28 | exact refs/decision conformance, interrupted adoption, linked-remediation eligibility, shared admitted completion/reach and Approval query/route proof; paired fixture chronology; exact fresh installer completion gate, established-installation exemption, source-marker publication, retry/interruption and auth/rollback/negative proof |
 | IA27/IA28 | IA29 | existing shell/Context/ResourceList, Queue/Create proof, accepted scope and exact residuals |
 | IA29 | IA16 | signed document membership and Document-first/narrow proof; IA17 exact query/selection already proven |
 | IA16 | IA31 | exact same-Run completed R3/conformance/contextHash/output ArtifactRef verdict and negative rejection/currentness proof; IA31 consumes the admitted verdict without deriving it again |
@@ -205,7 +205,7 @@ V4/V5/V6 explicitly verify:
 - bootstrap dependency-lock passed; exact residual/reuse proofs and normal V0–V7 closure retained;
 - FCIS/SoC/DRY/canonical ownership/strict typing/no-OOP/no-DTO;
 - no compatibility/fallback/shadow state/owner, deprecated prop/alias, translation adapter, hidden legacy DOM, dual old/new path, feature-flagged superseded topology or CSS shim;
-- IA25 corrected actual fresh installer completion gate: existing daemon readiness GET, exact bounded Bearer read and strict schema; not-ready/unavailable/malformed response fails before retirement/success; preserve incomplete-config recovery and update continuity;
+- IA25 corrected actual fresh installer completion gate: existing daemon readiness GET, exact bounded Bearer read and strict schema; not-ready/unavailable/malformed response fails before retirement/success; partial/residual first-run footprint cannot bypass fresh readiness and fresh source marker is published only after readiness; preserve established incomplete-config recovery and update continuity;
 - no implementation-derived product semantics.
 - IA26 exact-candidate rendered evidence is exhaustive and scope-valid; the Actions artifact is bound to the reviewed candidate; the separate acceptance ledger records PASS with rationale for every required schema/information, UX/interaction and visual/UI dimension; zero unresolved discrepancy remains. Capture generation success alone is not acceptance. Required-absent generic composition, direct Review/Dialogue ownership and zero legacy/adapter paths are proven; no parent-SURF PASS hides a visibly nonconforming descendant.
 
