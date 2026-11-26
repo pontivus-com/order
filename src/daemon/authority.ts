@@ -40,6 +40,7 @@ import {
   deduplicateArtifactsPreservingOrder,
   projectAuthorityForSources,
   resolveProjectAuthority,
+  resolveAuthorityRefClosure,
   type PreSignoffStage,
   type ResolvedProjectAuthority,
   priorStagesForStage,
@@ -52,6 +53,7 @@ import {
 } from "../core/execution.ts";
 import {
   stageTemplateForSchema,
+  stageDocumentAuthorityRefs,
   workItemDocumentPath,
 } from "../core/work-item-source.ts";
 import {
@@ -328,15 +330,8 @@ const stageTemplateAuthorityRefs = (
 ): readonly AuthorityRef[] => {
   const template = stageTemplateForSchema(workItem.schemaId, stage);
   if (template === null) return [];
-  const firstLine = template.split("\n", 1)[0] ?? "";
-  const match = /^<!-- Order template: [^;]+; authority: (.*) -->$/.exec(firstLine);
-  if (match === null) {
-    throw new TypeError("stage template is missing its canonical authority identity");
-  }
   const reachable = new Set(authority.authorityRefs.map(([authorityRef]) => authorityRef));
-  const required = match[1]
-    .split(",")
-    .map((value) => AuthorityRefSchema.parse(value.trim()));
+  const required = stageDocumentAuthorityRefs(workItem.schemaId, stage, template);
   for (const authorityRef of required) {
     if (!reachable.has(authorityRef)) {
       throw new TypeError(
@@ -377,8 +372,10 @@ const applicableAuthorityPaths = async (
   }>[];
   concernOnly: readonly RepositoryPath[];
 }>> => {
+  const currentV2 = workItem.schemaId.endsWith("-v2");
   const applicableRefs = new Set<AuthorityRef>([
     ...stageTemplateAuthorityRefs(workItem, stage, authority),
+    ...(currentV2 ? manifest.stageAuthorityRefs[stage] ?? [] : []),
     ...explicitUpstreamAuthorityRefs(workItem, authority, upstreamArtifacts),
     ...authority.overrides.map((rule) => rule.authorityRef),
     ...authority.extensions.map((rule) => rule.authorityRef),
@@ -392,7 +389,10 @@ const applicableAuthorityPaths = async (
   }
 
   const applicablePaths = new Set<RepositoryPath>();
-  for (const authorityRef of applicableRefs) {
+  const exactRefs = currentV2
+    ? resolveAuthorityRefClosure(authority, manifest.refDependencies, [...applicableRefs])
+    : applicableRefs;
+  for (const authorityRef of exactRefs) {
     const path = reachableRefs.get(authorityRef);
     if (path === undefined) {
       throw new TypeError(

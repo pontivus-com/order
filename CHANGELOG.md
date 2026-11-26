@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Begin IA02 productive-context integration: resolve additive current-v2 stage declarations and their transitive dependencies in canonical precedence order, with exact pinned-header parsing and retained-v1 isolation.
+
 - Add strict optional project stage-authority declarations and exact reference-dependency closure in the existing pure governance resolver (IA01); productive stage integration remains IA02.
 
 - Correct 0.6.0 campaign fitness to preserve frozen reviewed-input evidence while validating explicitly authorized candidate scope, and freeze the final changelog before exhaustive rendered acceptance; no implementation authorization or rendered acceptance inferred.

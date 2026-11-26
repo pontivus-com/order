@@ -2196,6 +2196,14 @@ P1-FCIS-EXT = "AGENTS.md"
 GW-DOC-WORK-LIFECYCLE-V1 = "docs/work-lifecycle.md"
 GW-DOC-LIFECYCLE-CONTEXT-V1 = "docs/lifecycle-context-v1.md"
 GW-DOC-LIFECYCLE-CONTEXT-V2 = "docs/lifecycle-context-current.md"
+PRODUCT-A = "docs/product-a.md"
+PRODUCT-B = "docs/product-b.md"
+
+[stageAuthorityRefs]
+R1 = ["PRODUCT-A"]
+
+[refDependencies]
+PRODUCT-A = ["PRODUCT-B"]
 
 [precedence]
 p2 = ["docs/product-b.md", "docs/product-a.md"]
@@ -2321,6 +2329,9 @@ materialRefs = []
         const materialP2 = current.context.artifacts
           .filter((artifact) => artifact.authorityLayer === "P2")
           .map((artifact) => artifact.repositoryPath);
+        const retainedP2 = retained.context.artifacts
+          .filter((artifact) => artifact.authorityLayer === "P2")
+          .map((artifact) => artifact.repositoryPath);
 
         const manifestPath = repositoryRoot + "/pontivus-order.toml";
         fs.writeFileSync(
@@ -2342,6 +2353,7 @@ materialRefs = []
           p2,
           p3,
           materialP2,
+          retainedP2,
           currentMaterialP3,
           retainedMaterialP3,
           currentP3: materialP3(current.context),
@@ -2371,6 +2383,7 @@ materialRefs = []
         p2: { layer: string; sources: string[]; precedence: string[] };
         p3: { layer: string; sources: string[]; precedence: string[] };
         materialP2: string[];
+        retainedP2: string[];
         currentMaterialP3: { layer: string; sources: string[]; precedence: string[] };
         retainedMaterialP3: { layer: string; sources: string[]; precedence: string[] };
         currentP3: string[];
@@ -2402,7 +2415,8 @@ materialRefs = []
           "docs/work-lifecycle.md",
         ],
       });
-      expect(output.materialP2).toEqual([]);
+      expect(output.materialP2).toEqual(["docs/product-b.md", "docs/product-a.md"]);
+      expect(output.retainedP2).toEqual([]);
       expect(output.currentMaterialP3).toEqual({
         layer: "p3",
         sources: [

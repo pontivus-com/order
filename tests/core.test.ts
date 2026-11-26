@@ -89,6 +89,7 @@ import {
   renderWorkItemSourceMarkdown,
   rewriteWorkItemSourceTitle,
   stageTemplateForSchema,
+  stageDocumentAuthorityRefs,
   unresolvedConcernIdsForProject,
   validateStageDocumentStructure,
   workItemArchiveMarkerPath,
@@ -1605,6 +1606,24 @@ describe("source-backed WorkItem core", () => {
     expect(currentDefect).not.toContain("GW-DOC-LIFECYCLE-CONTEXT-V1");
     expect(currentInvestigation).not.toContain("GW-DOC-LIFECYCLE-CONTEXT-V1");
     expect(currentAudit).not.toContain("GW-DOC-LIFECYCLE-CONTEXT-V1");
+  });
+
+  it("extracts exact pinned and explicitly declared stage authority identities", () => {
+    const template = stageTemplateForSchema("change-v2", "R1")!;
+    const additional = template.replace(" -->", ", POLICY%3Aexact%20version -->");
+    expect(stageDocumentAuthorityRefs("change-v2", "R1", additional)).toEqual([
+      "GW-DOC-WORK-LIFECYCLE-V1", "GW-DOC-LIFECYCLE-CONTEXT-V2", "POLICY:exact version",
+    ]);
+    expect(() => stageDocumentAuthorityRefs("change-v2", "R1", template.replace("change-r1-v2", "change-r1-v1")))
+      .toThrow("exact pinned template");
+    expect(() => stageDocumentAuthorityRefs("change-v2", "R1", template.replace(", GW-DOC-LIFECYCLE-CONTEXT-V2", "")))
+      .toThrow("missing pinned AuthorityRef");
+    expect(() => stageDocumentAuthorityRefs("change-v2", "R1", template.replace(" -->", ", GW-DOC-WORK-LIFECYCLE-V1 -->")))
+      .toThrow("duplicate AuthorityRef");
+    for (const token of ["%ZZ", "POLICY:raw", "%41", ""]) {
+      expect(() => stageDocumentAuthorityRefs("change-v2", "R1", template.replace(" -->", ", " + token + " -->")))
+        .toThrow();
+    }
   });
 
   it("binds every current v2 stage template to current lifecycle context", () => {
