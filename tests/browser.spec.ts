@@ -6034,6 +6034,8 @@ test("active agent ownership keeps title and lifecycle authoring read-only while
   await selectWorkflowStep(page, "Work request");
   await expect(page.getByTestId("source-document-material")).toBeVisible();
   await expect(page.getByLabel("WorkItem source Markdown source")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Edit", exact: true })).toHaveCount(0);
+  await expect(page.getByText(/Finish or cancel the active workflow attempt before editing or saving this document/)).toBeVisible();
   await expect(page.getByRole("button", { name: "Save", exact: true })).toHaveCount(0);
 
   await selectWorkflowStep(page, "Implementation plan");
@@ -6514,6 +6516,8 @@ test("source editor preserves stale buffers, never overwrites newer source, and 
   await page.getByRole("button", { name: "Close context", exact: true }).click();
 
   await replaceMarkdownSource(page, sourceEditor, original + "\nlocal unsaved buffer\n");
+  await expect(page.getByText("Effect of saving", { exact: true })).toBeVisible();
+  await expect(page.getByText(/returns workflow ownership to Research and invalidates affected downstream conformance/)).toBeVisible();
   const item = await workItemForTitle(page, "Source editing workbench");
   const sourceResponse = await page.context().request.get(
     "/api/work-items/" + item.id + "/source",
@@ -6588,6 +6592,8 @@ test("dirty Markdown navigation is explicit, preserves the buffer when cancelled
   const planEditor = await openMarkdownEditor(page, "Implementation plan document Markdown source");
   const initial = await markdownSourceValue(planEditor);
   await replaceMarkdownSource(page, planEditor, initial + "\nunsaved guard\n");
+  await expect(page.getByTestId("document-maturity")).toContainText("Current");
+  await expect(page.getByText(/returns workflow ownership to Implementation plan and invalidates affected downstream conformance/)).toBeVisible();
 
   await page.getByTestId("workflow-rail")
     .getByRole("button", { name: "Approval" })
@@ -6655,6 +6661,7 @@ test("dirty Markdown navigation is explicit, preserves the buffer when cancelled
     );
     return contentResponse.status() === 200 ? await contentResponse.text() : "";
   }).toContain("saved plan edit");
+  await expect(page.getByTestId("document-maturity")).toContainText("Updated — validation required");
   await expect(page.getByText("Unsaved", { exact: true })).toHaveCount(0, {
     timeout: 15_000,
   });

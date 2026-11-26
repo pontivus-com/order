@@ -38,10 +38,10 @@ const supportingRoles=(stage: SharedPreSignoffStage): readonly ArtifactRef["role
   stage==="R1" ? [] : stage==="R2" ? ["R1"] : stage==="DESIGN" ? ["R2","R1"] : ["DESIGN","R2"];
 
 export const PreSignoffStageWorkspace = ({
-  workItem, stage, runs, runEvents, artifacts, material, materialState,
+  workItem, stage, runs, runEvents, artifacts, material, materialState, materialStateForArtifact,
   documentAttention, historicalReturn, stateNotice, stateAction,
   currentRunId, currentInteraction, currentAttention, focusedRequiredInputEventId,
-  mutationsDisabled=false, authoringMutationsDisabled=false, onRequiredInputFocused,
+  mutationsDisabled=false, authoringMutationsDisabled=false, authoringBlockedReason, onRequiredInputFocused,
   onSelectMaterial, onDirtyChange, onOpenArtifactEvidence, onOpenEvidence,
   onOpenProposalReview, onOpenSupportingMaterial, onReturnFromTransient,
   onContextDocumentChange, onMutationRefresh, onMutationError,
@@ -49,11 +49,13 @@ export const PreSignoffStageWorkspace = ({
   workItem: WorkItem; stage: SharedPreSignoffStage; runs: readonly Run[];
   runEvents: readonly RunEvent[]; artifacts: readonly ArtifactRef[]; material: WorkflowMaterial;
   materialState: MaterialPresentationState | null;
+  materialStateForArtifact: (artifact: ArtifactRef) => MaterialPresentationState | null;
   documentAttention?: ReactNode; historicalReturn?: ReactNode;
   stateNotice?: ReactNode; stateAction?: ReactNode;
   currentRunId: Run["id"] | null; currentInteraction: StageRunInteraction | null;
   currentAttention: CurrentAttentionTag; focusedRequiredInputEventId: RunEvent["id"] | null;
   mutationsDisabled?: boolean; authoringMutationsDisabled?: boolean;
+  authoringBlockedReason?: string;
   onRequiredInputFocused: (eventId: RunEvent["id"]) => void;
   onSelectMaterial: (material: WorkflowMaterial) => void; onDirtyChange: (dirty:boolean)=>void;
   onOpenArtifactEvidence:(artifactId:ArtifactRef["id"])=>void;
@@ -169,21 +171,25 @@ export const PreSignoffStageWorkspace = ({
         onSelectedRunChange={(runId)=>onSelectMaterial({kind:"STAGE_RUN",runId})}
         onOpenEvidence={onOpenEvidence} onOpenProposalReview={onOpenProposalReview}
         onMutationRefresh={onMutationRefresh} onMutationError={onMutationError} />;
-      case "STAGE_DOCUMENT": return <>
-        {materialState?.tag==="DRAFT" || materialState?.tag==="HISTORICAL" ||
-          materialState?.tag==="SIGNED_LOCKED"
-          ? <ReadOnlyLifecycleDocumentMaterial workItem={workItem} artifactId={material.artifactId}
-              onOpenArtifactEvidence={onOpenArtifactEvidence} onContextDocumentChange={onContextDocumentChange} />
-          : <LifecycleDocumentMaterial workItem={workItem} artifactId={material.artifactId}
-              mutationsDisabled={authoringMutationsDisabled} onDirtyChange={onDirtyChange}
-              onOpenArtifactEvidence={onOpenArtifactEvidence} onContextDocumentChange={onContextDocumentChange}
-              onMutationError={onMutationError} />}
-      </>;
+      case "STAGE_DOCUMENT": {
+        const artifact = artifacts.find((candidate) => candidate.id === material.artifactId);
+        const state = artifact === undefined ? null : materialStateForArtifact(artifact);
+        return <LifecycleDocumentMaterial workItem={workItem} artifactId={material.artifactId}
+          materialState={state} historicalArtifact={state?.tag === "HISTORICAL" ? artifact : undefined}
+          mutationsDisabled={authoringMutationsDisabled} authoringBlockedReason={authoringBlockedReason}
+          onDirtyChange={onDirtyChange} onOpenArtifactEvidence={onOpenArtifactEvidence}
+          onContextDocumentChange={onContextDocumentChange} onMutationError={onMutationError} />;
+      }
       case "SOURCE_DOCUMENT": return <SourceDocumentMaterial workItem={workItem} readOnly
         onDirtyChange={onDirtyChange} onContextDocumentChange={onContextDocumentChange} />;
-      case "SUPPORTING_DOCUMENT": return <ReadOnlyLifecycleDocumentMaterial workItem={workItem}
-        artifactId={material.artifactId} onOpenArtifactEvidence={onOpenArtifactEvidence}
-        onContextDocumentChange={onContextDocumentChange} />;
+      case "SUPPORTING_DOCUMENT": {
+        const artifact = artifacts.find((candidate) => candidate.id === material.artifactId);
+        const state = artifact === undefined ? null : materialStateForArtifact(artifact);
+        return <ReadOnlyLifecycleDocumentMaterial workItem={workItem}
+          artifactId={material.artifactId} materialState={state}
+          historicalArtifact={state?.tag === "HISTORICAL" ? artifact : undefined}
+          onOpenArtifactEvidence={onOpenArtifactEvidence} onContextDocumentChange={onContextDocumentChange} />;
+      }
       case "PROPOSAL": return <ProposalReview workItem={workItem}
         selection={{runId:material.runId,eventId:material.eventId}}
         currentRunId={workItem.stage===stage ? currentRunId : null}

@@ -536,6 +536,11 @@ export const WorkItemWorkspace = ({
   const activeRunOwnsAuthoring = runs.some(runIsActive);
   const documentMutationsDisabled =
     interactionMutationsDisabled || activeRunOwnsAuthoring;
+  const authoringBlockedReason = activeRunOwnsAuthoring
+    ? "Finish or cancel the active workflow attempt before editing or saving this document."
+    : documentMutationsDisabled
+      ? "Document authoring is unavailable until the current workflow state is reconciled."
+      : undefined;
   const workflowMutationsDisabled =
     interactionMutationsDisabled ||
     (currentness.tag === "STALE" && !activeRunOwnsAuthoring);
@@ -583,26 +588,31 @@ export const WorkItemWorkspace = ({
   const materialIdentity = workflowMaterialIdentity(material);
   const canonicalCurrentMaterialIdentity =
     workflowMaterialIdentity(canonicalCurrentMaterial);
-  const selectedStageMaterialState =
-    selectedStageArtifact !== null &&
-    (
-      selectedStep === "R1" ||
-      selectedStep === "R2" ||
-      selectedStep === "DESIGN" ||
-      selectedStep === "PLAN" ||
-      selectedStep === "R3"
-    )
-      ? deriveMaterialPresentationState(
-          artifacts.some((artifact) => artifact.id === selectedStageArtifact.id),
-          reachStateForStage(workItem, reachedStages, selectedStep),
-          materialCurrentnessForStage(currentness, selectedStep),
-          artifactHasCurrentStageConformance(selectedStageArtifact, allRunEvents),
-          (
-            workItem.stage === "EXECUTION" ||
-            workItem.stage === "COMPLETE"
-          ) && tasks.length > 0,
-        )
-      : null;
+  const materialStateForArtifact = (artifact: ArtifactRef) => {
+    const owner = artifact.role;
+    if (owner !== "R1" && owner !== "R2" && owner !== "DESIGN" && owner !== "PLAN" && owner !== "R3") return null;
+    if (artifactsQuery.data === undefined || runsQuery.data === undefined ||
+      runs.some((run, index) => run.role === "STAGE" && run.stage === owner &&
+        runEventQueries[index]?.data === undefined)) return null;
+    const current = currentArtifactIds.has(artifact.id);
+    const reach = reachStateForStage(workItem, reachedStages, owner);
+    return deriveMaterialPresentationState(
+      current,
+      reach,
+      materialCurrentnessForStage(currentness, owner),
+      artifactHasCurrentStageConformance(artifact, allRunEvents),
+      current && reach !== "UNREACHED" &&
+        (workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE") &&
+        tasks.length > 0,
+    );
+  };
+  const selectedStageMaterialState = selectedStageArtifact === null
+    ? null : materialStateForArtifact(selectedStageArtifact);
+  const selectedDocumentArtifact = material.kind === "STAGE_DOCUMENT"
+    ? inspectionArtifacts.find((artifact) => artifact.id === material.artifactId) ?? null
+    : null;
+  const selectedDocumentMaterialState = selectedDocumentArtifact === null
+    ? null : materialStateForArtifact(selectedDocumentArtifact);
 
   const explicitStageArtifactId =
     explicitMaterial?.kind === "STAGE_DOCUMENT"
@@ -1263,6 +1273,7 @@ export const WorkItemWorkspace = ({
             artifacts={inspectionArtifacts}
             material={material}
             materialState={selectedStageMaterialState}
+            materialStateForArtifact={materialStateForArtifact}
             documentAttention={currentInteractionAttention}
             historicalReturn={historicalReturn}
             stateNotice={inspectedHistorical ? undefined : currentReviewNotice}
@@ -1274,6 +1285,7 @@ export const WorkItemWorkspace = ({
             mutationsDisabled={workflowMutationsDisabled}
             onRequiredInputFocused={setFocusedRequiredInputEventId}
             authoringMutationsDisabled={documentMutationsDisabled}
+            authoringBlockedReason={authoringBlockedReason}
             onSelectMaterial={(nextMaterial) =>
               requestSelection({
                 step: sharedPreSignoffStage,
@@ -1299,6 +1311,7 @@ export const WorkItemWorkspace = ({
             artifacts={inspectionArtifacts}
             material={material}
             materialState={selectedStageMaterialState}
+            materialStateForArtifact={materialStateForArtifact}
             reviewNotice={currentReviewNotice}
             reviewAction={currentMaterialAction}
             currentRunId={currentStageRun?.id ?? null}
@@ -1330,6 +1343,7 @@ export const WorkItemWorkspace = ({
             packageFetching={signoffPackageQuery.isFetching}
             packageError={signoffPackageQuery.error}
             packageStale={packageStaleOwner !== null}
+            materialStateForArtifact={materialStateForArtifact}
             artifacts={packageStaleOwner !== null ? allArtifacts : artifacts}
             artifactsPending={
               packageStaleOwner !== null
@@ -1398,7 +1412,9 @@ export const WorkItemWorkspace = ({
             {material.kind === "SOURCE_DOCUMENT" ? (
               <SourceDocumentMaterial
                 workItem={workItem}
+                authoringLocked={activeRunOwnsAuthoring}
                 mutationsDisabled={documentMutationsDisabled}
+                authoringBlockedReason={authoringBlockedReason}
                 onDirtyChange={setDirtyState}
                 onContextDocumentChange={onContextDocumentChange}
                 onMutationError={reportMutationError}
@@ -1407,7 +1423,10 @@ export const WorkItemWorkspace = ({
               <LifecycleDocumentMaterial
                 workItem={workItem}
                 artifactId={material.artifactId}
+                materialState={selectedDocumentMaterialState}
+                historicalArtifact={selectedDocumentMaterialState?.tag === "HISTORICAL" ? selectedDocumentArtifact ?? undefined : undefined}
                 mutationsDisabled={documentMutationsDisabled}
+                authoringBlockedReason={authoringBlockedReason}
                 onDirtyChange={setDirtyState}
                 onOpenArtifactEvidence={openArtifactEvidence}
                 onContextDocumentChange={onContextDocumentChange}

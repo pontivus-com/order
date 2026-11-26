@@ -91,6 +91,7 @@ export const ReadinessWorkspace = ({
   artifacts,
   material,
   materialState,
+  materialStateForArtifact,
   reviewNotice,
   reviewAction,
   currentRunId,
@@ -113,6 +114,7 @@ export const ReadinessWorkspace = ({
   artifacts: readonly ArtifactRef[];
   material: WorkflowMaterial;
   materialState: MaterialPresentationState | null;
+  materialStateForArtifact: (artifact: ArtifactRef) => MaterialPresentationState | null;
   reviewNotice?: ReactNode;
   reviewAction?: ReactNode;
   currentRunId: Run["id"] | null;
@@ -226,6 +228,9 @@ export const ReadinessWorkspace = ({
       ? artifacts.find((artifact) => artifact.id === material.artifactId) ?? null
       : null;
 
+  const selectedSupportingMaterialState = selectedSupportingArtifact === null
+    ? null : materialStateForArtifact(selectedSupportingArtifact);
+
   const reviewMaterial =
     readinessArtifact === null
       ? (
@@ -307,6 +312,8 @@ export const ReadinessWorkspace = ({
             <ReadOnlyLifecycleDocumentMaterial
               workItem={workItem}
               artifactId={selectedSupportingArtifact.id}
+              materialState={selectedSupportingMaterialState}
+              historicalArtifact={selectedSupportingMaterialState?.tag === "HISTORICAL" ? selectedSupportingArtifact : undefined}
               onOpenArtifactEvidence={onOpenArtifactEvidence}
               onContextDocumentChange={onContextDocumentChange}
             />

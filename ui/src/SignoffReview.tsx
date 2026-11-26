@@ -10,6 +10,7 @@ import type {
   SignedTaskDefinition,
   WorkItem,
 } from "../../src/core/contracts.ts";
+import type { MaterialPresentationState } from "../../src/core/lifecycle.ts";
 import * as api from "./http.ts";
 import { ReadOnlyLifecycleDocumentMaterial } from "./DocumentWorkspace.tsx";
 import { invalidateWorkbenchMutation } from "./query-keys.ts";
@@ -121,6 +122,7 @@ export const SignoffReview = ({
   packageFetching,
   packageError,
   packageStale = false,
+  materialStateForArtifact,
   artifacts,
   artifactsPending,
   artifactsError,
@@ -139,6 +141,7 @@ export const SignoffReview = ({
   packageFetching: boolean;
   packageError: unknown;
   packageStale?: boolean;
+  materialStateForArtifact: (artifact: ArtifactRef) => MaterialPresentationState | null;
   artifacts: readonly ArtifactRef[];
   artifactsPending: boolean;
   artifactsError: unknown;
@@ -253,7 +256,8 @@ export const SignoffReview = ({
           <ReadOnlyLifecycleDocumentMaterial
             workItem={workItem}
             artifactId={selectedArtifact.id}
-            historicalArtifact={packageStale ? selectedArtifact : undefined}
+            materialState={materialStateForArtifact(selectedArtifact)}
+            historicalArtifact={packageStale || materialStateForArtifact(selectedArtifact)?.tag === "HISTORICAL" ? selectedArtifact : undefined}
             embeddedReadOnly={packageStale}
             onOpenArtifactEvidence={onOpenArtifactEvidence}
             onContextDocumentChange={onContextDocumentChange}

@@ -3,7 +3,6 @@ import {
   useRef,
   useState,
   type FormEvent,
-  type ReactNode,
 } from "react";
 import { Markdown } from "@astryxdesign/core/Markdown";
 import {
@@ -33,7 +32,7 @@ export type MarkdownEditorProps = Readonly<{
   saveDisabled?: boolean;
   onSave: (expectedSha256: Sha256, markdown: string) => Promise<ExpectedHashWriteResult>;
   onDirtyChange?: (dirty: boolean) => void;
-  toolbarAccessory?: ReactNode;
+  saveConsequence?: string;
 }>;
 
 type MarkdownPresentationMode = "EDIT" | "PREVIEW" | "SPLIT";
@@ -81,7 +80,7 @@ export const MarkdownEditor = ({
   saveDisabled = false,
   onSave,
   onDirtyChange,
-  toolbarAccessory,
+  saveConsequence,
 }: MarkdownEditorProps) => {
   const sourceEditorRef = useRef<MarkdownSourceEditorHandle | null>(null);
   const onDirtyChangeRef = useRef(onDirtyChange);
@@ -169,7 +168,7 @@ export const MarkdownEditor = ({
       className={readOnly ? "order-markdown-readonly" : "order-markdown-preview"}
     >
       <Markdown contentWidth="var(--order-prose-max-width)" contentAlign="start">
-        {presentationMarkdown(buffer)}
+        {presentationMarkdown(readOnly ? markdown : buffer)}
       </Markdown>
     </div>
   );
@@ -246,7 +245,6 @@ export const MarkdownEditor = ({
         {readOnly ? null : (
           <div className="order-markdown-editor-controls" data-testid="markdown-editor-controls">
             <div className="order-markdown-editor-actions">
-              {toolbarAccessory}
               <WorkbenchAction
                 label="Edit"
                 tone="secondary"
@@ -270,10 +268,9 @@ export const MarkdownEditor = ({
         {presentation}
         {formatting}
         <div className="order-markdown-editor-actions">
-          {toolbarAccessory}
           <WorkbenchStatus
             tone={dirty ? "warning" : "success"}
-            label={dirty ? "Unsaved" : "Current"}
+            label={dirty ? "Unsaved" : "No unsaved edits"}
           />
           <WorkbenchAction
             type="submit"
@@ -291,6 +288,9 @@ export const MarkdownEditor = ({
       </div>
 
       <div className="order-editor-notices">
+        {dirty && !saveDisabled && !conflicted && saveConsequence !== undefined ? (
+          <WorkbenchNotice tone="info" title="Effect of saving" description={saveConsequence} />
+        ) : null}
         {conflicted ? (
           <WorkbenchNotice
             tone="danger"

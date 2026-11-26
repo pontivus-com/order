@@ -9,21 +9,38 @@ import {
   type WorkItemDocumentGitPathStatus,
   type WorkItemSchemaCatalogEntry,
 } from "../../src/core/contracts.ts";
-import { artifactDirectEditIsAllowed } from "../../src/core/lifecycle.ts";
+import { artifactDirectEditIsAllowed, artifactReturnOwner, type MaterialPresentationState } from "../../src/core/lifecycle.ts";
 import * as api from "./http.ts";
 import {
   invalidateWorkbenchMutation,
   workbenchQueryKeys,
 } from "./query-keys.ts";
 import { MarkdownEditor } from "./MarkdownEditor.tsx";
-import { lifecycleArtifactLabel } from "./workbench-presentation.ts";
+import { lifecycleArtifactLabel, materialPresentationStateLabel, workflowPresentation } from "./workbench-presentation.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchConfirmation } from "./primitives/WorkbenchConfirmation.tsx";
 import { WorkbenchDocument } from "./primitives/WorkbenchDocument.tsx";
 import { WorkbenchFacts } from "./primitives/WorkbenchFacts.tsx";
 import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
 import { WorkbenchState } from "./primitives/WorkbenchState.tsx";
-import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
+import { WorkbenchStatus, type WorkbenchStatusTone } from "./primitives/WorkbenchStatus.tsx";
+
+const materialMaturityTone = (state: MaterialPresentationState): WorkbenchStatusTone => {
+  switch (state.tag) {
+    case "CURRENT": return "success";
+    case "STALE":
+    case "UPDATED_VALIDATION_REQUIRED": return "warning";
+    case "DRAFT":
+    case "HISTORICAL":
+    case "SIGNED_LOCKED": return "neutral";
+  }
+};
+
+const DocumentMaturity = ({ state }: Readonly<{ state: MaterialPresentationState }>) => (
+  <span data-testid="document-maturity">
+    <WorkbenchStatus tone={materialMaturityTone(state)} label={materialPresentationStateLabel(state)} />
+  </span>
+);
 
 const errorText = (value: unknown): string =>
   value instanceof Error ? value.message : String(value);
@@ -159,9 +176,11 @@ const documentationGitTone = (
     ? "warning"
     : projection.statusQuery.isError
       ? "danger"
-      : projection.changedPaths.length === 0
-        ? "success"
-        : "info";
+      : projection.statusQuery.data === undefined
+        ? "info"
+        : projection.changedPaths.length === 0
+          ? "success"
+          : "info";
 
 const DocumentationGitAction = ({
   dirty,
@@ -265,6 +284,8 @@ export const SourceDocumentMaterial = ({
   workItem,
   readOnly = false,
   mutationsDisabled = false,
+  authoringLocked = false,
+  authoringBlockedReason,
   onDirtyChange,
   onContextDocumentChange,
   onMutationError,
@@ -272,6 +293,8 @@ export const SourceDocumentMaterial = ({
   workItem: WorkItem;
   readOnly?: boolean;
   mutationsDisabled?: boolean;
+  authoringLocked?: boolean;
+  authoringBlockedReason?: string;
   onDirtyChange: (dirty: boolean) => void;
   onContextDocumentChange: (
     path: string | null,
@@ -283,6 +306,7 @@ export const SourceDocumentMaterial = ({
   const [dirty, setDirty] = useState(false);
   const sourceReadOnly =
     readOnly ||
+    authoringLocked ||
     workItem.stage === "EXECUTION" ||
     workItem.stage === "COMPLETE";
   const git = useDocumentationGitProjection(
@@ -350,7 +374,7 @@ export const SourceDocumentMaterial = ({
   }
 
   const gitStatus = sourceReadOnly ? (
-    <WorkbenchStatus tone="neutral" label="Read-only supporting material" />
+    <WorkbenchStatus tone="neutral" label="Read-only" />
   ) : (
     <span data-testid="document-git-state">
       <WorkbenchStatus
@@ -367,9 +391,11 @@ export const SourceDocumentMaterial = ({
         description={
           readOnly
             ? "Read-only supporting Work request context."
-            : sourceReadOnly
+            : workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE"
               ? "Read-only in execution/completed state."
-              : "Canonical human-authored work definition."
+              : mutationsDisabled
+                ? authoringBlockedReason ?? "Document authoring is unavailable while the current workflow state is reconciled."
+                : "Canonical human-authored work definition."
         }
         status={gitStatus}
         action={
@@ -429,6 +455,7 @@ export const SourceDocumentMaterial = ({
               markdown={source.bodyMarkdown}
               readOnly={sourceReadOnly}
               saveDisabled={mutationsDisabled}
+              saveConsequence={workItem.stage === "IDEA" ? undefined : "Saving a changed Work request returns workflow ownership to Research and invalidates affected downstream conformance. Prior material remains available for inspection."}
               onDirtyChange={(value) => {
                 setDirty(value);
                 onDirtyChange(value);
@@ -458,8 +485,10 @@ export const SourceDocumentMaterial = ({
 export const LifecycleDocumentMaterial = ({
   workItem,
   artifactId,
+  materialState,
   readOnly = false,
   mutationsDisabled = false,
+  authoringBlockedReason,
   onDirtyChange,
   onOpenArtifactEvidence,
   onContextDocumentChange,
@@ -469,8 +498,10 @@ export const LifecycleDocumentMaterial = ({
 }: Readonly<{
   workItem: WorkItem;
   artifactId: ArtifactRef["id"];
+  materialState: MaterialPresentationState | null;
   readOnly?: boolean;
   mutationsDisabled?: boolean;
+  authoringBlockedReason?: string;
   embeddedReadOnly?: boolean;
   historicalArtifact?: ArtifactRef;
   onDirtyChange: (dirty: boolean) => void;
@@ -524,7 +555,7 @@ export const LifecycleDocumentMaterial = ({
 
   if (
     (historicalArtifact === undefined && artifactsQuery.isPending) ||
-    contentQuery.isPending
+    (selectedArtifact !== null && contentQuery.isPending)
   ) {
     return (
       <div className="order-document-material" data-testid="lifecycle-document-material">
@@ -566,16 +597,21 @@ export const LifecycleDocumentMaterial = ({
   const artifactReadOnly =
     readOnly ||
     mutationsDisabled ||
+    materialState?.tag === "DRAFT" ||
+    materialState?.tag === "HISTORICAL" ||
+    materialState?.tag === "SIGNED_LOCKED" ||
     !artifactDirectEditIsAllowed(workItem, selectedArtifact);
   const title = lifecycleArtifactLabel(selectedArtifact.role) + " document";
   const description = embeddedReadOnly && artifactReadOnly
     ? "Read-only supporting governed document."
-    : artifactReadOnly
-      ? "Read-only in the current lifecycle state."
-      : "Canonical governed lifecycle document.";
+    : mutationsDisabled && !readOnly && authoringBlockedReason !== undefined
+      ? authoringBlockedReason
+      : artifactReadOnly
+        ? "Read-only in the current lifecycle state."
+        : "Canonical governed lifecycle document.";
 
   const gitStatus = artifactReadOnly ? (
-    <WorkbenchStatus tone="neutral" label="Read-only supporting material" />
+    <WorkbenchStatus tone="neutral" label="Read-only" />
   ) : (
     <span data-testid="document-git-state">
       <WorkbenchStatus
@@ -612,6 +648,7 @@ export const LifecycleDocumentMaterial = ({
         markdown={markdown}
         readOnly={artifactReadOnly}
         saveDisabled={mutationsDisabled}
+        saveConsequence={"Saving a changed document returns workflow ownership to " + workflowPresentation(artifactReturnOwner(selectedArtifact)).label + " and invalidates affected downstream conformance. Prior material remains available for inspection."}
         onDirtyChange={(value) => {
           setDirty(value);
           onDirtyChange(value);
@@ -638,7 +675,10 @@ export const LifecycleDocumentMaterial = ({
       <WorkbenchDocument
         title={title}
         description={description}
-        status={gitStatus}
+        status={<>
+          {materialState === null ? null : <DocumentMaturity state={materialState} />}
+          {gitStatus}
+        </>}
         action={
           artifactReadOnly ? undefined : (
             <DocumentationGitAction
@@ -679,6 +719,7 @@ export const ReadOnlyLifecycleDocumentMaterial = (
   props: Readonly<{
     workItem: WorkItem;
     artifactId: ArtifactRef["id"];
+    materialState: MaterialPresentationState | null;
     onOpenArtifactEvidence: (artifactId: ArtifactRef["id"]) => void;
     onContextDocumentChange: (
       path: string | null,
