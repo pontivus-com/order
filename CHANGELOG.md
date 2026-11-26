@@ -8,6 +8,7 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Changed
 
+- Reopen the 0.6.0 UI rework after explicit operator rejection of the shared application header, selected-WorkItem identity chrome, mixed radius language and Approval package/task presentation: bind IA27/IA28 and IA31 back to the existing P3/P4/DESIGN semantic owners, add HUX-10/HUX-11, make the theme radius law and ResourceList/ReviewSection anatomy hard acceptance conditions, and forbid current rendered chrome or green evidence generation from becoming a preservation target.
 - Revalidate the corrected 0.6.0 R2/DESIGN/PLAN package through fresh pair audits, vertical ALIGN and adversarial R3 after repairing the Workbench proof inputs; the exact package is READY_FOR_SIGNOFF while implementation authorization, HUX acceptance and later IA32-IA34 completion remain separately governed.
 
 - Repair the live 0.6.0 Workbench documentation/reference graph before further UI implementation: remove stale Review/technical-inspection contradictions from canonical P3/P4, close the application toolbar and Implementation master APIs, make Project context and non-generic boundary grammar explicit, replace the 41-file 0.5.0 SVG oracle with a deterministic 37-SURF authority-bound reference atlas/manifest, bind reference fitness to exact P3/P4/theme/DESIGN blobs, and reopen stale campaign/readiness acceptance for fresh revalidation.
