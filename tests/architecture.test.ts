@@ -2754,11 +2754,87 @@ describe("architecture fitness", () => {
       );
     }
 
-    for (const required of ["requireFreshInstallerReadiness", "GET `/api/settings/readiness`", "before `retireLegacyGateweftArtifacts`", "state/config/database/private-account residue alone is never installed-system proof", "atomically publish its unchanged source-commit bytes before irreversible retirement/success", "interruption before fresh source-marker publication", "never the v4 update retain/defer fast path", "available-model-but-unusable-account can invoke existing login"]) {
-      if (!design.includes(required) || !plan.includes(required)) {
-        violations.push("SD19 fresh installer readiness trace missing: " + required);
+    // Check each installer proposition in its canonical owner and downstream
+    // realization, rather than requiring copied normative prose in DESIGN/PLAN.
+    // Exact compiled component bytes and hashes are checked independently above.
+    const installerAuthorityP3 = sourceText("docs/requirements/installation-readiness.md");
+    const installerAuthorityP4 = sourceText("docs/architecture/technical-architecture.md");
+    const installerAuthorityP6 = sourceText("docs/contracts/canonical-contracts.md");
+    const installerDesign = design.split("### F7 — productive installer closure (SD19)")[1]?.split("\n### ")[0] ?? "";
+    const installerAction = actionCatalog.split("## IA25 — guided productive installer completion")[1]?.split("\n## IA27")[0] ?? "";
+    const installerTraces = [
+      ["P3 history/readiness", installerAuthorityP3, [
+        "Only a complete identified deployment plus an affirmative answer permits established-system recovery",
+        "A negative, unknown or blank answer takes the fresh/unproven admission path",
+        "explicit committed-but-finalization-incomplete result",
+        "Partial installation residue alone never qualifies",
+      ]],
+      ["P4 classification/transaction", installerAuthorityP4, [
+        "Resolve one invocation-local established-installation decision before migration or staging",
+        "Do not infer prior completion from liveness, marker, version, timestamps, config, account or database residue",
+        "Only explicit y/yes",
+        "Remove source-marker publication from staging for all attempts",
+        "Before each effect capture the corresponding existing rollback input",
+        "application and launcher independently",
+        "Capture the previous service unit and supported enablement/activity before the first service mutation",
+        "Atomically publish the existing source marker at that boundary for fresh and established attempts",
+        "Publication failure is pre-commit failure",
+        "After successful publication, do not enter the reversible rollback handler",
+        "Process interruption before commit is not proof of completion",
+        "identify the conflicting canonical paths",
+      ]],
+      ["P6 authenticated readiness", installerAuthorityP6, [
+        "The daemon is the single readiness-policy owner",
+        "GET /api/settings/readiness",
+        "no other Settings endpoint gains Bearer admission",
+        "ready === true",
+        "zero blockers",
+        "no redirects",
+      ]],
+      ["SD19 F7 exact realization", installerDesign, [
+        "requireFreshInstallerReadiness",
+        "GET `/api/settings/readiness`",
+        "After `waitForHealthyDaemon`",
+        "never the v4 update retain/defer fast path",
+        "loginOpenCodeProviderInteractive",
+        "relist after login",
+        "InstallationReadinessSchema",
+        "180 seconds",
+        "Remove the staging write in `buildApplication`",
+        "same-directory temporary then rename, unchanged source SHA plus newline",
+        "Move `retireLegacyGateweftArtifacts`, profile update and backup deletion outside reversible rollback",
+        "committed-but-finalization-incomplete and nonzero",
+      ]],
+      ["IA25 exact execution/proof", installerAction, [
+        "one pre-mutation disposition",
+        "Remove the staging source-marker write",
+        "make the application and launcher moves separately reversible",
+        "Capture the unit and service enablement/activity before mutation",
+        "reverse only completed legacy namespace moves",
+        "separate post-commit cleanup from the rollback handler",
+        "invoke the actual `runInstaller` transaction",
+        "real filesystem mutations",
+        "complete-looking old marker with all files but no affirmative history cannot exempt",
+        "available models do not preclude login",
+        "inconsistent ready/blockers",
+        "Neither fresh nor update publishes during staging/activation",
+        "interruption before publish cannot be automatic established proof",
+        "no pre-commit rollback, admitted app/launcher/config/service/marker remain",
+        "predecessor-conflict rerun stops without mutation",
+      ]],
+    ] as const;
+    for (const [owner, source, requiredTokens] of installerTraces) {
+      for (const required of requiredTokens) {
+        if (!source.includes(required)) {
+          violations.push("Installer authority/realization trace missing in " + owner + ": " + required);
+        }
       }
     }
+    exactSet(
+      "IA25 installer transaction proof cases",
+      [...installerAction.matchAll(/^\| (INST-\d{2}) /gm)].map((match) => match[1]),
+      Array.from({ length: 12 }, (_, index) => "INST-" + String(index + 1).padStart(2, "0")),
+    );
 
     const taskBlocks = [...plan.matchAll(/```order-tasks\n([\s\S]*?)\n```/g)];
     if (taskBlocks.length !== 1) {

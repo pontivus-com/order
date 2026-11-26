@@ -4,7 +4,7 @@
 
 ## Canonical PLAN authority
 
-This root is the single deterministic P7 artifact for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. Its modular directory is the maintainable authoring decomposition, not independent executable authority. This revalidation-candidate implementation specification binds R1 `fafee0a2a5a92ca748dc9aa8bbfdfc1f5e0b3e47`, R2 `6cc73485af7eb1f3801d98c81dc1912ba0df7fb5`, DESIGN `6b0eec662f3508f3f6559ca02eae1f54df1d3f06`, current P4 and P6. Prior closures were reopened by ALIGN-A01-F03, ALIGN-A07-F01 and ALIGN-A09-F02; campaign §17A/§18 own gate state and authorization. No gate advance or sign-off is inferred.
+This root is the single deterministic P7 artifact for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. Its modular directory is the maintainable authoring decomposition, not independent executable authority. This revalidation-candidate implementation specification binds R1 `fafee0a2a5a92ca748dc9aa8bbfdfc1f5e0b3e47`, R2 `2fc54978b378f08dc197d9e15fdb5cead393656e`, DESIGN `6d0e62a3e36f041807d0c8ed338384bcc900b07c`, current P4 and P6. Prior closures were reopened by ALIGN-A01-F03, ALIGN-A07-F01 and ALIGN-A09-F02; campaign §17A/§18 own gate state and authorization. No gate advance or sign-off is inferred.
 
 ## Current Workbench implementation plan
 
@@ -14,7 +14,7 @@ Retain evidenced closed F6B semantic APIs and responsibilities; correct rejected
 
 | Source component | Git blob |
 |---|---|
-| `implementation-plan/00-governance.md` | `b38af7677e6670b8e4ebc9f874d78d6214ea8fb2` |
+| `implementation-plan/00-governance.md` | `5e8839ff4366a37474b366832080369e75f04d2a` |
 | `implementation-plan/01-a01-lifecycle-product.md` | `b1d70c05a8175406db455fd6c75e170959258eca` |
 | `implementation-plan/02-a02-governance-intake.md` | `1f496e6221987a58b5f1aed9c783eb67a3e5492c` |
 | `implementation-plan/03-a03-queue-source.md` | `b0f9bd32f6f3bce513e9668a31f7d388fa0cecb8` |
@@ -26,7 +26,7 @@ Retain evidenced closed F6B semantic APIs and responsibilities; correct rejected
 | `implementation-plan/09-a09-provider-settings.md` | `537c8a32c1fb5220117df9cab5465c088a7e6209` |
 | `implementation-plan/10-a10-recovery-accessibility.md` | `3ce1c39f8979c1e1bee97d455c69ca1666525708` |
 | `implementation-plan/11-a11-component-certification.md` | `e8552b49b1b1f4c18ed2bedee9b8ce8feea53ac7` |
-| `implementation-plan/12-action-catalog.md` | `8aa8c5bfff482d3a8c68b728d0e7a729a82e3dd5` |
+| `implementation-plan/12-action-catalog.md` | `1daf6f42bfac1eb1b61cf741b818e260b9344332` |
 | `implementation-plan/13-verification-closeout.md` | `39bda13dd0436b1c06d73d372b710258feb0a174` |
 
 A source hash mismatch makes PLAN non-current until recompiled. Directory files have no independent order-tasks block or lifecycle state.
@@ -355,14 +355,14 @@ This decomposition is revalidated under C19-F09/C20-F11 after the prior G4-G6 cl
 ##### Exact upstream package
 
 - R1 `research.md`: `fafee0a2a5a92ca748dc9aa8bbfdfc1f5e0b3e47`.
-- R2 `requirements.md`: `6cc73485af7eb1f3801d98c81dc1912ba0df7fb5`.
-- DESIGN `solution-design.md`: `6b0eec662f3508f3f6559ca02eae1f54df1d3f06` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 43-path forecast.
-- Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `d7a967431a34bea96729ff7d955f7fb537986ce1`.
+- R2 `requirements.md`: `2fc54978b378f08dc197d9e15fdb5cead393656e`.
+- DESIGN `solution-design.md`: `6d0e62a3e36f041807d0c8ed338384bcc900b07c` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 43-path forecast.
+- Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `ee8acad4e39f4641476eb46d99ca168afab3db3d`.
 - P3 `GW-DOC-WORKBENCH-UX-V2`: `64184232833b59a9e6db5e1a28b841f48b3217cd` — §11.4A/§12/§13/§14 own semantic information classes, state-is-not-interface behavior, direct primary interaction composition, no generic workflow-material selector, continuous Dialogue semantics, Terminal-result primacy, singular technical inspection, task anatomy and composition invariants.
 - P3 `GW-DOC-MARKDOWN-WORKBENCH-V1`: `da89bd08e4f78f353d7b3062758e9d78e21375b2` — §17.4 owns one compact Markdown editor-control region, overflow-before-wrap formatting and control→canvas adjacency.
 - P4 `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`: `8fccbe031436a9eb54da8ae493b614e94cc957b1` — sole permanent owner of structural + semantic Workbench component responsibilities/APIs, consumer boundaries, composition laws and remediation disposition semantics.
 - P4 `GW-DOC-WORKBENCH-THEME-V1`: `03dfc6be3600a1128b5639d011f4c0159d3497dd` — owns the corrected semantic-disclosure, technical-inspection and task-panel visual roles.
-- P4 `GW-DOC-TECHNICAL-ARCHITECTURE-V2`: `6519090ad408b63ecbe846b37b4d5fd4a82fa90a` — canonical installer/readiness and technical ownership.
+- P4 `GW-DOC-TECHNICAL-ARCHITECTURE-V2`: `7016d409ec7eb4ebedc824c973e784b07b9559bd` — canonical installer/readiness and technical ownership.
 - P6 `GW-DOC-CANONICAL-CONTRACTS-V2`: `7bb3af47c739215b79c62e7509e1774c51155dd4`.
 - SD13 checkpoint and SD10 scope/forecast/V4-V6 realization are consumed only because current DESIGN positively proves those canonical capabilities; T1 does not reimplement them.
 
@@ -1365,7 +1365,7 @@ Ownership of shared-path edits is semantic and ordered: IA01 owns manifest schem
 ##### IA25 — guided productive installer completion
 
 **Solution:** SD19; FR007/079; PL-C16-02/03.
-**Canonical authority:** corrected P3 Installation Readiness `d7a967431a34bea96729ff7d955f7fb537986ce1`, P4 `6519090ad408b63ecbe846b37b4d5fd4a82fa90a`, P6 `7bb3af47c739215b79c62e7509e1774c51155dd4`.
+**Canonical authority:** corrected P3 Installation Readiness `ee8acad4e39f4641476eb46d99ca168afab3db3d`, P4 `7016d409ec7eb4ebedc824c973e784b07b9559bd`, P6 `7bb3af47c739215b79c62e7509e1774c51155dd4`.
 **Existing owners:** `src/installer.ts::runInstaller/waitForHealthyDaemon`, `src/shell/setup.ts`, `src/daemon/server.ts`; retain `src/daemon/settings.ts::installationReadiness` and existing core schema/provider/token owners unchanged.
 **Required mutation:** Implement SD19/F7 in the existing three source owners only. In `src/installer.ts`, replace the broad-footprint readiness and message classification with one pre-mutation disposition; route the history question through `terminalQuestion` and thread the decision to `configureOrder`. Remove the staging source-marker write. Place predecessor migration and subsequent activation inside reversible custody; replace late `activated`/`serviceState` assumptions with precise per-effect rollback inputs/progress. Capture the unit and service enablement/activity before mutation; make the application and launcher moves separately reversible; reverse only completed legacy namespace moves; restore prior service after restored application/config/state. Keep the primary error and retained material when rollback fails. After health invoke the installed setup module's readiness helper when required, atomically publish the marker, then separate post-commit cleanup from the rollback handler. Report the P4 §2 outcome without false fresh/update success or destructive post-commit rollback.
 
@@ -1374,7 +1374,7 @@ In `src/shell/setup.ts`, thread the established decision through `runInstallerGu
 
 | Proof case | Required behavioral result |
 |---|---|
-| INST-01 history | Absent/state-only/config-only/database-only/partial/malformed/symlink/mixed-root footprint cannot exempt; complete-looking old marker with all files but no affirmative history cannot exempt; affirmative history only for one complete nonconflicting deployment; blank/unknown/decline fresh; cancel/EOF stops before mutation. No version/liveness heuristic. |
+| INST-01 history | Absent/state-only/config-only/database-only/partial/malformed/symlink/mixed-root footprint cannot exempt; complete-looking old marker with all files but no affirmative history cannot exempt; affirmative history only for one complete nonconflicting deployment; blank/unknown/decline fresh; explicit y/yes confirms; invalid answer re-prompts; cancel/EOF stops before mutation. Explicit previously committed-but-finalization-incomplete report can establish admission history without claiming cleanup completion. No version/liveness heuristic. |
 | INST-02 established recovery | Current and supported predecessor confirmed installed with incomplete config/account/model remain configuration-capable; no unnecessary re-entry/re-auth, retained valid choices preserved; correct update output; no fresh query prerequisite. |
 | INST-03 guided retry | Fresh/unproven retained v4 with missing roots/model/account reaches existing guided reconfigure; available models do not preclude login, relist on login, valid retained choices accepted, empty target rejected, cancel/failure propagates; ordinary CLI setup unchanged. |
 | INST-04 predecessor transaction | Fail each legacy install/state/database suffix move, including partial namespace rename and subsequent staging failure; restore exact prior paths and service where possible; conflict remains non-mutating; no guessed target or document deletion. |
@@ -1384,7 +1384,7 @@ In `src/shell/setup.ts`, thread the established decision through `runInstallerGu
 | INST-08 rollback | Fail after config snapshot, database archive/migration, created manifests, liveness and readiness; restore all reversible completed effects, preserve canonical private credentials/repository copies as governed, primary failure and safe residual diagnostics if restoration itself fails. |
 | INST-09 marker | Neither fresh nor update publishes during staging/activation; inject temporary write/rename failure, no committed outcome; interruption before publish cannot be automatic established proof; marker bytes exactly source SHA + newline on admitted commit. |
 | INST-10 pre-commit interruption/retry | Stop actual child at named activation/service/health/readiness boundaries; retained residue cannot bypass admission; recover known previous deployment without deleting ambiguous backups; no fabricated ordinary success. |
-| INST-11 post-commit finalization | Fail legacy retirement, profile update and each backup deletion, including second deletion after first succeeds; no pre-commit rollback, admitted app/launcher/config/service/marker remain, remaining material retained, distinct committed-but-incomplete message/nonzero; subsequent safe retry follows history decision. |
+| INST-11 post-commit finalization | Fail legacy retirement, profile update and each backup deletion, including second deletion after first succeeds; no pre-commit rollback, admitted app/launcher/config/service/marker remain, remaining material retained, distinct committed-but-incomplete message/nonzero; subsequent safe retry follows history decision; a predecessor-conflict rerun stops without mutation, identifies exact conflicting canonical paths, and requires explicit resolution instead of automatic deletion. |
 | INST-12 end-to-end success | Actual fresh ready and established incomplete update complete through exact commit/finalization, correctly classified output, no early success, exact migration and retained choice proof. |
 
 Maintain the existing guide/cancel, migration and browser regression coverage; verify exact readiness route, installed module call and no production mutation outside F7. INST cases are verification propositions, not new public contracts or campaign state.
