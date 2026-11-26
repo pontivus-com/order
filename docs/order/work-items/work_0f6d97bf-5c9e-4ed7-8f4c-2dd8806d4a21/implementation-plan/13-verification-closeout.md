@@ -16,11 +16,11 @@ T1 carries the same six logical gate IDs through final validation. During the li
 | Completed phase | Before next phase | Required retained evidence |
 |---|---|---|
 | read-only IA07/IA08 and current R3/G6 | normal sign-off | exact existing capability proof; no mutation before sign-off absent separate grant |
-| signed IA01/IA02/IA04 and existing capability proof | IA27/IA28 | exact ref/decision conformance and reuse |
+| signed IA01→IA02→IA03→IA04, IA11, IA17 and existing capability proof | IA27/IA28 | exact refs/decision conformance, interrupted adoption, linked-remediation eligibility, shared completion and Approval query/route proof |
 | IA27/IA28 | IA29 | existing shell/Context/ResourceList, Queue/Create proof, accepted scope and exact residuals |
-| IA29 | IA31 | signed document membership and Document-first/narrow proof |
+| IA29 | IA16/IA31 | signed document membership and Document-first/narrow proof; IA17 exact query/selection already proven |
 | IA31 | IA30 | exact current/historical Approval and existing Review/Proposal/Readiness component/action proof |
-| IA30 | P0.4 HUX-09 / IA20+IA26 targeted fidelity proof | exact PLAN/current attention and direct productive composition |
+| IA30 | P0.4 HUX-09 / IA20+IA26 targeted fidelity proof | exact PLAN/current attention and direct productive composition; IA26 authority-derived current-marker/attempt-ordinal comparison correction precedes capture review |
 | P0.4 HUX-09 / IA20+IA26 targeted fidelity proof | IA32 | exact same-scope comparison and explicit outstanding HUX disposition |
 | IA32 | IA33 | exact current blocker and chronology/validation/evidence |
 | IA33 | IA34 | reached Complete, exact candidate chain, non-delivery/Evidence |
@@ -47,7 +47,7 @@ For every stable requirement row in phases 01-11:
 - technical/mixed delta: execute only the exact IA owner and prove the authority-defined remainder still conforms; do not infer a preservation target from current implementation.
 - verification delta: add only the missing proof; do not infer a behavioral rewrite.
 
-Every package atom must have exactly one execution owner. Shared IA references are consumer dependencies.
+Every package atom has exactly one executable P7 owner, T1. Within T1 each distinct semantic mutation/proof responsibility has exactly one defining IA in the action catalog; an atom may require multiple complementary actions (for example pure authority resolution and daemon consumption), not multiple implementations of the same decision. Shared IA references are consumer dependencies.
 
 A01 corrected-upstream no-code rows `A01-NC01`-`A01-NC05` are also binding proof instructions: verify their exact canonical authority identities and stated R1 semantic propositions under V4, authorize no T1 production mutation for those corrections, and return upstream if any authority/evidence contradiction is found.
 
@@ -195,7 +195,7 @@ Any failed row blocks closeout, opens remediation at the defective implementatio
 
 V4/V5/V6 explicitly verify:
 - all 112 stable rows retain their exact current R1 evidence and DESIGN disposition;
-- all 27 package-local atoms, including `PL-C12-02`, are satisfied by their one implementation or DESIGN-positive-reuse proof owner;
+- all 27 package-local atoms, including `PL-C12-02`, are satisfied by the single T1 owner and the exact catalog-defined mutation/proof responsibilities, without duplicate semantic implementations;
 - every `POSITIVE_NO_CHANGE` and DESIGN-positive-reuse obligation remains true;
 - T1 retains exact 41-path forecast and protected exclusions; no obsolete component recreation;
 - every actual changed path is inside signed `scope`, outside exclusions/protected material, and either forecast or positively proven as minimum same-layer responsibility-preserving variance;

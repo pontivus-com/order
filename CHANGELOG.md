@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Finalize the 0.6.0 implementation specification through G5, resolving exact action/producer dependencies, forecast and proof ownership; preserve G5A/R3/sign-off barriers.
+
 - Close 0.6.0 technical design A07–A11/H3, binding current validation and complete result proof to exact Run/Approval lineage; retain 41-path draft scope and require fresh G5/ALIGN/R3.
 
 - Specify exact interrupted governance-proposal recovery and conformed Readiness verdict selection; reconcile the one newly justified existing repository-shell path in the 0.6.0 draft scope and campaign fitness.
