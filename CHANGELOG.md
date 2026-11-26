@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Complete the affected upstream specification audits for the installer continuity/archive correction; retain prior evidence and advance only to final vertical alignment.
+
 - Reconcile the exact campaign forecast sensor with the single installer archive owner addition; make stored-root conversion, absent-config recovery and incomplete compensation signaling explicit.
 
 - Reconcile installer continuity requirements FR080–082 with SD19/IA25; specify established v3/v4 recovery and existing SQLite archive/restore compensation, preserving primary errors and recoverable material. Correct only the associated scope and verification trace before sign-off.
