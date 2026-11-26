@@ -8,6 +8,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Changed
 
+- Correct Document read/view sizing: governed Markdown content retains its intrinsic height inside the Document content scroll owner instead of collapsing into a zero-basis nested flex viewport. Assert visible, non-clipped Work request preview content on wide and narrow viewports while retaining bounded editor behavior.
+
 - Bind reference lifecycle current/reached history independently from inspection selection for the seeded Workbench fixtures, and assert the exact selected independent-review attempt in recorded validation evidence. Reconcile the reference README authority pointers.
 
 - Preserve Dialogue hook ordering during empty-to-populated Run transitions and separate task-level validation status from selected-attempt evidence; assert both ownership boundaries in certification and browser tests.

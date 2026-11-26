@@ -3338,6 +3338,26 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   await expect(sourceMaterial.getByLabel("Work request context")).not.toBeVisible();
   const workRequestDocument = sourceMaterial.getByTestId("markdown-document-view");
   await expect(workRequestDocument).toBeVisible();
+  const expectReadableWorkRequest = async (): Promise<void> => {
+    const preview = workRequestDocument.getByTestId("markdown-preview");
+    await expect(preview).toBeVisible();
+    await expect(preview.getByText("Requested outcome", { exact: true })).toBeVisible();
+    const geometry = await preview.evaluate((node) => {
+      const viewport = node.closest(".order-workbench-document-content");
+      if (!(viewport instanceof HTMLElement)) throw new Error("Document content owner missing");
+      return {
+        previewHeight: node.getBoundingClientRect().height,
+        previewContentHeight: node.scrollHeight,
+        ownerHeight: viewport.clientHeight,
+        ownerOverflow: getComputedStyle(viewport).overflowY,
+      };
+    });
+    expect(geometry.previewHeight).toBeGreaterThan(0);
+    expect(geometry.previewHeight + 1).toBeGreaterThanOrEqual(geometry.previewContentHeight);
+    expect(geometry.ownerHeight).toBeGreaterThan(0);
+    expect(geometry.ownerOverflow).toBe("auto");
+  };
+  await expectReadableWorkRequest();
   const [documentBox, detailsBox] = await Promise.all([
     workRequestDocument.boundingBox(),
     workRequestDetails.boundingBox(),
@@ -3371,6 +3391,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-MARKDOWN-WORKBENCH-V1"],
   });
   await page.setViewportSize(narrow);
+  await expectReadableWorkRequest();
   await expect(sourceMaterial.getByText("Requested outcome", { exact: true }))
     .toBeVisible({ timeout: 15_000 });
   await capture({

@@ -929,6 +929,17 @@
   overflow: auto;
 }
 .order-workbench-document-content:has(.order-markdown-editor) { flex: 1 1 0; }
+/* The Document content region owns scrolling in read/view mode. A zero-basis
+   nested flex viewer would collapse when the parent sizes to its content. */
+.order-workbench-document-content > .order-markdown-document-view {
+  flex: 0 0 auto;
+  overflow: visible;
+}
+.order-workbench-document-content > .order-markdown-document-view > .order-markdown-preview,
+.order-workbench-document-content > .order-markdown-document-view > .order-markdown-readonly {
+  flex: 0 0 auto;
+  overflow: visible;
+}
 .order-workbench-document-details {
   min-width: 0;
   flex: 0 0 auto;
