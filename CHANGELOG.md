@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Specify independent signed phase-local and Priority-0 rendered evidence execution, preserve terminal exhaustive verification, and reopen the affected readiness interfaces (REV-F04).
+
 - Reopen Order 0.6.0 specification readiness for targeted HUX progression, bounded prerequisites and forecast consistency review (REV-F01–F03); correct phase-local versus global HUX acceptance, separate bounded baseline preflight from signed predecessors, and reconcile the 45-path DESIGN count without production mutation.
 
 - Record fresh independent 0.6.0 R3 readiness verdict for the corrected exact package; operator authorization remains outstanding.

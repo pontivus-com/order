@@ -18,7 +18,7 @@ This candidate confers no authority. Production mutation requires current G4/G5/
 
 0. Read-only IA07/IA08 checkpoint/scope preflight.
 1. Signed IA01 → IA02 → IA03 → IA04 exact authority, adoption-recovery and durable-decision residuals; IA11 corrects linked-remediation eligibility. IA05/IA06/IA09/IA10/IA12 are existing capability proof. IA25 corrects and proves the exact fresh installer readiness boundary in this signed wave. IA17 establishes exact canonical Approval reads, shared conformed-completion selection and query/invalidation ownership before Context, Document and Review consumers.
-2. IA27/IA28 shell/Context/Queue/Create and ResourceList/Row revalidation; only forecast narrow residuals.
+2. Before signed IA27/IA28, IA20/IA26 prepare the existing phase-local verification dispatch and publication under the exact verification-closeout contract below; then IA27/IA28 shell/Context/Queue/Create and ResourceList/Row revalidation; only forecast narrow residuals.
 3. IA13/IA14/IA29 exact signed document and narrow editor consume completed IA17 transport/selection; then IA16 establishes the exact admitted R3 verdict and its proof before IA31 consumes it for Approval/Review; then IA15/IA30 PLAN and current attention. Each consumer phase typechecks without compatibility or later unimplemented APIs.
 4. IA26 first reconciles the exact authority-derived reference current marker and task-global attempt ordinal; targeted IA20/IA26 then perform P0.4 HUX-09 same-scope comparison and explicit outstanding HUX disposition.
 5. IA32 exact blocker, IA19/IA33 reached Complete/exact candidate lineage, IA18/IA34 Settings proof.
@@ -271,6 +271,8 @@ For R3-F01–F03, execute the precise F7 root-first guided correction, service-q
 Maintain the existing guide/cancel, migration and browser regression coverage; verify exact readiness route, installed module call and no production mutation outside F7. INST cases are verification propositions, not new public contracts or campaign state.
 **Forbidden:** changes to ordinary SQLite open/query/schema/version policy, a new archive/transaction manager or persistent recovery journal, new configuration or readiness schema/state, duplicate readiness calculation, broad Bearer admission, new route or CLI surface, credential leakage, mandatory post-success fresh setup, automatic historical exemption, destructive post-commit rollback, update readiness gating or rewritten installer. Source mutations only after normal signed T1 admission.
 
+
+**IA20/IA26 phase-local evidence execution:** the existing Playwright/CI/certification owners must make signed phase evidence and P0.4 executable independently of uncompleted later phases. Implement the exact dispatch, capture-set and publication checks in `13-verification-closeout.md` before the first signed UI checkpoint, not at terminal IA26. This is verification-only work within T1's existing forecast, not a production component mutation, additional task, pre-sign-off permission or substitute for final exhaustive verification.
 
 ## IA27 — revalidate accepted foundation and resource ownership
 

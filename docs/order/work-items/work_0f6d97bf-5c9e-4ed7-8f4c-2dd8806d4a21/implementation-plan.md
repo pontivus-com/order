@@ -26,8 +26,8 @@ Retain evidenced closed F6B semantic APIs and responsibilities; correct rejected
 | `implementation-plan/09-a09-provider-settings.md` | `d1d4e26ea71a1a54178076594afb8dc6040a869f` |
 | `implementation-plan/10-a10-recovery-accessibility.md` | `e0fada55f15bcfd70eb1380bdf257fe52b68be7b` |
 | `implementation-plan/11-a11-component-certification.md` | `b89af8fe98c14bbbd4afcfc29211fe3fab1f676e` |
-| `implementation-plan/12-action-catalog.md` | `d94461ca1c91b273d57f61e688b5674f3bff2ae0` |
-| `implementation-plan/13-verification-closeout.md` | `2a9cacafbb727c7f217d4b26e0116e85e42ecc90` |
+| `implementation-plan/12-action-catalog.md` | `adfb338ee66dedaccd841b440e5dc715a29b971e` |
+| `implementation-plan/13-verification-closeout.md` | `d9be35198df72920edd7c9e3ed764a7a23ef1104` |
 
 A source hash mismatch makes PLAN non-current until recompiled. Directory files have no independent order-tasks block or lifecycle state.
 
@@ -1142,7 +1142,7 @@ This candidate confers no authority. Production mutation requires current G4/G5/
 
 0. Read-only IA07/IA08 checkpoint/scope preflight.
 1. Signed IA01 → IA02 → IA03 → IA04 exact authority, adoption-recovery and durable-decision residuals; IA11 corrects linked-remediation eligibility. IA05/IA06/IA09/IA10/IA12 are existing capability proof. IA25 corrects and proves the exact fresh installer readiness boundary in this signed wave. IA17 establishes exact canonical Approval reads, shared conformed-completion selection and query/invalidation ownership before Context, Document and Review consumers.
-2. IA27/IA28 shell/Context/Queue/Create and ResourceList/Row revalidation; only forecast narrow residuals.
+2. Before signed IA27/IA28, IA20/IA26 prepare the existing phase-local verification dispatch and publication under the exact verification-closeout contract below; then IA27/IA28 shell/Context/Queue/Create and ResourceList/Row revalidation; only forecast narrow residuals.
 3. IA13/IA14/IA29 exact signed document and narrow editor consume completed IA17 transport/selection; then IA16 establishes the exact admitted R3 verdict and its proof before IA31 consumes it for Approval/Review; then IA15/IA30 PLAN and current attention. Each consumer phase typechecks without compatibility or later unimplemented APIs.
 4. IA26 first reconciles the exact authority-derived reference current marker and task-global attempt ordinal; targeted IA20/IA26 then perform P0.4 HUX-09 same-scope comparison and explicit outstanding HUX disposition.
 5. IA32 exact blocker, IA19/IA33 reached Complete/exact candidate lineage, IA18/IA34 Settings proof.
@@ -1395,6 +1395,8 @@ For R3-F01–F03, execute the precise F7 root-first guided correction, service-q
 Maintain the existing guide/cancel, migration and browser regression coverage; verify exact readiness route, installed module call and no production mutation outside F7. INST cases are verification propositions, not new public contracts or campaign state.
 **Forbidden:** changes to ordinary SQLite open/query/schema/version policy, a new archive/transaction manager or persistent recovery journal, new configuration or readiness schema/state, duplicate readiness calculation, broad Bearer admission, new route or CLI surface, credential leakage, mandatory post-success fresh setup, automatic historical exemption, destructive post-commit rollback, update readiness gating or rewritten installer. Source mutations only after normal signed T1 admission.
 
+
+**IA20/IA26 phase-local evidence execution:** the existing Playwright/CI/certification owners must make signed phase evidence and P0.4 executable independently of uncompleted later phases. Implement the exact dispatch, capture-set and publication checks in `13-verification-closeout.md` before the first signed UI checkpoint, not at terminal IA26. This is verification-only work within T1's existing forecast, not a production component mutation, additional task, pre-sign-off permission or substitute for final exhaustive verification.
 
 ##### IA27 — revalidate accepted foundation and resource ownership
 
@@ -1771,14 +1773,25 @@ The six logical gates remain the canonical signed task gate union. IA26 is an ad
 The pre-sign-off IA27/IA28 lane is conditional evidence machinery only. It is eligible only after the exact current package has passed R3/G6 as `READY_FOR_SIGNOFF`. Whether a grant is active is then owned exclusively by campaign §17A/§18; without exact-package authorization from that owner, this lane confers no mutation authority. When authorized, it must remain capable of producing IA27/IA28 evidence while later-phase UI obligations are open:
 
 1. PR verification first runs dependency-lock, typecheck, architecture, the complete non-browser test gate and build on the exact merge candidate;
-2. before the ordinary full browser step, a dedicated Playwright scenario/capture lane runs only the IA27/IA28 proof set: `SURF-WI-001`, `SURF-WI-CONTEXT-001`, `SURF-APP-001`, `SURF-QUEUE-001` and `SURF-CREATE-001`, plus the exact semantic/browser states declared by IA27/IA28;
+2. before full diagnostic completeness and the ordinary full browser step, a dedicated Playwright scenario/capture lane runs only the IA27/IA28 proof set: `SURF-WI-001`, `SURF-WI-CONTEXT-001`, `SURF-APP-001`, `SURF-QUEUE-001` and `SURF-CREATE-001`, plus the exact semantic/browser states declared by IA27/IA28;
 3. that lane uploads a separately named artifact bound to the exact candidate SHA and records only phase-local evidence; it does not emit or imply `GATE_PASSED(browser)`;
 4. the ordinary full browser suite then runs unchanged. Failures owned by IA29-IA34 remain visible and blocking for their owning phases/final validation, but they do not retroactively suppress the already-generated IA27/IA28 artifact;
 5. final IA26 remains after a green ordinary browser gate and still captures/reviews the complete 37-SURF exact-candidate union.
 
 **Bounded preflight (distinct from the signed predecessor table above):** before any bounded mutation, resolve the exact grant, mutable paths and evidence slice against current R3 and positively re-prove all baseline prerequisites exercised by that slice (including existing canonical reach/current marker, Approval/Context selection, linked-remediation and readiness/Queue/Create projections where applicable). IA01–IA04, IA11, IA17, IA25 and every other signed predecessor remain outside this grant; baseline proof does not complete their signed obligations. If a prerequisite is absent, unproven or contradicted, stop before dependent mutation; return to the owning DESIGN/PLAN or normal signed predecessor path. Do not simulate missing runtime capabilities, fabricate state, broaden the grant, or treat a failed/unavailable prerequisite as acceptance. Produce and stop at the declared evidence package; operator disposition and separate normal sign-off govern later signed execution. No IA29+ mutation or signed phase completion is implied.
 
+Before a bounded grant is used, prove the existing evidence path can publish its slice without later-phase diagnostic/browser success. If not, stop and use the normal signed path or return upstream; this grant does not authorize a CI/harness correction. The signed verification preparation below removes this execution dependency for subsequent authorized use.
+
 The bounded lane is not a waiver, test skip or alternate browser gate. It exists solely to make the campaign's phase-local pre-sign-off evidence boundary executable without authorizing downstream implementation.
+
+##### Signed phase-local and Priority-0 evidence execution (IA20/IA26)
+
+Before signed IA27/IA28, IA20/IA26 correct the existing verification-only paths `tests/browser.spec.ts`, `tests/certification.test.ts` and `.github/workflows/ci.yml` (existing fixture owner `tests/e2e-server.ts` only if required by the same canonical scenarios). The current full diagnostic-completeness prerequisite before bounded publication, full browser prerequisite before Priority-0 publication, and all-phase execution behind the current priority capture filter are not valid phase-local evidence execution.
+
+- Reuse the existing Playwright scenario/capture harness. Add a closed test-only signed phase selector `PONTIVUS_ORDER_SIGNED_RENDERED_PHASE` admitting exactly `IA27_28`, `IA29`, `IA31`, `IA30`, `IA32`, `IA33`, `IA34`. Reject invalid values and incompatible diagnostic/bounded modes. Dispatch actual scenarios before execution, not merely filter screenshots after executing all phases. For IA27_28 use the existing phase-1 scenario; for the other values use the existing IA26 downstream scenario and its phase dispatch. Derive the required capture/state set from the action catalog's exact phase SURF ownership, DESIGN rows and exercised shared invariants; require exact complete scoped coverage including required variants, with no unrelated later-phase scenarios or capture IDs. Replace the existing broad priority-only selection rather than keep a competing selection path.
+- After dependency-lock, typecheck, architecture, non-browser tests and build, run the requested signed slices against the exact candidate with separately identifiable existing-format manifests/artifacts. Publish each independently before full diagnostic completeness and the ordinary full browser step; a later slice or diagnostic/browser failure cannot suppress already produced earlier-slice evidence. Preserve each actual outcome, retain failures as failures, and fail the overall verification when required checks fail. No scoped result emits GATE_PASSED(browser) or claims full IA26 or human acceptance. The conditional bounded lane remains separate and exact-grant controlled; place its publication before full diagnostic completeness as well.
+- At P0.4 capture the IA27_28, IA29, IA31 and IA30 slices afresh against one exact candidate after the authority-derived reference corrections. Review their union through the existing HUX/IA26 evidence records, preserving governed capture scope, state, viewport/theme, fixture and SHA; do not run IA32–IA34 scenarios or require their evidence for P0 exit. Require all applicable Priority-0 HUX propositions and explicit operator dispositions per the action catalog. Individual phase progression uses its own scoped evidence. Later phases retain all their owned propositions.
+- Certification proves actual dispatch isolation, exact scoped capture-set completeness, invalid-selector rejection, publication order and failure retention, and the absence of any later-phase prerequisite for a scoped result. Keep full diagnostic-current-state coverage, all 46 scenarios, ordinary full browser gate and final exhaustive unfiltered 37-SURF IA26 generation/review mandatory. Final IA26 runs with no signed phase selector or priority filter, only after the ordinary full browser gate passes. No new proof framework, runtime contract, product state, acceptance ledger, gate or task.
 
 ##### Foundation revalidation — IA27/IA28
 
