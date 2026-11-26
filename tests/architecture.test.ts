@@ -1,6 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readlinkSync, readdirSync } from "node:fs";
 import { dirname, extname, join, matchesGlob, relative, resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -1834,17 +1834,109 @@ describe("architecture fitness", () => {
     );
     const currentAuditSource =
       revalidationBoundary >= 0 ? source.slice(revalidationBoundary) : source;
+    // Campaign-level evidence reuse is not a new lifecycle or approval state.
+    // The exact current input snapshot and unchanged original audit bodies are
+    // bound once, independently of final exact-package R3/Approval.
+    const retainedAuditIds = new Set<string>();
+    const reuseHeading = "#### Current delta reuse binding";
+    const reuseSection = pairSection.split(reuseHeading)[1] ?? "";
+    const auditRecord = (id: string): string | null => {
+      const isAlign = id.startsWith("ALIGN-");
+      const auditSource = isAlign ? alignSection : currentAuditSource;
+      const kind = isAlign ? "ALIGN" : "PAIR";
+      const startToken = kind + " AUDIT START: " + id;
+      const endToken = kind + " AUDIT END: " + id;
+      if (auditSource.split(startToken).length !== 2 || auditSource.split(endToken).length !== 2) return null;
+      const start = auditSource.indexOf(startToken);
+      const end = auditSource.indexOf(endToken, start + startToken.length);
+      return start >= 0 && end >= 0 ? auditSource.slice(start, end + endToken.length) : null;
+    };
+    const hashBlob = (bytes: Buffer): string =>
+      createHash("sha1").update("blob " + bytes.length + "\0").update(bytes).digest("hex");
+    if (reuseSection !== "") {
+      const bindingErrors: string[] = [];
+      if (pairSection.split(reuseHeading).length !== 2) bindingErrors.push("one current delta reuse binding required");
+      const priorCommit = reuseSection.match(/\*\*Prior reviewed commit:\*\* `([0-9a-f]{40})`/)?.[1];
+      const reviewCommit = reuseSection.match(/\*\*Impact review baseline:\*\* `([0-9a-f]{40})`/)?.[1];
+      const inputBlob = reuseSection.match(/\*\*Reviewed input snapshot blob:\*\* `([0-9a-f]{40})`/)?.[1];
+      const evidenceBlob = reuseSection.match(/\*\*Retained audit evidence blob:\*\* `([0-9a-f]{40})`/)?.[1];
+      if (!priorCommit || !reviewCommit || !inputBlob || !evidenceBlob) {
+        bindingErrors.push("delta reuse requires exact prior/review commits and input/evidence blob identities");
+      }
+      const allowedAuditIds = new Set([
+        ...["R1", "R2", "DESIGN", "PLAN"].flatMap((phase) => expectedPairIds.map((id) => phase + "-" + id)),
+        ...expectedPairIds.map((id) => "ALIGN-" + id),
+      ]);
+      const proposedIds = new Set<string>();
+      for (const line of reuseSection.split(/\r?\n/).filter((line) => /^\| (?:R1|R2|DESIGN|PLAN|ALIGN)-A\d{2}/.test(line))) {
+        const [ids, rationale] = tableCells(line);
+        if (!rationale || rationale.trim().length < 30) bindingErrors.push("retained audits require explicit impact rationale");
+        for (const id of (ids ?? "").split(",").map((item) => item.trim())) {
+          if (!allowedAuditIds.has(id) || proposedIds.has(id)) bindingErrors.push("invalid/duplicate retained audit: " + id);
+          proposedIds.add(id);
+        }
+      }
+      if (proposedIds.size === 0) bindingErrors.push("empty reuse binding");
+      const evidenceParts: string[] = [];
+      for (const id of [...proposedIds].sort()) {
+        const record = auditRecord(id);
+        if (record === null || !/Verdict:\*{0,2}\s*`?PASS`?/i.test(record)) {
+          bindingErrors.push("retained audit lacks original PASS record: " + id);
+          continue;
+        }
+        const status = id.startsWith("ALIGN-")
+          ? alignSection.split(/\r?\n/).find((line) => line.startsWith("| " + id + " |"))?.split("|")[2]?.trim()
+          : pairRows.find((row) => row.id === id.slice(-3))?.[id.slice(0, -4) as "R1" | "R2" | "DESIGN" | "PLAN"];
+        if (status !== "PASS") bindingErrors.push("retained audit must still be PASS in its sole register: " + id);
+        evidenceParts.push(id + "\n" + record + "\n");
+      }
+      const actualEvidence = hashBlob(Buffer.from(evidenceParts.join(""), "utf8"));
+      if (actualEvidence !== evidenceBlob) bindingErrors.push("retained original audit evidence changed: expected " + actualEvidence);
+      try {
+        // Include every tracked input, including source, authority, tests, toolchain
+        // and compiled package. Exclude only this control record (self-reference),
+        // release-history provenance, and downstream independent R3 output.
+        const excluded = new Set([
+          campaignPlanPath, "CHANGELOG.md",
+          join(campaignDirectory, "readiness-review.md").replaceAll("\\", "/"),
+        ]);
+        const index = execFileSync("git", ["ls-files", "--stage", "-z"], {
+          cwd: repositoryRoot, encoding: "utf8", maxBuffer: 8 * 1024 * 1024,
+        });
+        const entries: { path: string; line: string }[] = [];
+        for (const entry of index.split("\0").filter(Boolean)) {
+          const match = entry.match(/^(\d{6}) [0-9a-f]{40} (\d)\t([\s\S]+)$/);
+          if (!match || match[2] !== "0") throw new Error("unmerged or malformed tracked input");
+          const [, mode, , path] = match;
+          if (path === undefined || mode === undefined) throw new Error("missing tracked input");
+          if (excluded.has(path)) continue;
+          if (!["100644", "100755", "120000"].includes(mode)) throw new Error("unsupported tracked input mode: " + path);
+          const bytes = mode === "120000"
+            ? Buffer.from(readlinkSync(join(repositoryRoot, path)), "utf8")
+            : readFileSync(join(repositoryRoot, path));
+          entries.push({ path, line: mode + "\t" + hashBlob(bytes) + "\t" + path + "\n" });
+        }
+        entries.sort((left, right) => left.path < right.path ? -1 : left.path > right.path ? 1 : 0);
+        const actualInputs = hashBlob(Buffer.from(entries.map((entry) => entry.line).join(""), "utf8"));
+        if (actualInputs !== inputBlob) bindingErrors.push("delta reuse exact reviewed inputs changed: expected " + actualInputs);
+      } catch (error) {
+        bindingErrors.push("cannot establish exact delta reuse inputs: " + String(error));
+      }
+      if (bindingErrors.length === 0) for (const id of proposedIds) retainedAuditIds.add(id);
+      violations.push(...bindingErrors);
+    }
+
     const phaseNames = ["R1", "R2", "DESIGN", "PLAN"] as const;
     for (const phase of phaseNames) {
       for (const [index, pair] of pairRows.entries()) {
         const status = pair[phase];
-        if (status === "PASS" && index > 0 && pairRows[index - 1]?.[phase] !== "PASS") {
+        const auditId = `${phase}-${pair.id}`;
+        if (status === "PASS" && !retainedAuditIds.has(auditId) && index > 0 && pairRows[index - 1]?.[phase] !== "PASS") {
           violations.push(
             `${phase}-${pair.id} PASS requires prior pair ${phase}-${pairRows[index - 1]?.id} PASS`,
           );
         }
         if (status !== "PASS") continue;
-        const auditId = `${phase}-${pair.id}`;
         const startToken = `PAIR AUDIT START: ${auditId}`;
         const endToken = `PAIR AUDIT END: ${auditId}`;
         const startCount = currentAuditSource.split(startToken).length - 1;
@@ -1890,7 +1982,7 @@ describe("architecture fitness", () => {
           const match = record.match(
             new RegExp(artifact + "=`([0-9a-f]{40})`", "i"),
           );
-          if (match?.[1] !== expectedBlob) {
+          if (!match || (!retainedAuditIds.has(auditId) && match[1] !== expectedBlob)) {
             violations.push(
               auditId + " PASS must bind current " + artifact +
                 " blob " + expectedBlob + "; found " + (match?.[1] ?? "missing"),
@@ -1934,7 +2026,7 @@ describe("architecture fitness", () => {
     }
     for (let index = 0; index < 11; index += 1) {
       const id = expectedAlignIds[index]!;
-      if (alignById.get(id)?.status !== "PASS") continue;
+      if (alignById.get(id)?.status !== "PASS" || retainedAuditIds.has(id)) continue;
       if (index > 0) {
         const prior = expectedAlignIds[index - 1]!;
         if (alignById.get(prior)?.status !== "PASS") {
@@ -1990,7 +2082,7 @@ describe("architecture fitness", () => {
         const match = record.match(
           new RegExp("\\*\\*" + label + " blob:\\*\\*\\s*`([0-9a-f]{40})`", "i"),
         );
-        if (match?.[1] !== expectedBlob) {
+        if (!match || (!(row.status === "PASS" && retainedAuditIds.has(row.id)) && match[1] !== expectedBlob)) {
           violations.push(
             row.id + " " + row.status + " must bind current " + label +
               " blob " + expectedBlob + "; found " + (match?.[1] ?? "missing"),

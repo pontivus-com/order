@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Make 0.6.0 campaign revalidation semantic-delta driven: retain unchanged proven audit bodies using one exact current input/evidence binding, reopen only affected obligations and real dependencies, and keep final exact-package R3/Approval gates unchanged.
+
 - Correct 0.6.0 installation history/admission and rollback/commit/finalization specifications after independent REV-01–REV-07 review; retain one installer/readiness owner, require actual-orchestrator proof and distinguish preserved semantic Workbench APIs from rejected physical presentation. No production implementation or sign-off.
 
 - Correct the Order 0.6.0 specification for ALIGN-A09-F02: fresh installer success must observe canonical productive readiness after liveness, before irreversible completion; reconcile P4/P6 and allocate exact installer/setup and bounded server proof without runtime changes or sign-off.
