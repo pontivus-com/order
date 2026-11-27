@@ -959,6 +959,7 @@ export const runInstaller = async (
   let published: Parameters<InstallerConfigPublication["onPublished"]>[0] | null = null;
   let databaseArchive: LegacyDatabaseArchive | null = null;
   let databaseCandidateEffectsStarted = false;
+  let databaseCandidates: ReturnType<typeof import("./shell/sqlite.ts").observeInstallerDatabaseCandidates> | undefined;
   let databaseRestoreIncomplete = false;
   let sqliteUpgradeModule: typeof import("./shell/sqlite.ts") | null = null;
   let configuredSetup: Awaited<ReturnType<typeof configureOrder>> | null = null;
@@ -1037,6 +1038,9 @@ export const runInstaller = async (
         databaseCandidateEffectsStarted = true;
       }, rename);
     await waitForHealthyDaemon(locations, launcher);
+    if (databaseArchive !== null) {
+      databaseCandidates = sqliteUpgradeModule.observeInstallerDatabaseCandidates(databaseArchive, true);
+    }
     if (!established) await configuredSetup.setupModule.requireFreshInstallerReadiness(runtimeEnvironment(locations));
 
     // Installation commit: all reversible admission conditions have passed.
@@ -1049,9 +1053,9 @@ export const runInstaller = async (
     const compensate = (label: string, operation: () => void): void => {
       try { operation(); } catch (failure) { failures.push(new Error(label + ": " + String(failure), { cause: failure })); }
     };
-    const databaseCandidates = databaseArchive !== null && sqliteUpgradeModule !== null
-      ? sqliteUpgradeModule.observeInstallerDatabaseCandidates(databaseArchive, databaseCandidateEffectsStarted)
-      : undefined;
+    if (databaseCandidates === undefined && databaseArchive !== null && sqliteUpgradeModule !== null) {
+      databaseCandidates = sqliteUpgradeModule.observeInstallerDatabaseCandidates(databaseArchive, databaseCandidateEffectsStarted);
+    }
     if (restartAttempted) {
       compensate("cannot prove new service stopped; live deployment and recovery material retained",
         () => requireServiceQuiescence("pontivus-order.service", locations.home, environment));

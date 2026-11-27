@@ -583,6 +583,16 @@ export const prepareOrderDatabaseForInstall = (
           "; archive path: " + original.path + suffix + "; " + String(failure), { cause: failure }));
       }
     }
+    // Paths not moved by this invocation must still match their pre-effect
+    // original membership; a failed precondition is not proof of restoration.
+    for (const original of originals) {
+      if (moved.includes(original)) continue;
+      try { requireArchivedDatabaseOriginal(original.path, original); }
+      catch (failure) {
+        failures.push(new Error("untouched database path cannot be proven: " + original.path +
+          "; " + String(failure), { cause: failure }));
+      }
+    }
     if (failures.length > 0) {
       onIncompleteRestore();
       throw new AggregateError([error, ...failures], "installer database prepare failed: " + String(error) + "; incomplete restoration at " + failures.map(String).join("; "));

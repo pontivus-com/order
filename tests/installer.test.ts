@@ -496,9 +496,10 @@ type InstallerTransactionFixture = Readonly<{
   legacyDatabaseVersion?: 1 | 2 | 3;
   loseDatabaseArchive?: boolean;
   databaseFault?: "archive" | "copy" | "partial-copy" | "restore" | "copy-and-restore" | "unlink" |
-    "archive-drift" | "archive-symlink" | "candidate-drift" | "copy-replaced";
+    "archive-drift" | "archive-symlink" | "candidate-drift" | "copy-replaced" | "candidate-drift-after-health";
   databaseFaultSuffix?: "" | "-wal" | "-shm";
   databaseSidecars?: boolean;
+  versionInWal?: 1 | 2 | 3;
   absentOriginalSidecar?: "-wal" | "-shm";
   candidateSidecars?: boolean;
   driftConfig?: boolean;
@@ -574,7 +575,8 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
       db.exec("CREATE TABLE sentinel(value TEXT NOT NULL) STRICT; INSERT INTO sentinel VALUES (\'original\'); PRAGMA user_version = " + fixture.legacyDatabaseVersion + ";");
       db.close();
       if (fixture.databaseSidecars) {
-        leaveWal("UPDATE sentinel SET value='original WAL';");
+        leaveWal("UPDATE sentinel SET value='original WAL';" +
+          (fixture.versionInWal === undefined ? "" : "PRAGMA user_version=" + fixture.versionInWal + ";"));
         if (fixture.absentOriginalSidecar) fs.unlinkSync(databasePath + fixture.absentOriginalSidecar);
       }
     }
@@ -758,6 +760,11 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
           String(from).includes("/.pontivus-order.") && to === launcher ? "launcher-activation" :
           String(from).startsWith(unitPath + ".tmp.") && to === unitPath ? "unit-publication" :
           String(from).startsWith(marker + ".tmp.") && to === marker ? "marker-publication" : null;
+        if (kind === "marker-publication" && fixture.databaseFault === "candidate-drift-after-health") {
+          fs.renameSync(faultPath, faultPath + ".retained-candidate");
+          fs.writeFileSync(faultPath, "unexpected replacement");
+          throw new Error("injected candidate replacement before commit");
+        }
         if (!injected && kind !== null && kind === fixture.failRename) {
           injected = true;
           throw new Error("injected rename failure: " + kind);
@@ -1220,6 +1227,38 @@ describe("actual IA25 installer transaction", () => {
     expect(outcome.restartObservations).toEqual([
       { deployment: "prior", databaseMatchesOriginal: true, configMatchesOriginal: true },
     ]);
+  }, 120_000);
+
+  it("selects v2 copy from a committed WAL schema version rather than the primary file header", () => {
+    const fixture = transactionFixture();
+    createPriorDeployment(fixture);
+    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes", legacyDatabaseVersion: 1,
+      databaseSidecars: true, versionInWal: 2, databaseFault: "copy", databaseFaultSuffix: "-wal",
+      readiness: { ready: true, blockers: [] } });
+    expect(outcome.failure).toContain("injected database copy");
+    expect(Buffer.from(outcome.originalDatabase, "base64").readUInt32BE(60)).toBe(1);
+    expect(outcome.databaseNamespace.map((value: string | null, index: number) =>
+      value === outcome.originalNamespace[index])).toEqual([true, true, true]);
+    expect(outcome.restartObservations).toEqual([
+      { deployment: "prior", databaseMatchesOriginal: true, configMatchesOriginal: true },
+    ]);
+  }, 120_000);
+
+  it("preserves a replaced candidate after health observation and before commit", () => {
+    const fixture = transactionFixture();
+    createPriorDeployment(fixture);
+    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes", legacyDatabaseVersion: 1,
+      databaseSidecars: true, candidateSidecars: true, databaseFault: "candidate-drift-after-health",
+      databaseFaultSuffix: "-shm", readiness: { ready: true, blockers: [] } });
+    expect(outcome.failure).toContain("injected candidate replacement before commit");
+    expect(outcome.failure).toContain("ambiguous installer database candidate retained");
+    expect(readFileSync(join(fixture.stateRoot, "order.sqlite3-shm"), "utf8")).toBe("unexpected replacement");
+    const archive = outcome.stateEntries.find((name: string) => name.startsWith("order.sqlite3-shm.legacy-v1."));
+    expect(readFileSync(join(fixture.stateRoot, archive)).toString("base64") === outcome.originalNamespace[2]).toBe(true);
+    expect(outcome.databaseNamespace[0] === outcome.originalNamespace[0]).toBe(true);
+    expect(outcome.databaseNamespace[1] === outcome.originalNamespace[1]).toBe(true);
+    expect(outcome.restartObservations.map((entry: { deployment: string }) => entry.deployment)).toEqual(["candidate"]);
+    expect(outcome.activity).toBe("inactive");
   }, 120_000);
 
   it("does not mutate or archive a current v3 database with WAL/SHM present", () => {
