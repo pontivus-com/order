@@ -183,6 +183,7 @@ The derivation uses evidence of actual entry:
 - each accepted `STAGE_COMPLETED` proves its owning stage and destination were reached;
 - R3 `READY_FOR_SIGNOFF` proves AWAITING_SIGNOFF was reached;
 - materialized signed execution tasks or an EXECUTION Run prove AWAITING_SIGNOFF and EXECUTION were reached;
+- current AWAITING_ACCEPTANCE and durable admitted QA review events prove Acceptance reach; historical pre-feature COMPLETE never proves Acceptance reach;
 - current COMPLETE proves COMPLETE, while prior-stage reach remains evidence-derived so an R1-terminal investigation/audit does not falsely appear to have traversed R2..EXECUTION.
 
 A lifecycle `ArtifactRef` **does not prove stage entry**. Repository-native deterministic lifecycle Markdown may exist as a rediscovered draft before its owner stage is reached. Treating that material fact as reach evidence would fabricate lifecycle history.
@@ -404,14 +405,14 @@ selected stage (presentation-local only)
 deriveWorkflowRail(...)
         |
         v
-nine ordered rail items:
+ten ordered rail items:
   stage
   reach = CURRENT | REACHED_HISTORICAL | UNREACHED
   selected
   marker = current-stage RailMarker | null
 ```
 
-The nine items always follow the canonical `stageOrder`. Exactly one item is CURRENT for a non-corrupt WorkItem. Only that item may carry a marker.
+The ten items always follow the canonical `stageOrder`. Exactly one item is CURRENT for a non-corrupt WorkItem. Only that item may carry a marker.
 
 Marker mapping is exactly the P3 §21.11 law. Historical/unreached cells carry `marker = null`; old Run failures/blockers do not become current markers.
 
@@ -699,7 +700,7 @@ Wide:
 grid-template-columns: repeat(9, minmax(0, 1fr));
 ```
 
-All nine stage cells occupy one stable rail. State/current markers render inside the cell and never change border/width metrics.
+All ten stage cells occupy one stable rail. State/current markers render inside the cell and never change border/width metrics.
 
 Medium/narrow layout keeps one horizontal rail with stable item geometry and horizontal overflow. It never wraps into multiple lifecycle-navigation rows.
 
@@ -796,6 +797,10 @@ Before validation evidence exists, the detail shows a compact validation state s
 On medium/narrow widths the `WorkbenchMasterDetail` master is a temporary Astryx `Drawer` from the inline start edge with `hasScrim={false}`, caller-owned open state and a visible close action; the detail remains the primary canvas behind it. It never switches to an alternate stacked master/detail topology.
 
 Historical task/attempt selection never displaces the independently derived current-attention owner.
+
+### 8.8A Final Acceptance
+
+`WorkItemWorkspace` maps current or selected `AWAITING_ACCEPTANCE` to one direct `WorkbenchReview`, using existing ReviewVerdict, ReviewSection, Facts, ResourceList/Row and decision region. A cohesive AcceptanceWorkspace owns only candidate/finding content projection and command binding; existing TaskPanel/form mechanics own report/retetest input, and Evidence/Document replace the primary composition during inspection. No feature-local layout, second rail, arbitrary body slot, nested primary or STAGE Dialogue. Reuse existing confirmation/identity and dirty-navigation behavior. The core derives the exact candidate set, current acceptance/finding action and eligibility from canonical Approval, task, Run/event and human QA facts; the browser never infers acceptance from a candidate label. During queued review show actionable progress without offering Accept; when correction starts the current stage is EXECUTION and selected Acceptance is historical/read-only. Technical IDs belong in Context/Evidence. Terminal Result consumes final human decision provenance (or legacy not recorded) without changing historical technical results. The exact canonical carrier, state/command admission and producer→consumer realization are defined in the affected DESIGN/P6; existing P4 renderer, rail and closed state-language matrices must be updated at their owners before implementation sign-off.
 
 ### 8.9 Context
 
@@ -994,7 +999,7 @@ Pinned Astryx guidance is incorporated as follows:
 Astryx is the interaction foundation, not product authority. Generic library advice is rejected where it would violate the higher-level Order contract:
 
 - **No AppShell SideNav.** The Workbench P3 contract has one workflow rail and no second persistent outer navigation axis. AppShell is used without adding navigation merely because the slot exists.
-- **No Astryx Stepper for the lifecycle rail.** Pinned Stepper guidance says to use another pattern above seven steps; Order has nine immutable lifecycle stages and grouping them would change canonical workflow meaning. `WorkbenchRail` therefore remains a custom semantic primitive with its own ordered, accessible navigation behavior.
+- **No Astryx Stepper for the lifecycle rail.** Pinned Stepper guidance says to use another pattern above seven steps; Order has ten lifecycle stages and grouping them would change canonical workflow meaning. `WorkbenchRail` therefore remains a custom semantic primitive with its own ordered, accessible navigation behavior.
 - **No SegmentedControl for lifecycle navigation.** Astryx defines it as a small mutually-exclusive mode/value input, not page/workflow navigation.
 - **No Drawer for wide docked Context/master-detail.** Pinned Drawer guidance explicitly distinguishes floating detail from content that should reflow the page; wide docked surfaces use the owning layout composition instead.
 - **No Badge saturation.** Order's dense professional language and Astryx guidance agree that common/default states and metadata remain ordinary text.
