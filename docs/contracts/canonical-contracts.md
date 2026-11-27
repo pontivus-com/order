@@ -1302,7 +1302,7 @@ The bounded automatic replacement/remediation entitlement below remains executio
 
 Post-signoff validation routing is deterministic:
 
-- `ALREADY_SATISFIED` at V1 is accepted only when the BUILDER explicitly emits `TASK_ALREADY_SATISFIED` after inspecting the fresh baseline and the coordinator independently proves the workspace changed-path set is empty. That result atomically terminalizes the current BUILDER Run as `COMPLETED / ALREADY_SATISFIED`, sets the ExecutionTask `ALREADY_SATISFIED`, and performs aggregate WorkItem completion if all tasks are now successful terminals. Zero diff without the explicit semantic result is provider-output failure, not successful no-op;
+- `ALREADY_SATISFIED` at V1 is accepted only when the BUILDER explicitly emits `TASK_ALREADY_SATISFIED` after inspecting the fresh baseline and the coordinator independently proves the workspace changed-path set is empty. That result atomically terminalizes the current BUILDER Run as `COMPLETED / ALREADY_SATISFIED`, sets the ExecutionTask `ALREADY_SATISFIED`, and, if all tasks are now successful terminals, applies §38.1: all-no-op enters COMPLETE/ALREADY_SATISFIED; a mixed set with any CANDIDATE_DONE enters AWAITING_ACCEPTANCE/ACTIVE with null outcome and atomic OPENED, including when the last task finishes as no-op. Zero diff without the explicit semantic result is provider-output failure, not successful no-op;
 - `SPEC_INVALID` is not worker-repairable: it invalidates current execution authority and returns the WorkItem to `PLAN / ACTIVE` with remaining tasks under the old Approval blocked historical;
 - `PRECONDITION_FAILED` blocks the current ExecutionTask and WorkItem without automatic retry; explicit resume is allowed only after the external/precondition blocker is resolved under the existing Approval;
 - one repairable `TEST_FAILURE`, `REVIEW_FAILURE` or `CHANGE_BLOAT` may create one REMEDIATOR Run for that failure class; recurrence after that repair blocks;
@@ -3218,7 +3218,7 @@ Disconnecting a repository removes it from the current productive configuration 
 
 Ordinary active-work queries project only WorkItems whose exact `repositoryRoot` remains in current `OrderConfig.repositoryRoots`. Historical records are retained in SQLite and become visible again when the same repository is validly reconnected/reconciled.
 
-Disconnect is rejected while any active Run belongs to a WorkItem in that repository.
+Disconnect is rejected while any active Run belongs to a WorkItem in that repository or a WorkItem in that repository is in EXECUTION or AWAITING_ACCEPTANCE, even with no active Run or queued review. Recheck the exact removed repository roots and their WorkItems at the existing serialized configuration-activation admission boundary (§35.5) before preflight, scheduler/configuration/runtime mutation; retain the broader existing active-Run/account guards. The denial does not change configuration, repository bytes, WorkItem/Approval/history, or scheduler state. Other repositories and completed historical work do not independently trigger this signed-work restriction.
 
 ### 35.7 Repository document-root migration contract
 
@@ -3237,7 +3237,7 @@ Migration admission requires:
 - matching `expectedManifestSha256`;
 - target path is repository-contained, non-Git and valid under the existing project-manifest contract;
 - no active Run for any WorkItem in the repository;
-- no WorkItem in the repository is in `EXECUTION`;
+- no WorkItem in the repository is in `EXECUTION` or `AWAITING_ACCEPTANCE`, including queued review or retest without an active Run; recheck within the existing serialized migration admission boundary before filesystem, manifest, database or scheduler mutation;
 - destination contains no conflicting governed WorkItem bytes;
 - no Git operation or filesystem condition makes the move untrustworthy.
 

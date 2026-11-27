@@ -167,7 +167,7 @@ The visual enforcement boundary is closed by `GW-DOC-WORKBENCH-THEME-V1`: one ro
 
 Order does not introduce a replacement primitive framework merely to recreate behavior the pinned design system already owns. Under `GW-TR-103-ASTRYX-FOUNDATION-CONFORMANCE` and `GW-DOC-EXTERNAL-FACTS`, a local semantic primitive composes the suitable Astryx component for low-level interaction/accessibility/state mechanics, exhausts supported props/layout/density/public theme tokens before custom CSS, and never targets private `--_` variables or generated/internal selectors. The local primitive continues to own the narrower Order semantic API and composition rule; Astryx does not own Order information architecture, domain semantics, browser/server state or lifecycle behavior.
 
-Generic foundation guidance remains subordinate to the P3 product contract. The nine-stage rail therefore is not forced into Astryx Stepper (whose pinned guidance recommends another pattern above seven steps), no AppShell SideNav is added to Order's single-navigation-axis Workbench, and a wide docked Context does not become a floating Drawer merely because Drawer exists.
+Generic foundation guidance remains subordinate to the P3 product contract. The canonical ten-stage rail (including Acceptance) therefore is not forced into Astryx Stepper (whose pinned guidance recommends another pattern above seven steps), no AppShell SideNav is added to Order's single-navigation-axis Workbench, and a wide docked Context does not become a floating Drawer merely because Drawer exists.
 
 ### Workbench technical boundary
 
@@ -855,7 +855,7 @@ The patch bytes are persisted under the producing Run evidence directory, read b
 
 A `REVIEWER` or `REMEDIATOR` always starts from its own fresh baseline checkout, replays the exact referenced binary patch, regenerates the candidate patch/changed-path projection and requires exact hash/path equality before provider work. A mismatch blocks the control plane; it is never delegated to the model.
 
-Final success is one `CANDIDATE_RECORDED` RunEvent emitted by the final `REVIEWER` Run. That Run's `triggerEventId` is the exact final candidate-state event, and it owns the complete current coordinator-generated `VALIDATION_PASSED` set for V0-V7; no pass event from an earlier candidate/Run is reusable. That linkage supplies:
+Final success is one `CANDIDATE_RECORDED` RunEvent emitted by the final `REVIEWER` Run. That Run owns the complete current coordinator-generated `VALIDATION_PASSED` set for V0–V7; no pass event from an earlier candidate/Run is reusable. Under P6 §§8/10/38, its trigger is the exact final `CANDIDATE_STATE_RECORDED` for ordinary review, or the exact prior `CANDIDATE_RECORDED` linked to the admitted QA submission for direct QA replay. In the latter case resolve and verify that prior event's exact `candidateStateEventId`; the newly emitted `CANDIDATE_RECORDED` binds that same replayed state event and only the new reviewer's own V0–V7 pass set. A remediated successor binds the actual new candidate-state event; never synthesize a candidate-state event for a read-only replay. That linkage supplies:
 
 - work item/task through the Run/ExecutionTask;
 - approved baseline through the Run/Approval;
@@ -1253,6 +1253,7 @@ Before:
 - stage promotion;
 - sign-off mutation;
 - V0/V1 post-signoff execution preflight;
+- current Approval QA-review admission and final candidate acceptance under P6 §38;
 
 the daemon performs targeted read-only inspection of the affected source. If the recorded source requires reconciliation, the productive command is rejected with the owning reconciliation/precondition reason; it does not apply the reconciliation and then fail the requested command.
 
@@ -1262,7 +1263,7 @@ The inspection reads only the affected source; it does not rescan the full queue
 
 External source edits while the daemon is running are therefore observed by diagnostics/read-only productive inspection and become canonical workflow transitions only through explicit reconcile/save.
 
-During `EXECUTION`, reconciliation may update the current source projection but cannot authorize continued work: the approval/source comparison yields `APPROVAL_STALE` and returns to the earliest changed-material owner before another productive execution Run. Direct browser source/artifact editing remains disabled in EXECUTION.
+During `EXECUTION`, reconciliation may update the current source projection but cannot authorize continued work: the approval/source comparison yields `APPROVAL_STALE` and returns to the earliest changed-material owner before another productive execution Run. Direct browser source/artifact editing remains disabled in EXECUTION. In AWAITING_ACCEPTANCE it likewise remains disabled; current source/authority inspection is observational and a stale source blocks QA-review admission and final acceptance. Only the explicit source reconciliation command with the exact current Approval/sequence returns to R1 under P6 §38; no implicit write, continuing signed work, or acceptance on drift.
 
 For a WorkItem already in `COMPLETE`, inspection/reconciliation does not reinterpret or reopen the historical lifecycle result. If source bytes change or disappear, Order preserves the completed runtime projection and reports `COMPLETED_SOURCE_CHANGED` or `COMPLETED_SOURCE_MISSING`. The operator must create a new WorkItem for new/changed intent rather than repurpose the completed stable id.
 
