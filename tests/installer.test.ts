@@ -499,6 +499,7 @@ type InstallerTransactionFixture = Readonly<{
     "archive-drift" | "archive-symlink" | "candidate-drift" | "copy-replaced";
   databaseFaultSuffix?: "" | "-wal" | "-shm";
   databaseSidecars?: boolean;
+  absentOriginalSidecar?: "-wal" | "-shm";
   candidateSidecars?: boolean;
   driftConfig?: boolean;
   configFault?: "snapshot-sync" | "publication" | "publication-sync" | "restore" | "restore-sync" | "retire";
@@ -572,7 +573,10 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
       const db = new Database(databasePath, { create: true, strict: true });
       db.exec("CREATE TABLE sentinel(value TEXT NOT NULL) STRICT; INSERT INTO sentinel VALUES (\'original\'); PRAGMA user_version = " + fixture.legacyDatabaseVersion + ";");
       db.close();
-      if (fixture.databaseSidecars) leaveWal("UPDATE sentinel SET value='original WAL';");
+      if (fixture.databaseSidecars) {
+        leaveWal("UPDATE sentinel SET value='original WAL';");
+        if (fixture.absentOriginalSidecar) fs.unlinkSync(databasePath + fixture.absentOriginalSidecar);
+      }
     }
     const originalNamespace = readDatabaseNamespace();
     const originalDatabase = readBytes(databasePath);
@@ -1200,6 +1204,54 @@ describe("actual IA25 installer transaction", () => {
       { deployment: "prior", databaseMatchesOriginal: true, configMatchesOriginal: true },
     ]);
     expect(outcome.stateEntries.some((name: string) => name.includes(".legacy-v"))).toBe(false);
+  }, 120_000);
+
+  it.each(["-wal", "-shm"] as const)("isolates version probe and preserves original absence of %s", absentOriginalSidecar => {
+    const fixture = transactionFixture();
+    createPriorDeployment(fixture);
+    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes", legacyDatabaseVersion: 1,
+      databaseSidecars: true, absentOriginalSidecar, databaseFault: "archive", databaseFaultSuffix: "",
+      readiness: { ready: true, blockers: [] } });
+    expect(outcome.failure).toContain("injected archive rename");
+    expect(outcome.originalNamespace[["", "-wal", "-shm"].indexOf(absentOriginalSidecar)]).toBeNull();
+    expect(outcome.databaseNamespace.map((value: string | null, index: number) =>
+      value === outcome.originalNamespace[index])).toEqual([true, true, true]);
+    expect(outcome.stateEntries.some((name: string) => name.startsWith(".installer-sqlite-probe."))).toBe(false);
+    expect(outcome.restartObservations).toEqual([
+      { deployment: "prior", databaseMatchesOriginal: true, configMatchesOriginal: true },
+    ]);
+  }, 120_000);
+
+  it("does not mutate or archive a current v3 database with WAL/SHM present", () => {
+    const fixture = transactionFixture();
+    createPriorDeployment(fixture);
+    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes", legacyDatabaseVersion: 3,
+      databaseSidecars: true, failRestart: true, readiness: { ready: true, blockers: [] } });
+    expect(outcome.failure).toContain("injected host failure");
+    expect(outcome.databaseNamespace.map((value: string | null, index: number) =>
+      value === outcome.originalNamespace[index])).toEqual([true, true, true]);
+    expect(outcome.stateEntries.some((name: string) => name.includes(".legacy-v") || name.startsWith(".installer-sqlite-probe."))).toBe(false);
+    expect(outcome.activity).toBe("active");
+  }, 120_000);
+
+  it.each(["-wal", "-shm"] as const)("retains exact original after partial copy and compensation failure at %s", databaseFaultSuffix => {
+    const fixture = transactionFixture();
+    createPriorDeployment(fixture);
+    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes", legacyDatabaseVersion: 2,
+      databaseSidecars: true, databaseFault: "copy-and-restore", databaseFaultSuffix,
+      readiness: { ready: true, blockers: [] } });
+    const index = ["", "-wal", "-shm"].indexOf(databaseFaultSuffix);
+    const archive = outcome.stateEntries.find((name: string) => name.startsWith("order.sqlite3" + databaseFaultSuffix + ".legacy-v2."));
+    expect(outcome.failure).toContain("injected partial database copy");
+    expect(outcome.failure).toContain("injected archive restoration");
+    expect(outcome.failure).toContain("database preparation compensation incomplete");
+    expect(outcome.failure.indexOf("injected partial database copy")).toBeLessThan(outcome.failure.indexOf("injected archive restoration"));
+    expect(readFileSync(join(fixture.stateRoot, archive)).toString("base64") === outcome.originalNamespace[index]).toBe(true);
+    expect(readFileSync(join(fixture.stateRoot, "order.sqlite3" + databaseFaultSuffix), "utf8")).toBe("partial candidate");
+    expect(outcome.databaseNamespace.map((value: string | null, j: number) =>
+      j === index || value === outcome.originalNamespace[j])).toEqual([true, true, true]);
+    expect(outcome.restartObservations).toEqual([]);
+    expect(outcome.activity).toBe("inactive");
   }, 120_000);
 
   it.each([1, 2] as const)("restores all original v%i DB/WAL/SHM bytes after candidate restart fails", legacyDatabaseVersion => {

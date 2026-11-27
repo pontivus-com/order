@@ -1,5 +1,5 @@
 import { Database } from "bun:sqlite";
-import { closeSync, constants, existsSync, fstatSync, fsyncSync, lstatSync, openSync, readSync, renameSync, unlinkSync, writeSync } from "node:fs";
+import { closeSync, constants, existsSync, fstatSync, fsyncSync, lstatSync, mkdtempSync, openSync, readSync, renameSync, rmSync, unlinkSync, writeSync } from "node:fs";
 import { join } from "node:path";
 
 import {
@@ -438,36 +438,112 @@ const installerDatabaseEffects: InstallerDatabaseEffects = {
   unlink: unlinkSync,
 };
 
+const copyInstallerDatabaseOriginal = (
+  original: LegacyDatabaseArchive["originals"][number],
+  from: string,
+  to: string,
+  effects: InstallerDatabaseEffects,
+  onCreated: (identity: InstallerDatabaseFileIdentity) => void,
+): void => {
+  requireArchivedDatabaseOriginal(from, original);
+  if (original.identity === null) throw new TypeError("cannot copy absent installer database file: " + from);
+  const source = openSync(from, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
+  let targetIdentity: InstallerDatabaseFileIdentity;
+  try {
+    const opened = fstatSync(source, { bigint: true });
+    if (!opened.isFile() || opened.dev !== original.identity.device || opened.ino !== original.identity.inode) {
+      throw new TypeError("installer database source changed before copy: " + from);
+    }
+    // Keep the exclusive target descriptor open through the copy.
+    const target = openSync(to, constants.O_WRONLY | constants.O_CREAT | constants.O_EXCL | constants.O_NOFOLLOW, 0o600);
+    try {
+      const stat = fstatSync(target, { bigint: true });
+      targetIdentity = { device: stat.dev, inode: stat.ino };
+      onCreated(targetIdentity);
+      effects.copy(source, target, from, to);
+    } finally { closeSync(target); }
+  } finally { closeSync(source); }
+  requireArchivedDatabaseOriginal(from, original);
+  if (installerDatabaseDigest(to, targetIdentity) !== original.digest) {
+    throw new TypeError("installer database copy differs from original: " + to);
+  }
+};
+
+const probeInstallerDatabaseVersion = (
+  stateRoot: string,
+  originals: LegacyDatabaseArchive["originals"],
+): number => {
+  // Even a readonly SQLite connection can update its WAL index or create
+  // sidecars. Read the schema version from an isolated, invocation-owned copy
+  // so the exact admitted original namespace never participates in that open.
+  const probe = mkdtempSync(join(stateRoot, ".installer-sqlite-probe."));
+  let primary: unknown;
+  try {
+    const target = join(probe, "order.sqlite3");
+    const paths = orderDatabaseFiles(target);
+    for (const [index, original] of originals.entries()) {
+      if (original.identity !== null) {
+        copyInstallerDatabaseOriginal(original, original.path, paths[index]!, installerDatabaseEffects, () => {});
+      }
+    }
+    const database = new Database(target, { readonly: true, create: false, strict: true });
+    try { return userVersion(database); } finally { database.close(); }
+  } catch (error) {
+    primary = error;
+    throw error;
+  } finally {
+    try { rmSync(probe, { recursive: true }); }
+    catch (failure) {
+      const message = "installer database version probe cleanup incomplete at " + probe + ": " + String(failure);
+      if (primary !== undefined) throw new AggregateError([primary, failure], String(primary) + "; " + message);
+      throw new Error(message, { cause: failure });
+    }
+  }
+};
+
 export const prepareOrderDatabaseForInstall = (
   stateRoot: string,
   onIncompleteRestore: () => void = () => {},
   effects: InstallerDatabaseEffects = installerDatabaseEffects,
 ): LegacyDatabaseArchive | null => {
   const path = statePaths(stateRoot).database;
-  if (inspectInstallerDatabaseFile(path) === null) return null;
-
-  const database = new Database(path, {
-    readonly: true,
-    create: false,
-    strict: true,
+  const originals = orderDatabaseFiles(path).map((candidate) => {
+    const identity = inspectInstallerDatabaseFile(candidate);
+    return { path: candidate, identity, digest: installerDatabaseDigest(candidate, identity) };
   });
+  if (originals[0]!.identity === null) {
+    if (originals.some(original => original.identity !== null)) {
+      throw new TypeError("installer database sidecars exist without the primary database: " + path);
+    }
+    return null;
+  }
   let version: number;
   try {
-    version = userVersion(database);
-  } finally {
-    database.close();
+    version = probeInstallerDatabaseVersion(stateRoot, originals);
+  } catch (error) {
+    const failures: unknown[] = [];
+    for (const original of originals) {
+      try { requireArchivedDatabaseOriginal(original.path, original); }
+      catch (failure) { failures.push(failure); }
+    }
+    if (failures.length > 0) {
+      onIncompleteRestore();
+      throw new AggregateError([error, ...failures], String(error) + "; original database custody incomplete: " + failures.map(String).join("; "));
+    }
+    throw error;
   }
-
+  try {
+    for (const original of originals) requireArchivedDatabaseOriginal(original.path, original);
+  } catch (error) {
+    onIncompleteRestore();
+    throw error;
+  }
   if (version === 3) return null;
   if (version !== 1 && version !== 2) {
     throw new TypeError(`unsupported Order SQLite schema version during update: ${version}`);
   }
 
   const suffix = `.legacy-v${version}.${crypto.randomUUID()}`;
-  const originals = orderDatabaseFiles(path).map((candidate) => {
-    const identity = inspectInstallerDatabaseFile(candidate);
-    return { path: candidate, identity, digest: installerDatabaseDigest(candidate, identity) };
-  });
   const moved: typeof originals = [];
   const copies = new Map<string, InstallerDatabaseFileIdentity>();
   const archive: LegacyDatabaseArchive = {
@@ -483,28 +559,8 @@ export const prepareOrderDatabaseForInstall = (
     }
     if (version === 2) {
       for (const original of moved) {
-        const archived = original.path + suffix;
-        requireArchivedDatabaseOriginal(archived, original);
-        const source = openSync(archived, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
-        try {
-          const opened = fstatSync(source, { bigint: true });
-          if (original.identity === null || !opened.isFile() ||
-              opened.dev !== original.identity.device || opened.ino !== original.identity.inode) {
-            throw new TypeError("installer database archive changed before copy: " + archived);
-          }
-          // Keep the exclusive target descriptor open through the copy.
-          const target = openSync(original.path,
-            constants.O_WRONLY | constants.O_CREAT | constants.O_EXCL | constants.O_NOFOLLOW, 0o600);
-          try {
-            const stat = fstatSync(target, { bigint: true });
-            copies.set(original.path, { device: stat.dev, inode: stat.ino });
-            effects.copy(source, target, archived, original.path);
-          } finally { closeSync(target); }
-        } finally { closeSync(source); }
-        requireArchivedDatabaseOriginal(archived, original);
-        if (installerDatabaseDigest(original.path, copies.get(original.path)!) !== original.digest) {
-          throw new TypeError("installer database copy differs from archive: " + original.path);
-        }
+        copyInstallerDatabaseOriginal(original, original.path + suffix, original.path,
+          effects, identity => { copies.set(original.path, identity); });
       }
     }
   } catch (error) {
