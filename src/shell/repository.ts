@@ -343,9 +343,10 @@ export const adoptProposalPatch = async (
       createWorkingTreeFileExclusive(scratch, canonicalTarget, observed);
       await runGit(scratch, ["apply", "--reverse", "--check", "--binary", "-"], patch);
       await runGit(scratch, ["apply", "--reverse", "--binary", "-"], patch);
-      const reconstructed = ensureInsideRoot(scratch, canonicalTarget, baseSha256 === null);
+      // Reverse application of a new-file patch can remove its empty parent
+      // directories as well. Prove absence in the isolated scratch tree.
       if (baseSha256 === null
-        ? existsSync(reconstructed)
+        ? lstatSync(join(scratch, canonicalTarget), { throwIfNoEntry: false }) !== undefined
         : sha256(readWorkingTreeFile(scratch, canonicalTarget)) !== Sha256Schema.parse(baseSha256)) {
         throw new TypeError("proposal reconstructed base does not match recorded base");
       }
