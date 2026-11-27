@@ -530,6 +530,19 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
     let restartFailed = false;
     let serviceFailed = false;
     let candidateStarted = false;
+    const readIdentity = target => {
+      const entry = fs.lstatSync(target, { throwIfNoEntry: false, bigint: true });
+      return entry === undefined ? null : String(entry.dev) + ":" + String(entry.ino);
+    };
+    const readBytes = target => fs.existsSync(target) ? fs.readFileSync(target).toString("base64") : null;
+    const priorApplicationIdentity = readIdentity(installRoot);
+    const priorLauncherIdentity = readIdentity(launcher);
+    const priorUnitBytes = readBytes(unitPath);
+    const expectedUnit = Buffer.from(installer.buildUserServiceUnit(launcher)).toString("base64");
+    const expectedLauncher = Buffer.from(installer.buildLauncherScript({
+      installRoot, stateRoot: fixture.stateRoot, bind: process.env.PONTIVUS_ORDER_BIND,
+    })).toString("base64");
+    const restartObservations = [];
     const databasePath = path.join(fixture.stateRoot, "order.sqlite3");
     const { Database } = await import("bun:sqlite");
     if (fixture.legacyDatabaseVersion !== undefined) {
@@ -537,8 +550,8 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
       db.exec("CREATE TABLE sentinel(value TEXT NOT NULL) STRICT; INSERT INTO sentinel VALUES (\'original\'); PRAGMA user_version = " + fixture.legacyDatabaseVersion + ";");
       db.close();
     }
-    const originalDatabase = fs.existsSync(databasePath) ? fs.readFileSync(databasePath).toString("base64") : null;
-    const originalConfig = fs.existsSync(configPath) ? fs.readFileSync(configPath).toString("base64") : null;
+    const originalDatabase = readBytes(databasePath);
+    const originalConfig = readBytes(configPath);
     let retainedArchive = null;
     const token = "a".repeat(64);
     const result = (stdout = "", exitCode = 0) => ({
@@ -573,7 +586,24 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
         if (verb === "enable") { enablement = "enabled"; return result(); }
         if (verb === "disable") { enablement = "disabled"; return result(); }
         if (verb === "restart") {
+          // A compensating restart can be the first restart of the invocation.
+          // Classify from the actual deployment, not command order or history answers.
+          const prior = priorApplicationIdentity !== null && priorLauncherIdentity !== null &&
+            priorUnitBytes !== null && readIdentity(installRoot) === priorApplicationIdentity &&
+            readIdentity(launcher) === priorLauncherIdentity && readBytes(unitPath) === priorUnitBytes;
+          const candidate = readIdentity(installRoot) !== null &&
+            readIdentity(installRoot) !== priorApplicationIdentity &&
+            readIdentity(launcher) !== null && readIdentity(launcher) !== priorLauncherIdentity &&
+            readBytes(unitPath) === expectedUnit && readBytes(launcher) === expectedLauncher &&
+            readBytes(path.join(installRoot, "app/src/cli.ts")) === readBytes(path.join(sourceRoot, "src/cli.ts"));
+          if (prior === candidate) throw new Error("restart deployment identity is ambiguous");
+          restartObservations.push({
+            deployment: prior ? "prior" : "candidate",
+            databaseMatchesOriginal: readBytes(databasePath) === originalDatabase,
+            configMatchesOriginal: readBytes(configPath) === originalConfig,
+          });
           activity = "active";
+          if (prior) return result();
           fs.writeFileSync(path.join(fixture.stateRoot, "daemon-token"), token, { mode: 0o600 });
           if (!candidateStarted) {
             candidateStarted = true;
@@ -744,7 +774,7 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
       await installer.runInstaller({ sourceRoot, sourceCommit }, process.env, question, rename, remove, databaseEffects, configEffects);
     } catch (error) { failure = String(error); }
     console.log("ORDER_TRANSACTION_RESULT " + JSON.stringify({
-      failure, prompts, events, activity, enablement, legacyActivity, sourceCommit,
+      failure, prompts, events, restartObservations, activity, enablement, legacyActivity, sourceCommit,
       marker: fs.existsSync(marker) ? fs.readFileSync(marker, "utf8") : null,
       config: fs.existsSync(configPath) ? JSON.parse(fs.readFileSync(configPath, "utf8")) : null,
       app: fs.existsSync(installRoot), launcher: fs.existsSync(launcher), unit: fs.existsSync(unitPath),
@@ -1059,6 +1089,9 @@ describe("actual IA25 installer transaction", () => {
     expect(outcome.activity).toBe("active");
     expect(outcome.stateEntries.some((name: string) => name.includes(".legacy-v"))).toBe(false);
     expect(outcome.events.filter((event: { command: string[] }) => event.command[0] === "restart")).toHaveLength(1);
+    expect(outcome.restartObservations).toEqual([
+      { deployment: "prior", databaseMatchesOriginal: true, configMatchesOriginal: true },
+    ]);
   }, 120_000);
 
   it("retains the exact archive and blocks restart after primary copy and secondary compensation failure", () => {
@@ -1106,6 +1139,10 @@ describe("actual IA25 installer transaction", () => {
     expect(outcome.marker).toBe("b".repeat(40) + "\n");
     expect(outcome.activity).toBe("active");
     expect(outcome.stateEntries.some((name: string) => name.includes(".legacy-v"))).toBe(false);
+    expect(outcome.restartObservations.map((entry: { deployment: string }) => entry.deployment)).toEqual(["candidate", "prior"]);
+    expect(outcome.restartObservations[1]).toEqual({
+      deployment: "prior", databaseMatchesOriginal: true, configMatchesOriginal: true,
+    });
   }, 120_000);
 
   it.each([1, 2] as const)("preserves candidate and retained v%i archive when database rollback cannot prove original", legacyDatabaseVersion => {
