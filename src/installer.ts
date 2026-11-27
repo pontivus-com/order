@@ -566,7 +566,40 @@ const requireInstallerFile = (path: string, expected: InstallerFileIdentity | nu
   }
 };
 
-const writeExclusiveServiceFile = (path: string, bytes: Uint8Array, mode: number): InstallerFileIdentity => {
+// The installed application is a managed directory namespace. Prove the
+// root identity before moving or recursively removing it; do not adopt
+// a replacement root merely because it occupies the expected pathname.
+const captureInstallerDirectory = (path: string) => {
+  if (realpathSync(path) !== path) throw new TypeError("installer directory is not canonical: " + path);
+  const entry = lstatSync(path, { bigint: true });
+  if (!entry.isDirectory()) throw new TypeError("installer directory is not a real directory: " + path);
+  const descriptor = openSync(path, constants.O_RDONLY | constants.O_DIRECTORY | constants.O_NOFOLLOW);
+  try {
+    const opened = fstatSync(descriptor, { bigint: true });
+    const after = lstatSync(path, { bigint: true });
+    if (!opened.isDirectory() || opened.dev !== entry.dev || opened.ino !== entry.ino ||
+        opened.dev !== after.dev || opened.ino !== after.ino || opened.uid !== entry.uid ||
+        opened.uid !== after.uid || opened.mode !== entry.mode || opened.mode !== after.mode) {
+      throw new TypeError("installer directory changed during inspection: " + path);
+    }
+    return { device: opened.dev, inode: opened.ino, uid: opened.uid, mode: opened.mode };
+  } finally { closeSync(descriptor); }
+};
+type InstallerDirectoryIdentity = ReturnType<typeof captureInstallerDirectory>;
+
+const requireInstallerDirectory = (path: string, expected: InstallerDirectoryIdentity | null): void => {
+  if (expected === null) {
+    if (footprintEntryExists(path)) throw new TypeError("unexpected installer directory at " + path);
+    return;
+  }
+  const observed = captureInstallerDirectory(path);
+  if (observed.device !== expected.device || observed.inode !== expected.inode ||
+      observed.uid !== expected.uid || observed.mode !== expected.mode) {
+    throw new TypeError("installer directory identity changed: " + path);
+  }
+};
+
+const writeExclusiveInstallerFile = (path: string, bytes: Uint8Array, mode: number): InstallerFileIdentity => {
   const descriptor = openSync(path,
     constants.O_WRONLY | constants.O_CREAT | constants.O_EXCL | constants.O_NOFOLLOW, 0o600);
   let expected: InstallerFileIdentity;
@@ -577,7 +610,7 @@ const writeExclusiveServiceFile = (path: string, bytes: Uint8Array, mode: number
     const stat = fstatSync(descriptor, { bigint: true });
     expected = { device: stat.dev, inode: stat.ino, mode: stat.mode, uid: stat.uid, bytes: Buffer.from(bytes) };
   } catch (error) {
-    throw new Error("service file write incomplete; inspect " + path + ": " + String(error), { cause: error });
+    throw new Error("installer file write incomplete; inspect " + path + ": " + String(error), { cause: error });
   } finally { closeSync(descriptor); }
   requireInstallerFile(path, expected);
   return expected;
@@ -626,11 +659,11 @@ const activateService = (
   requireInstallerFile(unitPath, prior.previousUnit);
   if (prior.previousUnit !== null) {
     const path = unitPath + ".previous." + crypto.randomUUID();
-    const identity = writeExclusiveServiceFile(path, prior.previousUnit.bytes, Number(prior.previousUnit.mode & 0o777n));
+    const identity = writeExclusiveInstallerFile(path, prior.previousUnit.bytes, Number(prior.previousUnit.mode & 0o777n));
     recoveryCreated({ path, identity });
   }
   const temporary = unitPath + ".tmp." + crypto.randomUUID();
-  const identity = writeExclusiveServiceFile(temporary, Buffer.from(buildUserServiceUnit(launcher)), 0o644);
+  const identity = writeExclusiveInstallerFile(temporary, Buffer.from(buildUserServiceUnit(launcher)), 0o644);
   try {
     requireInstallerFile(unitPath, prior.previousUnit);
     requireInstallerFile(temporary, identity);
@@ -696,7 +729,7 @@ const restoreUnit = (
       requireInstallerFile(recovery.path, recovery.identity);
       const temporary = prior.unitPath + ".restore." + crypto.randomUUID();
       try {
-        const restored = writeExclusiveServiceFile(temporary, prior.previousUnit.bytes,
+        const restored = writeExclusiveInstallerFile(temporary, prior.previousUnit.bytes,
           Number(prior.previousUnit.mode & 0o777n));
         requireInstallerFile(prior.unitPath, published);
         requireInstallerFile(temporary, restored);
@@ -1031,9 +1064,13 @@ export const runInstaller = async (
   const prior = captureServiceState(locations, environment);
   let legacyMigration: LegacyGateweftMigration | null = null;
   let staging: string | null = null;
+  let stagingIdentity: InstallerDirectoryIdentity | null = null;
   let launcherTemporary: string | null = null;
+  let launcherIdentity: InstallerFileIdentity | null = null;
   let installBackup: string | null = null;
+  let installBackupIdentity: InstallerDirectoryIdentity | null = null;
   let launcherBackup: string | null = null;
+  let launcherBackupIdentity: InstallerFileIdentity | null = null;
   let appActivated = false;
   let launcherActivated = false;
   let priorStopped = false;
@@ -1061,6 +1098,7 @@ export const runInstaller = async (
     mkdirSync(dirname(locations.installRoot), { recursive: true });
     mkdirSync(locations.binDir, { recursive: true });
     staging = mkdtempSync(join(dirname(locations.installRoot), ".pontivus-order-install."));
+    stagingIdentity = captureInstallerDirectory(staging);
     const installedBun = join(staging, "runtime", "bun", "bin", "bun");
     for (const directory of [dirname(installedBun), join(staging, "runtime", "home"),
       join(staging, "runtime", "config"), join(staging, "runtime", "cache"), join(staging, "downloads")]) {
@@ -1077,26 +1115,38 @@ export const runInstaller = async (
     step("installing and building Order");
     buildApplication(staging, args.sourceRoot, args.sourceCommit, sourceKind, installedBun, node);
     const temporary = join(locations.binDir, ".pontivus-order." + crypto.randomUUID());
-    writeFileSync(temporary, buildLauncherScript(locations), { encoding: "utf8", mode: 0o755, flag: "wx" });
     launcherTemporary = temporary;
+    launcherIdentity = writeExclusiveInstallerFile(temporary, Buffer.from(buildLauncherScript(locations)), 0o755);
 
     step("activating application");
-    if (existsSync(locations.installRoot)) {
+    if (footprintEntryExists(locations.installRoot)) {
       const backup = locations.installRoot + ".previous." + crypto.randomUUID();
+      installBackupIdentity = captureInstallerDirectory(locations.installRoot);
+      requireInstallerDirectory(backup, null);
       rename(locations.installRoot, backup);
       installBackup = backup;
+      requireInstallerDirectory(backup, installBackupIdentity);
     }
-    if (existsSync(launcher)) {
+    if (footprintEntryExists(launcher)) {
       const backup = launcher + ".previous." + crypto.randomUUID();
+      launcherBackupIdentity = captureInstallerFile(launcher);
+      requireInstallerFile(backup, null);
       rename(launcher, backup);
       launcherBackup = backup;
+      requireInstallerFile(backup, launcherBackupIdentity);
     }
+    requireInstallerDirectory(staging, stagingIdentity);
+    requireInstallerDirectory(locations.installRoot, null);
     rename(staging, locations.installRoot);
     appActivated = true;
     staging = null;
+    requireInstallerDirectory(locations.installRoot, stagingIdentity);
+    requireInstallerFile(launcherTemporary, launcherIdentity);
+    requireInstallerFile(launcher, null);
     rename(launcherTemporary, launcher);
     launcherActivated = true;
     launcherTemporary = null;
+    requireInstallerFile(launcher, launcherIdentity);
 
     setupModule = await import(pathToFileURL(join(locations.installRoot, "app", "src", "shell", "setup.ts")).href) as typeof import("./shell/setup.ts");
     configSnapshot = setupModule.captureInstallerConfigSnapshot(locations.stateRoot,
@@ -1201,20 +1251,36 @@ export const runInstaller = async (
     for (const [path, identity] of [...createdProjectManifests].reverse()) {
       compensate("manifest restoration incomplete: " + path, () => restoreCreatedManifest(path, identity));
     }
-    if (launcherActivated) compensate("new launcher removal incomplete: " + launcher, () => rmSync(launcher));
+    if (launcherActivated) compensate("new launcher removal incomplete: " + launcher, () => {
+      if (launcherIdentity === null) throw new TypeError("launcher custody unavailable");
+      requireInstallerFile(launcher, launcherIdentity);
+      rmSync(launcher);
+      requireInstallerFile(launcher, null);
+    });
     if (launcherBackup !== null) {
       const backup = launcherBackup;
       compensate("launcher restoration incomplete: " + backup, () => {
         if (footprintEntryExists(launcher)) fail("launcher destination occupied: " + launcher);
+        if (launcherBackupIdentity === null) throw new TypeError("launcher backup custody unavailable: " + backup);
+        requireInstallerFile(backup, launcherBackupIdentity);
         rename(backup, launcher);
+        requireInstallerFile(launcher, launcherBackupIdentity);
       });
     }
-    if (appActivated) compensate("new application removal incomplete: " + locations.installRoot, () => rmSync(locations.installRoot, { recursive: true }));
+    if (appActivated) compensate("new application removal incomplete: " + locations.installRoot, () => {
+      if (stagingIdentity === null) throw new TypeError("application custody unavailable");
+      requireInstallerDirectory(locations.installRoot, stagingIdentity);
+      rmSync(locations.installRoot, { recursive: true });
+      requireInstallerDirectory(locations.installRoot, null);
+    });
     if (installBackup !== null) {
       const backup = installBackup;
       compensate("application restoration incomplete: " + backup, () => {
         if (footprintEntryExists(locations.installRoot)) fail("application destination occupied: " + locations.installRoot);
+        if (installBackupIdentity === null) throw new TypeError("application backup custody unavailable: " + backup);
+        requireInstallerDirectory(backup, installBackupIdentity);
         rename(backup, locations.installRoot);
+        requireInstallerDirectory(locations.installRoot, installBackupIdentity);
       });
     }
     if (unitPublished !== null) {
@@ -1229,8 +1295,24 @@ export const runInstaller = async (
       const recovery: ServiceRecovery = unitRecovery;
       compensate("service recovery retirement incomplete: " + recovery.path, () => releaseServiceRecovery(recovery));
     }
-    if (staging !== null) { const path = staging; compensate("staging cleanup incomplete: " + path, () => rmSync(path, { recursive: true })); }
-    if (launcherTemporary !== null) { const path = launcherTemporary; compensate("temporary launcher cleanup incomplete: " + path, () => rmSync(path)); }
+    if (staging !== null) {
+      const path = staging;
+      compensate("staging cleanup incomplete: " + path, () => {
+        if (!footprintEntryExists(path)) return;
+        if (stagingIdentity === null) throw new TypeError("staging custody unavailable: " + path);
+        requireInstallerDirectory(path, stagingIdentity);
+        rmSync(path, { recursive: true });
+      });
+    }
+    if (launcherTemporary !== null) {
+      const path = launcherTemporary;
+      compensate("temporary launcher cleanup incomplete: " + path, () => {
+        if (!footprintEntryExists(path)) return;
+        if (launcherIdentity === null) throw new TypeError("temporary launcher custody unavailable: " + path);
+        requireInstallerFile(path, launcherIdentity);
+        rmSync(path);
+      });
+    }
     if (failures.length === 0 && legacyMigration !== null) {
       const migration = legacyMigration;
       compensate("predecessor restoration incomplete", () => rollbackLegacyGateweftMigration(migration, locations, environment, rename));
@@ -1249,8 +1331,16 @@ export const runInstaller = async (
     if (unitRecovery !== null) releaseServiceRecovery(unitRecovery);
     if (legacyMigration !== null) retireLegacyGateweftArtifacts(legacyMigration, locations, environment);
     writeProfilePath(locations.home, locations.binDir);
-    if (installBackup !== null) remove(installBackup, { recursive: true });
-    if (launcherBackup !== null) remove(launcherBackup);
+    if (installBackup !== null) {
+      if (installBackupIdentity === null) throw new TypeError("application backup custody unavailable: " + installBackup);
+      requireInstallerDirectory(installBackup, installBackupIdentity);
+      remove(installBackup, { recursive: true });
+    }
+    if (launcherBackup !== null) {
+      if (launcherBackupIdentity === null) throw new TypeError("launcher backup custody unavailable: " + launcherBackup);
+      requireInstallerFile(launcherBackup, launcherBackupIdentity);
+      remove(launcherBackup);
+    }
   } catch (error) {
     throw new Error("installation committed; finalization incomplete: " + String(error) + "; retained material at " +
       [installBackup, launcherBackup, configSnapshot?.recoveryPath, (unitRecovery as ServiceRecovery | null)?.path, legacy.launcher, legacy.unitPath]

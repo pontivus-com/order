@@ -492,6 +492,7 @@ type InstallerTransactionFixture = Readonly<{
   failService?: "daemon-reload" | "enable";
   priorEnablement?: "enabled" | "disabled";
   unitDrift?: "before-publication" | "bytes" | "identity" | "symlink";
+  deploymentDrift?: "application" | "launcher" | "application-backup" | "launcher-backup";
   failRestoreService?: "disable" | "daemon-reload" | "enable";
   failPredecessorRetirement?: boolean;
   failStaging?: boolean;
@@ -673,6 +674,19 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
           if (fixture.stopMode === "stuck") return result("", 1);
           if (fixture.stopMode === "unknown") { activity = "unknown"; return result("", 1); }
           activity = "inactive";
+          if (candidateStarted && fixture.deploymentDrift) {
+            const app = fixture.deploymentDrift.startsWith("application");
+            const target = app ? installRoot : launcher;
+            const changed = fixture.deploymentDrift.endsWith("-backup")
+              ? path.join(path.dirname(target), fs.readdirSync(path.dirname(target)).find(name =>
+                  name.startsWith(path.basename(target) + ".previous.")))
+              : target;
+            fs.renameSync(changed, changed + ".external-original");
+            if (app) {
+              fs.mkdirSync(changed);
+              fs.writeFileSync(path.join(changed, "external"), "external application");
+            } else fs.writeFileSync(changed, "external launcher", { mode: 0o755 });
+          }
           if (candidateStarted && fixture.unitDrift && fixture.unitDrift !== "before-publication") {
             if (fixture.unitDrift === "bytes") fs.appendFileSync(unitPath, "# external edit");
             else {
@@ -1197,6 +1211,34 @@ describe("actual IA25 installer transaction", () => {
     expect(outcome.activity).toBe("inactive");
     expect(outcome.restartObservations.map((entry: { deployment: string }) => entry.deployment)).toEqual(["candidate"]);
   }, 120_000);
+
+  it.each(["application", "launcher", "application-backup", "launcher-backup"] as const)(
+    "preserves replacement deployment objects on incomplete compensation: %s", deploymentDrift => {
+      const fixture = transactionFixture();
+      createPriorDeployment(fixture);
+      const root = join(fixture.home, ".local/share/pontivus-order");
+      const launcher = join(fixture.home, ".local/bin/order");
+      const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes",
+        readiness: { ready: true, blockers: [] }, deploymentDrift, failRestart: true });
+      expect(outcome.failure).toContain("injected host failure");
+      expect(outcome.failure).toContain("rollback incomplete");
+      expect(outcome.configBytes).toBe(outcome.originalConfig);
+      expect(outcome.activity).toBe("inactive");
+      expect(outcome.restartObservations.map((entry: { deployment: string }) => entry.deployment)).toEqual(["candidate"]);
+      if (deploymentDrift.startsWith("application")) {
+        const changed = deploymentDrift === "application" ? root :
+          join(fixture.home, ".local/share", outcome.appBackups.find((name: string) => !name.endsWith(".external-original")));
+        expect(readFileSync(join(changed, "external"), "utf8")).toBe("external application");
+        expect(existsSync(changed + ".external-original")).toBe(true);
+        expect(readFileSync(launcher, "utf8")).toBe("old launcher");
+      } else {
+        const changed = deploymentDrift === "launcher" ? launcher :
+          join(fixture.home, ".local/bin", outcome.launcherBackups.find((name: string) => !name.endsWith(".external-original")));
+        expect(readFileSync(changed, "utf8")).toBe("external launcher");
+        expect(existsSync(changed + ".external-original")).toBe(true);
+        expect(readFileSync(join(root, "SOURCE_COMMIT"), "utf8")).toBe("b".repeat(40) + "\n");
+      }
+    }, 120_000);
 
   it.each(["before-publication", "bytes", "identity", "symlink"] as const)(
     "preserves externally changed service unit and blocks prior restart: %s", unitDrift => {
