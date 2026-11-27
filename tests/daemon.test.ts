@@ -6019,6 +6019,7 @@ describe("daemon control plane", () => {
       const retry = await coord.startStageRun(runtime, created.id, "INTERACTIVE");
       await Promise.all([...runtime.stageTurnTasks.values()]);
       const retryEvents = coord.listRunEvents(runtime, retry.id);
+      await coord.cancelRun(runtime, retry.id);
       console.log(JSON.stringify({
         status: finalRun.status,
         retryEvidence: retryEvents.some((event) =>
