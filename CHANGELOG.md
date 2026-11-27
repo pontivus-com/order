@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Repair the exact R1/P3 basis references in R2 and recompile its downstream DESIGN/PLAN/reference identities; preserve functional semantics and T1 scope.
+
 - Reconcile the three Workbench reference viewport classes with signed comparison proof, and correct the protected authorization sensor to the current 61-path/59-exclusion T1 package; no runtime or scope change.
 
 - Correct the existing Workbench reference responsive and QA modal/status anatomy; verify the existing Acceptance and dependent-state comparison matrix without adding surfaces or production scope.

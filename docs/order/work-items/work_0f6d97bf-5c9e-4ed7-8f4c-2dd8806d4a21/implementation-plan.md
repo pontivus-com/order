@@ -4,7 +4,7 @@
 
 ## Canonical PLAN authority
 
-This root is the single deterministic P7 artifact for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. Its modular directory is the maintainable authoring decomposition, not independent executable authority. This revalidation-candidate implementation specification binds R1 `31043ff989e1ac68b1238ca34f91b0550e64fadc`, R2 `b155e22c89df2870804a3dcab934ccf9490d7870`, DESIGN `7e8c93f030ebb926926ea7ff663697655a7ad213`, current P4 and P6. Prior closures were reopened by ALIGN-A01-F03, ALIGN-A07-F01, ALIGN-A09-F02, REV-F10 and the consolidated authority/REV-F11 return; campaign §17A/§18 own gate state and authorization. No gate advance or sign-off is inferred.
+This root is the single deterministic P7 artifact for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. Its modular directory is the maintainable authoring decomposition, not independent executable authority. This revalidation-candidate implementation specification binds R1 `31043ff989e1ac68b1238ca34f91b0550e64fadc`, R2 `f05223e81d44466f0b04370bda49eeae1e2732a1`, DESIGN `d21d23a0b02201d96ab947c5502f877ddde962ee`, current P4 and P6. Prior closures were reopened by ALIGN-A01-F03, ALIGN-A07-F01, ALIGN-A09-F02, REV-F10 and the consolidated authority/REV-F11 return; campaign §17A/§18 own gate state and authorization. No gate advance or sign-off is inferred.
 
 **Revalidation candidate for native final QA/QC.** The compiled PLAN now includes QA1–QA6, IA35–IA39 and expanded candidate scope. This is not executable authorization: the exact consumer/forecast, protected architecture sensor and derived reference corpus have been revised for review. Actual exact-head fitness execution, current R1–R3 and campaign gate revalidation remain mandatory; static reconciliation does not establish PASS. External campaign final human acceptance remains distinct from native Acceptance.
 
@@ -16,7 +16,7 @@ Retain evidenced closed F6B semantic APIs and responsibilities; correct rejected
 
 | Source component | Git blob |
 |---|---|
-| `implementation-plan/00-governance.md` | `6a6bb38f029145cf12095c5764c6144e3be9e417` |
+| `implementation-plan/00-governance.md` | `2d47acadec6002000d2ec0ff8a4e69be8980fa0e` |
 | `implementation-plan/01-a01-lifecycle-product.md` | `b8a8d72b4cf67b905527ef3f2a334e2d850ba56a` |
 | `implementation-plan/02-a02-governance-intake.md` | `555b3517cd5134dbbfb15097250c80fb73df4226` |
 | `implementation-plan/03-a03-queue-source.md` | `c6aa646d9c96c772258aab8b3e5f5deaff30cf75` |
@@ -445,8 +445,8 @@ This decomposition is revalidated under C19-F09/C20-F11 after the prior G4-G6 cl
 ##### Exact upstream package
 
 - R1 `research.md`: `31043ff989e1ac68b1238ca34f91b0550e64fadc`.
-- R2 `requirements.md`: `b155e22c89df2870804a3dcab934ccf9490d7870`.
-- DESIGN `solution-design.md`: `7e8c93f030ebb926926ea7ff663697655a7ad213` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and QA1–QA6 expanded forecast.
+- R2 `requirements.md`: `f05223e81d44466f0b04370bda49eeae1e2732a1`.
+- DESIGN `solution-design.md`: `d21d23a0b02201d96ab947c5502f877ddde962ee` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and QA1–QA6 expanded forecast.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `ee8acad4e39f4641476eb46d99ca168afab3db3d`.
 - P3 `GW-DOC-WORKBENCH-UX-V2`: `7569fc5be387c974fe7fe0c3bc123c300f147311` — §11.4A/§12/§13/§14 (including §14.8A.1–2) own semantic information classes, state-is-not-interface behavior, direct primary interaction composition, no generic workflow-material selector, continuous Dialogue semantics, Terminal-result primacy, singular technical inspection, task anatomy and composition invariants.
 - P3 `GW-DOC-MARKDOWN-WORKBENCH-V1`: `1668746eae4ac8a0fc766e9e09150527cd07c347` — §17.4 owns one compact Markdown editor-control region, overflow-before-wrap formatting and control→canvas adjacency.
