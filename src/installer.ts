@@ -545,9 +545,21 @@ const activateService = (
 ): void => {
   mkdirSync(dirname(unitPath), { recursive: true });
   const temporary = unitPath + ".tmp." + crypto.randomUUID();
-  writeFileSync(temporary, buildUserServiceUnit(launcher), { encoding: "utf8", mode: 0o644, flag: "wx" });
-  rename(temporary, unitPath);
-  unitPublished();
+  const descriptor = openSync(temporary, constants.O_WRONLY | constants.O_CREAT | constants.O_EXCL | constants.O_NOFOLLOW, 0o644);
+  try {
+    try { writeFileSync(descriptor, buildUserServiceUnit(launcher), "utf8"); }
+    finally { closeSync(descriptor); }
+    rename(temporary, unitPath);
+    unitPublished();
+  } catch (error) {
+    try {
+      if (footprintEntryExists(temporary)) rmSync(temporary);
+    } catch (failure) {
+      throw new AggregateError([error, failure], "service unit publication failed: " + String(error) +
+        "; temporary unit retained at " + temporary);
+    }
+    throw error;
+  }
   runCommand(["systemctl", "--user", "daemon-reload"], locations.home, environment);
   runCommand(["systemctl", "--user", "enable", "pontivus-order.service"], locations.home, environment);
   restartAttempted();
@@ -730,6 +742,7 @@ const moveDatabaseNamespace = (
   fromName: "gateweft.sqlite3" | "order.sqlite3",
   toName: "gateweft.sqlite3" | "order.sqlite3",
   suffix: "" | "-wal" | "-shm",
+  rename: typeof renameSync,
 ): void => {
   const from = join(stateRoot, fromName + suffix);
   const to = join(stateRoot, toName + suffix);
@@ -737,12 +750,13 @@ const moveDatabaseNamespace = (
       lstatSync(to, { throwIfNoEntry: false }) !== undefined) {
     fail("cannot establish exclusive database namespace move: " + from + " -> " + to);
   }
-  renameSync(from, to);
+  rename(from, to);
 };
 
 export const migrateLegacyGateweftInstallation = (
   locations: InstallerLocations,
   environment: NodeJS.ProcessEnv,
+  rename: typeof renameSync = renameSync,
 ): LegacyGateweftMigration => {
   const legacy = legacyGateweftLocations(locations, environment);
   const detected = legacyGateweftFootprintExists(legacy);
@@ -769,23 +783,23 @@ export const migrateLegacyGateweftInstallation = (
   try {
     if (existsSync(legacy.installRoot)) {
       mkdirSync(dirname(locations.installRoot), { recursive: true });
-      renameSync(legacy.installRoot, locations.installRoot);
+      rename(legacy.installRoot, locations.installRoot);
       installMoved = true;
     }
     if (existsSync(legacy.stateRoot)) {
       mkdirSync(dirname(locations.stateRoot), { recursive: true });
-      renameSync(legacy.stateRoot, locations.stateRoot);
+      rename(legacy.stateRoot, locations.stateRoot);
       stateMoved = true;
       for (const suffix of ["", "-wal", "-shm"] as const) {
         if (lstatSync(join(locations.stateRoot, "gateweft.sqlite3" + suffix), { throwIfNoEntry: false }) === undefined) continue;
-        moveDatabaseNamespace(locations.stateRoot, "gateweft.sqlite3", "order.sqlite3", suffix);
+        moveDatabaseNamespace(locations.stateRoot, "gateweft.sqlite3", "order.sqlite3", suffix, rename);
         databaseMoves.push(suffix);
       }
     }
     return currentMigration();
   } catch (error) {
     try {
-      rollbackLegacyGateweftMigration(currentMigration(), locations, environment);
+      rollbackLegacyGateweftMigration(currentMigration(), locations, environment, rename);
     } catch (failure) {
       throw new AggregateError([error, failure], "predecessor migration failed: " + String(error) + "; rollback incomplete; retain " +
         [locations.installRoot, locations.stateRoot, legacy.installRoot, legacy.stateRoot].join(", "));
@@ -798,6 +812,7 @@ export const rollbackLegacyGateweftMigration = (
   migration: LegacyGateweftMigration,
   locations: InstallerLocations,
   environment: NodeJS.ProcessEnv = process.env,
+  rename: typeof renameSync = renameSync,
 ): void => {
   if (!migration.detected) return;
   if (observeServiceActivity("gateweft.service", locations.home, environment) !== "inactive") {
@@ -809,20 +824,20 @@ export const rollbackLegacyGateweftMigration = (
   };
   if (migration.stateMoved) {
     for (const suffix of [...migration.databaseMoves].reverse()) {
-      compensate(() => moveDatabaseNamespace(locations.stateRoot, "order.sqlite3", "gateweft.sqlite3", suffix));
+      compensate(() => moveDatabaseNamespace(locations.stateRoot, "order.sqlite3", "gateweft.sqlite3", suffix, rename));
     }
     if (failures.length === 0) compensate(() => {
       if (lstatSync(migration.locations.stateRoot, { throwIfNoEntry: false }) !== undefined) {
         fail("predecessor state destination occupied: " + migration.locations.stateRoot);
       }
-      renameSync(locations.stateRoot, migration.locations.stateRoot);
+      rename(locations.stateRoot, migration.locations.stateRoot);
     });
   }
   if (migration.installMoved) compensate(() => {
     if (lstatSync(migration.locations.installRoot, { throwIfNoEntry: false }) !== undefined) {
       fail("predecessor install destination occupied: " + migration.locations.installRoot);
     }
-    renameSync(locations.installRoot, migration.locations.installRoot);
+    rename(locations.installRoot, migration.locations.installRoot);
   });
   if (failures.length === 0 && migration.serviceWasActive) compensate(() =>
     runCommand(["systemctl", "--user", "restart", "gateweft.service"], locations.home, environment));
@@ -907,7 +922,7 @@ export const runInstaller = async (
       requireServiceQuiescence("pontivus-order.service", locations.home, environment);
       priorStopped = true;
     }
-    legacyMigration = migrateLegacyGateweftInstallation(locations, environment);
+    legacyMigration = migrateLegacyGateweftInstallation(locations, environment, rename);
     mkdirSync(dirname(locations.installRoot), { recursive: true });
     mkdirSync(locations.binDir, { recursive: true });
     staging = mkdtempSync(join(dirname(locations.installRoot), ".pontivus-order-install."));
@@ -1028,7 +1043,7 @@ export const runInstaller = async (
     if (launcherTemporary !== null) { const path = launcherTemporary; compensate("temporary launcher cleanup incomplete: " + path, () => rmSync(path)); }
     if (failures.length === 0 && legacyMigration !== null) {
       const migration = legacyMigration;
-      compensate("predecessor restoration incomplete", () => rollbackLegacyGateweftMigration(migration, locations, environment));
+      compensate("predecessor restoration incomplete", () => rollbackLegacyGateweftMigration(migration, locations, environment, rename));
     }
     if (failures.length === 0 && priorStopped) compensate("prior service restart failed",
       () => runCommand(["systemctl", "--user", "restart", "pontivus-order.service"], locations.home, environment));

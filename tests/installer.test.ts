@@ -4,6 +4,7 @@ import {
   existsSync,
   mkdtempSync,
   mkdirSync,
+  renameSync,
   readFileSync,
   rmSync,
   writeFileSync,
@@ -478,10 +479,12 @@ type InstallerTransactionFixture = Readonly<{
   historyAnswers?: readonly string[];
   cancelHistory?: boolean;
   failMarker?: boolean;
-  failRename?: "app-backup" | "launcher-backup" | "app-activation" | "launcher-activation" | "unit-publication" | "marker-publication";
+  failRename?: "app-backup" | "launcher-backup" | "app-activation" | "launcher-activation" | "unit-publication" | "marker-publication" | "predecessor-app" | "predecessor-state" | "predecessor-db" | "predecessor-wal" | "predecessor-shm";
   interruptAtReadiness?: boolean;
   failRestart?: boolean;
   failService?: "daemon-reload" | "enable";
+  failPredecessorRetirement?: boolean;
+  failStaging?: boolean;
   stopMode?: "stuck" | "unknown" | "failed-inactive";
   readinessStatus?: number;
   readinessError?: "timeout" | "redirect";
@@ -508,6 +511,9 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
     const unitPath = path.join(fixture.home, ".config/systemd/user/pontivus-order.service");
     const marker = path.join(installRoot, "SOURCE_COMMIT");
     const configPath = path.join(fixture.stateRoot, "config.json");
+    const legacyInstall = path.join(fixture.home, ".local/share/gateweft");
+    const legacyState = path.join(fixture.home, ".local/state/gateweft");
+    const legacyUnit = path.join(fixture.home, ".config/systemd/user/gateweft.service");
     const archive = new Uint8Array([1, 2, 3, 4]);
     const digest = crypto.createHash("sha256").update(archive).digest("hex");
     const originalSpawn = Bun.spawnSync.bind(Bun);
@@ -516,6 +522,7 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
     const events = [];
     const prompts = [];
     let activity = fs.existsSync(unitPath) ? "active" : "inactive";
+    let legacyActivity = fs.existsSync(legacyUnit) ? "active" : "inactive";
     let enablement = fs.existsSync(unitPath) ? "enabled" : "";
     let restartFailed = false;
     let serviceFailed = false;
@@ -539,6 +546,14 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
       if (argv[0] === "systemctl") {
         events.push({ command: argv.slice(2), marker: fs.existsSync(marker) });
         const verb = argv[2];
+        const legacyService = argv.includes("gateweft.service");
+        if (legacyService) {
+          if (verb === "show") return result(legacyActivity + "\\n");
+          if (verb === "stop") { legacyActivity = "inactive"; return result(); }
+          if (verb === "restart") { legacyActivity = "active"; return result(); }
+          if (verb === "disable") return fixture.failPredecessorRetirement ? result("", 1) : result();
+          throw new Error("unexpected predecessor command " + JSON.stringify(argv));
+        }
         if (verb === fixture.failService && !serviceFailed) { serviceFailed = true; return result("", 1); }
         if (verb === "show-environment" || verb === "daemon-reload") return result();
         if (verb === "show") {
@@ -609,6 +624,7 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
     globalThis.fetch = async (input, init) => {
       const url = new URL(input instanceof Request ? input.url : input.toString());
       if (url.hostname === "nodejs.org") {
+        if (fixture.failStaging) throw new Error("injected staging failure");
         if (url.pathname.endsWith("/SHASUMS256.txt")) {
           const arch = process.arch === "x64" ? "x64" : "arm64";
           return new Response(digest + "  node-v26.13.0-linux-" + arch + ".tar.xz\\n");
@@ -644,7 +660,12 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
     try {
       let injected = false;
       const rename = (from, to) => {
-        const kind = from === installRoot && String(to).startsWith(installRoot + ".previous.") ? "app-backup" :
+        const kind = from === legacyInstall && to === installRoot ? "predecessor-app" :
+          from === legacyState && to === fixture.stateRoot ? "predecessor-state" :
+          from === path.join(fixture.stateRoot, "gateweft.sqlite3") ? "predecessor-db" :
+          from === path.join(fixture.stateRoot, "gateweft.sqlite3-wal") ? "predecessor-wal" :
+          from === path.join(fixture.stateRoot, "gateweft.sqlite3-shm") ? "predecessor-shm" :
+          from === installRoot && String(to).startsWith(installRoot + ".previous.") ? "app-backup" :
           from === launcher && String(to).startsWith(launcher + ".previous.") ? "launcher-backup" :
           String(from).includes("/.pontivus-order-install.") && to === installRoot ? "app-activation" :
           String(from).includes("/.pontivus-order.") && to === launcher ? "launcher-activation" :
@@ -671,14 +692,14 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
       await installer.runInstaller({ sourceRoot, sourceCommit }, process.env, question, rename, remove);
     } catch (error) { failure = String(error); }
     console.log("ORDER_TRANSACTION_RESULT " + JSON.stringify({
-      failure, prompts, events, activity, enablement, sourceCommit,
+      failure, prompts, events, activity, enablement, legacyActivity, sourceCommit,
       marker: fs.existsSync(marker) ? fs.readFileSync(marker, "utf8") : null,
       config: fs.existsSync(configPath) ? JSON.parse(fs.readFileSync(configPath, "utf8")) : null,
       app: fs.existsSync(installRoot), launcher: fs.existsSync(launcher), unit: fs.existsSync(unitPath),
       originalDatabase, originalConfig, retainedArchive,
       database: fs.existsSync(databasePath) ? fs.readFileSync(databasePath).toString("base64") : null,
       configBytes: fs.existsSync(configPath) ? fs.readFileSync(configPath).toString("base64") : null,
-      stateEntries: fs.readdirSync(fixture.stateRoot),
+      stateEntries: fs.existsSync(fixture.stateRoot) ? fs.readdirSync(fixture.stateRoot) : [],
       appBackups: fs.existsSync(path.dirname(installRoot)) ? fs.readdirSync(path.dirname(installRoot)).filter(name => name.startsWith("pontivus-order.previous.")) : [],
       launcherBackups: fs.existsSync(binDir) ? fs.readdirSync(binDir).filter(name => name.startsWith("order.previous.")) : [],
     }));
@@ -727,7 +748,59 @@ const createPriorDeployment = (fixture: ReturnType<typeof transactionFixture>): 
     ' { "version": 4, "model": null, "repositoryRoots": [], "referenceRoots": [] }\n', { mode: 0o600 });
 };
 
+const createPredecessorDeployment = (fixture: ReturnType<typeof transactionFixture>, withDatabase = false) => {
+  createPriorDeployment(fixture);
+  const root = join(fixture.home, ".local/share/gateweft");
+  const state = join(fixture.home, ".local/state/gateweft");
+  mkdirSync(join(fixture.home, ".local/state"), { recursive: true });
+  renameSync(join(fixture.home, ".local/share/pontivus-order"), root);
+  renameSync(fixture.stateRoot, state);
+  renameSync(join(fixture.home, ".local/bin/order"), join(fixture.home, ".local/bin/gateweft"));
+  renameSync(join(fixture.home, ".config/systemd/user/pontivus-order.service"),
+    join(fixture.home, ".config/systemd/user/gateweft.service"));
+  if (withDatabase) {
+    for (const suffix of ["", "-wal", "-shm"]) writeFileSync(join(state, "gateweft.sqlite3" + suffix), "prior" + suffix);
+  }
+  return { root, state };
+};
+
 describe("actual IA25 installer transaction", () => {
+  it.each(["predecessor-app", "predecessor-state", "predecessor-db", "predecessor-wal", "predecessor-shm", "staging"] as const)(
+    "compensates exact predecessor paths after %s failure", failure => {
+      const fixture = transactionFixture();
+      const legacy = createPredecessorDeployment(fixture, true);
+      const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes",
+        readiness: { ready: true, blockers: [] },
+        ...(failure === "staging" ? { failStaging: true } : { failRename: failure }) });
+      expect(outcome.failure).toContain(failure === "staging" ? "injected staging failure" : "injected rename failure: " + failure);
+      expect(readFileSync(join(legacy.root, "SOURCE_COMMIT"), "utf8")).toBe("b".repeat(40) + "\n");
+      for (const suffix of ["", "-wal", "-shm"]) {
+        expect(readFileSync(join(legacy.state, "gateweft.sqlite3" + suffix), "utf8")).toBe("prior" + suffix);
+        expect(existsSync(join(legacy.state, "order.sqlite3" + suffix))).toBe(false);
+      }
+      expect(outcome.app || outcome.launcher || outcome.unit).toBe(false);
+      expect(outcome.legacyActivity).toBe("active");
+      expect(outcome.stdout).not.toContain("Order updated successfully.");
+    }, 120_000);
+
+  it("retains committed Order and conflicting predecessor paths after retirement failure", () => {
+    const fixture = transactionFixture();
+    createPredecessorDeployment(fixture);
+    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes",
+      readiness: { ready: true, blockers: [] }, failPredecessorRetirement: true });
+    expect(outcome.failure).toContain("installation committed; finalization incomplete");
+    expect(outcome.marker).toBe(outcome.sourceCommit + "\n");
+    expect(outcome.app && outcome.launcher && outcome.unit).toBe(true);
+    expect(outcome.legacyActivity).toBe("inactive");
+    const retry = runInstallerTransaction({ ...fixture, establishedHistory: "yes",
+      readiness: { ready: true, blockers: [] } });
+    expect(retry.failure).toContain("resolve the conflict before installing");
+    expect(retry.failure).toContain(join(fixture.home, ".local/bin/gateweft"));
+    expect(retry.failure).toContain(join(fixture.home, ".local/bin/order"));
+    expect(retry.marker).toBe(outcome.marker);
+    expect(retry.events.some((event: { command: string[] }) => event.command[0] === "stop")).toBe(false);
+  }, 180_000);
+
   it.each(["app-backup", "launcher-backup", "app-activation", "launcher-activation",
     "unit-publication", "marker-publication"] as const)(
     "restores exact established bytes after failure at %s", (failRename) => {
