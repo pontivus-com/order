@@ -386,6 +386,15 @@ const requireInstallerConfigIdentity = (
   return observed;
 };
 
+// Reuse the installer writer's exact publication proof at final admission.
+export const requireInstallerConfigPublication = (
+  snapshot: InstallerConfigSnapshot,
+  published: InstallerConfigIdentity | null,
+): void => {
+  if (published === null) throw new TypeError("installer configuration publication unavailable: " + snapshot.target);
+  requireInstallerConfigIdentity(snapshot.target, published);
+};
+
 const fsyncConfigDirectory = (target: string, sync: typeof fsyncSync = fsyncSync): void => {
   const parentDescriptor = openSync(dirname(target), constants.O_RDONLY | constants.O_DIRECTORY);
   try { sync(parentDescriptor); } finally { closeSync(parentDescriptor); }

@@ -1198,6 +1198,16 @@ export const runInstaller = async (
     }
     if (!established) await configuredSetup.setupModule.requireFreshInstallerReadiness(runtimeEnvironment(locations));
 
+    // Readiness is an observation of the admitted deployment, not permission
+    // to publish a marker into a replacement directory or changed unit/config.
+    if (stagingIdentity === null || launcherIdentity === null || unitPublished === null) {
+      throw new TypeError("installation commit custody unavailable");
+    }
+    requireInstallerDirectory(locations.installRoot, stagingIdentity);
+    requireInstallerFile(launcher, launcherIdentity);
+    requireInstallerFile(prior.unitPath, unitPublished);
+    setupModule.requireInstallerConfigPublication(configSnapshot, published);
+
     // Installation commit: all reversible admission conditions have passed.
     const marker = join(locations.installRoot, "SOURCE_COMMIT");
     const temporaryMarker = marker + ".tmp." + crypto.randomUUID();
@@ -1213,6 +1223,7 @@ export const runInstaller = async (
         fail("installation commit marker temporary changed: " + temporaryMarker);
       }
     } finally { closeSync(markerDescriptor); }
+    requireInstallerDirectory(locations.installRoot, stagingIdentity);
     if (footprintEntryExists(marker)) fail("unexpected installation commit marker: " + marker);
     rename(temporaryMarker, marker);
   } catch (error) {
