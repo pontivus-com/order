@@ -2,7 +2,7 @@ name: PR Verification
 
 on:
   pull_request:
-    branches: [master]
+    branches: [master, fix/0.6.0-post-squash-campaign-fitness]
 permissions:
   contents: read
   pull-requests: read

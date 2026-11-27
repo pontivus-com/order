@@ -1989,7 +1989,7 @@ Retain one permanent workflow:
 .github/workflows/ci.yml
 ```
 
-It runs for pull requests targeting `master` and may also run on `master` for post-merge signal.
+It runs for the PR targets admitted by `GW-DOC-PUBLIC-REPOSITORY-DELIVERY` §10, using the same exact-base/head/merge-candidate checkout and verification job for each target. It may also run on `master` for post-merge signal.
 
 PR execution must be secret-free. It:
 

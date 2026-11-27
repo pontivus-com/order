@@ -154,6 +154,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Changed
 
+- Admit explicitly operator-designated stacked integration PRs into the existing governed release working branch, using the same exact-candidate verification workflow and required checks as public delivery; keep final master delivery singular.
+
 - Formalize Order's existing P0-P8 functional-pyramid discipline at its canonical governance owner: add proposition-level placement and downward derivation rules, strengthen canonical ownership/explicit flow with semantic-lifecycle closure and noninterference, and open a repository-native conformance WorkItem/register to audit canonical placement and producer-to-consumer meaning without adding Span runtime integration.
 
 - Clarify repository delivery and agent operating rules to batch intermediate implementation commits and trigger remote PR verification at governed milestones while retaining all required checkpoint, acceptance, and exact-candidate release checks.
