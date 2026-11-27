@@ -33,6 +33,7 @@ Work request
   -> Readiness review
   -> Approval
   -> Implementation
+  -> Acceptance (candidate-producing delivery only)
   -> Complete
 ~~~
 
@@ -52,6 +53,7 @@ Ordinary operator-facing copy and product documentation use these workflow names
 - Readiness review;
 - Approval;
 - Implementation;
+- Acceptance;
 - Complete.
 
 Internal lifecycle codes remain valid in contracts, state models, schema/template identifiers, diagnostics and technical traceability, but they are not the ordinary labels used to explain workflow tasks or expected outputs to operators.
@@ -175,7 +177,7 @@ These values are a functional language, not a persistence model. They may be der
 
 The workflow rail is the persistent orientation projection of this state language. It is not another state machine and never owns mutation eligibility.
 
-For each of the nine lifecycle stages it presents:
+For each of the ten lifecycle stages it presents:
 
 - the exact stage identity;
 - reach state: CURRENT, REACHED/HISTORICAL or UNREACHED;
@@ -446,7 +448,7 @@ After Save, the Workbench must orient to the resulting canonical owner and prese
 
 ### 7.4 Signed/execution boundary
 
-Once the WorkItem is in Implementation or Complete, signed lifecycle authority remains inspection-only in that state.
+Once the WorkItem is in Implementation, Acceptance or Complete, signed lifecycle authority remains inspection-only in that state.
 
 Changing it requires the governed upstream return path, not an in-place historical edit.
 
@@ -607,6 +609,7 @@ The rail shows ordinary-language stages:
 - Readiness review;
 - Approval;
 - Implementation;
+- Acceptance;
 - Complete.
 
 Step selection is non-mutating inspection.
@@ -1022,6 +1025,12 @@ The manual Implementation start action means exactly: **start the canonical curr
 
 It does not mean “ask a global scheduler to run any eligible work.” If the operator is inspecting a historical or non-current task, that selection remains read-only and cannot retarget the current start action. Automatic/background scheduling may remain a separate system mechanism but is not represented by the task-local manual command.
 
+### 14.8A Acceptance — interactive final QA/QC
+
+Only an admitted current verified candidate set enters Acceptance. It is one direct Review composition, not an implementation task or a second Approval screen. The verdict distinguishes verified/awaiting human review, findings open, correction queued, retest required, unavailable/stale evidence and accepted historical result. Primary: candidate review meaning, signed acceptance criteria and their exact evidence, structured findings with expected/observed/reproduction/impact, disposition and next action. Supporting: candidate summary, separate task candidates, changed-path/patch and validation/evidence access, prior review rounds, relevant signed documents. Technical: Approval, task, Run, event, baseline, hashes and evidence identities only in Context/Evidence. No fabricated aggregate workspace or pass from a partial candidate set.
+
+Report finding opens an existing task-panel/form interaction, bound to the selected exact candidate and criterion; explicit save durably records the report, cancel/dirty navigation retains existing form behavior. Submit findings requests independent evaluation and autonomous correction, never creates authority or approves a step. While queued, show its owner and disable acceptance; while repair executes, Implementation owns current attention and historical Acceptance is read-only. When candidate returns, show correction evidence and explicit retest outcome controls. A finding is resolved/withdrawn only by an explicit human disposition with rationale against the current candidate; unresolved findings or stale/missing evidence disable final acceptance. New-scope findings use governed upstream return or a separate WorkItem, not a hidden task. Review's one decision region offers the primary currently admissible action and subordinate Report finding/inspect/retest actions; final `Accept candidate` uses the exact verified set and attributable human confirmation. No implicit accept on navigation, CI, refresh or silence. No commit/push/merge/deploy. No free-form STAGE composer, synthetic outer attention or nested Review; evidence/document/form inspection replaces the primary composition with explicit return. Historical rounds are read-only; current attention remains reachable. Wide/medium/narrow and themes preserve all semantic and interaction roles.
+
 ### 14.9 Complete
 
 Complete presents one Terminal-result composition with the final governed outcome first.
@@ -1032,7 +1041,7 @@ Complete does not render a separate current-attention band for the terminal clas
 
 Prior reached steps remain inspectable from the workflow rail.
 
-Investigation/audit remediation action appears only where canonically permitted and remains attached to the terminal result.
+Investigation/audit remediation action appears only where canonically permitted and remains attached to the terminal result. For candidate-producing work completed under the Acceptance contract, show the exact final human acceptance as result provenance, separate from technical verification; legacy completed candidates show acceptance not recorded, never inferred. No acceptance controls on a terminal result. Later defects use separate governed work.
 
 ## 15. Current-attention/action precedence
 
@@ -1813,6 +1822,7 @@ At minimum, downstream implementation must prove these scenarios end to end:
 44. Every required-input fixture shows the exact agent question inline with the selected attempt transcript and binds the composer to that question while preserving any additional agent explanation from the same turn.
 45. Agent/user messages remain visually distinguishable from workflow events, operational activity, evidence and technical diagnostics even when all are present for the same attempt.
 46. Every governed surface proves its §11.4A visibility contract in both directions: Primary information is visible by default; Technical/Diagnostic information is absent by default; the authorized WorkItem Context/Settings-diagnostics/Evidence/confirmation owner exposes the exact value only after explicit entry; a technical blocker promotes human-readable meaning/action without leaking raw diagnostic identity.
+47. Candidate-producing work enters Acceptance automatically after full technical proof; no-code and historical completions do not fabricate acceptance. Review exact candidates/criteria/evidence, report, submit, autonomous independent correction, return and human retest; acceptance is unavailable for unresolved findings, stale/missing evidence, queued or active correction, historical selection and mismatched identity. Prove exact actor/decision persistence, restart, duplicate/stale commands, upstream routing, multi-task independent candidates, terminal acceptance and no delivery effects; prove same interaction/visibility/theme/responsive requirements as existing Review/Form/Evidence.
 
 ## 24. Downstream technical-design obligations
 
