@@ -2541,7 +2541,7 @@ Permanent integration tests must prove:
 - a failing commit hook produces no commit and cleanup does not disturb pre-existing unrelated index entries;
 - stale expected HEAD/document hashes reject without Git mutation;
 - ignored/unmerged/missing governed documents reject;
-- active Run, Implementation/Complete, detached HEAD and active merge/rebase/cherry-pick/revert/bisect/sequencer states reject without mutation;
+- active Run, Implementation/Acceptance/Complete, detached HEAD and active merge/rebase/cherry-pick/revert/bisect/sequencer states reject without mutation;
 - missing repository-local Git identity rejects before mutation and successful commits use the exact local identity for author/committer;
 - Git save never pushes or changes branches;
 - migration refuses active execution, materializes current lifecycle drafts at deterministic paths, and never rebinds a v2 Approval;
