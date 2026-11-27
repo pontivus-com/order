@@ -864,7 +864,7 @@ Final success is one `CANDIDATE_RECORDED` RunEvent emitted by the final `REVIEWE
 - exact changed surfaces through `changedPaths`;
 - verification/reviewer/governance/minimum-change evidence through V0-V7 events.
 
-After terminal success Order does not mutate the retained final reviewer workspace.
+After technical success Order does not mutate the retained final reviewer workspace. Final human QA/QC inspects its exact evidence and, if testing requires mutable execution, uses a separate explicit exact-patch replay test copy (never the retained evidence workspace, baseline or a delivery checkout). User-run tests are human observations, not automatic gate PASS. Candidate correction uses only the existing fresh replay reviewer/remediator boundary under still-current Approval. A new verified candidate is recorded before human retest; explicit acceptance is recorded against the exact set, not the workspace path. No automatic application, merge or integration of independent task patches.
 
 Commit, push, pull request, merge and deployment remain outside v1.
 
