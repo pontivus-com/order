@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Reconcile native Acceptance stable requirement evidence and public product-language obligations across R1–PLAN without changing the signed task forecast.
+
 - Refresh the derived Workbench reference DESIGN binding after the inherited-source reconciliation; the 38 surface contracts and atlas remain unchanged.
 
 - Reconcile inherited installer and Approval capabilities across the 0.6.0 R1–PLAN trace, remove repeated reach mutation instructions, refresh compiled source bindings and record the outstanding browser verification failure.

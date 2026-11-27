@@ -4,7 +4,7 @@
 
 ## Canonical PLAN authority
 
-This root is the single deterministic P7 artifact for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. Its modular directory is the maintainable authoring decomposition, not independent executable authority. This revalidation-candidate implementation specification binds R1 `9528edc2300525417866b2325a0494dba1c12610`, R2 `99883845f47b3925535234045cf42ad74236d110`, DESIGN `cbbbbd9aee3cc52cd7b154ead27969a6c11f7719`, current P4 and P6. Prior closures were reopened by ALIGN-A01-F03, ALIGN-A07-F01, ALIGN-A09-F02, REV-F10 and the consolidated authority/REV-F11 return; campaign §17A/§18 own gate state and authorization. No gate advance or sign-off is inferred.
+This root is the single deterministic P7 artifact for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. Its modular directory is the maintainable authoring decomposition, not independent executable authority. This revalidation-candidate implementation specification binds R1 `facca0dbfe3350cfeee3562331b8a2024056ab95`, R2 `afe874f7cac39e49036a4968e8291b63eb708ead`, DESIGN `9e4d21e8f34b89324b78348418767256883d0c20`, current P4 and P6. Prior closures were reopened by ALIGN-A01-F03, ALIGN-A07-F01, ALIGN-A09-F02, REV-F10 and the consolidated authority/REV-F11 return; campaign §17A/§18 own gate state and authorization. No gate advance or sign-off is inferred.
 
 **Revalidation candidate for native final QA/QC.** The compiled PLAN now includes QA1–QA6, IA35–IA39 and expanded candidate scope. This is not executable authorization: the exact consumer/forecast, protected architecture sensor and derived reference corpus have been revised for review. Actual exact-head fitness execution, current R1–R3 and campaign gate revalidation remain mandatory; static reconciliation does not establish PASS. External campaign final human acceptance remains distinct from native Acceptance.
 
@@ -16,19 +16,19 @@ Retain evidenced closed F6B semantic APIs and responsibilities; correct rejected
 
 | Source component | Git blob |
 |---|---|
-| `implementation-plan/00-governance.md` | `1cf769c7758603a208e49ec4f2ae3436a7275f14` |
-| `implementation-plan/01-a01-lifecycle-product.md` | `ee48b6a5393ab1a8ed3577d5c447498cff1e7cd3` |
+| `implementation-plan/00-governance.md` | `3b6305f5971c972286648a93fd6f838936986488` |
+| `implementation-plan/01-a01-lifecycle-product.md` | `bbfc64a443477bc921a92e74217710a7c9f4deff` |
 | `implementation-plan/02-a02-governance-intake.md` | `555b3517cd5134dbbfb15097250c80fb73df4226` |
 | `implementation-plan/03-a03-queue-source.md` | `8c690a886609a7a9a85506b43e3b6d055120ae1f` |
-| `implementation-plan/04-a04-workbench-research.md` | `edf12e8cb174f258d5bfb05dfcc81b6ab7ffdcf0` |
+| `implementation-plan/04-a04-workbench-research.md` | `619e4c16365f91a64331679033104c8ffaf3b26d` |
 | `implementation-plan/05-a05-requirements-design.md` | `b57dcab887221f76982d0899934e702498d5f562` |
 | `implementation-plan/06-a06-plan-readiness.md` | `b1cd5eb087bfe80bbd4e4746f2602fabf25e9972` |
-| `implementation-plan/07-a07-approval-execution.md` | `29e86b32c035df535d8691b5639ffeb10cc13d8f` |
+| `implementation-plan/07-a07-approval-execution.md` | `ef5edf854d9ae9f91faab2798825444775ad7a80` |
 | `implementation-plan/08-a08-complete-materials.md` | `536a7907028d6cdcbe1669f1689daa02e3fd8967` |
 | `implementation-plan/09-a09-provider-settings.md` | `1c897157eb48bcb7e107b4c2401d7290865dab25` |
 | `implementation-plan/10-a10-recovery-accessibility.md` | `41d6cd0f833180d0c750c5943ed0b1ee6d5d4fd5` |
 | `implementation-plan/11-a11-component-certification.md` | `84cb71df374f69619af5c795dd0f26b7f0a232f9` |
-| `implementation-plan/12-action-catalog.md` | `76c3c6d78ae3684430b2f0e51677e5191838f989` |
+| `implementation-plan/12-action-catalog.md` | `4202677360a9b9d60c193f3b4349d032360d31b6` |
 | `implementation-plan/13-verification-closeout.md` | `b6d52162c54354bd610e7004cdc5feb2f58349f3` |
 
 A source hash mismatch makes PLAN non-current until recompiled. Directory files have no independent order-tasks block or lifecycle state.
@@ -443,9 +443,9 @@ This decomposition is revalidated under C19-F09/C20-F11 after the prior G4-G6 cl
 
 ##### Exact upstream package
 
-- R1 `research.md`: `9528edc2300525417866b2325a0494dba1c12610`.
-- R2 `requirements.md`: `99883845f47b3925535234045cf42ad74236d110`.
-- DESIGN `solution-design.md`: `cbbbbd9aee3cc52cd7b154ead27969a6c11f7719` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and QA1–QA6 expanded forecast.
+- R1 `research.md`: `facca0dbfe3350cfeee3562331b8a2024056ab95`.
+- R2 `requirements.md`: `afe874f7cac39e49036a4968e8291b63eb708ead`.
+- DESIGN `solution-design.md`: `9e4d21e8f34b89324b78348418767256883d0c20` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and QA1–QA6 expanded forecast.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `ee8acad4e39f4641476eb46d99ca168afab3db3d`.
 - P3 `GW-DOC-WORKBENCH-UX-V2`: `d4491745b1540639ed57be11c69428415d5860af` — §11.4A/§12/§13/§14 (including §14.8A.1–2) own semantic information classes, state-is-not-interface behavior, direct primary interaction composition, no generic workflow-material selector, continuous Dialogue semantics, Terminal-result primacy, singular technical inspection, task anatomy and composition invariants.
 - P3 `GW-DOC-MARKDOWN-WORKBENCH-V1`: `1668746eae4ac8a0fc766e9e09150527cd07c347` — §17.4 owns one compact Markdown editor-control region, overflow-before-wrap formatting and control→canvas adjacency.
@@ -534,11 +534,11 @@ Because scope equals the revised 61-path candidate forecast, a newly required ou
 
 | Requirement | R1 evidence | DESIGN disposition | Solution(s) | Execution owner | Consumer dependency | Required proof |
 |---|---|---|---|---|---|---|
-| `GW-FR-001-GOVERNED-LIFECYCLE` | `C01-O03`, `C01-O05`, `C01-O08` | `MIXED_TECHNICAL_DELTA` | QA1/QA2/QA6 | IA35/IA37/IA38 | IA35–IA38 atomic cutover; IA39 proof | Recheck `C01-O03`, `C01-O05`, `C01-O08` via tests/core.test.ts; tests/daemon.test.ts; tests/browser.spec.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review; IA39 native Acceptance proof, prior evidence historical |
+| `GW-FR-001-GOVERNED-LIFECYCLE` | `C01-O03`, `C01-O05`, `C01-O08`, `C01-O90` | `MIXED_TECHNICAL_DELTA` | QA1/QA2/QA6 | IA35/IA37/IA38 | IA35–IA38 atomic cutover; IA39 proof | Recheck `C01-O03`, `C01-O05`, `C01-O08` via tests/core.test.ts; tests/daemon.test.ts; tests/browser.spec.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review; IA39 native Acceptance proof, prior evidence historical |
 | `GW-FR-002-REPRODUCIBLE-AUTHORITY` | `C01-O01`, `C01-O07` | `MIXED_TECHNICAL_DELTA` | QA1/QA2/QA6 | IA35/IA37/IA38 | IA35–IA38 atomic cutover; IA39 proof | Recheck `C01-O01`, `C01-O07` via tests/core.test.ts; tests/daemon.test.ts; tests/browser.spec.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review; IA39 native Acceptance proof, prior evidence historical |
 | `GW-FR-205-MONOTONIC-REACH-HISTORY` | `C01-O10` | `MIXED_TECHNICAL_AND_VERIFICATION_DELTA` | `SD12`; QA1/QA2/QA6 | `IA17`; IA35/IA37/IA38 | IA35–IA38 atomic cutover; IA39 proof | IA17 proves actual admitted destination and monotonic reach; IA27 proves rail consumption. Proof: tests/core.test.ts; tests/daemon.test.ts; tests/workbench-presentation.test.ts; tests/browser.spec.ts; tests/e2e-server.ts fixture provenance + V4/V5/V6 requirement-specific semantic review; IA39 native Acceptance proof, prior evidence historical |
-| `GW-FR-228-FUNCTIONAL-STATE-TRANSITION-CLOSURE` | prior R1 evidence historical; QA delta | `MIXED_TECHNICAL_DELTA` | QA1/QA2/QA6 | IA35; IA35/IA37/IA38 | IA37/IA38; IA35–IA38 atomic cutover; IA39 proof | IA39 exhaustive transition, state and denial tests; IA39 native Acceptance proof, prior evidence historical |
-| `GW-FR-232-CLOSED-WORKFLOW-STATE-LANGUAGE` | prior R1 evidence historical; QA delta | `MIXED_TECHNICAL_DELTA` | QA1/QA2/QA6 | IA35; IA35/IA37/IA38 | IA37/IA38; IA35–IA38 atomic cutover; IA39 proof | IA39 exhaustive transition, state and denial tests; IA39 native Acceptance proof, prior evidence historical |
+| `GW-FR-228-FUNCTIONAL-STATE-TRANSITION-CLOSURE` | `C01-O90`; prior R1 evidence historical | `MIXED_TECHNICAL_DELTA` | QA1/QA2/QA6 | IA35; IA35/IA37/IA38 | IA37/IA38; IA35–IA38 atomic cutover; IA39 proof | IA39 exhaustive transition, state and denial tests; IA39 native Acceptance proof, prior evidence historical |
+| `GW-FR-232-CLOSED-WORKFLOW-STATE-LANGUAGE` | `C01-O90`; prior R1 evidence historical | `MIXED_TECHNICAL_DELTA` | QA1/QA2/QA6 | IA35; IA35/IA37/IA38 | IA37/IA38; IA35–IA38 atomic cutover; IA39 proof | IA39 exhaustive transition, state and denial tests; IA39 native Acceptance proof, prior evidence historical |
 
 Stable rows in phase: **5**.
 
@@ -548,11 +548,11 @@ These rows carry material R2 consequences that are already corrected in canonica
 
 | Trace key | DESIGN disposition | Execution owner | Exact current authority | Required proof |
 |---|---|---|---|---|
-| `A01-NC01` — C01 verified-terminal success/no-code distinction | `ALREADY_CORRECTED_NO_CODE` | NONE — no T1 edit | `GW-DOC-SYSTEM-BRIEF` blob `a1784be23293cb65b4a70952e45e5e16a0515ca1`, §8 | Recheck exact authority identity plus R1 C01-O06/O13/O14 under V4; any contradiction returns to R2/DESIGN. |
-| `A01-NC02` — C01 `GW-P2-CONTROLLED-WORK` cross-reference | `ALREADY_CORRECTED_NO_CODE` | NONE — no T1 edit | `GW-DOC-WORK-LIFECYCLE` blob `013bc1297c3d167b776e115f428517b7cedbea57`, §7 → System Brief §9 | Recheck exact authority identity plus R1 C01-O14 under V4; do not edit runtime behavior for this documentation correction. |
-| `A01-NC03` — C21 canonical product-language/commit boundary | `ALREADY_CORRECTED_NO_CODE` | NONE — no additional P2 edit in T1 | `GW-DOC-PRODUCT-IDENTITY` blob `f45ee2ea00cf91c5b861c59d3d19f72b3e39611f` | Recheck exact authority identity and corrected C21-F01/F02/F04 semantics under V4; IA19 corrects residual README language; IA33 owns exact reached result and provenance, including explanation without invented sign-off. |
-| `A01-NC04` — C01 WorkItem-stage vs execution-subflow distinction | `ALREADY_CORRECTED_NO_CODE` | NONE — no T1 edit | `GW-DOC-SYSTEM-BRIEF` blob `a1784be23293cb65b4a70952e45e5e16a0515ca1` | Recheck C01-F01/C01-O03/O05/O08 and exact authority identity under V4; no new lifecycle/state mutation. |
-| `A01-NC05` — C01 lifecycle-context stage/role/work-kind distinction | `ALREADY_CORRECTED_NO_CODE` | NONE — no T1 edit | `GW-DOC-LIFECYCLE-CONTEXT` blob `4ce2b49b9eb57e60ddd2b1e3664fdd4e11cbbbc7` | Recheck C01-F02/X-C01-C22-01 and exact authority identity under V4; no new stage/role/work-kind state. |
+| `A01-NC01` — C01 verified-terminal success/no-code distinction | `ALREADY_CORRECTED_NO_CODE` | NONE — no T1 edit | `GW-DOC-SYSTEM-BRIEF` blob `c7b5c9b0833183bf16f5d894b8e6795bb9fca095`, §8 | Recheck exact authority identity plus R1 C01-O06/O13/O14 under V4; any contradiction returns to R2/DESIGN. |
+| `A01-NC02` — C01 `GW-P2-CONTROLLED-WORK` cross-reference | `ALREADY_CORRECTED_NO_CODE` | NONE — no T1 edit | `GW-DOC-WORK-LIFECYCLE` blob `db4730984998c13fd507657d076caa410669f136`, §7 → System Brief §9 | Recheck exact authority identity plus R1 C01-O14 under V4; do not edit runtime behavior for this documentation correction. |
+| `A01-NC03` — C21 canonical product-language/commit boundary | `ALREADY_CORRECTED_NO_CODE` | NONE — no additional P2 edit in T1 | `GW-DOC-PRODUCT-IDENTITY` blob `a23ec781ab4a169d161fd3693870bc207c65e31e` | Recheck exact authority identity and corrected C21-F01/F02/F04 semantics under V4; IA19 corrects residual README language; IA33 owns exact reached result and provenance, including explanation without invented sign-off. |
+| `A01-NC04` — C01 WorkItem-stage vs execution-subflow distinction | `ALREADY_CORRECTED_NO_CODE` | NONE — no T1 edit | `GW-DOC-SYSTEM-BRIEF` blob `c7b5c9b0833183bf16f5d894b8e6795bb9fca095` | Recheck C01-F01/C01-O03/O05/O08 and exact authority identity under V4; no new lifecycle/state mutation. |
+| `A01-NC05` — C01 lifecycle-context stage/role/work-kind distinction | `ALREADY_CORRECTED_NO_CODE` | NONE — no T1 edit | `GW-DOC-LIFECYCLE-CONTEXT` blob `bac6624dc98eb1c2b9c2e22149958df442dd0e95` | Recheck C01-F02/X-C01-C22-01 and exact authority identity under V4; no new stage/role/work-kind state. |
 
 No-code rows in phase: **5**.
 
@@ -560,7 +560,7 @@ No-code rows in phase: **5**.
 
 | Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
 |---|---|---|---|---|---|
-| `PL-C21-01` | C21-F03/C21-F05 | `SD01`, `SD27` | `IA19`, `IA33` | — | Public README and terminal result must realize verified-result/Verified-candidate product language without universal execution/delivery overclaim; IA33 owns reached Complete and exact candidate evidence. |
+| `PL-C21-01` | C21-F03/C21-F05 | `SD01`, `SD27` | `IA19`, `IA33` | — | Public README and terminal result must realize verified-result/Verified-candidate product language without universal execution/delivery overclaim or treating technical verification as final acceptance; IA33 owns reached Complete and exact candidate evidence. |
 
 Package atoms in phase: **1**.
 
@@ -733,7 +733,7 @@ QA integration: IA35/IA38 extend current signed-state editability, source/title,
 
 | Requirement | R1 evidence | DESIGN disposition | Solution(s) | Execution owner | Consumer dependency | Required proof |
 |---|---|---|---|---|---|---|
-| `GW-FR-005-LOCAL-WORKBENCH` | `C05-O01`, `C05-O04`, `C05-O12`, `C19-O06`, `C19-O08` | `VERIFICATION_DELTA` | `SD21`, `SD23`, `SD29`, `SD30`; QA4/QA5/QA6 | `IA27`, `IA29`, `IA26`; IA38/IA39 | IA35–IA38 atomic cutover; IA39 proof | Retain evidenced local Workbench and shared structural ownership; prove rendered coverage and separately allocated consumer residuals. Proof: tests/core.test.ts; tests/daemon.test.ts; tests/browser.spec.ts; tests/certification.test.ts + rendered acceptance + V4/V5/V6 requirement-specific semantic review; IA39 native Acceptance proof, prior evidence historical |
+| `GW-FR-005-LOCAL-WORKBENCH` | `C05-O01`, `C05-O04`, `C05-O12`, `C19-O06`, `C19-O08`, `C05-O90` | `MIXED_TECHNICAL_DELTA` | `SD21`, `SD23`, `SD29`, `SD30`; QA4/QA5/QA6 | `IA27`, `IA29`, `IA26`; IA38/IA39 | IA35–IA38 atomic cutover; IA39 proof | Retain evidenced local Workbench and shared structural ownership; prove rendered coverage and separately allocated consumer residuals. Proof: tests/core.test.ts; tests/daemon.test.ts; tests/browser.spec.ts; tests/certification.test.ts + rendered acceptance + V4/V5/V6 requirement-specific semantic review; IA39 native Acceptance proof, prior evidence historical |
 | `GW-FR-015-SOURCE-CONTEXT-PROJECTION` | `C06-O02`, `C22-O06` | `DEPENDENCY_DELTA` | `SD02`; QA1/QA6 | —; IA35/IA37/IA38 | `IA01`, `IA02`; IA35–IA38 atomic cutover; IA39 proof | Recheck `C06-O02`, `C22-O06` via tests/daemon.test.ts; tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review; IA39 native Acceptance proof, prior evidence historical |
 | `GW-FR-019-SOURCE-CLARIFICATION-DURABILITY` | `C06-O13` | `MIXED_TECHNICAL_AND_VERIFICATION_DELTA` | `SD08` | `IA04` | `IA03` | Reuse the existing deterministic later-adoption gate and human guidance. The existing semantic conformance owner must prove that adopted canonical authority captures each material decision before promotion; conversation is evidence only. No new deterministic semantic classifier or duplicate guard. Proof: tests/daemon.test.ts; tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-021-MARKDOWN-WORKSPACE` | `C04-O15`, `C05-O02`, `C05-O10` | `DEPENDENCY_DELTA` | `SD12` | — | `IA17` | Consume IA17 exact reach; IA29 proves draft inspection without fabricated reach and document maturity. Proof: tests/core.test.ts; tests/daemon.test.ts; tests/workbench-presentation.test.ts; tests/browser.spec.ts; tests/e2e-server.ts fixture provenance + V4/V5/V6 requirement-specific semantic review |
@@ -924,7 +924,7 @@ QA integration: IA35/IA37 route stale or invalid signed package to exact existin
 | Requirement | R1 evidence | DESIGN disposition | Solution(s) | Execution owner | Consumer dependency | Required proof |
 |---|---|---|---|---|---|---|
 | `GW-FR-003-DURABLE-BOUNDED-EXECUTION` | `C12-O01`, `C12-O02`, `C12-O07` | `MIXED_TECHNICAL_DELTA` | QA1/QA3/QA6 | IA35/IA37 | IA35–IA38 atomic cutover; IA39 proof | Recheck `C12-O01`, `C12-O02`, `C12-O07` via tests/core.test.ts; tests/daemon.test.ts; tests/browser.spec.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review; IA39 native Acceptance proof, prior evidence historical |
-| `GW-FR-006-MINIMUM-VERIFIED-CANDIDATE` | `C12-O12`, `C12-O13`, `C12-O19` | `MIXED_TECHNICAL_DELTA` | QA1/QA3/QA6 | IA35/IA37 | IA35–IA38 atomic cutover; IA39 proof | Recheck `C12-O12`, `C12-O13`, `C12-O19` via tests/core.test.ts; tests/daemon.test.ts; tests/browser.spec.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review; IA39 native Acceptance proof, prior evidence historical |
+| `GW-FR-006-MINIMUM-VERIFIED-CANDIDATE` | `C12-O12`, `C12-O13`, `C12-O19`, `C12-O90` | `MIXED_TECHNICAL_DELTA` | QA1/QA3/QA6 | IA35/IA37 | IA35–IA38 atomic cutover; IA39 proof | Recheck `C12-O12`, `C12-O13`, `C12-O19` via tests/core.test.ts; tests/daemon.test.ts; tests/browser.spec.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review; IA39 native Acceptance proof, prior evidence historical |
 | `GW-FR-017-SOURCE-SIGNOFF-BINDING` | `C11-O01`, `C11-O03`, `C12-O20` | `MIXED_TECHNICAL_DELTA` | QA1/QA6 | IA35/IA37/IA38 | IA35–IA38 atomic cutover; IA39 proof | Recheck `C11-O01`, `C11-O03`, `C12-O20` via tests/daemon.test.ts; tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review; IA39 native Acceptance proof, prior evidence historical |
 | `GW-FR-026-SOURCE-BOUND-SIGNOFF-INTEGRATION` | `C11-O01`, `C11-O02`, `C11-O07` | `MIXED_TECHNICAL_AND_VERIFICATION_DELTA` | `SD06`, `SD12`, `SD23`, `SD25`; QA1/QA6 | `IA17`, `IA29`, `IA31`; IA35/IA37/IA38 | IA35–IA38 atomic cutover; IA39 proof | Exact prospective SignoffPackage vs selected historic Approval; two approvals, retained zero-task/unsigned returned history, stage-aware current/null, exact committed artifact and task membership, same-role/hash nonmember, foreign/missing id, loading/error/no writes and exact decision adjacency. Proof: tests/daemon.test.ts; tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review; IA39 native Acceptance proof, prior evidence historical |
 | `GW-FR-027-READONLY-EXECUTION-EDITOR-BOUNDARY` | `C04-O15`, `C12-O03`, `C12-O17` | `MIXED_TECHNICAL_DELTA` | QA1/QA6 | IA35/IA37/IA38 | IA35–IA38 atomic cutover; IA39 proof | Recheck `C04-O15`, `C12-O03`, `C12-O17` via tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review; IA39 native Acceptance proof, prior evidence historical |
@@ -1434,7 +1434,7 @@ Ownership of shared-path edits is semantic and ordered: IA01 owns manifest schem
 
 **Solution:** SD01.  
 **Anchors:** `README.md`; `ui/src/TerminalResult.tsx::TerminalResult`; `ui/src/workbench-presentation.ts`.  
-**Required mutation/proof disposition:** Correct README blocked/upstream-return versus terminal-result copy. Retain shared WorkOutcome label and documentation-Git exception. IA33 owns exact candidate proof.  
+**Required mutation/proof disposition:** Correct README blocked/upstream-return versus terminal-result copy and distinguish technical candidate verification, native human Acceptance and terminal completion; preserve no-code/all-no-op exceptions. Retain shared WorkOutcome label and documentation-Git exception. IA33 owns exact candidate proof.  
 **Forbidden:** lifecycle/state/WorkOutcome contract changes; second product-label table in `TerminalResult`; generic enum prettification fallback; new DTO/view-model/service/state owner; candidate resources for non-candidate outcomes.  
 
 **Shared human-language projection:** existing pure presentation path is mutable for SD01/07/11 and consumers. STAGE_COMPLETED need not mean successful readiness judgment; distinguish Run execution from result disposition. Remove generic enum/path/payload fallback from ordinary event/result presentation, exact identity in authorized inspection. IA14 owns attention, IA16 R3 verdict, IA30/32/33 shared vocabulary consumption. Reuse typed failure contract; absent required carrier returns to DESIGN.
@@ -1442,7 +1442,7 @@ Ownership of shared-path edits is semantic and ordered: IA01 owns manifest schem
 **Proof:**
 - `tests/workbench-presentation.test.ts` — exhaustive current `WorkOutcome` → canonical product-facing label cases, including `CANDIDATE_DONE -> Verified candidate`, and no underscore/title prettification fallback;
 - `tests/browser.spec.ts` — Complete/TerminalResult candidate case renders **Verified candidate** and candidate resources; representative no-code terminal case renders its canonical non-candidate label and no candidate resources;
-- `tests/certification.test.ts` — README contains verified-result umbrella + conditional implementation/candidate wording + explicit documentation-Git exception, and rejects universal candidate/delivery wording or an absolute no-commit claim that erases that exception.
+- `tests/certification.test.ts` — README contains verified-result umbrella + conditional implementation/candidate wording + technical verification/native Acceptance/terminal distinction + explicit documentation-Git exception, and rejects universal candidate/delivery wording or an absolute no-commit claim that erases that exception.
 
 ##### IA20 — exhaustive renderer classification certification
 
