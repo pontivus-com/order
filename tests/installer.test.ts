@@ -2,6 +2,8 @@ import { spawn, spawnSync } from "node:child_process";
 import {
   chmodSync,
   existsSync,
+  lstatSync,
+  symlinkSync,
   mkdtempSync,
   mkdirSync,
   renameSync,
@@ -503,7 +505,10 @@ type InstallerTransactionFixture = Readonly<{
   absentOriginalSidecar?: "-wal" | "-shm";
   candidateSidecars?: boolean;
   driftConfig?: boolean;
-  configFault?: "snapshot-sync" | "publication" | "publication-sync" | "restore" | "restore-sync" | "retire";
+  configFault?: "snapshot-sync" | "publication" | "publication-sync" | "restore" | "restore-sync" | "retire" |
+    "snapshot-file-sync" | "snapshot-changed" | "publication-write" | "publication-file-sync" |
+    "publication-target-drift" | "publication-temp-replaced" | "restore-write" | "restore-file-sync";
+  configOwnerMismatch?: boolean;
 }>;
 
 // Execute the production transaction and the installed setup/config/SQLite modules.
@@ -543,7 +548,8 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
       const entry = fs.lstatSync(target, { throwIfNoEntry: false, bigint: true });
       return entry === undefined ? null : String(entry.dev) + ":" + String(entry.ino);
     };
-    const readBytes = target => fs.existsSync(target) ? fs.readFileSync(target).toString("base64") : null;
+    const readBytes = target => fs.lstatSync(target, { throwIfNoEntry: false })?.isFile()
+      ? fs.readFileSync(target).toString("base64") : null;
     const priorApplicationIdentity = readIdentity(installRoot);
     const priorLauncherIdentity = readIdentity(launcher);
     const priorUnitBytes = readBytes(unitPath);
@@ -619,6 +625,8 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
     const originalNamespace = readDatabaseNamespace();
     const originalDatabase = readBytes(databasePath);
     const originalConfig = readBytes(configPath);
+    const originalConfigIdentity = readIdentity(configPath);
+    const originalConfigMode = fs.lstatSync(configPath, { throwIfNoEntry: false })?.mode ?? null;
     let retainedArchive = null;
     const token = "a".repeat(64);
     const result = (stdout = "", exitCode = 0) => ({
@@ -849,7 +857,22 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
       };
       let configPhase = "snapshot";
       let injectedConfigSync = false;
+      let configFilePhase = "snapshot";
       const configEffects = {
+        write: (descriptor, bytes) => {
+          const target = fs.readlinkSync("/proc/self/fd/" + descriptor);
+          configFilePhase = target.includes(".installer-recovery.") ? "snapshot" :
+            target.includes(".installer-restore.") ? "restore" : "publication";
+          if (fixture.configFault === configFilePhase + "-write") {
+            fs.writeFileSync(descriptor, bytes.subarray(0, 8));
+            throw new Error("injected configuration " + configFilePhase + " write");
+          }
+          if (fixture.configFault === "publication-temp-replaced" && configFilePhase === "publication") {
+            fs.renameSync(target, target + ".retained-original");
+            fs.writeFileSync(target, "unexpected temporary", { mode: 0o600 });
+          }
+          fs.writeFileSync(descriptor, bytes);
+        },
         rename: (from, to) => {
           if (to === configPath && String(from).includes(".installer-restore.")) {
             if (fixture.configFault === "restore") throw new Error("injected configuration restoration");
@@ -862,9 +885,16 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
           }
         },
         fsync: descriptor => {
-          if (!injectedConfigSync && fs.fstatSync(descriptor).isDirectory() && fixture.configFault === configPhase + "-sync") {
+          const directory = fs.fstatSync(descriptor).isDirectory();
+          const phase = directory ? configPhase : configFilePhase;
+          if (!injectedConfigSync && fixture.configFault === phase + (directory ? "-sync" : "-file-sync")) {
             injectedConfigSync = true;
-            throw new Error("injected configuration " + configPhase + " fsync");
+            throw new Error("injected configuration " + phase + " fsync");
+          }
+          if ((directory && configPhase === "snapshot" && fixture.configFault === "snapshot-changed") ||
+              (!directory && configFilePhase === "publication" && fixture.configFault === "publication-target-drift")) {
+            fs.renameSync(configPath, configPath + ".retained-original");
+            fs.writeFileSync(configPath, Buffer.from(originalConfig, "base64"), { mode: 0o600 });
           }
           fs.fsyncSync(descriptor);
         },
@@ -875,18 +905,23 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
           fs.unlinkSync(target);
         },
       };
-      await installer.runInstaller({ sourceRoot, sourceCommit }, process.env, question, rename, remove, databaseEffects, configEffects);
+      const actualGetuid = process.getuid;
+      if (fixture.configOwnerMismatch) process.getuid = () => actualGetuid() + 1;
+      try {
+        await installer.runInstaller({ sourceRoot, sourceCommit }, process.env, question, rename, remove, databaseEffects, configEffects);
+      } finally { process.getuid = actualGetuid; }
     } catch (error) { failure = String(error); }
     if (walFixtureFailure !== null) throw new Error("SQLite fixture infrastructure failure: " + walFixtureFailure);
     console.log("ORDER_TRANSACTION_RESULT " + JSON.stringify({
       failure, prompts, events, restartObservations, activity, enablement, legacyActivity, sourceCommit,
       marker: fs.existsSync(marker) ? fs.readFileSync(marker, "utf8") : null,
-      config: fs.existsSync(configPath) ? JSON.parse(fs.readFileSync(configPath, "utf8")) : null,
+      config: (() => { try { const bytes = readBytes(configPath); return bytes === null ? null : JSON.parse(Buffer.from(bytes, "base64").toString("utf8")); } catch { return null; } })(),
       app: fs.existsSync(installRoot), launcher: fs.existsSync(launcher), unit: fs.existsSync(unitPath),
       originalDatabase, originalConfig, retainedArchive, originalNamespace,
       databaseNamespace: readDatabaseNamespace(),
       database: fs.existsSync(databasePath) ? fs.readFileSync(databasePath).toString("base64") : null,
-      configBytes: fs.existsSync(configPath) ? fs.readFileSync(configPath).toString("base64") : null,
+      configBytes: readBytes(configPath), originalConfigIdentity, originalConfigMode,
+      configIdentity: readIdentity(configPath), configMode: fs.lstatSync(configPath, { throwIfNoEntry: false })?.mode ?? null,
       stateEntries: fs.existsSync(fixture.stateRoot) ? fs.readdirSync(fixture.stateRoot) : [],
       appBackups: fs.existsSync(path.dirname(installRoot)) ? fs.readdirSync(path.dirname(installRoot)).filter(name => name.startsWith("pontivus-order.previous.")) : [],
       launcherBackups: fs.existsSync(binDir) ? fs.readdirSync(binDir).filter(name => name.startsWith("order.previous.")) : [],
@@ -1464,6 +1499,101 @@ describe("actual IA25 installer transaction", () => {
     expect(outcome.configBytes).toBe(outcome.originalConfig);
     expect(outcome.activity).toBe("inactive");
     expect(outcome.events.filter((event: { command: string[] }) => event.command[0] === "restart")).toHaveLength(1);
+  }, 120_000);
+
+  it.each(["dangling-symlink", "symlink", "directory", "fifo", "insecure-mode", "foreign-owner", "malformed", "legacy-root-absent"] as const)(
+    "rejects unsafe or invalid present config without mutation: %s", kind => {
+      const fixture = transactionFixture();
+      createPriorDeployment(fixture);
+      const target = join(fixture.stateRoot, "config.json");
+      const original = readFileSync(target);
+      if (kind === "dangling-symlink" || kind === "symlink") {
+        rmSync(target);
+        const link = join(fixture.stateRoot, "config-source");
+        if (kind === "symlink") writeFileSync(link, original, { mode: 0o600 });
+        symlinkSync(link, target);
+      } else if (kind === "directory" || kind === "fifo") {
+        rmSync(target);
+        if (kind === "directory") mkdirSync(target);
+        else run(["mkfifo", target], fixture.stateRoot);
+      } else if (kind === "insecure-mode") chmodSync(target, 0o644);
+      else if (kind === "malformed") writeFileSync(target, "{invalid");
+      else if (kind === "legacy-root-absent") writeFileSync(target, JSON.stringify({
+        version: 1, model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+        repositoryRoots: [join(fixture.stateRoot, "missing-legacy-root")], referenceRoots: [],
+      }));
+      const before = lstatSync(target);
+      const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes",
+        readiness: { ready: true, blockers: [] }, configOwnerMismatch: kind === "foreign-owner" });
+      expect(outcome.failure).not.toBeNull();
+      expect(outcome.configIdentity).toBe(outcome.originalConfigIdentity);
+      expect(outcome.configMode).toBe(outcome.originalConfigMode);
+      expect(outcome.configBytes).toBe(outcome.originalConfig);
+      expect(lstatSync(target).ino).toBe(before.ino);
+      expect(outcome.marker).toBe("b".repeat(40) + "\n");
+      expect(outcome.restartObservations.some((entry: { deployment: string }) => entry.deployment === "candidate")).toBe(false);
+      expect(outcome.stdout).not.toContain("Order updated successfully.");
+      if (kind === "foreign-owner") expect(outcome.failure).toContain("owned by the current user");
+      if (kind === "insecure-mode") expect(outcome.failure).toContain("group or other access");
+      if (kind === "legacy-root-absent") expect(outcome.failure).toContain("ENOENT");
+      if (kind === "symlink") expect(readFileSync(join(fixture.stateRoot, "config-source"))).toEqual(original);
+    }, 120_000);
+
+  it.each(["publication-write", "publication-file-sync"] as const)("removes only owned incomplete configuration temporary: %s", configFault => {
+    const fixture = transactionFixture();
+    createPriorDeployment(fixture);
+    const target = join(fixture.stateRoot, "config.json");
+    chmodSync(target, 0o400);
+    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes",
+      readiness: { ready: true, blockers: [] }, configFault });
+    expect(outcome.failure).toContain("injected configuration publication");
+    expect(outcome.configBytes).toBe(outcome.originalConfig);
+    expect(outcome.configIdentity).toBe(outcome.originalConfigIdentity);
+    expect(outcome.configMode & 0o777).toBe(0o400);
+    expect(outcome.stateEntries.some((name: string) => name.startsWith("config.json.tmp.") || name.includes(".installer-recovery."))).toBe(false);
+    expect(outcome.activity).toBe("active");
+  }, 120_000);
+
+  it.each(["snapshot-changed", "publication-target-drift"] as const)("preserves original recovery and identical-byte replacement: %s", configFault => {
+    const fixture = transactionFixture();
+    createPriorDeployment(fixture);
+    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes",
+      readiness: { ready: true, blockers: [] }, configFault });
+    expect(outcome.failure).toContain("identity or bytes changed");
+    expect(outcome.failure).toContain("rollback incomplete");
+    expect(outcome.configBytes).toBe(outcome.originalConfig);
+    expect(outcome.configIdentity).not.toBe(outcome.originalConfigIdentity);
+    const recovery = outcome.stateEntries.find((name: string) => name.startsWith("config.json.installer-recovery."));
+    expect(readFileSync(join(fixture.stateRoot, recovery)).toString("base64")).toBe(outcome.originalConfig);
+    expect(outcome.restartObservations).toEqual([]);
+    expect(outcome.activity).toBe("inactive");
+  }, 120_000);
+
+  it("retains an unexpectedly replaced publication temporary without deleting it", () => {
+    const fixture = transactionFixture();
+    createPriorDeployment(fixture);
+    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes",
+      readiness: { ready: true, blockers: [] }, configFault: "publication-temp-replaced" });
+    expect(outcome.failure).toContain("ambiguous configuration temporary retained");
+    expect(outcome.configIdentity).toBe(outcome.originalConfigIdentity);
+    const replacement = outcome.stateEntries.find((name: string) => name.startsWith("config.json.tmp.") && !name.endsWith(".retained-original"));
+    expect(readFileSync(join(fixture.stateRoot, replacement), "utf8")).toBe("unexpected temporary");
+    expect(outcome.activity).toBe("active");
+  }, 120_000);
+
+  it.each(["restore-write", "restore-file-sync"] as const)("retains exact original recovery when restore temporary fails: %s", configFault => {
+    const fixture = transactionFixture();
+    createPriorDeployment(fixture);
+    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes",
+      readiness: { ready: true, blockers: [] }, configFault, failRestart: true });
+    expect(outcome.failure).toContain("injected host failure");
+    expect(outcome.failure).toContain("restore temporary retained at");
+    expect(outcome.failure).toContain("injected configuration restore");
+    const recovery = outcome.stateEntries.find((name: string) => name.startsWith("config.json.installer-recovery."));
+    expect(readFileSync(join(fixture.stateRoot, recovery)).toString("base64")).toBe(outcome.originalConfig);
+    expect(outcome.stateEntries.some((name: string) => name.startsWith("config.json.installer-restore."))).toBe(true);
+    expect(outcome.restartObservations.map((entry: { deployment: string }) => entry.deployment)).toEqual(["candidate"]);
+    expect(outcome.activity).toBe("inactive");
   }, 120_000);
 
   it.each(["publication", "publication-sync"] as const)("preserves original config bytes after %s failure", configFault => {

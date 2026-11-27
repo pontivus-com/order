@@ -319,6 +319,7 @@ type InstallerConfigEffects = Readonly<{
   rename: typeof renameSync;
   fsync: typeof fsyncSync;
   unlink: typeof unlinkSync;
+  write?: (descriptor: number, bytes: Uint8Array) => void;
 }>;
 const installerConfigEffects: InstallerConfigEffects = {
   rename: renameSync, fsync: fsyncSync, unlink: unlinkSync,
@@ -394,18 +395,35 @@ const writeExclusiveConfigBytes = (
   path: string,
   bytes: Uint8Array,
   mode: number,
+  effects: InstallerConfigEffects = installerConfigEffects,
+  onCreated: (identity: Pick<InstallerConfigIdentity, "device" | "inode">) => void = () => {},
 ): InstallerConfigIdentity => {
   const descriptor = openSync(path,
     constants.O_WRONLY | constants.O_CREAT | constants.O_EXCL | constants.O_NOFOLLOW, 0o600);
   try {
-    writeFileSync(descriptor, bytes);
+    const created = fstatSync(descriptor, { bigint: true });
+    onCreated({ device: created.dev, inode: created.ino });
+    (effects.write ?? writeFileSync)(descriptor, bytes);
     fchmodSync(descriptor, mode);
-    fsyncSync(descriptor);
+    effects.fsync(descriptor);
     const stat = fstatSync(descriptor, { bigint: true });
     return { device: stat.dev, inode: stat.ino, mode, sha256: sha256(bytes) };
   } finally {
     closeSync(descriptor);
   }
+};
+
+const removeOwnedInstallerConfigTemporary = (
+  path: string,
+  created: Pick<InstallerConfigIdentity, "device" | "inode"> | null,
+  effects: InstallerConfigEffects,
+): void => {
+  const entry = lstatSync(path, { bigint: true, throwIfNoEntry: false });
+  if (entry === undefined) return;
+  if (created === null || !entry.isFile() || entry.dev !== created.device || entry.ino !== created.inode) {
+    throw new TypeError("ambiguous configuration temporary retained: " + path);
+  }
+  effects.unlink(path);
 };
 
 export const captureInstallerConfigSnapshot = (
@@ -415,12 +433,18 @@ export const captureInstallerConfigSnapshot = (
 ): InstallerConfigSnapshot => {
   ensureSupportedStateRoot(stateRoot);
   const target = statePaths(stateRoot).config;
-  const original = observeInstallerConfig(target);
+  let original: ObservedInstallerConfig | null;
+  try { original = observeInstallerConfig(target); }
+  catch (error) {
+    onIncompleteCapture(target);
+    throw error;
+  }
   if (original === null) return { target, original: null, recoveryPath: null, recoveryIdentity: null };
   const recoveryPath = target + ".installer-recovery." + crypto.randomUUID();
   try {
-    const recoveryIdentity = writeExclusiveConfigBytes(recoveryPath, original.bytes, original.identity.mode);
+    const recoveryIdentity = writeExclusiveConfigBytes(recoveryPath, original.bytes, original.identity.mode, effects);
     fsyncConfigDirectory(recoveryPath, effects.fsync);
+    requireInstallerConfigIdentity(recoveryPath, recoveryIdentity);
     requireInstallerConfigIdentity(target, original.identity);
     return { target, original: original.identity, recoveryPath, recoveryIdentity };
   } catch (error) {
@@ -473,11 +497,21 @@ export const restoreInstallerConfig = (
         throw new TypeError("installer original config recovery copy is inconsistent: " + snapshot.recoveryPath);
       }
       const temporary = snapshot.target + ".installer-restore." + crypto.randomUUID();
-      const restored = writeExclusiveConfigBytes(temporary, original.bytes, snapshot.original.mode);
-      requireInstallerConfigIdentity(snapshot.target, published);
-      effects.rename(temporary, snapshot.target);
-      fsyncConfigDirectory(snapshot.target, effects.fsync);
-      requireInstallerConfigIdentity(snapshot.target, restored);
+      try {
+        const restored = writeExclusiveConfigBytes(temporary, original.bytes, snapshot.original.mode, effects);
+        requireInstallerConfigIdentity(temporary, restored);
+        requireInstallerConfigIdentity(snapshot.target, published);
+        effects.rename(temporary, snapshot.target);
+        fsyncConfigDirectory(snapshot.target, effects.fsync);
+        requireInstallerConfigIdentity(snapshot.target, restored);
+      } catch (error) {
+        // Retain original recovery material on every incomplete restore; a
+        // partial or replaced temporary is never mistaken for the original.
+        const retained = lstatSync(temporary, { throwIfNoEntry: false }) !== undefined
+          ? "; restore temporary retained at " + temporary : "";
+        throw new Error("configuration restoration failed: " + String(error) + retained +
+          "; original recovery at " + snapshot.recoveryPath, { cause: error });
+      }
     }
   }
   releaseInstallerConfigSnapshot(snapshot, effects);
@@ -496,19 +530,32 @@ export const writeOrderConfig = (
     throw new TypeError("installer config snapshot belongs to another state root");
   }
   const bytes = new TextEncoder().encode(JSON.stringify(canonical) + "\n");
-  const identity = writeExclusiveConfigBytes(temporary, bytes, 0o600);
   const effects = installer?.effects ?? installerConfigEffects;
-  try {
-    if (installer !== undefined) requireInstallerConfigIdentity(target, installer.snapshot.original);
-    effects.rename(temporary, target);
-    installer?.onPublished(identity);
-  } catch (error) {
-    try {
-      if (lstatSync(temporary).isFile()) unlinkSync(temporary);
-    } catch {
-      // The temporary path may already have been consumed.
+  if (installer === undefined) {
+    // Preserve the ordinary CLI writer's existing behavior.
+    writeExclusiveConfigBytes(temporary, bytes, 0o600);
+    try { renameSync(temporary, target); }
+    catch (error) {
+      try { if (lstatSync(temporary).isFile()) unlinkSync(temporary); } catch {}
+      throw error;
     }
-    throw error;
+  } else {
+    let created: Pick<InstallerConfigIdentity, "device" | "inode"> | null = null;
+    try {
+      const identity = writeExclusiveConfigBytes(temporary, bytes, 0o600, effects,
+        value => { created = value; });
+      requireInstallerConfigIdentity(temporary, identity);
+      requireInstallerConfigIdentity(target, installer.snapshot.original);
+      effects.rename(temporary, target);
+      installer.onPublished(identity);
+    } catch (error) {
+      try { removeOwnedInstallerConfigTemporary(temporary, created, effects); }
+      catch (failure) {
+        throw new AggregateError([error, failure], "installer configuration publication failed: " +
+          String(error) + "; " + String(failure) + "; inspect " + temporary);
+      }
+      throw error;
+    }
   }
 
   fsyncConfigDirectory(target, effects.fsync);
