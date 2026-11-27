@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Reconcile the existing exact-target setup regression fixture with the manifest custody callback: serialize its asserted path only, retaining the no-prompt, manifest and configuration assertions and the production BigInt custody identity.
+
 - Extend the authority-only concern inventory to native Acceptance and enforce exact canonical lifecycle-stage coverage in the existing pre-sign-off fitness sensor.
 
 - Restore the mandatory signed task-block version discriminator and prove PLAN admission using the existing canonical parser and current v2 task policy in pre-sign-off fitness.

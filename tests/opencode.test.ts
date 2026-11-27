@@ -1615,7 +1615,7 @@ materialRefs = ["AGENTS.md"]
         async () => { throw new Error("unchanged exact legacy target must not prompt"); },
         true,
         { snapshot: cfg.captureInstallerConfigSnapshot(${JSON.stringify(state)}), onPublished: () => {} },
-        (path) => created.push(path),
+        (custody) => created.push(custody.path),
       );
       console.log(JSON.stringify({
         code,
