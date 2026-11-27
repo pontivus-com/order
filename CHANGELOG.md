@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Reconcile the full Acceptance source-return, pure recovery dispatch, immutable QA context, ordinary V4 failure and finding-retest evidence chains against their existing canonical owners; bind the functional/design/PLAN and exact proof obligations without changing T1 scope or protected sensors.
+
 - Close the Acceptance current-proof observation and exact source/material reconciliation contracts using existing canonical carriers, error shape and scoped owners; preserve independent history, no automatic signed return, and existing T1 scope.
 
 - Bind the newly corrected FR092 signed repository-disconnect obligation to T1's acceptanceRefs; retain the exact existing scope and verification sensor.

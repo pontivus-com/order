@@ -10,10 +10,10 @@ This directory is a deterministic visual projection of the current Workbench aut
 
 The active corpus is valid only for these exact inputs:
 
-- `GW-DOC-WORKBENCH-UX-V2` — blob `d4491745b1540639ed57be11c69428415d5860af`;
-- `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2` — blob `3ac940966906e4377bc762482a68c756b2ff66bc`;
+- `GW-DOC-WORKBENCH-UX-V2` — blob `041cd6670d336a3ac1924554815e100474c59cd4`;
+- `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2` — blob `7985991b91c5717677da6a38e057c00eb2e4e2fe`;
 - `GW-DOC-WORKBENCH-THEME-V1` — blob `03dfc6be3600a1128b5639d011f4c0159d3497dd`;
-- current 0.6.0 DESIGN — blob `a9211c727f52dacfaf98ce92d601fe92168ca9e7`.
+- current 0.6.0 DESIGN — blob `950453a0fba9941d09685ed0545ccb89852c3124`.
 
 These are the exact current authority versions projected by this corpus. If any bound owner changes, this corpus is stale until regenerated and reviewed. The owner wins on every conflict.
 
