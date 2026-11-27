@@ -2665,9 +2665,19 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   await page.getByRole("radio", { name: "Light" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
 
-  await page.getByRole("button", { name: "New work item" }).click();
   const createDialog = page.getByRole("dialog", { name: "Create work item" });
-  await expect(createDialog).toBeVisible();
+  const openCreate = async (): Promise<void> => {
+    await page.getByRole("button", { name: "New work item" }).click();
+    await expect(createDialog).toBeVisible();
+    await createDialog.getByRole("combobox", { name: "Project Required" }).click();
+    await page.getByRole("option", { name: "order-e2e", exact: true }).click();
+    await createDialog.getByRole("radio", { name: "Change" }).click();
+    await createDialog.getByLabel("Title").fill("Rendered acceptance change");
+    await createDialog.getByRole("button", { name: "Concerns", exact: true }).click();
+    await page.getByRole("option", { name: "browser" }).click();
+    await page.keyboard.press("Escape");
+  };
+  await openCreate();
   const createPanel = createDialog.locator(".order-workbench-task-panel");
   const createHeader = createPanel.locator(".order-workbench-task-panel-header");
   const createBody = createPanel.locator(".order-workbench-task-panel-body");
@@ -2678,17 +2688,10 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   await expect(createFooter.getByRole("button", { name: "Cancel", exact: true })).toBeVisible();
   await expect(createFooter.getByRole("button", { name: "Create work item", exact: true })).toBeVisible();
   await expect(createBody.getByRole("button", { name: "Create work item", exact: true })).toHaveCount(0);
-  await createDialog.getByRole("combobox", { name: "Project Required" }).click();
-  await page.getByRole("option", { name: "order-e2e", exact: true }).click();
-  await createDialog.getByRole("radio", { name: "Change" }).click();
   await expect(createDialog.getByTestId("create-work-item-location")).toContainText(
     "docs/order/work-items",
   );
   await expect(createDialog).not.toContainText(/(?:change|defect|investigation|audit)-v\d/i);
-  await createDialog.getByLabel("Title").fill("Rendered acceptance change");
-  await createDialog.getByRole("button", { name: "Concerns", exact: true }).click();
-  await page.getByRole("option", { name: "browser" }).click();
-  await page.keyboard.press("Escape");
   await expect(createDialog.getByLabel("Title")).toHaveValue("Rendered acceptance change");
   entries.push(await captureRenderedAcceptance(page, {
     id: "create-work-item-wide-light-change",
@@ -2706,7 +2709,9 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM",
     ],
   }, createDialog));
+  await createDialog.getByRole("button", { name: "Cancel", exact: true }).click();
   await page.getByRole("radio", { name: "Dark" }).click();
+  await openCreate();
   entries.push(await captureRenderedAcceptance(page, {
     id: "ia26-create-workitem-wide-dark", workItemKind: "CHANGE", workflowStep: "Work request",
     surface: "SURF-CREATE-001", state: "ordinary-change-populated-dark",

@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Reopen the real Create dialog after theme changes in phase-local proof rather than interacting through its modal boundary.
+
 - Dispatch seven independent signed rendered phase scenarios before ordinary browser verification, publish their exact candidate and phase evidence even on failure, and retain full diagnostics and exhaustive IA26 (IA20/IA26 verification preparation).
 
 - Share exact schema-admitted terminal R1 artifact selection and reject ambiguous terminal provenance in the observational Approval boundary (IA17).
