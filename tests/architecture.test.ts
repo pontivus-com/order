@@ -215,7 +215,7 @@ const verifyCampaignReviewedInputs = (
     }
     const scope = new Set(task.scope);
     const exclusions = new Set(task.exclusions);
-    if (scope.size !== 47 || exclusions.size !== 68 || task.scope.length !== scope.size || task.exclusions.length !== exclusions.size || [...scope].some((path) => exclusions.has(path))) {
+    if (scope.size !== 48 || exclusions.size !== 67 || task.scope.length !== scope.size || task.exclusions.length !== exclusions.size || [...scope].some((path) => exclusions.has(path))) {
       throw new Error("invalid exact T1 scope/exclusions");
     }
     const allowed = normal ? scope : new Set(exactField("bounded paths", "([^\\r\\n]+)").split(", "));
@@ -383,8 +383,8 @@ describe("architecture fitness", () => {
       mkdirSync(join(root, "item"));
       const plan = "\x60\x60\x60order-tasks\n" + JSON.stringify({ tasks: [{
         id: "T1",
-        scope: ["a.ts", "CHANGELOG.md", ...Array.from({ length: 45 }, (_, i) => "scope-" + i)],
-        exclusions: ["protected.md", ...Array.from({ length: 67 }, (_, i) => "excluded-" + i)],
+        scope: ["a.ts", "CHANGELOG.md", ...Array.from({ length: 46 }, (_, i) => "scope-" + i)],
+        exclusions: ["protected.md", ...Array.from({ length: 66 }, (_, i) => "excluded-" + i)],
       }] }) + "\n\x60\x60\x60\n";
       const baselineInputs = new Map([
         ["a.ts", "100644\t" + blob("old\n")],
@@ -3217,9 +3217,9 @@ describe("architecture fitness", () => {
     const designSurface = [...designSurfaceSection.matchAll(/^- `([^\`]+)`(?:\s+—.*)?$/gm)].map(
       (match) => match[1],
     );
-    if (designSurface.length !== 47 || duplicates(designSurface).length > 0) {
+    if (designSurface.length !== 48 || duplicates(designSurface).length > 0) {
       violations.push(
-        "DESIGN implementation forecast must contain 47 unique paths; found " +
+        "DESIGN implementation forecast must contain 48 unique paths; found " +
           designSurface.length,
       );
     }
@@ -3245,6 +3245,8 @@ describe("architecture fitness", () => {
         "Only explicit y/yes",
         "Remove source-marker publication from staging for all attempts",
         "Before each effect capture the corresponding existing rollback input",
+        "systemd inactivity alone cannot establish their absence",
+        "exclusive file creation boundary",
         "application and launcher independently",
         "Capture the previous service unit and supported enablement/activity before the first service mutation",
         "Atomically publish the existing source marker at that boundary for fresh and established attempts",
@@ -3288,6 +3290,9 @@ describe("architecture fitness", () => {
         "quiescence unproven",
         "immediately after successful rename and before directory fsync/readback",
         "no callback means no published config effect",
+        "REV-F11 — installer-created manifest custody and external-writer boundary",
+        "before close or awaited validation",
+        "Do not locally delete by pathname or perform a second rollback",
       ]],
       ["IA25 exact execution/proof", installerAction, [
         "one pre-mutation disposition",
@@ -3318,6 +3323,9 @@ describe("architecture fitness", () => {
         "in `tests/shell.test.ts` pass the explicit established decision",
         "In `tests/order-migration.test.ts` replace the unconditional-success systemctl stub",
         "`tests/sqlite.test.ts` is outside T1",
+        "partial write/fsync/observation failure before successful return",
+        "no deletion of replaced or unproven objects",
+        "not universal external-writer detection",
       ]],
     ] as const;
     for (const [owner, source, requiredTokens] of installerTraces) {
@@ -3382,9 +3390,9 @@ describe("architecture fitness", () => {
             task.gateIds ?? [],
             ["architecture", "browser", "build", "dependency-lock", "test", "typecheck"],
           );
-          if ((task.scope ?? []).length !== 47 || duplicates(task.scope ?? []).length > 0) {
+          if ((task.scope ?? []).length !== 48 || duplicates(task.scope ?? []).length > 0) {
             violations.push(
-              "T1 hard scope must contain the exact 47 unique forecast paths; found " +
+              "T1 hard scope must contain the exact 48 unique forecast paths; found " +
                 (task.scope ?? []).length,
             );
           }
@@ -3395,6 +3403,7 @@ describe("architecture fitness", () => {
         for (const requiredPath of [
           "src/installer.ts",
           "src/shell/setup.ts",
+          "src/shell/project.ts",
           "src/shell/sqlite.ts",
           "src/shell/config.ts",
           "tests/shell.test.ts",
@@ -3413,9 +3422,9 @@ describe("architecture fitness", () => {
         for (const excluded of task?.exclusions ?? []) {
           if ((task?.scope ?? []).includes(excluded)) violations.push("T1 scope overlaps exclusion: " + excluded);
         }
-        if (signedSurface.length !== 47 || duplicates(signedSurface).length > 0) {
+        if (signedSurface.length !== 48 || duplicates(signedSurface).length > 0) {
           violations.push(
-            "PLAN signed T1 changeSurface must contain 47 unique paths; found " +
+            "PLAN signed T1 changeSurface must contain 48 unique paths; found " +
               signedSurface.length,
           );
         }
@@ -3428,9 +3437,9 @@ describe("architecture fitness", () => {
         const documentedSurface = [...surfaceSection.matchAll(/^- \`([^\`]+)\`$/gm)].map(
           (match) => match[1],
         );
-        if (documentedSurface.length !== 47 || duplicates(documentedSurface).length > 0) {
+        if (documentedSurface.length !== 48 || duplicates(documentedSurface).length > 0) {
           violations.push(
-            "PLAN documented candidate surface must contain 47 unique paths; found " +
+            "PLAN documented candidate surface must contain 48 unique paths; found " +
               documentedSurface.length,
           );
         }
@@ -3455,7 +3464,6 @@ describe("architecture fitness", () => {
           "src/shell/opencode.ts",
           "src/shell/process.ts",
           "src/shell/project-config.ts",
-          "src/shell/project.ts",
           "src/shell/runtime.ts",
           "src/shell/work-item-source.ts",
           "tests/architecture.test.ts",
@@ -3523,6 +3531,7 @@ describe("architecture fitness", () => {
         exactSet("DESIGN corrected residual/proof forecast", designSurface, [
           "src/installer.ts",
           "src/shell/setup.ts",
+          "src/shell/project.ts",
           "src/shell/sqlite.ts",
           "src/shell/config.ts",
           "README.md",
