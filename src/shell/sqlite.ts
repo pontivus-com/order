@@ -376,9 +376,21 @@ export const readLegacyWorkItemRepositoryRootsForInstall = (
   }
 };
 
+// Invocation-local filesystem boundary shared by prepare and restore.
+// Production always uses the same filesystem operations; tests can fail an exact effect.
+type InstallerDatabaseEffects = Readonly<{
+  rename: typeof renameSync;
+  copy: typeof copyFileSync;
+  unlink: typeof unlinkSync;
+}>;
+const installerDatabaseEffects: InstallerDatabaseEffects = {
+  rename: renameSync, copy: copyFileSync, unlink: unlinkSync,
+};
+
 export const prepareOrderDatabaseForInstall = (
   stateRoot: string,
   onIncompleteRestore: () => void = () => {},
+  effects: InstallerDatabaseEffects = installerDatabaseEffects,
 ): LegacyDatabaseArchive | null => {
   const path = statePaths(stateRoot).database;
   if (inspectInstallerDatabaseFile(path) === null) return null;
@@ -411,7 +423,7 @@ export const prepareOrderDatabaseForInstall = (
       requireInstallerDatabaseFile(original.path, original.identity);
       requireInstallerDatabaseFile(original.path + suffix, null);
       if (original.identity === null) continue;
-      renameSync(original.path, original.path + suffix);
+      effects.rename(original.path, original.path + suffix);
       moved.push(original);
     }
     if (version === 2) {
@@ -425,7 +437,7 @@ export const prepareOrderDatabaseForInstall = (
           copies.set(original.path, { device: stat.dev, inode: stat.ino });
         } finally { closeSync(descriptor); }
         requireInstallerDatabaseFile(original.path, copies.get(original.path)!);
-        copyFileSync(original.path + suffix, original.path);
+        effects.copy(original.path + suffix, original.path);
       }
     }
   } catch (error) {
@@ -441,7 +453,7 @@ export const prepareOrderDatabaseForInstall = (
             throw new TypeError("ambiguous installer database candidate retained: " + original.path);
           }
         }
-        renameSync(original.path + suffix, original.path);
+        effects.rename(original.path + suffix, original.path);
         requireInstallerDatabaseFile(original.path, original.identity);
       } catch (failure) {
         failures.push(new Error("database compensation incomplete at " + original.path +
@@ -459,6 +471,7 @@ export const prepareOrderDatabaseForInstall = (
 
 export const restoreOrderDatabaseAfterFailedInstall = (
   archive: LegacyDatabaseArchive,
+  effects: InstallerDatabaseEffects = installerDatabaseEffects,
 ): void => {
   const expectedPaths = orderDatabaseFiles(statePaths(archive.stateRoot).database);
   if (archive.originals.length !== expectedPaths.length ||
@@ -474,12 +487,12 @@ export const restoreOrderDatabaseAfterFailedInstall = (
       if (original.identity === null) {
         // The caller owns the quiesced installation invocation and this
         // namespace was positively absent before its database effect.
-        if (candidate !== null) unlinkSync(original.path);
+        if (candidate !== null) effects.unlink(original.path);
         requireInstallerDatabaseFile(original.path, null);
       } else {
         // Atomic replacement keeps the archived original available until
         // the restore succeeds; a missing archive never deletes a candidate.
-        renameSync(archived, original.path);
+        effects.rename(archived, original.path);
         requireInstallerDatabaseFile(original.path, original.identity);
       }
     } catch (error) {

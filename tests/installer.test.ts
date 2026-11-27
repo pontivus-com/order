@@ -492,6 +492,7 @@ type InstallerTransactionFixture = Readonly<{
   failCleanup?: "config" | "application" | "launcher";
   legacyDatabaseVersion?: 1 | 2 | 3;
   loseDatabaseArchive?: boolean;
+  databaseFault?: "archive" | "copy" | "partial-copy" | "restore" | "copy-and-restore" | "unlink";
   driftConfig?: boolean;
 }>;
 
@@ -507,7 +508,8 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
     const fixture = ${JSON.stringify(fixture)};
     const sourceRoot = fs.realpathSync(process.cwd());
     const installRoot = path.join(fixture.home, ".local/share/pontivus-order");
-    const launcher = path.join(fixture.home, ".local/bin/order");
+    const binDir = path.join(fixture.home, ".local/bin");
+    const launcher = path.join(binDir, "order");
     const unitPath = path.join(fixture.home, ".config/systemd/user/pontivus-order.service");
     const marker = path.join(installRoot, "SOURCE_COMMIT");
     const configPath = path.join(fixture.stateRoot, "config.json");
@@ -585,6 +587,7 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
                 fs.renameSync(path.join(fixture.stateRoot, name), retainedArchive);
               }
             }
+            if (fixture.databaseFault === "unlink") fs.writeFileSync(databasePath + "-wal", "invocation-created sidecar");
             if (fixture.driftConfig) fs.appendFileSync(configPath, " ");
           }
           if (fixture.failRestart && !restartFailed) { restartFailed = true; return result("", 1); }
@@ -689,7 +692,27 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
         }
         fs.rmSync(target, options);
       };
-      await installer.runInstaller({ sourceRoot, sourceCommit }, process.env, question, rename, remove);
+      const databaseEffects = {
+        rename: (from, to) => {
+          if (fixture.databaseFault === "archive" && from === databasePath) throw new Error("injected archive rename");
+          if ((fixture.databaseFault === "restore" || fixture.databaseFault === "copy-and-restore") &&
+              String(from).includes(".legacy-v") && to === databasePath) throw new Error("injected archive restoration");
+          fs.renameSync(from, to);
+        },
+        copy: (from, to) => {
+          if (fixture.databaseFault === "copy" && to === databasePath) throw new Error("injected database copy");
+          if ((fixture.databaseFault === "partial-copy" || fixture.databaseFault === "copy-and-restore") && to === databasePath) {
+            fs.writeFileSync(to, "partial candidate");
+            throw new Error("injected partial database copy");
+          }
+          fs.copyFileSync(from, to);
+        },
+        unlink: target => {
+          if (fixture.databaseFault === "unlink" && target === databasePath + "-wal") throw new Error("injected candidate unlink");
+          fs.unlinkSync(target);
+        },
+      };
+      await installer.runInstaller({ sourceRoot, sourceCommit }, process.env, question, rename, remove, databaseEffects);
     } catch (error) { failure = String(error); }
     console.log("ORDER_TRANSACTION_RESULT " + JSON.stringify({
       failure, prompts, events, activity, enablement, legacyActivity, sourceCommit,
@@ -990,6 +1013,58 @@ describe("actual IA25 installer transaction", () => {
     expect(retried.prompts.some((prompt: string) => prompt.startsWith("Did installation"))).toBe(false);
     expect(retried.stdout).not.toContain("Order updated successfully.");
   }, 180_000);
+
+  it.each([
+    { legacyDatabaseVersion: 1 as const, databaseFault: "archive" as const, error: "injected archive rename" },
+    { legacyDatabaseVersion: 2 as const, databaseFault: "copy" as const, error: "injected database copy" },
+    { legacyDatabaseVersion: 2 as const, databaseFault: "partial-copy" as const, error: "injected partial database copy" },
+  ])("compensates SQLite prepare fault $databaseFault without outer double rollback", ({ legacyDatabaseVersion, databaseFault, error }) => {
+    const fixture = transactionFixture();
+    createPriorDeployment(fixture);
+    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes",
+      readiness: { ready: true, blockers: [] }, legacyDatabaseVersion, databaseFault });
+    expect(outcome.failure).toContain(error);
+    expect(outcome.failure).not.toContain("rollback incomplete");
+    expect(outcome.database).toBe(outcome.originalDatabase);
+    expect(outcome.configBytes).toBe(outcome.originalConfig);
+    expect(outcome.activity).toBe("active");
+    expect(outcome.stateEntries.some((name: string) => name.includes(".legacy-v"))).toBe(false);
+    expect(outcome.events.filter((event: { command: string[] }) => event.command[0] === "restart")).toHaveLength(1);
+  }, 120_000);
+
+  it("retains the exact archive and blocks restart after primary copy and secondary compensation failure", () => {
+    const fixture = transactionFixture();
+    createPriorDeployment(fixture);
+    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes",
+      readiness: { ready: true, blockers: [] }, legacyDatabaseVersion: 2, databaseFault: "copy-and-restore" });
+    expect(outcome.failure).toContain("injected partial database copy");
+    expect(outcome.failure).toContain("database preparation compensation incomplete");
+    const archive = outcome.stateEntries.find((name: string) => name.startsWith("order.sqlite3.legacy-v2."));
+    expect(readFileSync(join(fixture.stateRoot, archive)).toString("base64")).toBe(outcome.originalDatabase);
+    expect(readFileSync(join(fixture.stateRoot, "order.sqlite3"), "utf8")).toBe("partial candidate");
+    expect(outcome.configBytes).toBe(outcome.originalConfig);
+    expect(outcome.activity).toBe("inactive");
+    expect(outcome.events.some((event: { command: string[] }) => event.command[0] === "restart")).toBe(false);
+  }, 120_000);
+
+  it.each(["restore", "unlink"] as const)("preserves recovery bytes on late SQLite %s failure", databaseFault => {
+    const fixture = transactionFixture();
+    createPriorDeployment(fixture);
+    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes",
+      readiness: { ready: true, blockers: [] }, legacyDatabaseVersion: 1, databaseFault, failRestart: true });
+    expect(outcome.failure).toContain("injected host failure");
+    expect(outcome.failure).toContain("database restoration incomplete");
+    if (databaseFault === "restore") {
+      const archive = outcome.stateEntries.find((name: string) => name.startsWith("order.sqlite3.legacy-v1."));
+      expect(readFileSync(join(fixture.stateRoot, archive)).toString("base64")).toBe(outcome.originalDatabase);
+    } else {
+      expect(outcome.database).toBe(outcome.originalDatabase);
+      expect(readFileSync(join(fixture.stateRoot, "order.sqlite3-wal"), "utf8")).toBe("invocation-created sidecar");
+    }
+    expect(outcome.configBytes).toBe(outcome.originalConfig);
+    expect(outcome.activity).toBe("inactive");
+    expect(outcome.events.filter((event: { command: string[] }) => event.command[0] === "restart")).toHaveLength(1);
+  }, 120_000);
 
   it.each([1, 2, 3] as const)("restores exact database bytes for version %i on established activation failure", legacyDatabaseVersion => {
     const fixture = transactionFixture();

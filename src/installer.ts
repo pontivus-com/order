@@ -866,6 +866,7 @@ export const runInstaller = async (
   question: typeof terminalQuestion = terminalQuestion,
   rename: typeof renameSync = renameSync,
   remove: typeof rmSync = rmSync,
+  databaseEffects?: Parameters<typeof import("./shell/sqlite.ts").prepareOrderDatabaseForInstall>[2],
 ): Promise<void> => {
   if (process.platform !== "linux") fail("Order v1 productive installation requires Linux");
   if (Bun.version !== bunVersion) fail("installer must run on exact Bun " + bunVersion);
@@ -973,7 +974,7 @@ export const runInstaller = async (
 
     sqliteUpgradeModule = await import(pathToFileURL(join(locations.installRoot, "app", "src", "shell", "sqlite.ts")).href) as typeof import("./shell/sqlite.ts");
     databaseArchive = sqliteUpgradeModule.prepareOrderDatabaseForInstall(locations.stateRoot,
-      () => { databaseRestoreIncomplete = true; });
+      () => { databaseRestoreIncomplete = true; }, databaseEffects);
     if (databaseArchive !== null) {
       process.stdout.write("Order installer — retained rollback database archive at " + databaseArchive.archiveDatabase + "\n");
     }
@@ -1011,7 +1012,7 @@ export const runInstaller = async (
       const archive = databaseArchive;
       const module = sqliteUpgradeModule;
       compensate("database restoration incomplete: " + archive.archiveDatabase, () => {
-        try { module.restoreOrderDatabaseAfterFailedInstall(archive); }
+        try { module.restoreOrderDatabaseAfterFailedInstall(archive, databaseEffects); }
         catch (failure) { databaseRestoreIncomplete = true; throw failure; }
       });
     }
