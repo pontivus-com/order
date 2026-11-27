@@ -105,7 +105,7 @@ verified no-code   coding agent
 
 ## 6. Desired lifecycle
 
-Order carries untrusted software-work intent through governed definition before implementation authority can exist. Work may terminate successfully without code when governed investigation establishes that no candidate is required. When implementation is required, execution begins only after explicit human authorization of an exact current package and ends only after the authorized change has passed the required independent validation.
+Order carries untrusted software-work intent through governed definition before implementation authority can exist. Work may terminate successfully without code when governed investigation establishes that no candidate is required. When implementation is required, execution begins only after explicit human authorization of an exact current package and autonomously implements, validates, independently reviews and remediates it to a verified candidate. Candidate-producing work then enters interactive human QA/QC and explicit acceptance of the exact verified candidate before delivery eligibility. Human QA may report defects, request governed correction and retest; it is not a sequence of approvals during normal production. No-code results need no candidate acceptance.
 
 The exact WorkItem stages, transitions and pre-sign-off decision boundaries are owned by `GW-DOC-WORK-LIFECYCLE-V1`. The exact post-sign-off implementation, mechanical-verification, independent-review and bounded-remediation semantics are owned by `GW-DOC-VALIDATION-STANDARD-V1` and the downstream execution architecture.
 
