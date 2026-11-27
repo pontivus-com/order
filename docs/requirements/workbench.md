@@ -146,7 +146,7 @@ The Workbench uses one derived material-maturity vocabulary where the distinctio
 | **Current** | the material is current conformed authority for its owning workflow step |
 | **Stale** | upstream authority changed and this material can no longer authorize progression |
 | **Historical** | prior reached/superseded material retained for inspection |
-| **Signed & locked** | material belongs to the exact signed execution package and is inspection-only in Implementation/Complete |
+| **Signed & locked** | material belongs to the exact signed execution package and is inspection-only in Implementation/Acceptance/Complete |
 
 **Proposed change** and **Applying change** are interaction states around a material mutation, not document-maturity values.
 
@@ -868,7 +868,7 @@ Order uses a small closed set of interaction classes.
 | Form / configuration | Create WorkItem, Settings and bounded configuration tasks | explicit field hierarchy + action region; no card dashboard |
 | Document | Work request, Research, Requirements, Solution design and Implementation plan | wide primary authoring/reading surface |
 | Dialogue | active pre-signoff Run | remaining-height conversation with anchored composer |
-| Review | proposal, readiness, approval | wide comparison/judgment surface |
+| Review | proposal, readiness, approval, acceptance | wide comparison/judgment surface |
 | Operational master/detail | implementation | stable master + flexible detail |
 | Evidence | logs, patches, exact bytes | wide remaining-height raw viewer |
 | Terminal result | final outcome | concise classification + substantive result/evidence |
@@ -1417,7 +1417,10 @@ CURRENT TASK RUNNING
       |       |
       |       +-- more eligible/incomplete tasks -------------> EXECUTION / ACTIVE
       |       |
-      |       +-- all approved tasks successful -------------> COMPLETE / COMPLETE
+      |       +-- all tasks no-op ---------------------------> COMPLETE / COMPLETE
+      |       +-- all tasks successful, candidate present ----> AWAITING_ACCEPTANCE / ACTIVE
+      |                +-- exact human acceptance --------------> COMPLETE / COMPLETE
+      |                +-- admitted QA correction -------------> EXECUTION / ACTIVE
       |
       +-- operational/precondition/environment blocker ------> EXECUTION / BLOCKED
       |
@@ -1714,7 +1717,7 @@ The detailed current-attention/recovery value remains owned by the primary mater
 
 ### GW-FR-233-CANONICAL-WORKFLOW-RAIL-PROJECTION
 
-**Required behavior:** the nine-stage workflow rail is the one persistent lifecycle summary projection defined in §3.8/§21.11, derived from canonical stage/reach/current-attention state and never used as lifecycle or command-admission authority.
+**Required behavior:** the ten-stage workflow rail is the one persistent lifecycle summary projection defined in §3.8/§21.11, derived from canonical stage/reach/current-attention state and never used as lifecycle or command-admission authority.
 
 **Acceptance:** the same canonical workflow facts always produce the same reach/current marker for every rail cell; historical selection cannot create a false current marker, and no feature supplies an independent rail status.
 
