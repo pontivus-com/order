@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Restore the mandatory signed task-block version discriminator and prove PLAN admission using the existing canonical parser and current v2 task policy in pre-sign-off fitness.
+
 - Admit the existing 0.6.0 stacked Workbench integration target to the permanent exact-candidate PR Verification trigger under repository delivery §10; retain all gates and retire the target when supporting integration concludes.
 
 - Reconcile native Acceptance identity generation and candidate hash ownership with the existing canonical UUID/crypto boundary; admit only the proven existing shell runtime path into the revised 61-path design candidate and rebind the protected scope sensor and derived reference authority.

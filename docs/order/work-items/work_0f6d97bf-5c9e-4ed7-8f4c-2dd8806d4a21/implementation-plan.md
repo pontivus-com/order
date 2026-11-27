@@ -43,6 +43,7 @@ One T1 candidate, exact 61 paths for scope and changeSurface; explicit exclusion
 
 ```order-tasks
 {
+  "version": 1,
   "tasks": [
     {
       "id": "T1",

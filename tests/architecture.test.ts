@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import { dirname, extname, join, matchesGlob, relative, resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
+import { admitSignedTaskBlockForSchema, parseSignedTaskBlockFromPlan } from "../src/core/execution.ts";
 
 const repositoryRoot = process.cwd();
 const sourceExtensions = new Set([".ts", ".tsx"]);
@@ -3376,6 +3377,11 @@ describe("architecture fitness", () => {
       );
     } else {
       try {
+        try {
+          admitSignedTaskBlockForSchema("change-v2", parseSignedTaskBlockFromPlan(new TextEncoder().encode(plan)));
+        } catch (error) {
+          violations.push("PLAN fails canonical signed task admission: " + String(error));
+        }
         const parsed = JSON.parse(taskBlocks[0][1]) as {
           tasks?: readonly {
             id?: string;
