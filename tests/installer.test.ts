@@ -557,17 +557,47 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
     const databaseSuffixes = ["", "-wal", "-shm"];
     const faultPath = databasePath + (fixture.databaseFaultSuffix ?? (fixture.databaseFault === "unlink" ? "-wal" : ""));
     const readDatabaseNamespace = () => databaseSuffixes.map(suffix => readBytes(databasePath + suffix));
-    const leaveWal = statement => {
-      // A separate SQLite process exits without closing its connection, leaving
-      // actual WAL frames and a real WAL index in the isolated fixture.
-      const source = "import { Database } from 'bun:sqlite'; const db = new Database(" +
-        JSON.stringify(databasePath) + ", { create: true, strict: true }); db.exec(" +
-        JSON.stringify("PRAGMA journal_mode=WAL; PRAGMA wal_autocheckpoint=0; " + statement) +
-        "); process.exit(0);";
-      const child = originalSpawn([process.execPath, "--eval", source], { stdout: "pipe", stderr: "pipe" });
-      if (!child.success) throw new Error("WAL fixture failed: " + child.stderr.toString());
+    const { spawnSync: spawnFixtureProcess } = await import("node:child_process");
+    const leaveWal = (statement, expectedValue, expectedVersion) => {
+      // The fixture process proves the committed data and live sidecars while
+      // SQLite is open, then terminates by SIGKILL, bypassing graceful close
+      // and its checkpoint. spawnSync joins the process before installer work.
+      const source = [
+        "import { Database } from 'bun:sqlite';",
+        "import { statSync, writeSync } from 'node:fs';",
+        "const path = " + JSON.stringify(databasePath) + ";",
+        "const db = new Database(path, { create: true, strict: true });",
+        "if (db.query('PRAGMA journal_mode=WAL').get().journal_mode !== 'wal') throw new Error('fixture WAL mode unavailable');",
+        "db.exec('PRAGMA wal_autocheckpoint=0;');",
+        "db.exec(" + JSON.stringify(statement) + ");",
+        "const value = db.query('SELECT value FROM sentinel').get().value;",
+        "const version = db.query('PRAGMA user_version').get().user_version;",
+        "if (value !== " + JSON.stringify(expectedValue) + " || version !== " + expectedVersion + ") throw new Error('fixture committed data mismatch');",
+        "if (statSync(path + '-wal').size <= 32 || statSync(path + '-shm').size <= 0) throw new Error('fixture sidecars not populated');",
+        "writeSync(1, 'WAL_FIXTURE_COMMITTED');",
+        "process.kill(process.pid, 'SIGKILL');",
+        "throw new Error('fixture SIGKILL did not terminate');",
+      ].join(" ");
+      const child = spawnFixtureProcess(process.execPath, ["--eval", source], {
+        encoding: "utf8", timeout: 15_000, killSignal: "SIGKILL",
+      });
+      if (child.error || child.signal !== "SIGKILL" || child.stdout !== "WAL_FIXTURE_COMMITTED") {
+        throw new Error("WAL fixture failed: " + JSON.stringify({
+          status: child.status, signal: child.signal, stdout: child.stdout,
+          stderr: child.stderr, error: child.error?.message,
+        }));
+      }
+      // The child is gone: inspect the actual retained files, not synthetic
+      // sidecars or a database reopened (and potentially checkpointed) here.
       for (const suffix of ["-wal", "-shm"]) {
-        if (!fs.existsSync(databasePath + suffix)) throw new Error("WAL fixture missing " + suffix);
+        if (!fs.existsSync(databasePath + suffix) || fs.statSync(databasePath + suffix).size === 0) {
+          throw new Error("WAL fixture missing " + suffix);
+        }
+      }
+      const wal = fs.readFileSync(databasePath + "-wal");
+      const magic = wal.readUInt32BE(0);
+      if ((magic !== 0x377f0682 && magic !== 0x377f0683) || wal.length <= 32) {
+        throw new Error("WAL fixture has no valid WAL header and frames");
       }
     };
     if (fixture.legacyDatabaseVersion !== undefined) {
@@ -576,7 +606,8 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
       db.close();
       if (fixture.databaseSidecars) {
         leaveWal("UPDATE sentinel SET value='original WAL';" +
-          (fixture.versionInWal === undefined ? "" : "PRAGMA user_version=" + fixture.versionInWal + ";"));
+          (fixture.versionInWal === undefined ? "" : "PRAGMA user_version=" + fixture.versionInWal + ";"),
+          "original WAL", fixture.versionInWal ?? fixture.legacyDatabaseVersion);
         if (fixture.absentOriginalSidecar) fs.unlinkSync(databasePath + fixture.absentOriginalSidecar);
       }
     }
@@ -649,7 +680,7 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
             candidateStarted = true;
             if (fixture.legacyDatabaseVersion === 1 || fixture.legacyDatabaseVersion === 2) {
               const statement = "CREATE TABLE IF NOT EXISTS sentinel(value TEXT NOT NULL) STRICT; DELETE FROM sentinel; INSERT INTO sentinel VALUES ('candidate'); PRAGMA user_version = 3;";
-              if (fixture.candidateSidecars) leaveWal(statement);
+              if (fixture.candidateSidecars) leaveWal(statement, "candidate", 3);
               else {
                 const db = new Database(databasePath, { create: true, strict: true });
                 db.exec(statement);
