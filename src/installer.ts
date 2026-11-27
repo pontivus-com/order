@@ -597,6 +597,47 @@ const currentOrderFootprintExists = (locations: InstallerLocations): boolean =>
   existsSync(join(locations.binDir, "order")) ||
   existsSync(join(locations.userConfigHome, "systemd", "user", "pontivus-order.service"));
 
+// A successful stop command is not evidence of service quiescence.
+const observeServiceActivity = (
+  unit: string,
+  cwd: string,
+  environment: NodeJS.ProcessEnv,
+): "active" | "inactive" => {
+  const activity = runCommand(
+    ["systemctl", "--user", "show", "--property=ActiveState", "--value", unit],
+    cwd,
+    environment,
+  ).trim();
+  if (activity !== "active" && activity !== "inactive") {
+    throw new TypeError("cannot establish supported service activity for " + unit + ": " + activity);
+  }
+  return activity;
+};
+
+const requireServiceQuiescence = (
+  unit: string,
+  cwd: string,
+  environment: NodeJS.ProcessEnv,
+): void => {
+  let stopFailure: unknown;
+  try {
+    runCommand(["systemctl", "--user", "stop", unit], cwd, environment);
+  } catch (error) {
+    stopFailure = error;
+  }
+  try {
+    if (observeServiceActivity(unit, cwd, environment) !== "inactive") {
+      throw new TypeError("service remains active: " + unit);
+    }
+  } catch (observationFailure) {
+    if (stopFailure !== undefined) {
+      throw new AggregateError([stopFailure, observationFailure],
+        "service quiescence could not be established for " + unit);
+    }
+    throw observationFailure;
+  }
+};
+
 const renameDatabaseNamespace = (
   stateRoot: string,
   fromName: "gateweft.sqlite3" | "order.sqlite3",
@@ -632,14 +673,14 @@ export const migrateLegacyGateweftInstallation = (
     fail("Gateweft predecessor and Order productive roots both exist; resolve the conflict before installing");
   }
 
-  const serviceWasActive = commandSucceeds(
-    ["systemctl", "--user", "is-active", "--quiet", "gateweft.service"],
+  const serviceWasActive = observeServiceActivity(
+    "gateweft.service",
     locations.home,
     environment,
-  );
+  ) === "active";
   if (serviceWasActive) {
     step("quiescing Gateweft predecessor service");
-    runCommand(["systemctl", "--user", "stop", "gateweft.service"], locations.home, environment);
+    requireServiceQuiescence("gateweft.service", locations.home, environment);
   }
 
   let installMoved = false;
