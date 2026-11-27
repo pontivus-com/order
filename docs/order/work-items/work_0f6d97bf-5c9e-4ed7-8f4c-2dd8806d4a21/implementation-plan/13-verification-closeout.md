@@ -189,7 +189,7 @@ Before signed IA27/IA28, IA20/IA26 correct the existing verification-only paths 
 
 ## Foundation revalidation — IA27/IA28
 
-Retain explicit operator milestone within scope; no blanket HUX/IA26 acceptance. Prove current-marker, narrow toolbar and reference/consumer residuals through existing IA27/IA28 SURF. Optional bounded evidence requires current R3 and separate grant; no mandatory reconstruction. Record independent schema_information, ux_interaction, visual_ui and component-ownership evidence. Disproven retained owner returns upstream. IA26 remains exhaustive exact-candidate independent QA.
+For normal signed execution, independent exact-candidate phase QA alone governs continuation; no intermediate operator milestone, disposition or approval. Only a separately granted bounded pre-sign-off tranche stops for the operator's evidence decision. No blanket HUX/IA26 acceptance. Prove current-marker, narrow toolbar and reference/consumer residuals through existing IA27/IA28 SURF. Optional bounded evidence requires current R3 and separate grant; no mandatory reconstruction. Record independent schema_information, ux_interaction, visual_ui and component-ownership evidence. Disproven retained owner returns upstream. IA26 remains exhaustive exact-candidate independent QA.
 
 ## Final exhaustive rendered 0.6.0 UX/UI acceptance — IA26
 

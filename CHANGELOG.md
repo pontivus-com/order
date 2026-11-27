@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Remove the residual intermediate operator-milestone instruction from normal signed execution; distinguish historical installer proof scope from current v4 Acceptance proof without changing T1.
+
 - Repair the exact R1/P3 basis references in R2 and recompile its downstream DESIGN/PLAN/reference identities; preserve functional semantics and T1 scope.
 
 - Reconcile the three Workbench reference viewport classes with signed comparison proof, and correct the protected authorization sensor to the current 61-path/59-exclusion T1 package; no runtime or scope change.
