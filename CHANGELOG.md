@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Integrate native final Acceptance into the 0.6.0 lifecycle, review-event, state/command, cross-feature guard, migration and Workbench design; extend task/proof integration without implementation authorization.
+
 - Align 0.6.0 R2/DESIGN/PLAN and campaign progression with one exact-package sign-off, autonomous independent QA and bounded remediation through verified candidate closeout, followed by consolidated final operator acceptance; retain all existing evidence and scope obligations.
 
 - Resolve exact Workbench package/document/task selection, R3 verdict, current-owner navigation and required-input composition at the existing P6/DESIGN/PLAN owners; preserve the 48-path forecast and rebind derived comparison evidence.

@@ -779,7 +779,7 @@ order provider login <provider>
 
 Manual `order tick` invokes the same global coordinator operation. It does not create another scheduler, queue or mutation path.
 
-The Workbench's manual **Start current task** command is not a scheduler scan. It identifies the exact current approved WorkItem/task, proves final eligibility under the same global single-running-task exclusion, atomically creates that task's BUILDER Run, and then enters the same coordinator execution loop asynchronously. Automatic ticks retain the existing global eligible-task ordering.
+The Workbench's manual **Start current task** command is not a scheduler scan. It identifies the exact current approved WorkItem/task, proves final eligibility under the same global single-running-task exclusion, atomically creates that task's BUILDER Run, and then enters the same coordinator execution loop asynchronously. Automatic ticks retain the existing global eligible-task ordering and are mandatory for signed tasks and queued QA; manual start is never a serial approval.
 
 No model call occurs merely because the timer fires: a tick with no eligible approved task is `NO_WORK`.
 
@@ -1282,7 +1282,7 @@ The sign-off view is a read-only composition of canonical source/package state p
 
 Opening an editable pre-signoff document from sign-off exits the ready package state through normal save/invalidation semantics; the old package hash cannot be reused.
 
-EXECUTION/COMPLETE views expose no Markdown mutation action for signed package artifacts or production outcomes. Existing signed material remains inspectable, but editing it requires returning through the canonical upstream lifecycle rather than changing bytes under active approval.
+EXECUTION/AWAITING_ACCEPTANCE/COMPLETE views expose no Markdown mutation action for signed package artifacts or production outcomes. Existing signed material remains inspectable, but editing it requires returning through the canonical upstream lifecycle rather than changing bytes under active approval.
 
 #### Verification obligations
 
@@ -1317,8 +1317,8 @@ Permanent tests must prove at least:
 - source hash participates in context identity;
 - source edit during active daemon invalidates promotion/approval as required;
 - source-bound sign-off/V0/V1 freshness with required non-null Approval source binding;
-- fresh SQLite initialization creates the complete current schema with `user_version = 3`;
-- unsupported legacy SQLite schema versions fail before mutation and no migration/backfill path is present;
+- fresh SQLite initialization creates the complete current schema with `user_version = 4`;
+- ordinary startup rejects unsupported versions; only stopped-daemon installer migrates supported predecessors under P6 §§32/37;
 - current lifecycle-artifact query selects only canonical current role snapshots and excludes superseded history;
 - direct R1/R2/DESIGN/PLAN Markdown save is hash-guarded and returns to owner;
 - R3 direct write rejected;
@@ -1592,7 +1592,7 @@ The Git shell proves the operation-state condition by resolving Git-internal pat
 
 Detached HEAD and in-progress Git operations are ordinary typed blockers. Order does not attempt to finish, abort or otherwise manipulate the external Git operation.
 
-Implementation/Complete are always ineligible even if WorkItem Markdown happens to differ in the working tree.
+Implementation/Acceptance/Complete are always ineligible even if WorkItem Markdown happens to differ in the working tree.
 
 ### 30.14 Repository-local Git identity
 
@@ -1641,7 +1641,7 @@ This avoids a dual approval semantic and ensures every new v3 Approval is formed
 
 **Required behavior:** daemon eligibility plus Git-shell repository-state probes reject documentation commits outside the permitted pre-signoff/no-active-Run/attached-clean-operation-state boundary.
 
-**Acceptance criterion:** detached HEAD, in-progress Git operations, active Run, Implementation/Complete and noncommittable document states cause no Git mutation and return a specific blocker.
+**Acceptance criterion:** detached HEAD, in-progress Git operations, active Run, Implementation/Acceptance/Complete and noncommittable document states cause no Git mutation and return a specific blocker.
 
 **Failure/negative behavior:** `git commit` process failure must not be used as the primary eligibility check.
 

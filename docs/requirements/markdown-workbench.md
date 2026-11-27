@@ -201,7 +201,7 @@ If the operator leaves sign-off to edit an editable Markdown document, the norma
 
 The execution/candidate inspection capability itself remains owned by `GW-FR-005-LOCAL-WORKBENCH`, `GW-DOC-EXECUTION-CONTROL-PLANE-V1` and `GW-DOC-VALIDATION-STANDARD-V1`.
 
-This extension owns only the editor boundary: once a WorkItem is in EXECUTION, the existing task/Run/validation/evidence/candidate surfaces remain inspection-only. Order exposes no Markdown-editor mutation action for candidate code, tests, configuration, patch/evidence bytes, RunEvents, Approval records, ExecutionTask state or SQLite/runtime state.
+This extension owns only the editor boundary: once a WorkItem is in EXECUTION, AWAITING_ACCEPTANCE or COMPLETE, the existing task/Run/validation/evidence/candidate surfaces remain inspection-only. Order exposes no Markdown-editor mutation action for candidate code, tests, configuration, patch/evidence bytes, RunEvents, Approval records, ExecutionTask state or SQLite/runtime state.
 
 Signed lifecycle Markdown may remain inspectable, but changing it requires returning through the governed upstream lifecycle rather than editing signed bytes inside the execution view.
 
@@ -236,7 +236,7 @@ That action:
 - reports the resulting commit or the exact failure;
 - leaves the working-tree document bytes intact if the commit fails.
 
-Documentation Git save is available only while the WorkItem remains pre-signoff (`IDEA`, Research, Requirements, Solution design, Implementation plan, Readiness review or Approval) and no Run for that WorkItem is currently active. It is unavailable in Implementation/Complete because those states treat the signed lifecycle package as inspection-only.
+Documentation Git save is available only while the WorkItem remains pre-signoff (`IDEA`, Research, Requirements, Solution design, Implementation plan, Readiness review or Approval) and no Run for that WorkItem is currently active. It is unavailable in Implementation/Acceptance/Complete because those states treat the signed lifecycle package as inspection-only.
 
 Order creates documentation commits only on an attached local branch and only when no merge/rebase/cherry-pick/revert/bisect/sequencer operation is in progress. A detached HEAD or in-progress Git operation is shown as an actionable repository-state blocker rather than being passed through as an unexplained commit failure.
 
@@ -365,9 +365,9 @@ The Git status/action belongs to the selected WorkItem's Documents/workflow cont
 
 **Required behavior:** explicit documentation Git save is available only for a pre-signoff WorkItem with no active Run, on an attached local branch, with no in-progress Git operation and with a committable canonical WorkItem document set.
 
-**Acceptance criterion:** Implementation/Complete, detached HEAD, active Run and merge/rebase/cherry-pick/revert/bisect/sequencer states present a specific blocker and perform no Git commit.
+**Acceptance criterion:** Implementation/Acceptance/Complete, detached HEAD, active Run and merge/rebase/cherry-pick/revert/bisect/sequencer states present a specific blocker and perform no Git commit.
 
-**Failure/negative behavior:** the browser must not treat a generic Git process failure as the normal eligibility mechanism or permit documentation commits to mutate signed/historical package state during Implementation/Complete.
+**Failure/negative behavior:** the browser must not treat a generic Git process failure as the normal eligibility mechanism or permit documentation commits to mutate signed/historical package state during Implementation/Acceptance/Complete.
 
 ### GW-FR-072-REPOSITORY-LOCAL-GIT-IDENTITY
 

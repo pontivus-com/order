@@ -169,6 +169,7 @@ The observable workflow language is closed. Every Workbench workflow condition i
 | validation boundary | `NONE | PASSED_THROUGH(Vn) | FAILED_AT(Vn, classification) | COMPLETE` | latest durable post-signoff validation boundary for the current task/candidate |
 | recovery route | `NONE | RETRY_CURRENT_STAGE | RESUME_CURRENT_OWNER | RECONCILE_AUTHORITY` | the single operator-facing recovery route, if any, for the current condition; automatic execution remediation/replacement remains execution policy and appears as ordinary processing/Run state |
 | observation coherence | `COHERENT | CONVERGING` | whether the browser has one self-consistent canonical observation or is waiting for dependent canonical facts to catch up |
+| Acceptance decision | derived from exact current Approval/candidate members and ordered review events | inspect/report, submit, queued, retest, accept, unavailable/stale or historical inspection; no persisted status |
 | current attention | the closed categories in §21.9 | the one current workflow condition/action that must dominate presentation |
 
 These values are a functional language, not a persistence model. They may be derived from fewer durable facts, but a downstream layer may not add a new semantic state, recovery category or precedence rule merely because the implementation needs a convenient label.
@@ -1031,6 +1032,8 @@ Only an admitted current verified candidate set enters Acceptance. It is one dir
 
 Report finding opens an existing task-panel/form interaction, bound to the selected exact candidate and criterion; explicit save durably records the report, cancel/dirty navigation retains existing form behavior. Submit findings requests independent evaluation and autonomous correction, never creates authority or approves a step. While queued, show its owner and disable acceptance; while repair executes, Implementation owns current attention and historical Acceptance is read-only. When candidate returns, show correction evidence and explicit retest outcome controls. A finding is resolved/withdrawn only by an explicit human disposition with rationale against the current candidate; unresolved findings or stale/missing evidence disable final acceptance. New-scope findings use governed upstream return or a separate WorkItem, not a hidden task. Review's one decision region offers the primary currently admissible action and subordinate Report finding/inspect/retest actions; final `Accept candidate` uses the exact verified set and attributable human confirmation. No implicit accept on navigation, CI, refresh or silence. No commit/push/merge/deploy. No free-form STAGE composer, synthetic outer attention or nested Review; evidence/document/form inspection replaces the primary composition with explicit return. Historical rounds are read-only; current attention remains reachable. Wide/medium/narrow and themes preserve all semantic and interaction roles.
 
+**Acceptance decision closure.** Original report identity and evidence remain immutable. Unsubmitted open reports for a replaced task remain actionable against its successor; disposed reports on that task require retest again, while unchanged member dispositions remain valid. Failed retest records current observed behavior/rationale and leaves the original report unresolved and resubmittable. Before submission a mistaken observation can be withdrawn with rationale and explicit attestation that it is not a known unmet signed obligation; after assessment withdrawal requires independent supporting evidence. Never waive a demonstrated binding defect. A finding against a no-op member of a mixed candidate set blocks acceptance and requires explicit PLAN reanalysis, not patch remediation of a nonexistent candidate. All-no-op terminal work remains terminal; later defects are separate work. Select one primary action: open actionable reports -> Submit (no-op challenge -> Return to PLAN); otherwise outstanding retest -> Record retest; otherwise verified current set with no open findings -> Accept. Report/inspect are subordinate. Queued submission is PROCESSING even before Run admission; no competing mutations. Correction owns Implementation; historical Acceptance is read-only. Missing/corrupt current proof is BLOCKER with exact diagnostic and explicit governed reanalysis if irrecoverable. Actual stale authority is STALE_AUTHORITY with exact owner reconciliation. Current action remains reachable during historical inspection.
+
 ### 14.9 Complete
 
 Complete presents one Terminal-result composition with the final governed outcome first.
@@ -1406,7 +1409,7 @@ Implementation has one canonical current execution owner regardless of historica
 ```text
 EXECUTION / ACTIVE
       |
-      | manual action: start this WorkItem's canonical current approved task
+      | autonomous scheduling after sign-off; optional scoped Start current task
       | + create its required Run
       v
 CURRENT TASK RUNNING
@@ -1439,7 +1442,7 @@ EXECUTION / BLOCKED
 
 The classified upstream-return mapping is owned by `GW-DOC-WORK-LIFECYCLE-V1 §2.2` together with `GW-DOC-VALIDATION-STANDARD-V1`. Historical task/Run selection never changes the current execution owner.
 
-Automatic/background scheduler selection, if used, is a separate system behavior. The task-local manual Workbench action must carry and honor the current WorkItem/task owner rather than invoking an unscoped global scheduler action.
+Automatic/background scheduling is mandatory for normal signed progression, including successor tasks and admitted QA submissions; scoped manual start is optional and never a serial approval. The task-local manual Workbench action must carry and honor the current WorkItem/task owner rather than invoking an unscoped global scheduler action.
 
 ### 21.7 Read, selection and rejected-command law
 
@@ -1487,7 +1490,7 @@ Exactly one current-attention category is selected from this ordered set:
 7. **STALE_AUTHORITY** — approval/material currentness is stale and progression is unavailable; its operator recovery route is `RECONCILE_AUTHORITY`.
 8. **RECOVERY** — a retryable current failure or resumable current-owner condition owns the next action; stale-currentness reconciliation does not collapse into this category.
 9. **PROCESSING** — provider/automatic work is progressing and no higher category owns attention.
-10. **ACTIONABLE** — the current coherent owner exposes its ordinary Start/Continue/Sign-off/Resume-class action.
+10. **ACTIONABLE** — the current coherent owner exposes its ordinary Start/Continue/Sign-off/Resume-class action or exact Acceptance submit/retest/accept action. Acceptance ACTIONABLE projects ACTION REQUIRED; queued review projects PROCESSING, unavailable proof BLOCKER, stale authority STALE_AUTHORITY.
 11. **ORDINARY** — current material is inspectable with no workflow action requiring emphasis.
 
 A lower category never exposes a competing primary mutation action while a higher category applies.
@@ -1543,6 +1546,7 @@ The current stage receives exactly one summary marker:
 WorkItem COMPLETE                           -> COMPLETE
 current attention STALE_AUTHORITY                  -> STALE
 current attention BLOCKER                          -> BLOCKED
+current attention ACTIONABLE at AWAITING_ACCEPTANCE -> ACTION_REQUIRED
 current attention REQUIRED_INPUT
   or PROPOSAL_DECISION
   or MUTATION_CONFLICT

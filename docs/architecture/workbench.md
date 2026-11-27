@@ -233,10 +233,17 @@ The daemon is authoritative for mutation admission. The browser uses the same pu
 | Save lifecycle document | editable already-reached owner; no active Run; expected hash current | return/remain at artifact owner |
 | Resume pre-signoff blocker | same stage / BLOCKED; blocker proven resolved; no active Run | same stage / ACTIVE |
 | Sign off | AWAITING_SIGNOFF / ACTIVE; exact displayed package still current; no competing mutation | EXECUTION / ACTIVE + Approval/tasks |
-| Reconcile stale approval authority | AWAITING_SIGNOFF / ACTIVE; package inspection reports exact STALE(owner); submitted expected owner still matches; no competing mutation | return lifecycle ownership to that exact upstream owner / ACTIVE; no repository bytes are changed |
-| Resume execution | EXECUTION / BLOCKED; exactly current blocked task; approval current; blocker resolved | EXECUTION / ACTIVE; blocked task becomes eligible |
+| Reconcile stale approval authority | AWAITING_SIGNOFF or AWAITING_ACCEPTANCE / ACTIVE; package inspection reports exact STALE(owner); submitted expected owner still matches; no competing mutation | return lifecycle ownership to that exact upstream owner / ACTIVE; no repository bytes are changed |
+| Resume execution | EXECUTION / BLOCKED; exactly current blocked task; approval current; blocker resolved | EXECUTION / ACTIVE; ordinary task becomes eligible; QA-linked task resumes exact linked review/repair, never unrelated BUILDER |
 | Start current implementation task | EXECUTION / ACTIVE; submitted WorkItem/task identifies the exact derived `ExecutionOwner.CURRENT_TASK`; task TODO/eligible; approval current; no running task/coordinator execution | exact task RUNNING + exact BUILDER Run; existing coordinator continues that task asynchronously |
 | Archive/restore | existing archive policy; no active Run; no competing mutation | archive projection only; lifecycle unchanged |
+
+| Report | current coherent Acceptance; exact current member/hash/sequence; no queued work | REPORT, same stage |
+| Submit | open/retest-failed reports of one current candidate-producing task, exact current identity | SUBMIT, same stage until scheduler admission |
+| Retest/disposition | exact current member/finding, no queued work | RETEST_FAILED or DISPOSITION, same stage |
+| Reanalysis | exact no-op challenge or irrecoverable proof, current identity and owner | durable REANALYSIS_REQUESTED, return exact upstream owner |
+| Accept | exact verified current set, no unresolved reports/queued work, current authority | ACCEPT and COMPLETE atomically |
+| Prepare test copy | current candidate-producing member, no queued work | isolated replay copy, no state change |
 
 A selected historical material item never satisfies a current-action precondition merely because it contains an old control. Action ownership always resolves from the current canonical WorkItem/Run/task/proposal/input facts.
 
@@ -333,6 +340,8 @@ Malformed or contradictory canonical histories do not produce a guessed variant.
 
 `ObservationCoherence` is also closed: it is `CONVERGING` only when already-loaded canonical facts expose a controlling reaction not yet reflected by its dependent owner (for example STAGE completion before the selected WorkItem stage changes, STAGE block before WorkItem status changes, or execution Run terminalization before task/WorkItem reaction is visible). Otherwise those canonical facts are `COHERENT`. Browser query-pending/refetch state may additionally suppress controls as transport behavior, but it does not create another workflow semantic state and never authorizes the UI to synthesize the missing transition.
 
+Acceptance-specific decisions derive in the existing pure lifecycle owner from canonical P6 review events, current Approval/task/Run and candidate members. No exported WorkflowState aggregate or browser-owned status. Apply P3 §§14.8A/21.9 attention precedence; queued submission -> PROCESSING, actionable submit/retest/accept -> ACTIONABLE, missing proof -> BLOCKER, stale authority -> STALE_AUTHORITY. Correction uses ExecutionOwner. Observation coherence covers OPENED/REVIEW_STARTED/REVIEW_COMPLETED/ACCEPT versus dependent WorkItem/task/Run facts; suppress mutation until coherent.
+
 ### 4.9 Closed lifecycle transition-cause language
 
 Every mutation of `WorkItem.stage/status/outcome` is attributable to exactly one semantic transition cause:
@@ -357,17 +366,18 @@ type WorkItemTransitionCause =
       readonly tag: "EXECUTION_RETURN";
       readonly owner: UpstreamReturnStage;
     }
-  | {
-      readonly tag: "EXECUTION_COMPLETED";
-      readonly outcome: "CANDIDATE_DONE" | "ALREADY_SATISFIED";
-    };
+  | { readonly tag: "EXECUTION_COMPLETED"; readonly outcome: "CANDIDATE_DONE" | "ALREADY_SATISFIED" }
+  | { readonly tag: "QA_REVIEW_STARTED" }
+  | { readonly tag: "CANDIDATE_ACCEPTED" };
 ```
 
 This is an internal pure decision union, not a persisted event stream. Existing canonical RunEvents/commands remain the durable causes/evidence. Shell/daemon code maps an admitted canonical command/event/classification into one cause, then `lifecycle.ts` returns the next lifecycle tuple. An unlisted cause cannot mutate lifecycle state.
 
 Existing specialized transition helpers may remain where they are the minimum clear implementation, but every one is exhaustively traceable to one variant above and no daemon module assigns an alternate lifecycle tuple.
 
-`RECONCILE_AUTHORITY(owner)` is the explicit pre-signoff stale-authority return used only from `AWAITING_SIGNOFF / ACTIVE` after observational package inspection has produced that exact owner. It changes only the canonical lifecycle tuple to `owner / ACTIVE / null`; it does not rewrite repository bytes, fabricate conformance or replace source reconciliation. Source-boundary conflicts continue to use the existing source reconciliation path.
+`RECONCILE_AUTHORITY(owner)` is the explicit stale-authority return used from `AWAITING_SIGNOFF / ACTIVE` or `AWAITING_ACCEPTANCE / ACTIVE` after observational package inspection has produced that exact owner. It changes only the canonical lifecycle tuple to `owner / ACTIVE / null`; it does not rewrite repository bytes, fabricate conformance or replace source reconciliation. Source-boundary conflicts continue to use the existing source reconciliation path.
+
+`EXECUTION_COMPLETED(CANDIDATE_DONE)` derives AWAITING_ACCEPTANCE/ACTIVE/null with atomic OPENED or REVIEW_COMPLETED; ALREADY_SATISFIED derives COMPLETE only for all-no-op. `QA_REVIEW_STARTED` derives EXECUTION/ACTIVE/null only with admitted queued submission and exact task Run. `CANDIDATE_ACCEPTED` derives COMPLETE/COMPLETE/CANDIDATE_DONE only with admitted ACCEPT from Acceptance. `EXECUTION_RETURN` also admits explicit no-op PLAN challenge or irrecoverable proof reanalysis from Acceptance; actual stale authority uses RECONCILE_AUTHORITY. Reject unlisted stage/status combinations.
 
 ### 4.10 Proposal, recovery and execution derivation
 
@@ -1825,7 +1835,7 @@ The UI remediation is structurally complete only when all of the following are t
 
 **Realizes:** `GW-FR-205-MONOTONIC-REACH-HISTORY`, `GW-FR-206-CURRENT-ATTENTION-PRECEDENCE`, `GW-FR-215-STABLE-WORKFLOW-RAIL`, `GW-FR-224-TERMINAL-RESULT-PRIMACY`, `GW-FR-233-CANONICAL-WORKFLOW-RAIL-PROJECTION`.
 
-**Required behavior:** one pure `deriveWorkflowRail` projection produces all nine ordered rail states from canonical reach/current-attention/recovery facts plus presentation-local selection. UI code may format but cannot reinterpret reach/current markers; rail output is never consumed by command admission.
+**Required behavior:** one pure `deriveWorkflowRail` projection produces all ten ordered rail states from canonical reach/current-attention/recovery facts plus presentation-local selection. UI code may format but cannot reinterpret reach/current markers; rail output is never consumed by command admission.
 
 **Acceptance:** fixtures covering forward progress, R3/execution return, required input, proposal decision/adoption, processing, block/recovery, stale authority and completion produce exactly one CURRENT item and exactly one current-stage marker; historical/unreached items never carry current operational markers.
 
@@ -1836,7 +1846,7 @@ The UI remediation is structurally complete only when all of the following are t
 
 **Required behavior:** every Order-owned primitive follows §8.12.1 against the exact pinned Astryx contract recorded in `GW-DOC-EXTERNAL-FACTS`: a suitable Astryx component owns its low-level interaction/accessibility/state/theme mechanics, Order owns the narrower product-semantic wrapper/composition, and supported props/public tokens are exhausted before custom CSS or raw mechanics.
 
-**Acceptance:** the primitive-to-foundation mapping is mechanically covered; architecture/browser tests reject feature bypass of the semantic owner, raw reimplementation of a suitable foundation mechanic, private/internal Astryx selector/token dependencies, Button-for-navigation misuse, nested/incorrect modal-drawer patterns, Field double-wrapping, multiple-primary-command views, badge saturation, and feature-selected overlay substitution for `WorkbenchSelector`, and misuse of SegmentedControl/Stepper for the nine-stage workflow rail. Intentional Order divergences in §8.12.1 remain explicit and tested.
+**Acceptance:** the primitive-to-foundation mapping is mechanically covered; architecture/browser tests reject feature bypass of the semantic owner, raw reimplementation of a suitable foundation mechanic, private/internal Astryx selector/token dependencies, Button-for-navigation misuse, nested/incorrect modal-drawer patterns, Field double-wrapping, multiple-primary-command views, badge saturation, and feature-selected overlay substitution for `WorkbenchSelector`, and misuse of SegmentedControl/Stepper for the ten-stage workflow rail. Intentional Order divergences in §8.12.1 remain explicit and tested.
 
 
 ## 14. Permanent verification
@@ -1903,7 +1913,7 @@ Browser tests prove all `GW-DOC-WORKBENCH-UX-V2 §23` certification scenarios, i
 - Light/Dark/System certification follows `GW-DOC-WORKBENCH-THEME-V1` and verifies normal/current/selected/info/success/warning/danger/focus roles without state meaning changing;
 - form labels/help/errors, status/notices, operational tables, timeline rows, disclosure and task-panel/confirmation interaction are visually and keyboard consistent across representative services;
 - Astryx-backed primitives preserve the pinned foundation behavior: one primary action, focus-retaining loading/disabled actions, correct field ownership, visible Drawer close/focus return, Dialog form-dismissal safety, AlertDialog pending-action behavior, sparse Badge use and non-duplicated Banner announcements;
-- lifecycle rail certification proves it is neither SegmentedControl nor Stepper and still exposes all nine canonical stages accessibly;
+- lifecycle rail certification proves it is neither SegmentedControl nor Stepper and still exposes all ten canonical stages accessibly;
 - typography/readable measures, compact control/row density and focus indicators remain within `GW-DOC-WORKBENCH-THEME-V1` token roles at wide/medium/narrow widths;
 - responsive continuity with no page-level horizontal overflow for current action/identity.
 
