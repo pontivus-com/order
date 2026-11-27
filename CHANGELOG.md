@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Replace serial 0.6.0 package revalidation with one integrated evidence/correction/review milestone, preserving complete semantic audit coverage, exact bindings, gate prerequisites and independent readiness.
+
 - Reconcile native Acceptance stable requirement evidence and public product-language obligations across R1–PLAN without changing the signed task forecast.
 
 - Refresh the derived Workbench reference DESIGN binding after the inherited-source reconciliation; the 38 surface contracts and atlas remain unchanged.
