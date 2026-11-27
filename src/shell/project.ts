@@ -347,12 +347,21 @@ export const prepareProjectRootForInstall = async (
     constants.O_RDWR | constants.O_CREAT | constants.O_EXCL | constants.O_NOFOLLOW, 0o644);
   onCustody(custody);
   const failures: unknown[] = [];
+  let opened: ManifestRootIdentity | null = null;
   try {
+    const entry = fstatSync(descriptor, { bigint: true });
+    if (!entry.isFile() || entry.size !== 0n) throw new TypeError("exclusive manifest creation is not an empty regular file: " + manifestPath);
+    opened = manifestIdentity(entry);
     effects.write(descriptor, bytes);
     effects.fsync(descriptor);
   } catch (error) { failures.push(error); }
   try {
-    custody = { ...custody, identity: observeManifestDescriptor(descriptor, bytes.length) };
+    const observed = observeManifestDescriptor(descriptor, bytes.length);
+    if (opened === null || !sameManifestIdentity(observed, opened) ||
+        !observed.bytes.equals(bytes.subarray(0, observed.bytes.length))) {
+      throw new TypeError("installer manifest descriptor custody changed: " + manifestPath);
+    }
+    custody = { ...custody, identity: observed };
     onCustody(custody);
   } catch (error) { failures.push(error); }
   try { closeSync(descriptor); } catch (error) { failures.push(error); }

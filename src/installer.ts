@@ -1073,6 +1073,7 @@ export const runInstaller = async (
   let databaseArchive: LegacyDatabaseArchive | null = null;
   let databaseCandidateEffectsStarted = false;
   let databaseCandidates: ReturnType<typeof import("./shell/sqlite.ts").observeInstallerDatabaseCandidates> | undefined;
+  let databaseWriterBaseline: typeof databaseCandidates;
   let databaseRestoreIncomplete = false;
   let sqliteUpgradeModule: typeof import("./shell/sqlite.ts") | null = null;
   let configuredSetup: Awaited<ReturnType<typeof configureOrder>> | null = null;
@@ -1156,11 +1157,16 @@ export const runInstaller = async (
       process.stdout.write("Order installer — retained rollback database archive at " + databaseArchive.archiveDatabase + "\n");
     }
     if (configuredSetup.legacyV2Config !== null) {
+      if (databaseArchive !== null) {
+        if (databaseCandidates === undefined) throw new TypeError("database candidate custody unavailable before migration");
+        sqliteUpgradeModule.requireInstallerDatabaseCandidates(databaseArchive, databaseCandidates, true);
+      }
+      databaseWriterBaseline = databaseCandidates;
       databaseCandidates = undefined;
       databaseCandidateEffectsStarted = true;
       await configuredSetup.setupModule.migrateRepositoryNativeV2StateForInstall(locations.stateRoot, configuredSetup.legacyV2Config);
       if (databaseArchive !== null) {
-        databaseCandidates = sqliteUpgradeModule.observeInstallerDatabaseCandidates(databaseArchive, true);
+        databaseCandidates = sqliteUpgradeModule.observeInstallerDatabaseCandidates(databaseArchive, true, databaseWriterBaseline);
         sqliteUpgradeModule.requireInstallerDatabaseCandidates(databaseArchive, databaseCandidates, false);
       }
       process.stdout.write("Order installer — migrated WorkItem documentation into target repositories; retained legacy source root as backup: " +
@@ -1175,13 +1181,15 @@ export const runInstaller = async (
           sqliteUpgradeModule.requireInstallerDatabaseCandidates(
             databaseArchive, databaseCandidates, !databaseCandidateEffectsStarted);
         }
+        databaseWriterBaseline = databaseCandidates;
         databaseCandidates = undefined;
         restartAttempted = true;
         databaseCandidateEffectsStarted = true;
       }, rename);
     await waitForHealthyDaemon(locations, launcher);
     if (databaseArchive !== null) {
-      databaseCandidates = sqliteUpgradeModule.observeInstallerDatabaseCandidates(databaseArchive, true);
+      databaseCandidates = sqliteUpgradeModule.observeInstallerDatabaseCandidates(databaseArchive, true, databaseWriterBaseline);
+      sqliteUpgradeModule.requireInstallerDatabaseCandidates(databaseArchive, databaseCandidates, false);
     }
     if (!established) await configuredSetup.setupModule.requireFreshInstallerReadiness(runtimeEnvironment(locations));
 
@@ -1212,6 +1220,11 @@ export const runInstaller = async (
       }
     } finally { closeSync(markerDescriptor); }
     requireInstallerDirectory(locations.installRoot, stagingIdentity);
+    for (const custody of createdProjectManifests.values()) setupModule.requireInstallerManifest(custody);
+    if (databaseArchive !== null) {
+      if (databaseCandidates === undefined) throw new TypeError("database candidate custody unavailable before commit");
+      sqliteUpgradeModule.requireInstallerDatabaseCandidates(databaseArchive, databaseCandidates, false);
+    }
     if (footprintEntryExists(marker)) fail("unexpected installation commit marker: " + marker);
     rename(temporaryMarker, marker);
   } catch (error) {
@@ -1220,7 +1233,7 @@ export const runInstaller = async (
       try { operation(); } catch (failure) { failures.push(new Error(label + ": " + String(failure), { cause: failure })); }
     };
     if (databaseCandidates === undefined && databaseArchive !== null && sqliteUpgradeModule !== null) {
-      databaseCandidates = sqliteUpgradeModule.observeInstallerDatabaseCandidates(databaseArchive, databaseCandidateEffectsStarted);
+      databaseCandidates = sqliteUpgradeModule.observeInstallerDatabaseCandidates(databaseArchive, databaseCandidateEffectsStarted, databaseWriterBaseline);
     }
     if (restartAttempted) {
       compensate("cannot prove new service stopped; live deployment and recovery material retained",

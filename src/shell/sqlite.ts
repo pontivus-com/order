@@ -1,5 +1,5 @@
 import { Database } from "bun:sqlite";
-import { closeSync, constants, existsSync, fstatSync, fsyncSync, lstatSync, mkdtempSync, openSync, readSync, renameSync, rmSync, unlinkSync, writeSync } from "node:fs";
+import { closeSync, constants, existsSync, fstatSync, fsyncSync, lstatSync, mkdtempSync, openSync, readSync, realpathSync, renameSync, rmSync, unlinkSync, writeSync } from "node:fs";
 import { join } from "node:path";
 
 import {
@@ -306,8 +306,26 @@ export const verifyWalLocking = (stateRoot: string): void => {
 
 type InstallerDatabaseFileIdentity = Readonly<{ device: bigint; inode: bigint }>;
 
+type InstallerDatabaseRootIdentity = InstallerDatabaseFileIdentity & Readonly<{ canonicalPath: string }>;
+
+const installerDatabaseRootIdentity = (stateRoot: string): InstallerDatabaseRootIdentity => {
+  const canonicalPath = realpathSync(stateRoot);
+  const entry = lstatSync(canonicalPath, { bigint: true });
+  if (!entry.isDirectory()) throw new TypeError("installer database state root is not a directory: " + stateRoot);
+  return { canonicalPath, device: entry.dev, inode: entry.ino };
+};
+
+const requireInstallerDatabaseRoot = (archive: LegacyDatabaseArchive): void => {
+  const observed = installerDatabaseRootIdentity(archive.stateRoot);
+  if (observed.canonicalPath !== archive.rootIdentity.canonicalPath ||
+      observed.device !== archive.rootIdentity.device || observed.inode !== archive.rootIdentity.inode) {
+    throw new TypeError("installer database state root identity changed: " + archive.stateRoot);
+  }
+};
+
 export type LegacyDatabaseArchive = Readonly<{
   stateRoot: string;
+  rootIdentity: InstallerDatabaseRootIdentity;
   suffix: string;
   archiveDatabase: string;
   originals: readonly Readonly<{ path: string; identity: InstallerDatabaseFileIdentity | null; digest: string | null }>[];
@@ -321,7 +339,9 @@ const inspectInstallerDatabaseFile = (path: string): InstallerDatabaseFileIdenti
   const descriptor = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
   try {
     const stat = fstatSync(descriptor, { bigint: true });
-    if (!stat.isFile() || stat.dev !== entry.dev || stat.ino !== entry.ino) {
+    const after = lstatSync(path, { bigint: true });
+    if (!stat.isFile() || !after.isFile() || stat.dev !== entry.dev || stat.ino !== entry.ino ||
+        stat.dev !== after.dev || stat.ino !== after.ino) {
       throw new TypeError("installer database path changed during inspection: " + path);
     }
     return { device: stat.dev, inode: stat.ino };
@@ -556,9 +576,22 @@ export const prepareOrderDatabaseForInstall = (
   effects: InstallerDatabaseEffects = installerDatabaseEffects,
 ): LegacyDatabaseArchive | null => {
   const path = statePaths(stateRoot).database;
+  // A missing state root has no database to archive. A dangling or
+  // uninspectable root must not be misclassified as proven absence.
+  if (lstatSync(stateRoot, { throwIfNoEntry: false }) === undefined) return null;
+  let rootIdentity: InstallerDatabaseRootIdentity;
+  try { rootIdentity = installerDatabaseRootIdentity(stateRoot); }
+  catch (error) { onIncompleteRestore(); throw error; }
   const originals = captureInstallerDatabaseOriginals(stateRoot, onIncompleteRestore);
-  if (originals[0]!.identity === null) return null;
-  const version = probeInstallerDatabase(stateRoot, originals, userVersion, onIncompleteRestore);
+  const version = originals[0]!.identity === null ? null : probeInstallerDatabase(stateRoot, originals, userVersion, onIncompleteRestore);
+  try {
+    const current = installerDatabaseRootIdentity(stateRoot);
+    if (current.canonicalPath !== rootIdentity.canonicalPath ||
+        !sameInstallerDatabaseFile(current, rootIdentity)) {
+      throw new TypeError("installer database state root changed during preparation: " + stateRoot);
+    }
+  } catch (error) { onIncompleteRestore(); throw error; }
+  if (version === null) return null;
   if (version === 3) return null;
   if (version !== 1 && version !== 2) {
     throw new TypeError(`unsupported Order SQLite schema version during update: ${version}`);
@@ -568,10 +601,11 @@ export const prepareOrderDatabaseForInstall = (
   const moved: LegacyDatabaseArchive["originals"][number][] = [];
   const copies = new Map<string, InstallerDatabaseFileIdentity>();
   const archive: LegacyDatabaseArchive = {
-    stateRoot, suffix, archiveDatabase: path + suffix, originals, preparedCandidates: copies,
+    stateRoot, rootIdentity, suffix, archiveDatabase: path + suffix, originals, preparedCandidates: copies,
   };
   try {
     for (const original of originals) {
+      requireInstallerDatabaseRoot(archive);
       requireArchivedDatabaseOriginal(original.path, original);
       requireInstallerDatabaseFile(original.path + suffix, null);
       if (original.identity === null) continue;
@@ -580,15 +614,18 @@ export const prepareOrderDatabaseForInstall = (
     }
     if (version === 2) {
       for (const original of moved) {
+        requireInstallerDatabaseRoot(archive);
         copyInstallerDatabaseOriginal(original, original.path + suffix, original.path,
           effects, identity => { copies.set(original.path, identity); });
       }
     }
+    requireInstallerDatabaseCandidates(archive, observeInstallerDatabaseCandidates(archive, false), true);
   } catch (error) {
     const failures: unknown[] = [];
     for (const original of [...moved].reverse()) {
       try {
         // Never destroy a candidate unless the exact archived original survives.
+        requireInstallerDatabaseRoot(archive);
         requireArchivedDatabaseOriginal(original.path + suffix, original);
         const candidate = inspectInstallerDatabaseFile(original.path);
         if (candidate !== null) {
@@ -608,7 +645,7 @@ export const prepareOrderDatabaseForInstall = (
     // original membership; a failed precondition is not proof of restoration.
     for (const original of originals) {
       if (moved.includes(original)) continue;
-      try { requireArchivedDatabaseOriginal(original.path, original); }
+      try { requireInstallerDatabaseRoot(archive); requireArchivedDatabaseOriginal(original.path, original); }
       catch (failure) {
         failures.push(new Error("untouched database path cannot be proven: " + original.path +
           "; " + String(failure), { cause: failure }));
@@ -628,8 +665,11 @@ export const prepareOrderDatabaseForInstall = (
 export const observeInstallerDatabaseCandidates = (
   archive: LegacyDatabaseArchive,
   candidateEffectsStarted: boolean,
+  priorCandidates?: ReadonlyMap<string, InstallerDatabaseFileIdentity | null>,
 ): ReadonlyMap<string, InstallerDatabaseFileIdentity | null> => {
   const observed = new Map<string, InstallerDatabaseFileIdentity | null>();
+  try { requireInstallerDatabaseRoot(archive); }
+  catch { return observed; }
   for (const original of archive.originals) {
     const prepared = archive.preparedCandidates.get(original.path) ?? null;
     if (!candidateEffectsStarted) {
@@ -638,10 +678,14 @@ export const observeInstallerDatabaseCandidates = (
     }
     try {
       const candidate = inspectInstallerDatabaseFile(original.path);
-      // The v2 primary file is an exclusive copy, not a replaceable sidecar.
-      // WAL/SHM may legitimately be recreated by SQLite during admitted effects.
-      if (original.path === statePaths(archive.stateRoot).database && prepared !== null &&
-          candidate !== null && !sameInstallerDatabaseFile(candidate, prepared)) continue;
+      // The v2 copy and any primary established by a previous admitted
+      // writer must remain the same object. Only the initial absent primary
+      // and WAL/SHM may evolve under the admitted maintenance writer.
+      if (original.path === statePaths(archive.stateRoot).database) {
+        if (priorCandidates !== undefined && !priorCandidates.has(original.path)) continue;
+        const expectedPrimary = priorCandidates?.get(original.path) ?? prepared;
+        if (expectedPrimary !== null && !sameInstallerDatabaseFile(candidate, expectedPrimary)) continue;
+      }
       if (candidate !== null && archive.originals.some(entry =>
           entry.identity !== null && sameInstallerDatabaseFile(candidate, entry.identity))) continue;
       observed.set(original.path, candidate);
@@ -658,6 +702,7 @@ export const requireInstallerDatabaseCandidates = (
   expected: ReadonlyMap<string, InstallerDatabaseFileIdentity | null>,
   preparedOnly: boolean,
 ): void => {
+  requireInstallerDatabaseRoot(archive);
   for (const original of archive.originals) {
     requireArchivedDatabaseOriginal(original.path + archive.suffix, original);
     const candidate = expected.get(original.path);
@@ -678,6 +723,7 @@ export const restoreOrderDatabaseAfterFailedInstall = (
   // Existing direct callers own the entire quiesced prepare/use/restore sequence.
   candidates = observeInstallerDatabaseCandidates(archive, true),
 ): void => {
+  requireInstallerDatabaseRoot(archive);
   const expectedPaths = orderDatabaseFiles(statePaths(archive.stateRoot).database);
   if (archive.originals.length !== expectedPaths.length ||
       expectedPaths.some((path, index) => archive.originals[index]?.path !== path)) {
@@ -687,11 +733,13 @@ export const restoreOrderDatabaseAfterFailedInstall = (
   for (const original of [...archive.originals].reverse()) {
     const archived = original.path + archive.suffix;
     try {
+      requireInstallerDatabaseRoot(archive);
       requireArchivedDatabaseOriginal(archived, original);
       const candidate = inspectInstallerDatabaseFile(original.path);
       const observed = candidates.get(original.path);
       if (!candidates.has(original.path) ||
-          (candidate !== null && (observed === undefined || !sameInstallerDatabaseFile(candidate, observed)))) {
+          (candidate !== null && (observed === undefined || !sameInstallerDatabaseFile(candidate, observed))) ||
+          (original.path === expectedPaths[0] && candidate === null && observed !== null)) {
         throw new TypeError("ambiguous installer database candidate retained: " + original.path);
       }
       // A previously observed WAL/SHM may disappear on verified service stop.

@@ -490,7 +490,7 @@ type InstallerTransactionFixture = Readonly<{
   interruptAt?: "app-activation" | "service-start" | "health";
   failMarkerWrite?: boolean;
   manifestDrift?: "bytes" | "identity" | "symlink";
-  manifestFault?: "partial-write" | "file-sync" | "replacement" | "unlink";
+  manifestFault?: "partial-write" | "file-sync" | "replacement" | "mode-drift" | "unlink";
   failRestart?: boolean;
   failService?: "daemon-reload" | "enable";
   priorEnablement?: "enabled" | "disabled";
@@ -1000,6 +1000,7 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
               throw new Error("injected manifest partial write");
             }
             fs.writeFileSync(descriptor, bytes);
+            if (fixture.manifestFault === "mode-drift") fs.fchmodSync(descriptor, 0o600);
             if (fixture.manifestFault === "replacement") {
               const manifest = path.join(fixture.project, "pontivus-order.toml");
               fs.renameSync(manifest, manifest + ".retained");
@@ -1495,7 +1496,7 @@ describe("actual IA25 installer transaction", () => {
       }
     }, 120_000);
 
-  it.each(["partial-write", "file-sync", "replacement", "unlink"] as const)(
+  it.each(["partial-write", "file-sync", "replacement", "mode-drift", "unlink"] as const)(
     "retains early manifest custody across installer failure: %s", manifestFault => {
       const fixture = transactionFixture();
       createPriorDeployment(fixture);
@@ -1509,7 +1510,7 @@ describe("actual IA25 installer transaction", () => {
         readiness: { ready: true, blockers: [] }, manifestFault,
         failRestart: manifestFault === "unlink" });
       expect(outcome.failure).not.toBeNull();
-      expect(outcome.marker).toBe("b".repeat(40) + "\\n");
+      expect(outcome.marker).toBe("b".repeat(40) + "\n");
       expect(outcome.configBytes).toBe(outcome.originalConfig);
       if (manifestFault === "partial-write" || manifestFault === "file-sync") {
         expect(outcome.failure).toContain(manifestFault === "partial-write" ? "injected manifest partial write" : "injected manifest fsync");
@@ -1522,12 +1523,33 @@ describe("actual IA25 installer transaction", () => {
         expect(existsSync(manifest)).toBe(true);
         if (manifestFault === "replacement") {
           expect(readFileSync(manifest)).toEqual(readFileSync(manifest + ".retained"));
+        } else if (manifestFault === "mode-drift") {
+          expect(outcome.failure).toContain("installer manifest descriptor custody changed");
+          expect(lstatSync(manifest).mode & 0o777).toBe(0o600);
         } else {
           expect(outcome.failure).toContain("injected manifest unlink");
           expect(outcome.failure).toContain("injected host failure");
         }
       }
     }, 120_000);
+
+  it("blocks commit of an otherwise healthy deployment when created manifest custody drifts", () => {
+    const fixture = transactionFixture();
+    createPriorDeployment(fixture);
+    const manifest = join(fixture.project, "pontivus-order.toml");
+    rmSync(manifest);
+    writeFileSync(join(fixture.stateRoot, "config.json"), JSON.stringify({
+      version: 1, model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+      repositoryRoots: [fixture.project], referenceRoots: [],
+    }));
+    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes",
+      readiness: { ready: true, blockers: [] }, manifestDrift: "identity" });
+    expect(outcome.failure).toContain("installer manifest identity changed");
+    expect(outcome.failure).toContain("manifest restoration incomplete");
+    expect(outcome.marker).toBe("b".repeat(40) + "\n");
+    expect(outcome.activity).toBe("inactive");
+    expect(readFileSync(manifest)).toEqual(readFileSync(manifest + ".retained"));
+  }, 120_000);
 
   it("failed marker publication compensates without ordinary success", () => {
     const outcome = runInstallerTransaction({ ...transactionFixture(),
@@ -1685,6 +1707,20 @@ describe("actual IA25 installer transaction", () => {
     expect(outcome.restartObservations).toEqual([]);
     expect(outcome.activity).toBe("inactive");
   }, 120_000);
+
+  it.each(["archive-drift", "archive-symlink"] as const)(
+    "blocks otherwise healthy installer commit when SQLite archive custody changes: %s", databaseFault => {
+      const fixture = transactionFixture();
+      createPriorDeployment(fixture);
+      const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes", legacyDatabaseVersion: 1,
+        databaseSidecars: true, candidateSidecars: true, databaseFault, databaseFaultSuffix: "-wal",
+        readiness: { ready: true, blockers: [] } });
+      expect(outcome.failure).not.toBeNull();
+      expect(outcome.failure).toContain("database restoration incomplete");
+      expect(outcome.marker).toBe("b".repeat(40) + "\n");
+      expect(outcome.activity).toBe("inactive");
+      expect(outcome.stateEntries.some((name: string) => name.startsWith("order.sqlite3-wal.legacy-v1."))).toBe(true);
+    }, 120_000);
 
   it("preserves a replaced candidate after health observation and before commit", () => {
     const fixture = transactionFixture();

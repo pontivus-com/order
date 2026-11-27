@@ -6,7 +6,7 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
-- Establish installer-created project manifest custody at exclusive descriptor creation, verify exact file/root identity and bytes before validation and commit, and compensate through the existing project owner; state the supported maintenance boundary before installation effects. Add actual transaction fault cases for early write/fsync failure, replacement and failed removal (IA25/REV-F11 proposal).
+- Establish installer-created project manifest custody at exclusive descriptor creation, verify exact file/root identity and bytes before validation and commit, and compensate through the existing project owner; state the supported maintenance boundary before installation effects. Add actual transaction fault cases for early write/fsync failure, replacement, mode drift and failed removal. Preserve SQLite state-root and primary-file identity across admitted writer transitions; recheck archived originals and candidate custody before commit (IA25/REV-F11 proposal).
 
 - Harden the process-group cancellation/timeout fixture by publishing the descendant PID atomically, rejecting invalid PIDs and proving the descendant exists before explicit cancellation; preserve the existing mandatory termination assertions (G-F39). Exact-candidate verification remains required.
 
