@@ -488,6 +488,7 @@ const configureOrder = async (
   established: boolean,
   publication: InstallerConfigPublication,
   projectManifestCreated: (path: string) => void,
+  question: typeof terminalQuestion,
 ) => {
   const setupUrl = pathToFileURL(
     join(locations.installRoot, "app", "src", "shell", "setup.ts"),
@@ -500,7 +501,7 @@ const configureOrder = async (
   const code = await setupModule.runInstallerGuidedSetup(
     runtimeEnvironment(locations),
     (value) => process.stdout.write(value),
-    terminalQuestion,
+    question,
     established,
     publication,
     projectManifestCreated,
@@ -608,10 +609,13 @@ const completeDeploymentFootprint = (root: string, launcher: string, unit: strin
   } catch { return false; }
 };
 
-const confirmInstallationHistory = async (root: string): Promise<boolean> => {
-  if (!process.stdin.isTTY) fail("installation history requires interactive input");
+const confirmInstallationHistory = async (
+  root: string,
+  question: typeof terminalQuestion,
+): Promise<boolean> => {
+  if (question === terminalQuestion && !process.stdin.isTTY) fail("installation history requires interactive input");
   for (;;) {
-    const answer = (await terminalQuestion("Did installation admission previously complete for " + root +
+    const answer = (await question("Did installation admission previously complete for " + root +
       " (including committed with finalization incomplete)? [y/N] ")).trim().toLowerCase();
     if (answer === "y" || answer === "yes") return true;
     if (["", "n", "no", "unknown"].includes(answer)) return false;
@@ -831,6 +835,7 @@ export const retireLegacyGateweftArtifacts = (
 export const runInstaller = async (
   args: InstallerArguments,
   environment: NodeJS.ProcessEnv = process.env,
+  question: typeof terminalQuestion = terminalQuestion,
 ): Promise<void> => {
   if (process.platform !== "linux") fail("Order v1 productive installation requires Linux");
   if (Bun.version !== bunVersion) fail("installer must run on exact Bun " + bunVersion);
@@ -851,7 +856,7 @@ export const runInstaller = async (
   const historyRoot = predecessor ? legacy.installRoot : locations.installRoot;
   const established = completeDeploymentFootprint(historyRoot,
     predecessor ? legacy.launcher : launcher, predecessor ? legacy.unitPath : unitPath) &&
-    await confirmInstallationHistory(historyRoot);
+    await confirmInstallationHistory(historyRoot, question);
   step(established ? "updating existing installation" : "starting fresh/unproven installation");
 
   const prior = captureServiceState(locations, environment);
@@ -925,7 +930,7 @@ export const runInstaller = async (
     step("configuring provider, model and repository access");
     configuredSetup = await configureOrder(locations, established, {
       snapshot: configSnapshot, onPublished: identity => { published = identity; },
-    }, path => createdProjectManifests.push(path));
+    }, path => createdProjectManifests.push(path), question);
 
     sqliteUpgradeModule = await import(pathToFileURL(join(locations.installRoot, "app", "src", "shell", "sqlite.ts")).href) as typeof import("./shell/sqlite.ts");
     databaseArchive = sqliteUpgradeModule.prepareOrderDatabaseForInstall(locations.stateRoot,

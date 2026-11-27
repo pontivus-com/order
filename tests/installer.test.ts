@@ -465,3 +465,223 @@ describe("guided productive installer setup", () => {
     expect(output.config).toBeNull();
   });
 });
+
+
+type InstallerTransactionFixture = Readonly<{
+  home: string;
+  stateRoot: string;
+  project: string;
+  binary: string;
+  readiness: unknown;
+  establishedHistory?: string;
+  failRestart?: boolean;
+  failFinalization?: boolean;
+}>;
+
+// Execute the production transaction and the installed setup/config/SQLite modules.
+// Only runtime download/build processes, host supervision and HTTP responses are
+// controlled; deployment, configuration and compensation filesystem effects are real.
+const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
+  const script = `
+    const fs = await import("node:fs");
+    const path = await import("node:path");
+    const crypto = await import("node:crypto");
+    const installer = await import("./src/installer.ts");
+    const fixture = ${JSON.stringify(fixture)};
+    const sourceRoot = fs.realpathSync(process.cwd());
+    const installRoot = path.join(fixture.home, ".local/share/pontivus-order");
+    const launcher = path.join(fixture.home, ".local/bin/order");
+    const unitPath = path.join(fixture.home, ".config/systemd/user/pontivus-order.service");
+    const marker = path.join(installRoot, "SOURCE_COMMIT");
+    const configPath = path.join(fixture.stateRoot, "config.json");
+    const archive = new Uint8Array([1, 2, 3, 4]);
+    const digest = crypto.createHash("sha256").update(archive).digest("hex");
+    const originalSpawn = Bun.spawnSync.bind(Bun);
+    const originalFetch = globalThis.fetch;
+    const sourceCommit = new TextDecoder().decode(originalSpawn(["git", "rev-parse", "HEAD"], { cwd: sourceRoot }).stdout).trim();
+    const events = [];
+    const prompts = [];
+    let activity = fs.existsSync(unitPath) ? "active" : "inactive";
+    let enablement = fs.existsSync(unitPath) ? "enabled" : "";
+    let restartFailed = false;
+    const token = "a".repeat(64);
+    const result = (stdout = "", exitCode = 0) => ({
+      stdout: Buffer.from(stdout), stderr: Buffer.from(exitCode === 0 ? "" : "injected host failure"),
+      exitCode, success: exitCode === 0,
+    });
+    Bun.spawnSync = (argv, options = {}) => {
+      if (argv[0] === "systemctl") {
+        events.push({ command: argv.slice(2), marker: fs.existsSync(marker) });
+        const verb = argv[2];
+        if (verb === "show-environment" || verb === "daemon-reload") return result();
+        if (verb === "show") {
+          if (argv[3] === "--property=ActiveState") return result(activity + "\\n");
+          if (argv[3] === "--property=UnitFileState") return result(enablement + "\\n");
+          throw new Error("unexpected systemctl property " + argv[3]);
+        }
+        if (verb === "stop") { activity = "inactive"; return result(); }
+        if (verb === "enable") { enablement = "enabled"; return result(); }
+        if (verb === "disable") { enablement = "disabled"; return result(); }
+        if (verb === "restart") {
+          activity = "active";
+          fs.writeFileSync(path.join(fixture.stateRoot, "daemon-token"), token, { mode: 0o600 });
+          if (fixture.failRestart && !restartFailed) { restartFailed = true; return result("", 1); }
+          return result();
+        }
+        throw new Error("unexpected systemctl command " + JSON.stringify(argv));
+      }
+      if (argv[0] === "tar" && argv[1] === "-xJf") {
+        const node = path.join(argv[argv.indexOf("-C") + 1], "bin/node");
+        fs.mkdirSync(path.dirname(node), { recursive: true });
+        fs.writeFileSync(node, "#!/bin/sh\\nexit 0\\n", { mode: 0o755 });
+        return result();
+      }
+      if (argv[0].endsWith("/runtime/node/bin/node") && argv[1] === "--version") return result("v26.13.0\\n");
+      if (argv[0].endsWith("/runtime/bun/bin/bun") && argv[1] === "install") {
+        const installed = path.join(options.env.BUN_INSTALL_BIN, "opencode");
+        fs.copyFileSync(fixture.binary, installed);
+        fs.chmodSync(installed, 0o755);
+        return result();
+      }
+      if (argv[0].endsWith("/runtime/opencode/opencode") && argv[1] === "--version") return result("opencode v2.2.6\\n");
+      if (argv[0].endsWith("/runtime/bun/bin/bun") && argv[1] === "ci") {
+        fs.symlinkSync(path.join(sourceRoot, "node_modules"), path.join(options.cwd, "node_modules"), "dir");
+        return result();
+      }
+      if (argv[0].endsWith("/runtime/node/bin/node") && argv[2] === "build") {
+        fs.mkdirSync(path.join(options.cwd, "dist"), { recursive: true });
+        fs.writeFileSync(path.join(options.cwd, "dist/index.html"), "<!doctype html>");
+        return result();
+      }
+      if (argv[0] === launcher && argv[1] === "status") {
+        events.push({ command: ["status"], marker: fs.existsSync(marker) });
+        return result("", activity === "active" ? 0 : 1);
+      }
+      return originalSpawn(argv, options);
+    };
+    globalThis.fetch = async (input, init) => {
+      const url = new URL(input instanceof Request ? input.url : input.toString());
+      if (url.hostname === "nodejs.org") {
+        if (url.pathname.endsWith("/SHASUMS256.txt")) {
+          const arch = process.arch === "x64" ? "x64" : "arm64";
+          return new Response(digest + "  node-v26.13.0-linux-" + arch + ".tar.xz\\n");
+        }
+        return new Response(archive);
+      }
+      if (url.pathname === "/api/settings/readiness") {
+        events.push({ command: ["readiness"], marker: fs.existsSync(marker),
+          auth: new Headers(init?.headers).get("Authorization") === "Bearer " + token });
+        return new Response(JSON.stringify(fixture.readiness), { status: 200, headers: { "content-type": "application/json" } });
+      }
+      return originalFetch(input, init);
+    };
+    if (fixture.failFinalization) fs.mkdirSync(path.join(fixture.home, ".profile"), { recursive: true });
+    const question = async (prompt) => {
+      prompts.push(prompt);
+      if (prompt.startsWith("Did installation admission previously complete")) return fixture.establishedHistory ?? "";
+      if (prompt === "Target repository root: ") return fixture.project;
+      if (prompt === "Add another target repository root (blank to continue): " || prompt === "STAGE reference root (blank for none): ") return "";
+      if (prompt === "Select model: ") return "1";
+      throw new Error("unexpected transaction prompt: " + prompt);
+    };
+    let failure = null;
+    try {
+      await installer.runInstaller({ sourceRoot, sourceCommit }, process.env, question);
+    } catch (error) { failure = String(error); }
+    console.log("ORDER_TRANSACTION_RESULT " + JSON.stringify({
+      failure, prompts, events, activity, enablement, sourceCommit,
+      marker: fs.existsSync(marker) ? fs.readFileSync(marker, "utf8") : null,
+      config: fs.existsSync(configPath) ? JSON.parse(fs.readFileSync(configPath, "utf8")) : null,
+      app: fs.existsSync(installRoot), launcher: fs.existsSync(launcher), unit: fs.existsSync(unitPath),
+    }));
+  `;
+  const result = spawnSync("bun", ["--eval", script], {
+    cwd: process.cwd(), encoding: "utf8", timeout: 120_000,
+    env: {
+      ...process.env,
+      HOME: fixture.home, XDG_CONFIG_HOME: join(fixture.home, ".config"),
+      XDG_STATE_HOME: join(fixture.home, ".local/state"),
+      PONTIVUS_ORDER_INSTALL_ROOT: join(fixture.home, ".local/share/pontivus-order"),
+      PONTIVUS_ORDER_BIN_DIR: join(fixture.home, ".local/bin"),
+      PONTIVUS_ORDER_STATE_ROOT: fixture.stateRoot,
+      PONTIVUS_ORDER_BIND: "127.0.0.1:7347",
+    },
+  });
+  if (result.status !== 0) throw new Error(result.stderr || result.stdout || String(result.error));
+  const line = result.stdout.split("\n").find(value => value.startsWith("ORDER_TRANSACTION_RESULT "));
+  if (line === undefined) throw new Error("actual installer transaction did not settle: " + result.stdout);
+  return { ...JSON.parse(line.slice("ORDER_TRANSACTION_RESULT ".length)), stdout: result.stdout };
+};
+
+const transactionFixture = (): Omit<InstallerTransactionFixture, "readiness"> => ({
+  home: tempDir("order-transaction-home-"),
+  stateRoot: tempDir("order-transaction-state-"),
+  project: createProject(),
+  binary: createFakeOpenCode(tempDir("order-transaction-provider-"), {}),
+});
+
+describe("actual IA25 installer transaction", () => {
+  it("commits only after fresh canonical readiness; established incomplete update retains choices", () => {
+    const fixture = transactionFixture();
+    const fresh = runInstallerTransaction({ ...fixture, readiness: { ready: true, blockers: [] } });
+    expect(fresh.failure).toBeNull();
+    expect(fresh.marker).toBe(fresh.sourceCommit + "\n");
+    expect(fresh.app && fresh.launcher && fresh.unit).toBe(true);
+    expect(fresh.events.find((event: { command: string[] }) => event.command[0] === "readiness")).toEqual({
+      command: ["readiness"], marker: false, auth: true,
+    });
+    expect(fresh.stdout).toContain("Order installed successfully.");
+    const incomplete = { version: 4, model: null, repositoryRoots: [], referenceRoots: [] };
+    writeFileSync(join(fixture.stateRoot, "config.json"), JSON.stringify(incomplete) + "\n", { mode: 0o600 });
+    const updated = runInstallerTransaction({
+      ...fixture, establishedHistory: "yes", readiness: { ready: false, blockers: ["OPENCODE_ACCOUNT_REQUIRED"] },
+    });
+    expect(updated.failure).toBeNull();
+    expect(updated.prompts).toHaveLength(1);
+    expect(updated.prompts[0]).toContain("Did installation admission previously complete");
+    expect(updated.config).toEqual(incomplete);
+    expect(updated.marker).toBe(updated.sourceCommit + "\n");
+    expect(updated.events.find((event: { command: string[] }) => event.command[0] === "readiness")).toEqual({
+      command: ["readiness"], marker: true, auth: true,
+    });
+    expect(updated.stdout).toContain("Order updated successfully.");
+    expect(updated.stdout).toContain("OPENCODE_ACCOUNT_REQUIRED");
+  }, 180_000);
+
+  it("fresh blocker rolls back actual activated paths without publishing a marker", () => {
+    const outcome = runInstallerTransaction({
+      ...transactionFixture(), readiness: { ready: false, blockers: ["OPENCODE_ACCOUNT_REQUIRED"] },
+    });
+    expect(outcome.failure).toContain("OPENCODE_ACCOUNT_REQUIRED");
+    expect(outcome.marker).toBeNull();
+    expect(outcome.config).toBeNull();
+    expect(outcome.app || outcome.launcher || outcome.unit).toBe(false);
+    expect(outcome.activity).toBe("inactive");
+    expect(outcome.stdout).not.toContain("Order installed successfully.");
+  }, 120_000);
+
+  it("partial service restart failure stops before real application and configuration compensation", () => {
+    const outcome = runInstallerTransaction({
+      ...transactionFixture(), readiness: { ready: true, blockers: [] }, failRestart: true,
+    });
+    expect(outcome.failure).toContain("injected host failure");
+    expect(outcome.marker).toBeNull();
+    expect(outcome.config).toBeNull();
+    expect(outcome.app || outcome.launcher || outcome.unit).toBe(false);
+    expect(outcome.activity).toBe("inactive");
+    const commands = outcome.events.map((event: { command: string[] }) => event.command[0]);
+    expect(commands.indexOf("stop")).toBeGreaterThan(commands.indexOf("restart"));
+  }, 120_000);
+
+  it("post-commit finalization failure retains admitted application and marker", () => {
+    const outcome = runInstallerTransaction({
+      ...transactionFixture(), readiness: { ready: true, blockers: [] }, failFinalization: true,
+    });
+    expect(outcome.failure).toContain("installation committed; finalization incomplete");
+    expect(outcome.marker).toBe(outcome.sourceCommit + "\n");
+    expect(outcome.config).not.toBeNull();
+    expect(outcome.app && outcome.launcher && outcome.unit).toBe(true);
+    expect(outcome.activity).toBe("active");
+    expect(outcome.stdout).not.toContain("Order installed successfully.");
+  }, 120_000);
+});
