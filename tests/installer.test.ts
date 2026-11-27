@@ -501,6 +501,7 @@ type InstallerTransactionFixture = Readonly<{
   failFinalization?: boolean;
   failCleanup?: "config" | "application" | "launcher";
   legacyDatabaseVersion?: 1 | 2 | 3;
+  legacyRootInWal?: boolean;
   loseDatabaseArchive?: boolean;
   databaseFault?: "archive" | "copy" | "partial-copy" | "restore" | "copy-and-restore" | "unlink" |
     "archive-drift" | "archive-symlink" | "candidate-drift" | "copy-replaced" | "candidate-drift-after-health" | "pre-start-replaced";
@@ -619,9 +620,12 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
     if (fixture.legacyDatabaseVersion !== undefined) {
       const db = new Database(databasePath, { create: true, strict: true });
       db.exec("CREATE TABLE sentinel(value TEXT NOT NULL) STRICT; INSERT INTO sentinel VALUES (\'original\'); PRAGMA user_version = " + fixture.legacyDatabaseVersion + ";");
+      if (fixture.legacyRootInWal) db.exec("CREATE TABLE workItems(repositoryRoot TEXT NOT NULL) STRICT;");
       db.close();
       if (fixture.databaseSidecars) {
         leaveWal("UPDATE sentinel SET value='original WAL';" +
+          (fixture.legacyRootInWal ? "INSERT INTO workItems(repositoryRoot) VALUES ('" +
+            fixture.project.replaceAll("'", "''") + "');" : "") +
           (fixture.versionInWal === undefined ? "" : "PRAGMA user_version=" + fixture.versionInWal + ";"),
           "original WAL", fixture.versionInWal ?? fixture.legacyDatabaseVersion);
         if (fixture.absentOriginalSidecar) fs.unlinkSync(databasePath + fixture.absentOriginalSidecar);
@@ -1481,6 +1485,27 @@ describe("actual IA25 installer transaction", () => {
     expect(outcome.restartObservations).toEqual([
       { deployment: "prior", databaseMatchesOriginal: true, configMatchesOriginal: true },
     ]);
+  }, 120_000);
+
+  it.each([false, true])("legacy root discovery preserves exact original SQLite namespace (absent SHM=%s)", absentShm => {
+    const fixture = transactionFixture();
+    createPriorDeployment(fixture);
+    writeFileSync(join(fixture.stateRoot, "config.json"), JSON.stringify({
+      version: 1, model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+      repositoryRoots: [fixture.project], referenceRoots: [],
+    }));
+    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes",
+      legacyDatabaseVersion: 1, legacyRootInWal: true, databaseSidecars: true,
+      ...(absentShm ? { absentOriginalSidecar: "-shm" as const } : {}),
+      readiness: { ready: true, blockers: [] }, failRestart: true });
+    expect(outcome.failure).toContain("injected host failure");
+    expect(outcome.failure).not.toContain("rollback incomplete");
+    expect(outcome.databaseNamespace).toEqual(outcome.originalNamespace);
+    expect(outcome.originalNamespace[2] === null).toBe(absentShm);
+    expect(outcome.configBytes).toBe(outcome.originalConfig);
+    expect(outcome.stateEntries.some((name: string) => name.startsWith(".installer-sqlite-probe."))).toBe(false);
+    expect(outcome.activity).toBe("active");
+    expect(outcome.restartObservations.map((entry: { deployment: string }) => entry.deployment)).toEqual(["candidate", "prior"]);
   }, 120_000);
 
   it.each([1, 2] as const)("refuses v%i startup when an unexpected sidecar appears before service activation", legacyDatabaseVersion => {

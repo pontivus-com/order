@@ -324,8 +324,9 @@ const legacyTargetRootsForUpgrade = async (
   configuredRoots: readonly string[],
   writeStdout: (value: string) => void,
   projectManifestCreated: (path: string) => void,
+  onIncompleteDatabaseInspection: () => void,
 ): Promise<readonly string[]> => {
-  const observedRoots = readLegacyWorkItemRepositoryRootsForInstall(stateRoot);
+  const observedRoots = readLegacyWorkItemRepositoryRootsForInstall(stateRoot, onIncompleteDatabaseInspection);
   for (const observed of observedRoots) {
     if (!configuredRoots.some((configured) => pathIsWithin(configured, observed))) {
       throw new TypeError(
@@ -366,6 +367,7 @@ const runGuidedSetupInternal = async (
   projectManifestCreated: (path: string) => void,
   publication?: InstallerConfigPublication,
   established = false,
+  onIncompleteDatabaseInspection: () => void = () => {},
 ): Promise<number> => {
   const allowLegacyUpdate = publication !== undefined;
   const stateRoot = resolveStateRoot(environment);
@@ -383,6 +385,7 @@ const runGuidedSetupInternal = async (
       configured.repositoryRoots,
       writeStdout,
       projectManifestCreated,
+      onIncompleteDatabaseInspection,
     );
 
     if (repositoryRoots.length === 0) {
@@ -674,6 +677,7 @@ export const runInstallerGuidedSetup = async (
   established: boolean,
   publication: InstallerConfigPublication,
   projectManifestCreated: (path: string) => void = () => {},
+  onIncompleteDatabaseInspection: () => void = () => {},
 ): Promise<number> =>
   runGuidedSetupInternal(
     false,
@@ -683,6 +687,7 @@ export const runInstallerGuidedSetup = async (
     projectManifestCreated,
     publication,
     established,
+    onIncompleteDatabaseInspection,
   );
 
 const observeInstalledReadiness = async (

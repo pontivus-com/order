@@ -492,6 +492,7 @@ const configureOrder = async (
   publication: InstallerConfigPublication,
   projectManifestCreated: (path: string) => void,
   question: typeof terminalQuestion,
+  onIncompleteDatabaseInspection: () => void,
 ) => {
   const setupUrl = pathToFileURL(
     join(locations.installRoot, "app", "src", "shell", "setup.ts"),
@@ -508,6 +509,7 @@ const configureOrder = async (
     established,
     publication,
     projectManifestCreated,
+    onIncompleteDatabaseInspection,
   );
   if (code !== 0) fail("Order guided configuration did not complete");
   return { setupModule, legacyV2Config } as const;
@@ -1105,7 +1107,7 @@ export const runInstaller = async (
     }, path => {
       createdProjectManifests.set(path, null);
       createdProjectManifests.set(path, captureInstallerFile(path));
-    }, question);
+    }, question, () => { databaseRestoreIncomplete = true; });
 
     sqliteUpgradeModule = await import(pathToFileURL(join(locations.installRoot, "app", "src", "shell", "sqlite.ts")).href) as typeof import("./shell/sqlite.ts");
     databaseArchive = sqliteUpgradeModule.prepareOrderDatabaseForInstall(locations.stateRoot,
@@ -1178,7 +1180,7 @@ export const runInstaller = async (
         [locations.installRoot, locations.stateRoot, installBackup, launcherBackup, configSnapshot?.recoveryPath, (unitRecovery as ServiceRecovery | null)?.path].filter(Boolean).join(", "));
     }
     if (configCaptureIncomplete !== null) failures.push(new Error("configuration snapshot incomplete; retained material: " + configCaptureIncomplete));
-    if (databaseRestoreIncomplete) failures.push(new Error("database preparation compensation incomplete at " + locations.stateRoot));
+    if (databaseRestoreIncomplete) failures.push(new Error("database inspection or preparation custody incomplete at " + locations.stateRoot));
     if (databaseArchive !== null && sqliteUpgradeModule !== null) {
       const archive = databaseArchive;
       const module = sqliteUpgradeModule;

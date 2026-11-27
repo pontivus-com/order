@@ -380,16 +380,14 @@ const orderDatabaseFiles = (path: string): readonly string[] =>
 
 export const readLegacyWorkItemRepositoryRootsForInstall = (
   stateRoot: string,
+  onIncompleteRestore: () => void = () => {},
 ): readonly string[] => {
-  const path = statePaths(stateRoot).database;
-  if (!existsSync(path)) return [];
+  const originals = captureInstallerDatabaseOriginals(stateRoot, onIncompleteRestore);
+  if (originals[0]!.identity === null) return [];
 
-  const database = new Database(path, {
-    readonly: true,
-    create: false,
-    strict: true,
-  });
-  try {
+  // This query precedes archive preparation during legacy guided setup.
+  // Opening the original directly, even readonly, can mutate its WAL index.
+  return probeInstallerDatabase(stateRoot, originals, database => {
     const version = userVersion(database);
     if (version === 3 || version === 2) return [];
     if (version !== 1) {
@@ -407,9 +405,7 @@ export const readLegacyWorkItemRepositoryRootsForInstall = (
         }
         return repositoryRoot;
       });
-  } finally {
-    database.close();
-  }
+  }, onIncompleteRestore);
 };
 
 // Invocation-local filesystem boundary shared by prepare and restore.
@@ -469,57 +465,15 @@ const copyInstallerDatabaseOriginal = (
   }
 };
 
-const probeInstallerDatabaseVersion = (
+const probeInstallerDatabase = <T>(
   stateRoot: string,
   originals: LegacyDatabaseArchive["originals"],
-): number => {
-  // Even a readonly SQLite connection can update its WAL index or create
-  // sidecars. Read the schema version from an isolated, invocation-owned copy
-  // so the exact admitted original namespace never participates in that open.
-  const probe = mkdtempSync(join(stateRoot, ".installer-sqlite-probe."));
-  let primary: unknown;
+  read: (database: Database) => T,
+  onIncompleteRestore: () => void,
+): T => {
+  let result: T;
   try {
-    const target = join(probe, "order.sqlite3");
-    const paths = orderDatabaseFiles(target);
-    for (const [index, original] of originals.entries()) {
-      if (original.identity !== null) {
-        copyInstallerDatabaseOriginal(original, original.path, paths[index]!, installerDatabaseEffects, () => {});
-      }
-    }
-    const database = new Database(target, { readonly: true, create: false, strict: true });
-    try { return userVersion(database); } finally { database.close(); }
-  } catch (error) {
-    primary = error;
-    throw error;
-  } finally {
-    try { rmSync(probe, { recursive: true }); }
-    catch (failure) {
-      const message = "installer database version probe cleanup incomplete at " + probe + ": " + String(failure);
-      if (primary !== undefined) throw new AggregateError([primary, failure], String(primary) + "; " + message);
-      throw new Error(message, { cause: failure });
-    }
-  }
-};
-
-export const prepareOrderDatabaseForInstall = (
-  stateRoot: string,
-  onIncompleteRestore: () => void = () => {},
-  effects: InstallerDatabaseEffects = installerDatabaseEffects,
-): LegacyDatabaseArchive | null => {
-  const path = statePaths(stateRoot).database;
-  const originals = orderDatabaseFiles(path).map((candidate) => {
-    const identity = inspectInstallerDatabaseFile(candidate);
-    return { path: candidate, identity, digest: installerDatabaseDigest(candidate, identity) };
-  });
-  if (originals[0]!.identity === null) {
-    if (originals.some(original => original.identity !== null)) {
-      throw new TypeError("installer database sidecars exist without the primary database: " + path);
-    }
-    return null;
-  }
-  let version: number;
-  try {
-    version = probeInstallerDatabaseVersion(stateRoot, originals);
+    result = readIsolatedInstallerDatabase(stateRoot, originals, read);
   } catch (error) {
     const failures: unknown[] = [];
     for (const original of originals) {
@@ -538,13 +492,80 @@ export const prepareOrderDatabaseForInstall = (
     onIncompleteRestore();
     throw error;
   }
+  return result;
+};
+
+const readIsolatedInstallerDatabase = <T>(
+  stateRoot: string,
+  originals: LegacyDatabaseArchive["originals"],
+  read: (database: Database) => T,
+): T => {
+  // Even a readonly SQLite connection can update its WAL index or create
+  // sidecars. Read the schema version from an isolated, invocation-owned copy
+  // so the exact admitted original namespace never participates in that open.
+  const probe = mkdtempSync(join(stateRoot, ".installer-sqlite-probe."));
+  let primary: unknown;
+  try {
+    const target = join(probe, "order.sqlite3");
+    const paths = orderDatabaseFiles(target);
+    for (const [index, original] of originals.entries()) {
+      if (original.identity !== null) {
+        copyInstallerDatabaseOriginal(original, original.path, paths[index]!, installerDatabaseEffects, () => {});
+      }
+    }
+    const database = new Database(target, { readonly: true, create: false, strict: true });
+    try { return read(database); } finally { database.close(); }
+  } catch (error) {
+    primary = error;
+    throw error;
+  } finally {
+    try { rmSync(probe, { recursive: true }); }
+    catch (failure) {
+      const message = "installer database probe cleanup incomplete at " + probe + ": " + String(failure);
+      if (primary !== undefined) throw new AggregateError([primary, failure], String(primary) + "; " + message);
+      throw new Error(message, { cause: failure });
+    }
+  }
+};
+
+const captureInstallerDatabaseOriginals = (
+  stateRoot: string,
+  onIncompleteRestore: () => void,
+): LegacyDatabaseArchive["originals"] => {
+  const path = statePaths(stateRoot).database;
+  try {
+    const originals = orderDatabaseFiles(path).map(candidate => {
+      const identity = inspectInstallerDatabaseFile(candidate);
+      return { path: candidate, identity, digest: installerDatabaseDigest(candidate, identity) };
+    });
+    if (originals[0]!.identity === null && originals.some(original => original.identity !== null)) {
+      throw new TypeError("installer database sidecars exist without the primary database: " + path);
+    }
+    return originals;
+  } catch (error) {
+    // No mutation was performed here, but the prior namespace cannot be
+    // admitted for dependent restart when its exact original is unprovable.
+    onIncompleteRestore();
+    throw error;
+  }
+};
+
+export const prepareOrderDatabaseForInstall = (
+  stateRoot: string,
+  onIncompleteRestore: () => void = () => {},
+  effects: InstallerDatabaseEffects = installerDatabaseEffects,
+): LegacyDatabaseArchive | null => {
+  const path = statePaths(stateRoot).database;
+  const originals = captureInstallerDatabaseOriginals(stateRoot, onIncompleteRestore);
+  if (originals[0]!.identity === null) return null;
+  const version = probeInstallerDatabase(stateRoot, originals, userVersion, onIncompleteRestore);
   if (version === 3) return null;
   if (version !== 1 && version !== 2) {
     throw new TypeError(`unsupported Order SQLite schema version during update: ${version}`);
   }
 
   const suffix = `.legacy-v${version}.${crypto.randomUUID()}`;
-  const moved: typeof originals = [];
+  const moved: LegacyDatabaseArchive["originals"][number][] = [];
   const copies = new Map<string, InstallerDatabaseFileIdentity>();
   const archive: LegacyDatabaseArchive = {
     stateRoot, suffix, archiveDatabase: path + suffix, originals, preparedCandidates: copies,
