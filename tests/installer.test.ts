@@ -8,6 +8,7 @@ import {
   mkdirSync,
   renameSync,
   readFileSync,
+  readdirSync,
   rmSync,
   statSync,
   writeFileSync,
@@ -482,7 +483,7 @@ type InstallerTransactionFixture = Readonly<{
   historyAnswers?: readonly string[];
   cancelHistory?: boolean;
   failMarker?: boolean;
-  failRename?: "app-backup" | "launcher-backup" | "app-activation" | "launcher-activation" | "unit-publication" | "marker-publication" | "predecessor-app" | "predecessor-state" | "predecessor-db" | "predecessor-wal" | "predecessor-shm";
+  failRename?: "app-backup" | "launcher-backup" | "app-activation" | "launcher-activation" | "unit-publication" | "unit-restoration" | "marker-publication" | "predecessor-app" | "predecessor-state" | "predecessor-db" | "predecessor-wal" | "predecessor-shm";
   interruptAtReadiness?: boolean;
   interruptAt?: "app-activation" | "service-start" | "health";
   failMarkerWrite?: boolean;
@@ -490,6 +491,7 @@ type InstallerTransactionFixture = Readonly<{
   failRestart?: boolean;
   failService?: "daemon-reload" | "enable";
   priorEnablement?: "enabled" | "disabled";
+  unitDrift?: "before-publication" | "bytes" | "identity" | "symlink";
   failRestoreService?: "disable" | "daemon-reload" | "enable";
   failPredecessorRetirement?: boolean;
   failStaging?: boolean;
@@ -667,6 +669,15 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
           if (fixture.stopMode === "stuck") return result("", 1);
           if (fixture.stopMode === "unknown") { activity = "unknown"; return result("", 1); }
           activity = "inactive";
+          if (candidateStarted && fixture.unitDrift && fixture.unitDrift !== "before-publication") {
+            if (fixture.unitDrift === "bytes") fs.appendFileSync(unitPath, "# external edit");
+            else {
+              const bytes = fs.readFileSync(unitPath);
+              fs.renameSync(unitPath, unitPath + ".external");
+              if (fixture.unitDrift === "identity") fs.writeFileSync(unitPath, bytes, { mode: 0o644 });
+              else fs.symlinkSync(unitPath + ".external", unitPath);
+            }
+          }
           if (candidateStarted && fixture.databaseFault === "candidate-drift") {
             fs.renameSync(faultPath, faultPath + ".retained-candidate");
             fs.writeFileSync(faultPath, "unexpected replacement");
@@ -821,6 +832,7 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
           String(from).includes("/.pontivus-order-install.") && to === installRoot ? "app-activation" :
           String(from).includes("/.pontivus-order.") && to === launcher ? "launcher-activation" :
           String(from).startsWith(unitPath + ".tmp.") && to === unitPath ? "unit-publication" :
+          String(from).startsWith(unitPath + ".restore.") && to === unitPath ? "unit-restoration" :
           String(from).startsWith(marker + ".tmp.") && to === marker ? "marker-publication" : null;
         if (kind === "marker-publication" && fixture.databaseFault === "candidate-drift-after-health") {
           fs.renameSync(faultPath, faultPath + ".retained-candidate");
@@ -832,6 +844,7 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
           throw new Error("injected rename failure: " + kind);
         }
         fs.renameSync(from, to);
+        if (kind === "launcher-activation" && fixture.unitDrift === "before-publication") fs.appendFileSync(unitPath, "# external edit");
         if (kind === "app-activation" && fixture.interruptAt === "app-activation") process.exit(77);
         if (kind === "unit-publication" && fixture.databaseFault === "pre-start-replaced") {
           if (fs.existsSync(faultPath)) fs.renameSync(faultPath, faultPath + ".retained-candidate");
@@ -1177,6 +1190,49 @@ describe("actual IA25 installer transaction", () => {
     expect(statSync(unit).mode & 0o777).toBe(0o640);
     expect(outcome.marker).toBe("b".repeat(40) + "\n");
     expect(outcome.configBytes).toBe(outcome.originalConfig);
+    expect(outcome.activity).toBe("inactive");
+    expect(outcome.restartObservations.map((entry: { deployment: string }) => entry.deployment)).toEqual(["candidate"]);
+  }, 120_000);
+
+  it.each(["before-publication", "bytes", "identity", "symlink"] as const)(
+    "preserves externally changed service unit and blocks prior restart: %s", unitDrift => {
+      const fixture = transactionFixture();
+      createPriorDeployment(fixture);
+      const unit = join(fixture.home, ".config/systemd/user/pontivus-order.service");
+      const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes",
+        readiness: { ready: true, blockers: [] }, unitDrift, failRestart: true });
+      expect(outcome.failure).toContain("rollback incomplete");
+      expect(outcome.failure).toContain(unit);
+      expect(outcome.marker).toBe("b".repeat(40) + "\n");
+      expect(outcome.configBytes).toBe(outcome.originalConfig);
+      expect(outcome.activity).toBe("inactive");
+      expect(outcome.restartObservations.map((entry: { deployment: string }) => entry.deployment))
+        .toEqual(unitDrift === "before-publication" ? [] : ["candidate"]);
+      if (unitDrift === "bytes" || unitDrift === "before-publication") expect(readFileSync(unit, "utf8")).toContain("# external edit");
+      else if (unitDrift === "symlink") expect(lstatSync(unit).isSymbolicLink()).toBe(true);
+      else expect(readFileSync(unit)).toEqual(readFileSync(unit + ".external"));
+      if (unitDrift !== "before-publication") {
+        const name = readdirSync(join(fixture.home, ".config/systemd/user")).find(name => name.startsWith("pontivus-order.service.previous."));
+        expect(name).toBeDefined();
+        expect(readFileSync(join(fixture.home, ".config/systemd/user", name!), "utf8")).toBe("old unit");
+      }
+    }, 120_000);
+
+  it("retains prior service recovery bytes when restoration rename fails", () => {
+    const fixture = transactionFixture();
+    createPriorDeployment(fixture);
+    const directory = join(fixture.home, ".config/systemd/user");
+    const unit = join(directory, "pontivus-order.service");
+    chmodSync(unit, 0o640);
+    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes",
+      readiness: { ready: true, blockers: [] }, failRestart: true, failRename: "unit-restoration" });
+    expect(outcome.failure).toContain("injected host failure");
+    expect(outcome.failure).toContain("injected rename failure: unit-restoration");
+    expect(outcome.failure).toContain("original recovery at");
+    const recovery = readdirSync(directory).find(name => name.startsWith("pontivus-order.service.previous."));
+    expect(recovery).toBeDefined();
+    expect(readFileSync(join(directory, recovery!), "utf8")).toBe("old unit");
+    expect(statSync(join(directory, recovery!)).mode & 0o777).toBe(0o640);
     expect(outcome.activity).toBe("inactive");
     expect(outcome.restartObservations.map((entry: { deployment: string }) => entry.deployment)).toEqual(["candidate"]);
   }, 120_000);

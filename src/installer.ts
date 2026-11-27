@@ -3,6 +3,7 @@ import {
   chmodSync,
   closeSync,
   constants,
+  fchmodSync,
   fstatSync,
   fsyncSync,
   openSync,
@@ -512,22 +513,22 @@ const configureOrder = async (
   return { setupModule, legacyV2Config } as const;
 };
 
-// Invocation-local proof for files reported by the existing manifest creation owner.
-const captureCreatedManifest = (path: string) => {
-  if (realpathSync(path) !== path) fail("installer-created manifest path is not canonical: " + path);
+// Invocation-local proof shared by installer-owned regular file effects.
+const captureInstallerFile = (path: string) => {
+  if (realpathSync(path) !== path) fail("installer file path is not canonical: " + path);
   const entry = lstatSync(path, { bigint: true });
-  if (!entry.isFile()) fail("installer-created manifest is not a regular file: " + path);
+  if (!entry.isFile()) fail("installer file is not a regular file: " + path);
   const descriptor = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
   try {
     const before = fstatSync(descriptor, { bigint: true });
     if (!before.isFile() || before.dev !== entry.dev || before.ino !== entry.ino ||
-        before.mode !== entry.mode || before.uid !== entry.uid) fail("installer-created manifest identity changed: " + path);
+        before.mode !== entry.mode || before.uid !== entry.uid) fail("installer file identity changed: " + path);
     const bytes = readFileSync(descriptor);
     const after = lstatSync(path, { bigint: true });
     if (before.dev !== after.dev || before.ino !== after.ino || before.mode !== after.mode ||
         before.uid !== after.uid || before.size !== after.size ||
         before.mtimeNs !== after.mtimeNs || before.ctimeNs !== after.ctimeNs) {
-      fail("installer-created manifest changed during observation: " + path);
+      fail("installer file changed during observation: " + path);
     }
     return { device: before.dev, inode: before.ino, mode: before.mode, uid: before.uid, bytes };
   } finally { closeSync(descriptor); }
@@ -535,11 +536,11 @@ const captureCreatedManifest = (path: string) => {
 
 const restoreCreatedManifest = (
   path: string,
-  expected: ReturnType<typeof captureCreatedManifest> | null,
+  expected: ReturnType<typeof captureInstallerFile> | null,
 ): void => {
   if (expected === null) throw new TypeError("installer-created manifest ownership could not be established: " + path);
   if (!footprintEntryExists(path)) return;
-  const observed = captureCreatedManifest(path);
+  const observed = captureInstallerFile(path);
   if (observed.device !== expected.device || observed.inode !== expected.inode ||
       observed.mode !== expected.mode || observed.uid !== expected.uid ||
       !observed.bytes.equals(expected.bytes)) {
@@ -549,29 +550,50 @@ const restoreCreatedManifest = (
   if (footprintEntryExists(path)) fail("installer-created manifest remains at " + path);
 };
 
+type InstallerFileIdentity = ReturnType<typeof captureInstallerFile>;
+
+const sameInstallerFile = (observed: InstallerFileIdentity, expected: InstallerFileIdentity): boolean =>
+  observed.device === expected.device && observed.inode === expected.inode &&
+  observed.mode === expected.mode && observed.uid === expected.uid && observed.bytes.equals(expected.bytes);
+
+const requireInstallerFile = (path: string, expected: InstallerFileIdentity | null): void => {
+  if (expected === null) {
+    if (footprintEntryExists(path)) fail("unexpected installer file at " + path);
+  } else if (!footprintEntryExists(path) || !sameInstallerFile(captureInstallerFile(path), expected)) {
+    fail("installer file identity or bytes changed: " + path);
+  }
+};
+
+const writeExclusiveServiceFile = (path: string, bytes: Uint8Array, mode: number): InstallerFileIdentity => {
+  const descriptor = openSync(path,
+    constants.O_WRONLY | constants.O_CREAT | constants.O_EXCL | constants.O_NOFOLLOW, 0o600);
+  let expected: InstallerFileIdentity;
+  try {
+    writeFileSync(descriptor, bytes);
+    fchmodSync(descriptor, mode);
+    fsyncSync(descriptor);
+    const stat = fstatSync(descriptor, { bigint: true });
+    expected = { device: stat.dev, inode: stat.ino, mode: stat.mode, uid: stat.uid, bytes: Buffer.from(bytes) };
+  } catch (error) {
+    throw new Error("service file write incomplete; inspect " + path + ": " + String(error), { cause: error });
+  } finally { closeSync(descriptor); }
+  requireInstallerFile(path, expected);
+  return expected;
+};
+
+type ServiceRecovery = Readonly<{ path: string; identity: InstallerFileIdentity }>;
+
+const releaseServiceRecovery = (recovery: ServiceRecovery): void => {
+  requireInstallerFile(recovery.path, recovery.identity);
+  rmSync(recovery.path);
+};
+
 const captureServiceState = (
   locations: InstallerLocations,
   environment: NodeJS.ProcessEnv,
 ) => {
   const unitPath = join(locations.userConfigHome, "systemd", "user", "pontivus-order.service");
-  const entry = lstatSync(unitPath, { throwIfNoEntry: false });
-  if (entry !== undefined && !entry.isFile()) fail("unsupported existing service unit: " + unitPath);
-  const previousUnit = (() => {
-    if (entry === undefined) return null;
-    const descriptor = openSync(unitPath, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
-    try {
-      const opened = fstatSync(descriptor);
-      if (!opened.isFile() || opened.dev !== entry.dev || opened.ino !== entry.ino ||
-          opened.mode !== entry.mode) fail("service unit changed during snapshot: " + unitPath);
-      const bytes = readFileSync(descriptor);
-      const after = lstatSync(unitPath);
-      if (after.dev !== opened.dev || after.ino !== opened.ino || after.mode !== opened.mode ||
-          after.size !== opened.size || after.mtimeMs !== opened.mtimeMs || after.ctimeMs !== opened.ctimeMs) {
-        fail("service unit changed during snapshot: " + unitPath);
-      }
-      return bytes;
-    } finally { closeSync(descriptor); }
-  })();
+  const previousUnit = footprintEntryExists(unitPath) ? captureInstallerFile(unitPath) : null;
   const enablement = runCommand(
     ["systemctl", "--user", "show", "--property=UnitFileState", "--value", "pontivus-order.service"],
     locations.home, environment,
@@ -584,37 +606,50 @@ const captureServiceState = (
   if (previousUnit === null && (activity === "active" || enablement === "enabled")) {
     fail("service exists outside the supported unit path: " + unitPath);
   }
-  return { unitPath, previousUnit, mode: entry?.mode, enablement, activity } as const;
+  return { unitPath, previousUnit, enablement, activity } as const;
 };
 
 const activateService = (
   locations: InstallerLocations,
   launcher: string,
-  unitPath: string,
+  prior: ReturnType<typeof captureServiceState>,
   environment: NodeJS.ProcessEnv,
-  unitPublished: () => void,
+  unitPublished: (identity: InstallerFileIdentity) => void,
+  recoveryCreated: (recovery: ServiceRecovery) => void,
   restartAttempted: () => void,
   rename: typeof renameSync,
 ): void => {
+  const unitPath = prior.unitPath;
   mkdirSync(dirname(unitPath), { recursive: true });
+  requireInstallerFile(unitPath, prior.previousUnit);
+  if (prior.previousUnit !== null) {
+    const path = unitPath + ".previous." + crypto.randomUUID();
+    const identity = writeExclusiveServiceFile(path, prior.previousUnit.bytes, Number(prior.previousUnit.mode & 0o777n));
+    recoveryCreated({ path, identity });
+  }
   const temporary = unitPath + ".tmp." + crypto.randomUUID();
-  const descriptor = openSync(temporary, constants.O_WRONLY | constants.O_CREAT | constants.O_EXCL | constants.O_NOFOLLOW, 0o644);
+  const identity = writeExclusiveServiceFile(temporary, Buffer.from(buildUserServiceUnit(launcher)), 0o644);
   try {
-    try { writeFileSync(descriptor, buildUserServiceUnit(launcher), "utf8"); }
-    finally { closeSync(descriptor); }
+    requireInstallerFile(unitPath, prior.previousUnit);
+    requireInstallerFile(temporary, identity);
     rename(temporary, unitPath);
-    unitPublished();
+    unitPublished(identity);
+    requireInstallerFile(unitPath, identity);
   } catch (error) {
     try {
-      if (footprintEntryExists(temporary)) rmSync(temporary);
+      if (footprintEntryExists(temporary)) {
+        requireInstallerFile(temporary, identity);
+        rmSync(temporary);
+      }
     } catch (failure) {
       throw new AggregateError([error, failure], "service unit publication failed: " + String(error) +
-        "; temporary unit retained at " + temporary);
+        "; temporary unit retained at " + temporary + ": " + String(failure));
     }
     throw error;
   }
   runCommand(["systemctl", "--user", "daemon-reload"], locations.home, environment);
   runCommand(["systemctl", "--user", "enable", "pontivus-order.service"], locations.home, environment);
+  requireInstallerFile(unitPath, identity);
   restartAttempted();
   runCommand(["systemctl", "--user", "restart", "pontivus-order.service"], locations.home, environment);
 };
@@ -634,8 +669,12 @@ const waitForHealthyDaemon = async (
 const restoreUnit = (
   locations: InstallerLocations,
   prior: ReturnType<typeof captureServiceState>,
+  published: InstallerFileIdentity,
+  recovery: ServiceRecovery | null,
   environment: NodeJS.ProcessEnv,
+  rename: typeof renameSync,
 ): void => {
+  requireInstallerFile(prior.unitPath, published);
   const failures: unknown[] = [];
   const compensate = (label: string, operation: () => void): boolean => {
     try { operation(); return true; }
@@ -646,20 +685,26 @@ const restoreUnit = (
       runCommand(["systemctl", "--user", "disable", "pontivus-order.service"], locations.home, environment));
   }
   const unitRestored = compensate("prior unit bytes/mode at " + prior.unitPath, () => {
+    requireInstallerFile(prior.unitPath, published);
     if (prior.previousUnit === null) {
       rmSync(prior.unitPath);
-      if (footprintEntryExists(prior.unitPath)) fail("prior absent unit still present: " + prior.unitPath);
+      requireInstallerFile(prior.unitPath, null);
     } else {
+      if (recovery === null) throw new TypeError("prior service recovery copy unavailable: " + prior.unitPath);
+      requireInstallerFile(recovery.path, recovery.identity);
       const temporary = prior.unitPath + ".restore." + crypto.randomUUID();
-      const mode = prior.mode! & 0o777;
-      const descriptor = openSync(temporary, constants.O_WRONLY | constants.O_CREAT | constants.O_EXCL | constants.O_NOFOLLOW, 0o600);
       try {
-        writeFileSync(descriptor, prior.previousUnit);
-        chmodSync(temporary, mode);
-      } finally { closeSync(descriptor); }
-      renameSync(temporary, prior.unitPath);
-      if ((lstatSync(prior.unitPath).mode & 0o777) !== mode ||
-          !readFileSync(prior.unitPath).equals(prior.previousUnit)) fail("restored service unit differs: " + prior.unitPath);
+        const restored = writeExclusiveServiceFile(temporary, prior.previousUnit.bytes,
+          Number(prior.previousUnit.mode & 0o777n));
+        requireInstallerFile(prior.unitPath, published);
+        requireInstallerFile(temporary, restored);
+        rename(temporary, prior.unitPath);
+        requireInstallerFile(prior.unitPath, restored);
+      } catch (error) {
+        throw new Error("service restoration failed: " + String(error) +
+          "; original recovery at " + recovery.path +
+          (footprintEntryExists(temporary) ? "; restore temporary retained at " + temporary : ""), { cause: error });
+      }
     }
   });
   if (unitRestored) {
@@ -972,7 +1017,7 @@ export const runInstaller = async (
   const established = completeDeploymentFootprint(historyRoot,
     predecessor ? legacy.launcher : launcher, predecessor ? legacy.unitPath : unitPath) &&
     await confirmInstallationHistory(historyRoot, question);
-  const retainedBackups = [locations.installRoot, launcher].flatMap(retainedDeploymentBackups);
+  const retainedBackups = [locations.installRoot, launcher, unitPath].flatMap(retainedDeploymentBackups);
   if (retainedBackups.length > 0) {
     if (!established) fail("installation history is unproven; explicitly resolve retained prior deployment before retry: " +
       retainedBackups.join(", "));
@@ -990,7 +1035,8 @@ export const runInstaller = async (
   let appActivated = false;
   let launcherActivated = false;
   let priorStopped = false;
-  let unitPublished = false;
+  let unitPublished: InstallerFileIdentity | null = null;
+  let unitRecovery: ServiceRecovery | null = null;
   let restartAttempted = false;
   let setupModule: typeof import("./shell/setup.ts") | null = null;
   let configSnapshot: InstallerConfigSnapshot | null = null;
@@ -1002,7 +1048,7 @@ export const runInstaller = async (
   let databaseRestoreIncomplete = false;
   let sqliteUpgradeModule: typeof import("./shell/sqlite.ts") | null = null;
   let configuredSetup: Awaited<ReturnType<typeof configureOrder>> | null = null;
-  const createdProjectManifests = new Map<string, ReturnType<typeof captureCreatedManifest> | null>();
+  const createdProjectManifests = new Map<string, ReturnType<typeof captureInstallerFile> | null>();
 
   try {
     if (prior.activity === "active") {
@@ -1058,7 +1104,7 @@ export const runInstaller = async (
       snapshot: configSnapshot, onPublished: identity => { published = identity; }, effects: configEffects,
     }, path => {
       createdProjectManifests.set(path, null);
-      createdProjectManifests.set(path, captureCreatedManifest(path));
+      createdProjectManifests.set(path, captureInstallerFile(path));
     }, question);
 
     sqliteUpgradeModule = await import(pathToFileURL(join(locations.installRoot, "app", "src", "shell", "sqlite.ts")).href) as typeof import("./shell/sqlite.ts");
@@ -1081,8 +1127,9 @@ export const runInstaller = async (
         configuredSetup.legacyV2Config.workItemRoot + "\n");
     }
     step("installing and starting user service");
-    activateService(locations, launcher, prior.unitPath, environment,
-      () => { unitPublished = true; }, () => {
+    activateService(locations, launcher, prior, environment,
+      identity => { unitPublished = identity; },
+      recovery => { unitRecovery = recovery; }, () => {
         if (databaseArchive !== null && sqliteUpgradeModule !== null) {
           if (databaseCandidates === undefined) throw new TypeError("database candidate custody is unavailable before service activation");
           sqliteUpgradeModule.requireInstallerDatabaseCandidates(
@@ -1128,7 +1175,7 @@ export const runInstaller = async (
         () => requireServiceQuiescence("pontivus-order.service", locations.home, environment));
       if (failures.length > 0) throw new AggregateError([error, ...failures],
         "installation failed: " + String(error) + "; cannot safely restore active deployment; retained paths: " +
-        [locations.installRoot, locations.stateRoot, installBackup, launcherBackup, configSnapshot?.recoveryPath].filter(Boolean).join(", "));
+        [locations.installRoot, locations.stateRoot, installBackup, launcherBackup, configSnapshot?.recoveryPath, (unitRecovery as ServiceRecovery | null)?.path].filter(Boolean).join(", "));
     }
     if (configCaptureIncomplete !== null) failures.push(new Error("configuration snapshot incomplete; retained material: " + configCaptureIncomplete));
     if (databaseRestoreIncomplete) failures.push(new Error("database preparation compensation incomplete at " + locations.stateRoot));
@@ -1168,7 +1215,18 @@ export const runInstaller = async (
         rename(backup, locations.installRoot);
       });
     }
-    if (unitPublished) compensate("service unit restoration incomplete: " + prior.unitPath, () => restoreUnit(locations, prior, environment));
+    if (unitPublished !== null) {
+      const publishedUnit: InstallerFileIdentity = unitPublished;
+      compensate("service unit restoration incomplete: " + prior.unitPath,
+        () => restoreUnit(locations, prior, publishedUnit, unitRecovery, environment, rename));
+    } else if (priorStopped) {
+      compensate("prior service unit custody incomplete: " + prior.unitPath,
+        () => requireInstallerFile(prior.unitPath, prior.previousUnit));
+    }
+    if (failures.length === 0 && unitRecovery !== null) {
+      const recovery: ServiceRecovery = unitRecovery;
+      compensate("service recovery retirement incomplete: " + recovery.path, () => releaseServiceRecovery(recovery));
+    }
     if (staging !== null) { const path = staging; compensate("staging cleanup incomplete: " + path, () => rmSync(path, { recursive: true })); }
     if (launcherTemporary !== null) { const path = launcherTemporary; compensate("temporary launcher cleanup incomplete: " + path, () => rmSync(path)); }
     if (failures.length === 0 && legacyMigration !== null) {
@@ -1178,20 +1236,22 @@ export const runInstaller = async (
     if (failures.length === 0 && priorStopped) compensate("prior service restart failed",
       () => runCommand(["systemctl", "--user", "restart", "pontivus-order.service"], locations.home, environment));
     if (failures.length > 0) throw new AggregateError([error, ...failures],
-      "installation failed: " + String(error) + "; rollback incomplete: " + failures.map(String).join("; "));
+      "installation failed: " + String(error) + "; rollback incomplete: " + failures.map(String).join("; ") +
+      (unitRecovery === null ? "" : "; service recovery: " + (unitRecovery as ServiceRecovery).path));
     throw error;
   }
 
   // Never roll back a committed installation because finalization failed.
   try {
     if (configSnapshot !== null && setupModule !== null) setupModule.releaseInstallerConfigSnapshot(configSnapshot, configEffects);
+    if (unitRecovery !== null) releaseServiceRecovery(unitRecovery);
     if (legacyMigration !== null) retireLegacyGateweftArtifacts(legacyMigration, locations, environment);
     writeProfilePath(locations.home, locations.binDir);
     if (installBackup !== null) remove(installBackup, { recursive: true });
     if (launcherBackup !== null) remove(launcherBackup);
   } catch (error) {
     throw new Error("installation committed; finalization incomplete: " + String(error) + "; retained material at " +
-      [installBackup, launcherBackup, configSnapshot?.recoveryPath, legacy.launcher, legacy.unitPath]
+      [installBackup, launcherBackup, configSnapshot?.recoveryPath, (unitRecovery as ServiceRecovery | null)?.path, legacy.launcher, legacy.unitPath]
         .filter((path): path is string => typeof path === "string" && footprintEntryExists(path)).join(", "),
       { cause: error });
   }
