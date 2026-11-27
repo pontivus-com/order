@@ -27,7 +27,7 @@ Retain evidenced closed F6B semantic APIs and responsibilities; correct rejected
 | `implementation-plan/10-a10-recovery-accessibility.md` | `e0fada55f15bcfd70eb1380bdf257fe52b68be7b` |
 | `implementation-plan/11-a11-component-certification.md` | `b89af8fe98c14bbbd4afcfc29211fe3fab1f676e` |
 | `implementation-plan/12-action-catalog.md` | `f8e2b9cfc311291d60bb487f76de8a78bd4d27a6` |
-| `implementation-plan/13-verification-closeout.md` | `8a9a17d61259f2b6097b322b6dbc7e9767f56d46` |
+| `implementation-plan/13-verification-closeout.md` | `43d16b6b2d136dfd939975e6536b6cf137672b5f` |
 
 A source hash mismatch makes PLAN non-current until recompiled. Directory files have no independent order-tasks block or lifecycle state.
 
@@ -1867,6 +1867,10 @@ Each dimension is `PASS` or `FAIL`; no `PARTIAL`, aggregate-only pass or unrevie
 
 Any failed row blocks closeout, opens remediation at the defective implementation/authority owner, and requires a fresh exact-candidate GitHub Actions capture and review for the affected row after correction. Existing semantic/browser tests remain mandatory and cannot be replaced by screenshot acceptance.
 
+
+###### Consolidated final human QA/QC and acceptance (external PR campaign)
+
+After IA26 independent QA and IA24 read-only terminal verification, present the exact frozen candidate (head/base/merge candidate/run identity), implemented behavior, approved acceptance criteria with evidence, applicable HUX findings and their QA results, and access to the retained full verification and rendered evidence. The operator may inspect the solution, conduct manual/exploratory testing and record feedback or defects through the existing PR review/discussion boundary. Each actionable finding identifies the reviewed candidate, affected behavior/surface, expected versus observed result, reproduction and available supporting evidence. Classify it against the signed requirements, not as an automatic scope expansion. A blocking finding or rejected candidate prohibits acceptance/delivery; repairable in-scope defects return to the existing owning IA under still-current authorization and run autonomous remediation and affected independent regression/QA. Material authority or scope changes return upstream for renewed authorization; unrelated work is separately governed. Re-freeze and reverify any changed candidate; the operator retests/reviews the corrected result at final QA/QC, never at each implementation increment. Resolve every blocking finding before the operator explicitly accepts the exact verified candidate in the PR review/decision record. Neither a green CI run nor absence of comments is acceptance. Acceptance is distinct from delivery; existing PR merge/release governance remains in force. This uses existing external review records, not a new ledger or native Order command/state. Native final QA/QC remains an upstream product requirement under the Work request and must be designed and authorized before native implementation.
 
 ##### V0-V7 final review obligations
 
