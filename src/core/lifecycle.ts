@@ -985,6 +985,7 @@ export const materialCurrentnessForStage = (
 
 export const artifactHasCurrentStageConformance = (
   artifact: ArtifactRef,
+  runs: readonly Run[],
   events: readonly RunEvent[],
 ): boolean => {
   const owner = artifactOwnerStage(artifact);
@@ -997,12 +998,11 @@ export const artifactHasCurrentStageConformance = (
   ) {
     return false;
   }
-  return events.some(
-    (event) =>
-      event.event.tag === "CONFORMANCE_PASSED" &&
-      event.event.stage === owner &&
-      event.event.outputArtifactRefIds.includes(artifact.id),
-  );
+  return runs.some((run) => {
+    if (run.stage !== owner) return false;
+    const completion = admittedStageCompletion(artifact.workItemId, run, events);
+    return completion !== null && completion.artifactRefIds[0] === artifact.id;
+  });
 };
 
 // Task API projects approvals in canonical approvedAt/id order; the last group

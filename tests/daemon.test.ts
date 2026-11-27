@@ -2178,6 +2178,10 @@ describe("daemon control plane", () => {
         endedAt: "2026-11-13T08:00:00.000Z",
       });
       runStore.appendRunEvent(runtime, run.id, {
+        tag: "STAGE_COMPLETED", completion: { stage: "PLAN", outcome: "ACCEPTED" },
+        artifactRefIds: [historical.id],
+      });
+      runStore.appendRunEvent(runtime, run.id, {
         tag: "CONFORMANCE_PASSED",
         stage: "PLAN",
         outputArtifactRefIds: [historical.id],
@@ -3700,6 +3704,10 @@ describe("daemon control plane", () => {
         endedAt: rt.nowIsoDateTime(),
       });
       runStore.appendRunEvent(runtime, priorRun.id, {
+        tag: "STAGE_COMPLETED", completion: { stage: "R1", outcome: "AUDIT_COMPLETE" },
+        artifactRefIds: [artifact.id],
+      });
+      runStore.appendRunEvent(runtime, priorRun.id, {
         tag: "CONFORMANCE_PASSED",
         stage: "R1",
         outputArtifactRefIds: [artifact.id],
@@ -3806,6 +3814,10 @@ describe("daemon control plane", () => {
         terminalClassification: null,
         startedAt: rt.nowIsoDateTime(),
         endedAt: rt.nowIsoDateTime(),
+      });
+      runStore.appendRunEvent(runtime, priorRun.id, {
+        tag: "STAGE_COMPLETED", completion: { stage: "R1", outcome: "CONFIRMED" },
+        artifactRefIds: [artifact.id],
       });
       runStore.appendRunEvent(runtime, priorRun.id, {
         tag: "CONFORMANCE_PASSED",
@@ -5345,6 +5357,10 @@ describe("daemon control plane", () => {
         terminalClassification: null,
         startedAt: "2026-11-11T04:00:00.000Z",
         endedAt: "2026-11-11T04:00:00.000Z",
+      });
+      runStore.appendRunEvent(runtime, priorPlanRun.id, {
+        tag: "STAGE_COMPLETED", completion: { stage: "PLAN", outcome: "ACCEPTED" },
+        artifactRefIds: [plan.id],
       });
       runStore.appendRunEvent(runtime, priorPlanRun.id, {
         tag: "CONFORMANCE_PASSED",

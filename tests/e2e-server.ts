@@ -881,7 +881,7 @@ const seedConformance = async (
   item: ReturnType<typeof workItem>,
   stage: "R1" | "R2" | "DESIGN" | "PLAN" | "R3",
   output: Awaited<ReturnType<typeof currentFileArtifact>>,
-  completion?: StageCompletion,
+  completion: StageCompletion,
 ): Promise<void> => {
   const context = await resolveStageContext(seedRuntime, item, stage);
   const run = insertRun(seedRuntime, RunSchema.parse({
@@ -913,13 +913,11 @@ const seedConformance = async (
         storeArtifactDependency(database, output.id, dependency.id);
       }
     }
-    if (completion) {
-      appendRunEvent(seedRuntime, run.id, {
-        tag: "STAGE_COMPLETED",
-        completion,
-        artifactRefIds: [output.id],
-      });
-    }
+    appendRunEvent(seedRuntime, run.id, {
+      tag: "STAGE_COMPLETED",
+      completion,
+      artifactRefIds: [output.id],
+    });
     appendRunEvent(seedRuntime, run.id, {
       tag: "CONFORMANCE_PASSED",
       stage,
@@ -1076,14 +1074,15 @@ const seedCurrentStageDocumentItem = async (
     await seedConformance(item, definition.stage, upstream, completion);
   }
   const current = definitions[currentIndex]!;
-  const output = await currentFileArtifact(
+  // Own-stage material is a draft, not an admitted promotion. Upstream
+  // stages above are the only conformed lifecycle inputs for this fixture.
+  await currentFileArtifact(
     seedRuntime,
     item,
     current.path,
     current.role,
     current.layer,
   );
-  await seedConformance(item, current.stage, output);
   return item;
 };
 

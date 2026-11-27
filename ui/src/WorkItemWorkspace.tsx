@@ -615,7 +615,7 @@ export const WorkItemWorkspace = ({
       current,
       reach,
       materialCurrentnessForStage(currentness, owner),
-      artifactHasCurrentStageConformance(artifact, allRunEvents),
+      artifactHasCurrentStageConformance(artifact, runs, allRunEvents),
       current && reach !== "UNREACHED" &&
         (workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE") &&
         tasks.length > 0,

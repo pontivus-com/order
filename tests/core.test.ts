@@ -2676,8 +2676,18 @@ describe("closed Workbench workflow-state kernel", () => {
         evidence: [],
       },
     });
-    expect(artifactHasCurrentStageConformance(current, [event])).toBe(true);
-    expect(artifactHasCurrentStageConformance(other, [event])).toBe(false);
+    const completion = RunEventSchema.parse({
+      ...event, id: `event_${uuidD}`, sequence: 1,
+      event: { tag: "STAGE_COMPLETED", completion: { stage: "R2", outcome: "ACCEPTED" }, artifactRefIds: [current.id] },
+    });
+    const paired = [{ ...event, sequence: 2 }, completion];
+    expect(artifactHasCurrentStageConformance(current, [run], paired)).toBe(true);
+    expect(artifactHasCurrentStageConformance(other, [run], paired)).toBe(false);
+    expect(artifactHasCurrentStageConformance(current, [run], [event])).toBe(false);
+    expect(artifactHasCurrentStageConformance(current, [run], [completion, { ...event, sequence: 0 }])).toBe(false);
+    expect(artifactHasCurrentStageConformance(current, [], paired)).toBe(false);
+    expect(artifactHasCurrentStageConformance(current, [{ ...run, status: "FAILED" }], paired)).toBe(false);
+    expect(artifactHasCurrentStageConformance(current, [{ ...run, workItemId: `work_${uuidB}` }], paired)).toBe(false);
   });
 
   it("derives reached history only from actual canonical evidence", () => {

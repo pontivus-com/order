@@ -603,12 +603,13 @@ type LifecycleRole = (typeof lifecycleRoleOrder)[number];
 
 const artifactsForIds = (
   runtime: CoordinatorRuntime,
+  workItemId: WorkItemId,
   ids: readonly ArtifactRefId[],
   role: LifecycleRole,
 ): readonly ArtifactRef[] =>
   ids
     .map((id) => getArtifact(runtime, id))
-    .filter((artifact) => artifact.role === role);
+    .filter((artifact) => artifact.workItemId === workItemId && artifact.role === role);
 
 const latestRunCandidateArtifacts = (
   runtime: CoordinatorRuntime,
@@ -621,11 +622,9 @@ const latestRunCandidateArtifacts = (
     .reverse();
   for (const [index, run] of runs.entries()) {
     const events = listRunEvents(runtime, run.id);
-    const conformance = events.findLast((event) =>
-      event.event.tag === "CONFORMANCE_PASSED" && event.event.stage === role
-    );
-    if (conformance?.event.tag === "CONFORMANCE_PASSED") {
-      const artifacts = artifactsForIds(runtime, conformance.event.outputArtifactRefIds, role);
+    const admitted = admittedStageCompletion(workItemId, run, events);
+    if (admitted !== null) {
+      const artifacts = artifactsForIds(runtime, workItemId, admitted.artifactRefIds, role);
       if (artifacts.length > 0) return artifacts;
     }
 
@@ -636,7 +635,7 @@ const latestRunCandidateArtifacts = (
       event.event.tag === "STAGE_COMPLETED" && event.event.completion.stage === role
     );
     if (completion?.event.tag === "STAGE_COMPLETED") {
-      const artifacts = artifactsForIds(runtime, completion.event.artifactRefIds, role);
+      const artifacts = artifactsForIds(runtime, workItemId, completion.event.artifactRefIds, role);
       if (artifacts.length > 0) return artifacts;
     }
 
@@ -651,7 +650,7 @@ const latestRunCandidateArtifacts = (
         event.event.adoptedArtifactRefId !== null
           ? [event.event.adoptedArtifactRefId] : [])
       .map((id) => getArtifact(runtime, id))
-      .filter((artifact) => artifact.role === role);
+      .filter((artifact) => artifact.workItemId === workItemId && artifact.role === role);
     if (adopted.length > 0) return deduplicateArtifacts(adopted);
   }
   return [];
