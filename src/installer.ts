@@ -850,6 +850,7 @@ export const runInstaller = async (
   environment: NodeJS.ProcessEnv = process.env,
   question: typeof terminalQuestion = terminalQuestion,
   rename: typeof renameSync = renameSync,
+  remove: typeof rmSync = rmSync,
 ): Promise<void> => {
   if (process.platform !== "linux") fail("Order v1 productive installation requires Linux");
   if (Bun.version !== bunVersion) fail("installer must run on exact Bun " + bunVersion);
@@ -1041,8 +1042,8 @@ export const runInstaller = async (
     if (configSnapshot !== null && setupModule !== null) setupModule.releaseInstallerConfigSnapshot(configSnapshot);
     if (legacyMigration !== null) retireLegacyGateweftArtifacts(legacyMigration, locations, environment);
     writeProfilePath(locations.home, locations.binDir);
-    if (installBackup !== null) rmSync(installBackup, { recursive: true });
-    if (launcherBackup !== null) rmSync(launcherBackup);
+    if (installBackup !== null) remove(installBackup, { recursive: true });
+    if (launcherBackup !== null) remove(launcherBackup);
   } catch (error) {
     throw new Error("installation committed; finalization incomplete: " + String(error) + "; retained material at " +
       [installBackup, launcherBackup, configSnapshot?.recoveryPath, legacy.launcher, legacy.unitPath]

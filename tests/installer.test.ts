@@ -486,6 +486,10 @@ type InstallerTransactionFixture = Readonly<{
   readinessStatus?: number;
   readinessError?: "timeout" | "redirect";
   failFinalization?: boolean;
+  failCleanup?: "config" | "application" | "launcher";
+  legacyDatabaseVersion?: 1 | 2 | 3;
+  loseDatabaseArchive?: boolean;
+  driftConfig?: boolean;
 }>;
 
 // Execute the production transaction and the installed setup/config/SQLite modules.
@@ -515,6 +519,17 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
     let enablement = fs.existsSync(unitPath) ? "enabled" : "";
     let restartFailed = false;
     let serviceFailed = false;
+    let candidateStarted = false;
+    const databasePath = path.join(fixture.stateRoot, "order.sqlite3");
+    const { Database } = await import("bun:sqlite");
+    if (fixture.legacyDatabaseVersion !== undefined) {
+      const db = new Database(databasePath, { create: true, strict: true });
+      db.exec("CREATE TABLE sentinel(value TEXT NOT NULL) STRICT; INSERT INTO sentinel VALUES (\'original\'); PRAGMA user_version = " + fixture.legacyDatabaseVersion + ";");
+      db.close();
+    }
+    const originalDatabase = fs.existsSync(databasePath) ? fs.readFileSync(databasePath).toString("base64") : null;
+    const originalConfig = fs.existsSync(configPath) ? fs.readFileSync(configPath).toString("base64") : null;
+    let retainedArchive = null;
     const token = "a".repeat(64);
     const result = (stdout = "", exitCode = 0) => ({
       stdout: Buffer.from(stdout), stderr: Buffer.from(exitCode === 0 ? "" : "injected host failure"),
@@ -542,6 +557,21 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
         if (verb === "restart") {
           activity = "active";
           fs.writeFileSync(path.join(fixture.stateRoot, "daemon-token"), token, { mode: 0o600 });
+          if (!candidateStarted) {
+            candidateStarted = true;
+            if (fixture.legacyDatabaseVersion === 1 || fixture.legacyDatabaseVersion === 2) {
+              const db = new Database(databasePath, { create: true, strict: true });
+              db.exec("CREATE TABLE IF NOT EXISTS sentinel(value TEXT NOT NULL) STRICT; DELETE FROM sentinel; INSERT INTO sentinel VALUES ('candidate'); PRAGMA user_version = 3;");
+              db.close();
+              if (fixture.loseDatabaseArchive) {
+                const name = fs.readdirSync(fixture.stateRoot).find(name => /^order\\.sqlite3\\.legacy-v[12]\\./.test(name));
+                if (!name) throw new Error("expected actual database archive");
+                retainedArchive = path.join(fixture.stateRoot, name + ".retained");
+                fs.renameSync(path.join(fixture.stateRoot, name), retainedArchive);
+              }
+            }
+            if (fixture.driftConfig) fs.appendFileSync(configPath, " ");
+          }
           if (fixture.failRestart && !restartFailed) { restartFailed = true; return result("", 1); }
           return result();
         }
@@ -625,14 +655,32 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
           throw new Error("injected rename failure: " + kind);
         }
         fs.renameSync(from, to);
+        if (kind === "marker-publication" && fixture.failCleanup === "config") {
+          const name = fs.readdirSync(fixture.stateRoot).find(name => name.startsWith("config.json.installer-recovery."));
+          if (!name) throw new Error("expected configuration recovery copy");
+          fs.appendFileSync(path.join(fixture.stateRoot, name), " ");
+        }
       };
-      await installer.runInstaller({ sourceRoot, sourceCommit }, process.env, question, rename);
+      const remove = (target, options) => {
+        if ((fixture.failCleanup === "application" && String(target).startsWith(installRoot + ".previous.")) ||
+            (fixture.failCleanup === "launcher" && String(target).startsWith(launcher + ".previous."))) {
+          throw new Error("injected cleanup failure: " + target);
+        }
+        fs.rmSync(target, options);
+      };
+      await installer.runInstaller({ sourceRoot, sourceCommit }, process.env, question, rename, remove);
     } catch (error) { failure = String(error); }
     console.log("ORDER_TRANSACTION_RESULT " + JSON.stringify({
       failure, prompts, events, activity, enablement, sourceCommit,
       marker: fs.existsSync(marker) ? fs.readFileSync(marker, "utf8") : null,
       config: fs.existsSync(configPath) ? JSON.parse(fs.readFileSync(configPath, "utf8")) : null,
       app: fs.existsSync(installRoot), launcher: fs.existsSync(launcher), unit: fs.existsSync(unitPath),
+      originalDatabase, originalConfig, retainedArchive,
+      database: fs.existsSync(databasePath) ? fs.readFileSync(databasePath).toString("base64") : null,
+      configBytes: fs.existsSync(configPath) ? fs.readFileSync(configPath).toString("base64") : null,
+      stateEntries: fs.readdirSync(fixture.stateRoot),
+      appBackups: fs.existsSync(path.dirname(installRoot)) ? fs.readdirSync(path.dirname(installRoot)).filter(name => name.startsWith("pontivus-order.previous.")) : [],
+      launcherBackups: fs.existsSync(binDir) ? fs.readdirSync(binDir).filter(name => name.startsWith("order.previous.")) : [],
     }));
   `;
   const result = spawnSync("bun", ["--eval", script], {
@@ -869,6 +917,63 @@ describe("actual IA25 installer transaction", () => {
     expect(retried.prompts.some((prompt: string) => prompt.startsWith("Did installation"))).toBe(false);
     expect(retried.stdout).not.toContain("Order updated successfully.");
   }, 180_000);
+
+  it.each([1, 2, 3] as const)("restores exact database bytes for version %i on established activation failure", legacyDatabaseVersion => {
+    const fixture = transactionFixture();
+    createPriorDeployment(fixture);
+    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes",
+      readiness: { ready: true, blockers: [] }, legacyDatabaseVersion, failRestart: true });
+    expect(outcome.failure).toContain("injected host failure");
+    expect(outcome.database).toBe(outcome.originalDatabase);
+    expect(outcome.configBytes).toBe(outcome.originalConfig);
+    expect(outcome.marker).toBe("b".repeat(40) + "\n");
+    expect(outcome.activity).toBe("active");
+    expect(outcome.stateEntries.some((name: string) => name.includes(".legacy-v"))).toBe(false);
+  }, 120_000);
+
+  it.each([1, 2] as const)("preserves candidate and retained v%i archive when database rollback cannot prove original", legacyDatabaseVersion => {
+    const fixture = transactionFixture();
+    createPriorDeployment(fixture);
+    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes",
+      readiness: { ready: true, blockers: [] }, legacyDatabaseVersion, failRestart: true, loseDatabaseArchive: true });
+    expect(outcome.failure).toContain("injected host failure");
+    expect(outcome.failure).toContain("database restoration incomplete");
+    expect(outcome.database).not.toBe(outcome.originalDatabase);
+    expect(readFileSync(outcome.retainedArchive).toString("base64")).toBe(outcome.originalDatabase);
+    expect(outcome.configBytes).toBe(outcome.originalConfig);
+    expect(outcome.activity).toBe("inactive");
+    expect(outcome.events.filter((event: { command: string[] }) => event.command[0] === "restart")).toHaveLength(1);
+  }, 120_000);
+
+  it("blocks prior service restart when configuration publication identity drifts", () => {
+    const fixture = transactionFixture();
+    createPriorDeployment(fixture);
+    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes",
+      readiness: { ready: true, blockers: [] }, failRestart: true, driftConfig: true });
+    expect(outcome.failure).toContain("injected host failure");
+    expect(outcome.failure).toContain("configuration restoration incomplete");
+    expect(outcome.configBytes).not.toBe(outcome.originalConfig);
+    const recovery = outcome.stateEntries.find((name: string) => name.startsWith("config.json.installer-recovery."));
+    expect(readFileSync(join(fixture.stateRoot, recovery)).toString("base64")).toBe(outcome.originalConfig);
+    expect(outcome.activity).toBe("inactive");
+    expect(outcome.events.filter((event: { command: string[] }) => event.command[0] === "restart")).toHaveLength(1);
+  }, 120_000);
+
+  it.each(["config", "application", "launcher"] as const)("keeps committed deployment after %s retirement fails", failCleanup => {
+    const fixture = transactionFixture();
+    createPriorDeployment(fixture);
+    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes",
+      readiness: { ready: true, blockers: [] }, failCleanup });
+    expect(outcome.failure).toContain("installation committed; finalization incomplete");
+    expect(outcome.marker).toBe(outcome.sourceCommit + "\n");
+    expect(outcome.app && outcome.launcher && outcome.unit).toBe(true);
+    expect(outcome.activity).toBe("active");
+    expect(outcome.stdout).not.toContain("Order updated successfully.");
+    expect(outcome.appBackups).toHaveLength(failCleanup === "launcher" ? 0 : 1);
+    expect(outcome.launcherBackups).toHaveLength(1);
+    expect(outcome.stateEntries.some((name: string) => name.startsWith("config.json.installer-recovery."))).toBe(failCleanup === "config");
+    expect(outcome.events.filter((event: { command: string[] }) => event.command[0] === "stop")).toHaveLength(1);
+  }, 120_000);
 
   it("post-commit finalization failure retains admitted application and marker", () => {
     const outcome = runInstallerTransaction({
