@@ -1948,7 +1948,7 @@ describe("Order cross-boundary certification", () => {
       'runInstallerGuidedSetup(',
       'createdProjectManifests',
       'prepareOrderDatabaseForInstall',
-      '"systemctl", "--user", "is-active"',
+      '"systemctl", "--user", "show", "--property=ActiveState", "--value", unit',
       '"systemctl", "--user", "daemon-reload"',
       '"systemctl", "--user", "enable", "pontivus-order.service"',
       '"systemctl", "--user", "restart", "pontivus-order.service"',

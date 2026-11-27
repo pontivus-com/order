@@ -3,6 +3,7 @@ import {
   chmodSync,
   copyFileSync,
   existsSync,
+  lstatSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
@@ -13,6 +14,7 @@ import {
 import { dirname, isAbsolute, join } from "node:path";
 import { pathToFileURL } from "node:url";
 
+import type { InstallerConfigPublication, InstallerConfigSnapshot } from "./shell/config.ts";
 import type { LegacyDatabaseArchive } from "./shell/sqlite.ts";
 
 const bunVersion = "1.4.4";
@@ -468,11 +470,12 @@ const buildApplication = (
         : "production build did not create dist/index.html",
     );
   }
-  writeFileSync(join(staging, "SOURCE_COMMIT"), sourceCommit + "\n", "utf8");
 };
 
 const configureOrder = async (
   locations: InstallerLocations,
+  established: boolean,
+  publication: InstallerConfigPublication,
   projectManifestCreated: (path: string) => void,
 ) => {
   const setupUrl = pathToFileURL(
@@ -481,32 +484,60 @@ const configureOrder = async (
   const setupModule = await import(setupUrl) as typeof import("./shell/setup.ts");
   const legacyV2Config = setupModule.readLegacyOrderConfigV2ForInstall(
     locations.stateRoot,
+    publication.snapshot,
   );
   const code = await setupModule.runInstallerGuidedSetup(
     runtimeEnvironment(locations),
     (value) => process.stdout.write(value),
     terminalQuestion,
+    established,
+    publication,
     projectManifestCreated,
   );
   if (code !== 0) fail("Order guided configuration did not complete");
   return { setupModule, legacyV2Config } as const;
 };
 
-const activateService = async (
+const captureServiceState = (
+  locations: InstallerLocations,
+  environment: NodeJS.ProcessEnv,
+) => {
+  const unitPath = join(locations.userConfigHome, "systemd", "user", "pontivus-order.service");
+  const entry = lstatSync(unitPath, { throwIfNoEntry: false });
+  if (entry !== undefined && !entry.isFile()) fail("unsupported existing service unit: " + unitPath);
+  const previousUnit = entry === undefined ? null : readFileSync(unitPath);
+  const enablement = runCommand(
+    ["systemctl", "--user", "show", "--property=UnitFileState", "--value", "pontivus-order.service"],
+    locations.home, environment,
+  ).trim();
+  if (enablement !== "enabled" && enablement !== "disabled" &&
+      !(previousUnit === null && enablement === "")) {
+    fail("unsupported prior service enablement: " + enablement);
+  }
+  const activity = observeServiceActivity("pontivus-order.service", locations.home, environment);
+  if (previousUnit === null && (activity === "active" || enablement === "enabled")) {
+    fail("service exists outside the supported unit path: " + unitPath);
+  }
+  return { unitPath, previousUnit, mode: entry?.mode, enablement, activity } as const;
+};
+
+const activateService = (
   locations: InstallerLocations,
   launcher: string,
-): Promise<Readonly<{ unitPath: string; previousUnit: string | null }>> => {
-  const unitDir = join(locations.userConfigHome, "systemd", "user");
-  const unitPath = join(unitDir, "pontivus-order.service");
-  mkdirSync(unitDir, { recursive: true });
-  const previousUnit = existsSync(unitPath) ? readFileSync(unitPath, "utf8") : null;
-  const temporary = unitPath + ".tmp." + process.pid;
-  writeFileSync(temporary, buildUserServiceUnit(launcher), { encoding: "utf8", mode: 0o644 });
+  unitPath: string,
+  environment: NodeJS.ProcessEnv,
+  unitPublished: () => void,
+  restartAttempted: () => void,
+): void => {
+  mkdirSync(dirname(unitPath), { recursive: true });
+  const temporary = unitPath + ".tmp." + crypto.randomUUID();
+  writeFileSync(temporary, buildUserServiceUnit(launcher), { encoding: "utf8", mode: 0o644, flag: "wx" });
   renameSync(temporary, unitPath);
-  runCommand(["systemctl", "--user", "daemon-reload"], locations.home);
-  runCommand(["systemctl", "--user", "enable", "pontivus-order.service"], locations.home);
-  runCommand(["systemctl", "--user", "restart", "pontivus-order.service"], locations.home);
-  return { unitPath, previousUnit };
+  unitPublished();
+  runCommand(["systemctl", "--user", "daemon-reload"], locations.home, environment);
+  runCommand(["systemctl", "--user", "enable", "pontivus-order.service"], locations.home, environment);
+  restartAttempted();
+  runCommand(["systemctl", "--user", "restart", "pontivus-order.service"], locations.home, environment);
 };
 
 const waitForHealthyDaemon = async (
@@ -523,37 +554,51 @@ const waitForHealthyDaemon = async (
 
 const restoreUnit = (
   locations: InstallerLocations,
-  unitPath: string,
-  previousUnit: string | null,
+  prior: ReturnType<typeof captureServiceState>,
+  environment: NodeJS.ProcessEnv,
 ): void => {
-  try {
-    runCommand(["systemctl", "--user", "stop", "pontivus-order.service"], locations.home);
-  } catch {
-    // Rollback continues even if the newly started service already exited.
+  if (prior.enablement !== "enabled") {
+    runCommand(["systemctl", "--user", "disable", "pontivus-order.service"], locations.home, environment);
   }
-  if (previousUnit === null) {
-    rmSync(unitPath, { force: true });
+  if (prior.previousUnit === null) {
+    rmSync(prior.unitPath);
   } else {
-    writeFileSync(unitPath, previousUnit, { encoding: "utf8", mode: 0o644 });
+    const temporary = prior.unitPath + ".restore." + crypto.randomUUID();
+    writeFileSync(temporary, prior.previousUnit, { mode: prior.mode! & 0o777, flag: "wx" });
+    renameSync(temporary, prior.unitPath);
   }
+  runCommand(["systemctl", "--user", "daemon-reload"], locations.home, environment);
+  if (prior.enablement === "enabled") {
+    runCommand(["systemctl", "--user", "enable", "pontivus-order.service"], locations.home, environment);
+  }
+};
+
+const completeDeploymentFootprint = (root: string, launcher: string, unit: string): boolean => {
   try {
-    runCommand(["systemctl", "--user", "daemon-reload"], locations.home);
-  } catch {
-    // Preserve the original installation bytes even if host supervision cannot be reloaded.
-  }
+    const regular = (path: string, executable = false): boolean => {
+      const entry = lstatSync(path, { throwIfNoEntry: false });
+      return entry !== undefined && entry.isFile() && (!executable || (entry.mode & 0o111) !== 0);
+    };
+    const marker = join(root, "SOURCE_COMMIT");
+    return lstatSync(root).isDirectory() && regular(marker) &&
+      /^[0-9a-f]{40}\n$/.test(readFileSync(marker, "utf8")) &&
+      regular(join(root, "app", "src", "cli.ts")) &&
+      regular(join(root, "app", "dist", "index.html")) &&
+      regular(join(root, "runtime", "bun", "bin", "bun"), true) &&
+      regular(launcher, true) && regular(unit);
+  } catch { return false; }
 };
 
-const restoreConfigSnapshot = (
-  snapshot: Readonly<{ path: string; bytes: Uint8Array | null }>,
-): void => {
-  if (snapshot.bytes === null) {
-    rmSync(snapshot.path, { force: true });
-    return;
+const confirmInstallationHistory = async (root: string): Promise<boolean> => {
+  if (!process.stdin.isTTY) fail("installation history requires interactive input");
+  for (;;) {
+    const answer = (await terminalQuestion("Did installation admission previously complete for " + root +
+      " (including committed with finalization incomplete)? [y/N] ")).trim().toLowerCase();
+    if (answer === "y" || answer === "yes") return true;
+    if (["", "n", "no", "unknown"].includes(answer)) return false;
+    process.stdout.write("Answer yes, no, or unknown.\n");
   }
-  writeFileSync(snapshot.path, snapshot.bytes, { mode: 0o600 });
-  chmodSync(snapshot.path, 0o600);
 };
-
 
 type LegacyGateweftLocations = Readonly<{
   installRoot: string;
@@ -752,46 +797,59 @@ export const runInstaller = async (
   if (process.platform !== "linux") fail("Order v1 productive installation requires Linux");
   if (Bun.version !== bunVersion) fail("installer must run on exact Bun " + bunVersion);
   const locations = resolveLocations(environment);
-  const legacyLocations = legacyGateweftLocations(locations, environment);
-  const existingInstallation =
-    currentOrderFootprintExists(locations) ||
-    legacyGateweftFootprintExists(legacyLocations);
-
-  step(existingInstallation ? "updating existing installation" : "starting fresh installation");
+  const legacy = legacyGateweftLocations(locations, environment);
+  const launcher = join(locations.binDir, "order");
+  const unitPath = join(locations.userConfigHome, "systemd", "user", "pontivus-order.service");
   step("verifying host and source");
-  for (const command of ["git", "tar", "xz", "systemctl", "sh"]) {
-    requireHostCommand(command, args.sourceRoot);
-  }
+  for (const command of ["git", "tar", "xz", "systemctl", "sh"]) requireHostCommand(command, args.sourceRoot);
   const sourceKind = verifySource(args.sourceRoot, args.sourceCommit);
-  if (!commandSucceeds(["systemctl", "--user", "show-environment"], locations.home)) {
+  if (!commandSucceeds(["systemctl", "--user", "show-environment"], locations.home, environment)) {
     fail("a usable systemd user manager is required for productive Order installation");
   }
+  const predecessor = legacyGateweftFootprintExists(legacy);
+  if (predecessor && currentOrderFootprintExists(locations)) {
+    fail("Gateweft predecessor and Order productive roots both exist; resolve the conflict before installing");
+  }
+  const historyRoot = predecessor ? legacy.installRoot : locations.installRoot;
+  const established = completeDeploymentFootprint(historyRoot,
+    predecessor ? legacy.launcher : launcher, predecessor ? legacy.unitPath : unitPath) &&
+    await confirmInstallationHistory(historyRoot);
+  step(established ? "updating existing installation" : "starting fresh/unproven installation");
 
-  const legacyMigration = migrateLegacyGateweftInstallation(locations, environment);
-
-  mkdirSync(dirname(locations.installRoot), { recursive: true });
-  mkdirSync(locations.binDir, { recursive: true });
-  const staging = mkdtempSync(join(dirname(locations.installRoot), ".pontivus-order-install."));
-  const installedBun = join(staging, "runtime", "bun", "bin", "bun");
-  mkdirSync(dirname(installedBun), { recursive: true });
-  mkdirSync(join(staging, "runtime", "home"), { recursive: true });
-  mkdirSync(join(staging, "runtime", "config"), { recursive: true });
-  mkdirSync(join(staging, "runtime", "cache"), { recursive: true });
-  mkdirSync(join(staging, "downloads"), { recursive: true });
-
+  const prior = captureServiceState(locations, environment);
+  let legacyMigration: LegacyGateweftMigration | null = null;
+  let staging: string | null = null;
+  let launcherTemporary: string | null = null;
   let installBackup: string | null = null;
   let launcherBackup: string | null = null;
-  let activated = false;
-  let serviceState: Readonly<{ unitPath: string; previousUnit: string | null }> | null = null;
-  let configSnapshot: Readonly<{ path: string; bytes: Uint8Array | null }> | null = null;
+  let appActivated = false;
+  let launcherActivated = false;
+  let priorStopped = false;
+  let unitPublished = false;
+  let restartAttempted = false;
+  let configModule: typeof import("./shell/config.ts") | null = null;
+  let configSnapshot: InstallerConfigSnapshot | null = null;
+  let published: Parameters<InstallerConfigPublication["onPublished"]>[0] | null = null;
   let databaseArchive: LegacyDatabaseArchive | null = null;
+  let databaseRestoreIncomplete = false;
   let sqliteUpgradeModule: typeof import("./shell/sqlite.ts") | null = null;
   let configuredSetup: Awaited<ReturnType<typeof configureOrder>> | null = null;
-  let priorServiceWasActive = false;
   const createdProjectManifests: string[] = [];
-  const launcher = join(locations.binDir, "order");
 
   try {
+    if (prior.activity === "active") {
+      requireServiceQuiescence("pontivus-order.service", locations.home, environment);
+      priorStopped = true;
+    }
+    legacyMigration = migrateLegacyGateweftInstallation(locations, environment);
+    mkdirSync(dirname(locations.installRoot), { recursive: true });
+    mkdirSync(locations.binDir, { recursive: true });
+    staging = mkdtempSync(join(dirname(locations.installRoot), ".pontivus-order-install."));
+    const installedBun = join(staging, "runtime", "bun", "bin", "bun");
+    for (const directory of [dirname(installedBun), join(staging, "runtime", "home"),
+      join(staging, "runtime", "config"), join(staging, "runtime", "cache"), join(staging, "downloads")]) {
+      mkdirSync(directory, { recursive: true });
+    }
     step("installing pinned runtimes");
     copyFileSync(process.execPath, installedBun);
     chmodSync(installedBun, 0o755);
@@ -800,164 +858,136 @@ export const runInstaller = async (
     }
     const node = await installNode(staging, args.sourceRoot);
     installOpenCode(staging, args.sourceRoot, installedBun, node);
-
     step("installing and building Order");
-    buildApplication(
-      staging,
-      args.sourceRoot,
-      args.sourceCommit,
-      sourceKind,
-      installedBun,
-      node,
-    );
-
-    const launcherTemporary = join(locations.binDir, ".pontivus-order." + process.pid);
-    writeFileSync(launcherTemporary, buildLauncherScript(locations), {
-      encoding: "utf8",
-      mode: 0o755,
-    });
-    chmodSync(launcherTemporary, 0o755);
-
-    priorServiceWasActive = commandSucceeds(
-      ["systemctl", "--user", "is-active", "--quiet", "pontivus-order.service"],
-      locations.home,
-    );
-    if (priorServiceWasActive) {
-      step("quiescing existing service");
-      runCommand(["systemctl", "--user", "stop", "pontivus-order.service"], locations.home);
-    }
+    buildApplication(staging, args.sourceRoot, args.sourceCommit, sourceKind, installedBun, node);
+    const temporary = join(locations.binDir, ".pontivus-order." + crypto.randomUUID());
+    writeFileSync(temporary, buildLauncherScript(locations), { encoding: "utf8", mode: 0o755, flag: "wx" });
+    launcherTemporary = temporary;
 
     step("activating application");
     if (existsSync(locations.installRoot)) {
-      installBackup = locations.installRoot + ".previous." + process.pid;
-      rmSync(installBackup, { recursive: true, force: true });
-      renameSync(locations.installRoot, installBackup);
+      const backup = locations.installRoot + ".previous." + crypto.randomUUID();
+      renameSync(locations.installRoot, backup);
+      installBackup = backup;
     }
     if (existsSync(launcher)) {
-      launcherBackup = launcher + ".previous." + process.pid;
-      rmSync(launcherBackup, { force: true });
-      renameSync(launcher, launcherBackup);
+      const backup = launcher + ".previous." + crypto.randomUUID();
+      renameSync(launcher, backup);
+      launcherBackup = backup;
     }
     renameSync(staging, locations.installRoot);
+    appActivated = true;
+    staging = null;
     renameSync(launcherTemporary, launcher);
-    activated = true;
+    launcherActivated = true;
+    launcherTemporary = null;
 
-    const runtimeUrl = pathToFileURL(
-      join(locations.installRoot, "app", "src", "shell", "runtime.ts"),
-    ).href;
-    const runtimeModule = await import(runtimeUrl) as typeof import("./shell/runtime.ts");
-    const configPath = runtimeModule.statePaths(locations.stateRoot).config;
-    configSnapshot = {
-      path: configPath,
-      bytes: existsSync(configPath) ? new Uint8Array(readFileSync(configPath)) : null,
-    };
-
+    configModule = await import(pathToFileURL(join(locations.installRoot, "app", "src", "shell", "config.ts")).href)
+      as typeof import("./shell/config.ts");
+    configSnapshot = configModule.captureInstallerConfigSnapshot(locations.stateRoot);
     step("configuring provider, model and repository access");
-    configuredSetup = await configureOrder(
-      locations,
-      (path) => createdProjectManifests.push(path),
-    );
+    configuredSetup = await configureOrder(locations, established, {
+      snapshot: configSnapshot, onPublished: identity => { published = identity; },
+    }, path => createdProjectManifests.push(path));
 
-    const sqliteUrl = pathToFileURL(
-      join(locations.installRoot, "app", "src", "shell", "sqlite.ts"),
-    ).href;
-    sqliteUpgradeModule = await import(sqliteUrl) as typeof import("./shell/sqlite.ts");
-    databaseArchive = sqliteUpgradeModule.prepareOrderDatabaseForInstall(
-      locations.stateRoot,
-    );
+    sqliteUpgradeModule = await import(pathToFileURL(join(locations.installRoot, "app", "src", "shell", "sqlite.ts")).href)
+      as typeof import("./shell/sqlite.ts");
+    databaseArchive = sqliteUpgradeModule.prepareOrderDatabaseForInstall(locations.stateRoot,
+      () => { databaseRestoreIncomplete = true; });
     if (databaseArchive !== null) {
-      process.stdout.write(
-        "Order installer — retained rollback database archive at " +
-          databaseArchive.archiveDatabase +
-          "\n",
-      );
+      process.stdout.write("Order installer — retained rollback database archive at " + databaseArchive.archiveDatabase + "\n");
     }
-
     if (configuredSetup.legacyV2Config !== null) {
-      await configuredSetup.setupModule.migrateRepositoryNativeV2StateForInstall(
-        locations.stateRoot,
-        configuredSetup.legacyV2Config,
-      );
-      process.stdout.write(
-        "Order installer — migrated WorkItem documentation into target repositories; retained legacy source root as backup: " +
-          configuredSetup.legacyV2Config.workItemRoot +
-          "\n",
-      );
+      await configuredSetup.setupModule.migrateRepositoryNativeV2StateForInstall(locations.stateRoot, configuredSetup.legacyV2Config);
+      process.stdout.write("Order installer — migrated WorkItem documentation into target repositories; retained legacy source root as backup: " +
+        configuredSetup.legacyV2Config.workItemRoot + "\n");
     }
-
     step("installing and starting user service");
-    serviceState = await activateService(locations, launcher);
+    activateService(locations, launcher, prior.unitPath, environment,
+      () => { unitPublished = true; }, () => { restartAttempted = true; });
     await waitForHealthyDaemon(locations, launcher);
+    if (!established) await configuredSetup.setupModule.requireFreshInstallerReadiness(runtimeEnvironment(locations));
 
-    retireLegacyGateweftArtifacts(legacyMigration, locations, environment);
-    writeProfilePath(locations.home, locations.binDir);
-    if (installBackup !== null) rmSync(installBackup, { recursive: true, force: true });
-    if (launcherBackup !== null) rmSync(launcherBackup, { force: true });
-
-    process.stdout.write(
-      [
-        "",
-        existingInstallation ? "Order updated successfully." : "Order installed successfully.",
-        "  source:   " + args.sourceCommit,
-        "  app:      " + join(locations.installRoot, "app"),
-        "  launcher: " + launcher,
-        "  state:    " + locations.stateRoot,
-        "  service:  " + serviceState.unitPath,
-        "  status:   healthy",
-        "",
-      ].join("\n"),
-    );
+    // Installation commit: all reversible admission conditions have passed.
+    const marker = join(locations.installRoot, "SOURCE_COMMIT");
+    const temporaryMarker = marker + ".tmp." + crypto.randomUUID();
+    writeFileSync(temporaryMarker, args.sourceCommit + "\n", { encoding: "utf8", flag: "wx" });
+    renameSync(temporaryMarker, marker);
   } catch (error) {
-    if (serviceState !== null) {
-      restoreUnit(locations, serviceState.unitPath, serviceState.previousUnit);
+    const failures: unknown[] = [];
+    const compensate = (label: string, operation: () => void): void => {
+      try { operation(); } catch (failure) { failures.push(new Error(label, { cause: failure })); }
+    };
+    if (restartAttempted) {
+      compensate("cannot prove new service stopped; live deployment and recovery material retained",
+        () => requireServiceQuiescence("pontivus-order.service", locations.home, environment));
+      if (failures.length > 0) throw new AggregateError([error, ...failures],
+        "installation failed; cannot safely restore active deployment; retained paths: " +
+        [locations.installRoot, locations.stateRoot, installBackup, launcherBackup, configSnapshot?.recoveryPath].filter(Boolean).join(", "));
     }
+    if (unitPublished) compensate("service unit restoration incomplete", () => restoreUnit(locations, prior, environment));
+    if (databaseRestoreIncomplete) failures.push(new Error("database preparation compensation incomplete at " + locations.stateRoot));
     if (databaseArchive !== null && sqliteUpgradeModule !== null) {
-      try {
-        sqliteUpgradeModule.restoreOrderDatabaseAfterFailedInstall(databaseArchive);
-      } catch {
-        // Preserve the original installer failure; the retained archive remains recoverable.
-      }
+      const archive = databaseArchive;
+      const module = sqliteUpgradeModule;
+      compensate("database restoration incomplete: " + archive.archiveDatabase, () => module.restoreOrderDatabaseAfterFailedInstall(archive));
     }
-    if (configSnapshot !== null) {
-      try {
-        restoreConfigSnapshot(configSnapshot);
-      } catch {
-        // Preserve the original installer failure; configuration restoration is best effort.
-      }
+    if (configSnapshot !== null && configModule !== null) {
+      const snapshot = configSnapshot;
+      const module = configModule;
+      compensate("configuration restoration incomplete: " + (snapshot.recoveryPath ?? snapshot.target),
+        () => module.restoreInstallerConfig(snapshot, published));
     }
-    for (const path of createdProjectManifests.reverse()) {
-      try {
-        rmSync(path, { force: true });
-      } catch {
-        // Preserve the original installer failure; a created manifest remains visible for recovery.
-      }
+    for (const path of createdProjectManifests.reverse()) compensate("manifest restoration incomplete: " + path, () => rmSync(path));
+    if (launcherActivated) compensate("new launcher removal incomplete: " + launcher, () => rmSync(launcher));
+    if (launcherBackup !== null) {
+      const backup = launcherBackup;
+      compensate("launcher restoration incomplete: " + backup, () => {
+        if (existsSync(launcher)) fail("launcher destination occupied: " + launcher);
+        renameSync(backup, launcher);
+      });
     }
-    if (activated) {
-      rmSync(locations.installRoot, { recursive: true, force: true });
-      if (installBackup !== null && existsSync(installBackup)) {
-        renameSync(installBackup, locations.installRoot);
-      }
-      rmSync(launcher, { force: true });
-      if (launcherBackup !== null && existsSync(launcherBackup)) {
-        renameSync(launcherBackup, launcher);
-      }
-    } else {
-      rmSync(staging, { recursive: true, force: true });
+    if (appActivated) compensate("new application removal incomplete: " + locations.installRoot, () => rmSync(locations.installRoot, { recursive: true }));
+    if (installBackup !== null) {
+      const backup = installBackup;
+      compensate("application restoration incomplete: " + backup, () => {
+        if (existsSync(locations.installRoot)) fail("application destination occupied: " + locations.installRoot);
+        renameSync(backup, locations.installRoot);
+      });
     }
-    if (priorServiceWasActive) {
-      try {
-        runCommand(["systemctl", "--user", "restart", "pontivus-order.service"], locations.home);
-      } catch {
-        // Preserve the original installer failure if host supervision cannot be restored.
-      }
+    if (staging !== null) { const path = staging; compensate("staging cleanup incomplete: " + path, () => rmSync(path, { recursive: true })); }
+    if (launcherTemporary !== null) { const path = launcherTemporary; compensate("temporary launcher cleanup incomplete: " + path, () => rmSync(path)); }
+    if (failures.length === 0 && legacyMigration !== null) {
+      const migration = legacyMigration;
+      compensate("predecessor restoration incomplete", () => rollbackLegacyGateweftMigration(migration, locations, environment));
     }
-    try {
-      rollbackLegacyGateweftMigration(legacyMigration, locations, environment);
-    } catch {
-      // Preserve the original installer failure; predecessor recovery remains visible.
-    }
+    if (failures.length === 0 && priorStopped) compensate("prior service restart failed",
+      () => runCommand(["systemctl", "--user", "restart", "pontivus-order.service"], locations.home, environment));
+    if (failures.length > 0) throw new AggregateError([error, ...failures], "installation failed; rollback incomplete: " + failures.map(String).join("; "));
     throw error;
   }
+
+  // Never roll back a committed installation because finalization failed.
+  try {
+    if (configSnapshot !== null && configModule !== null) configModule.releaseInstallerConfigSnapshot(configSnapshot);
+    if (legacyMigration !== null) retireLegacyGateweftArtifacts(legacyMigration, locations, environment);
+    writeProfilePath(locations.home, locations.binDir);
+    if (installBackup !== null) rmSync(installBackup, { recursive: true });
+    if (launcherBackup !== null) rmSync(launcherBackup);
+  } catch (error) {
+    throw new Error("installation committed; finalization incomplete; retained material may remain at " +
+      [installBackup, launcherBackup, configSnapshot?.recoveryPath, legacy.launcher, legacy.unitPath].filter(Boolean).join(", "),
+      { cause: error });
+  }
+  if (established && configuredSetup !== null) {
+    await configuredSetup.setupModule.reportEstablishedInstallerReadiness(runtimeEnvironment(locations), value => process.stdout.write(value));
+  }
+  process.stdout.write([
+    "", established ? "Order updated successfully." : "Order installed successfully.",
+    "  source:   " + args.sourceCommit, "  app:      " + join(locations.installRoot, "app"),
+    "  launcher: " + launcher, "  state:    " + locations.stateRoot,
+    "  service:  " + unitPath, "  status:   healthy", "",
+  ].join("\n"));
 };
 
 if (import.meta.main) {

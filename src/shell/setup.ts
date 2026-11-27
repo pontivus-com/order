@@ -3,6 +3,7 @@ import { isAbsolute, join, relative, sep } from "node:path";
 
 import {
   InstallationReadinessSchema,
+  OrderConfigSchema,
   type InstallationReadiness,
   type LegacyOrderConfigV2,
   type OrderConfig,
@@ -17,7 +18,10 @@ import {
 import {
   buildOrderConfig,
   readOrderConfig,
-  readOrderConfigForUpgradeIfPresent,
+  proveConfiguredDirectoryRoots,
+  readInstallerConfigForUpgrade,
+  type InstallerConfigPublication,
+  type InstallerConfigSnapshot,
   readOrderConfigIfPresent,
   writeOrderConfig,
 } from "./config.ts";
@@ -56,8 +60,9 @@ const byteEqual = (left: Uint8Array, right: Uint8Array): boolean => {
 
 export const readLegacyOrderConfigV2ForInstall = (
   stateRoot: string,
+  snapshot: InstallerConfigSnapshot,
 ): LegacyOrderConfigV2 | null => {
-  const config = readOrderConfigForUpgradeIfPresent(stateRoot);
+  const config = readInstallerConfigForUpgrade(stateRoot, snapshot);
   return config?.version === 2 ? config : null;
 };
 
@@ -351,16 +356,18 @@ const legacyTargetRootsForUpgrade = async (
 
 const runGuidedSetupInternal = async (
   reconfigure: boolean,
-  allowLegacyUpdate: boolean,
   environment: NodeJS.ProcessEnv,
   writeStdout: (value: string) => void,
   question: SetupQuestion,
   projectManifestCreated: (path: string) => void,
+  publication?: InstallerConfigPublication,
+  established = false,
 ): Promise<number> => {
+  const allowLegacyUpdate = publication !== undefined;
   const stateRoot = resolveStateRoot(environment);
   const home = requireSetupHome(environment);
-  const configured = allowLegacyUpdate
-    ? readOrderConfigForUpgradeIfPresent(stateRoot)
+  const configured = publication !== undefined
+    ? readInstallerConfigForUpgrade(stateRoot, publication.snapshot)
     : readOrderConfigIfPresent(stateRoot);
 
   let existing = configured?.version === 4 ? configured : null;
@@ -413,35 +420,78 @@ const runGuidedSetupInternal = async (
   }
 
   if (allowLegacyUpdate && configured?.version === 3) {
-    existing = buildOrderConfig(
-      configured.model,
-      configured.repositoryRoots,
-      configured.referenceRoots,
-    );
+    existing = OrderConfigSchema.parse({ ...configured, version: 4 });
     upgrading = true;
   }
 
-  if (allowLegacyUpdate && configured?.version === 4 && !reconfigure) {
-    writeOrderConfig(stateRoot, configured);
-    const concerns = [
-      ...(configured.repositoryRoots.length === 0 ? ["repository"] : []),
-      ...(configured.model === null ? ["model"] : []),
-    ];
-    writeStdout("Order configuration version 4 retained unchanged.\n");
-    if (concerns.length > 0) {
-      writeStdout(
-        "requires operator action: complete " + concerns.join(" and ") +
-        " setup in browser Settings.\n",
-      );
+  if (publication !== undefined && established) {
+    const retained = existing ?? OrderConfigSchema.parse({
+      version: 4, model: null, repositoryRoots: [], referenceRoots: [],
+    });
+    writeOrderConfig(stateRoot, retained, publication);
+    writeStdout("Order configuration version 4 retained or migrated.\n");
+    if (retained.repositoryRoots.length === 0 || retained.model === null) {
+      writeStdout("requires operator action: complete setup in browser Settings.\n");
     }
     return 0;
   }
 
-  const workspace = existing?.repositoryRoots[0] ?? home;
+  // Fresh or unproven installation must establish exact roots before provider work.
+  let installerRoots: Pick<OrderConfig, "repositoryRoots" | "referenceRoots"> | null = null;
+  if (publication !== undefined) {
+    const accepted: string[] = [];
+    const repairRoots = async (roots: readonly string[], target: boolean): Promise<string[]> => {
+      const result: string[] = [];
+      const prove = async (path: string, retained: boolean): Promise<string> => {
+        const exact = proveConfiguredDirectoryRoots([path])[0]!;
+        if (retained && exact !== path) throw new TypeError("stored root identity changed");
+        if ([stateRoot, ...accepted].some(root => pathIsWithin(root, exact) || pathIsWithin(exact, root))) {
+          throw new TypeError("configured roots must remain path-disjoint");
+        }
+        if (target) await loadConfiguredProjects([exact]);
+        return exact;
+      };
+      for (const root of roots) {
+        let candidate = root;
+        let retained = true;
+        while (candidate !== "") {
+          try {
+            const exact = await prove(candidate, retained);
+            result.push(exact);
+            accepted.push(exact);
+            break;
+          } catch (error) {
+            writeStdout("Root requires attention: " + candidate + ": " + String(error) + "\n");
+            candidate = (await question("Replacement for " + root + " (blank removes): ")).trim();
+            retained = false;
+          }
+        }
+      }
+      return result;
+    };
+    let repositoryRoots = await repairRoots(existing?.repositoryRoots ?? [], true);
+    while (repositoryRoots.length === 0) {
+      const first = (await question("Target repository root: ")).trim();
+      if (first === "") throw new TypeError("an exact target repository root is required");
+      repositoryRoots = await repairRoots(await collectAdditionalRoots(first, "target repository", question), true);
+    }
+    let referenceRoots = await repairRoots(existing?.referenceRoots ?? [], false);
+    if ((existing?.referenceRoots.length ?? 0) === 0) {
+      const first = (await question("STAGE reference root (blank for none): ")).trim();
+      if (first !== "") referenceRoots = await repairRoots(await collectAdditionalRoots(first, "reference", question), false);
+    }
+    installerRoots = buildOrderConfig(null, repositoryRoots, referenceRoots);
+  }
 
+  const workspace = installerRoots?.repositoryRoots[0] ?? existing?.repositoryRoots[0] ?? home;
   let models = existing === null
     ? []
     : await listAvailableOpenCodeModels(stateRoot, workspace, environment).catch(() => []);
+  if (installerRoots !== null && models.length > 0) {
+    const choice = (await question("Retain saved OpenCode credentials or login again? [retain/login]: ")).trim().toLowerCase();
+    if (choice === "login") models = [];
+    else if (choice !== "" && choice !== "retain") throw new TypeError("choose retain or login");
+  }
   const existingModelIndex = existing?.model === null || existing?.model === undefined
     ? -1
     : models.findIndex((model) =>
@@ -453,7 +503,7 @@ const runGuidedSetupInternal = async (
     existing.model !== null &&
     existing.repositoryRoots.length > 0 &&
     existingModelIndex >= 0 &&
-    !reconfigure
+    !reconfigure && publication === undefined
   ) {
     await loadConfiguredProjects(existing.repositoryRoots);
     if (upgrading) {
@@ -504,7 +554,10 @@ const runGuidedSetupInternal = async (
 
   let repositoryRoots: readonly string[];
   let referenceRoots: readonly string[];
-  if (existing !== null && !reconfigure) {
+  if (installerRoots !== null) {
+    repositoryRoots = installerRoots.repositoryRoots;
+    referenceRoots = installerRoots.referenceRoots;
+  } else if (existing !== null && !reconfigure) {
     repositoryRoots = existing.repositoryRoots;
     referenceRoots = existing.referenceRoots;
   } else if (existing !== null) {
@@ -541,7 +594,7 @@ const runGuidedSetupInternal = async (
     repositoryRoots,
     referenceRoots,
   );
-  writeOrderConfig(stateRoot, config);
+  writeOrderConfig(stateRoot, config, publication);
   writeStdout(
     upgrading
       ? "Order configuration upgraded to version 4.\n"
@@ -558,7 +611,6 @@ export const runGuidedSetup = async (
 ): Promise<number> =>
   runGuidedSetupInternal(
     reconfigure,
-    false,
     environment,
     writeStdout,
     question,
@@ -569,15 +621,18 @@ export const runInstallerGuidedSetup = async (
   environment: NodeJS.ProcessEnv,
   writeStdout: (value: string) => void,
   question: SetupQuestion,
+  established: boolean,
+  publication: InstallerConfigPublication,
   projectManifestCreated: (path: string) => void = () => {},
 ): Promise<number> =>
   runGuidedSetupInternal(
     false,
-    true,
     environment,
     writeStdout,
     question,
     projectManifestCreated,
+    publication,
+    established,
   );
 
 const observeInstalledReadiness = async (
