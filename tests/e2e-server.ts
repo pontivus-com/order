@@ -1188,7 +1188,6 @@ const seedBlockedReadinessItem = async (
       completion: { stage: "R3", outcome: "READY_FOR_SIGNOFF" },
       artifactRefIds: [output.id],
     });
-  }
     appendRunEvent(seedRuntime, prior.id, {
       tag: "CONFORMANCE_PASSED",
       stage: "R3",
@@ -1196,6 +1195,7 @@ const seedBlockedReadinessItem = async (
       contextHash: priorContextHash,
       evidence: [],
     });
+  }
 
   const contextHash = sha256Text("readiness-blocked-" + title);
   const run = RunSchema.parse({

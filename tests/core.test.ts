@@ -24,6 +24,7 @@ import {
   type ExecutionTask,
   type ExecutionTaskId,
   type Run,
+  type RunEvent,
   type RunEventId,
   type Sha256,
   type WorkItem,
