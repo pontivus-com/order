@@ -23,7 +23,7 @@ import { basename, dirname, isAbsolute, join } from "node:path";
 import { pathToFileURL } from "node:url";
 
 import type { InstallerConfigPublication, InstallerConfigSnapshot, InstallerManifestCustody, InstallerManifestEffects } from "./shell/setup.ts";
-import type { LegacyDatabaseArchive } from "./shell/sqlite.ts";
+import type { InstallerDatabaseCustody, LegacyDatabaseArchive } from "./shell/sqlite.ts";
 
 const bunVersion = "1.4.4";
 const nodeVersion = "26.13.0";
@@ -1071,6 +1071,8 @@ export const runInstaller = async (
   let configCaptureIncomplete: string | null = null;
   let published: Parameters<InstallerConfigPublication["onPublished"]>[0] | null = null;
   let databaseArchive: LegacyDatabaseArchive | null = null;
+  let databaseCustody: InstallerDatabaseCustody | null = null;
+  const unarchivedDatabase: { custody: InstallerDatabaseCustody | null } = { custody: null };
   let databaseCandidateEffectsStarted = false;
   let databaseCandidates: ReturnType<typeof import("./shell/sqlite.ts").observeInstallerDatabaseCandidates> | undefined;
   let databaseWriterBaseline: typeof databaseCandidates;
@@ -1150,25 +1152,27 @@ export const runInstaller = async (
 
     sqliteUpgradeModule = await import(pathToFileURL(join(locations.installRoot, "app", "src", "shell", "sqlite.ts")).href) as typeof import("./shell/sqlite.ts");
     databaseArchive = sqliteUpgradeModule.prepareOrderDatabaseForInstall(locations.stateRoot,
-      () => { databaseRestoreIncomplete = true; }, databaseEffects);
+      () => { databaseRestoreIncomplete = true; }, databaseEffects,
+      custody => { unarchivedDatabase.custody = custody; });
+    databaseCustody = databaseArchive ?? unarchivedDatabase.custody;
+    if (databaseCustody === null) {
+      databaseRestoreIncomplete = true;
+      throw new TypeError("installer database state root custody unavailable: " + locations.stateRoot);
+    }
+    databaseCandidates = sqliteUpgradeModule.observeInstallerDatabaseCandidates(databaseCustody, false);
+    sqliteUpgradeModule.requireInstallerDatabaseCandidates(databaseCustody, databaseCandidates, true);
     if (databaseArchive !== null) {
-      databaseCandidates = sqliteUpgradeModule.observeInstallerDatabaseCandidates(databaseArchive, false);
-      sqliteUpgradeModule.requireInstallerDatabaseCandidates(databaseArchive, databaseCandidates, true);
       process.stdout.write("Order installer — retained rollback database archive at " + databaseArchive.archiveDatabase + "\n");
     }
     if (configuredSetup.legacyV2Config !== null) {
-      if (databaseArchive !== null) {
-        if (databaseCandidates === undefined) throw new TypeError("database candidate custody unavailable before migration");
-        sqliteUpgradeModule.requireInstallerDatabaseCandidates(databaseArchive, databaseCandidates, true);
-      }
+      if (databaseCandidates === undefined) throw new TypeError("database candidate custody unavailable before migration");
+      sqliteUpgradeModule.requireInstallerDatabaseCandidates(databaseCustody, databaseCandidates, true);
       databaseWriterBaseline = databaseCandidates;
       databaseCandidates = undefined;
       databaseCandidateEffectsStarted = true;
       await configuredSetup.setupModule.migrateRepositoryNativeV2StateForInstall(locations.stateRoot, configuredSetup.legacyV2Config);
-      if (databaseArchive !== null) {
-        databaseCandidates = sqliteUpgradeModule.observeInstallerDatabaseCandidates(databaseArchive, true, databaseWriterBaseline, true);
-        sqliteUpgradeModule.requireInstallerDatabaseCandidates(databaseArchive, databaseCandidates, false);
-      }
+      databaseCandidates = sqliteUpgradeModule.observeInstallerDatabaseCandidates(databaseCustody, true, databaseWriterBaseline, true);
+      sqliteUpgradeModule.requireInstallerDatabaseCandidates(databaseCustody, databaseCandidates, false);
       process.stdout.write("Order installer — migrated WorkItem documentation into target repositories; retained legacy source root as backup: " +
         configuredSetup.legacyV2Config.workItemRoot + "\n");
     }
@@ -1176,21 +1180,19 @@ export const runInstaller = async (
     activateService(locations, launcher, prior, environment,
       identity => { unitPublished = identity; },
       recovery => { unitRecovery = recovery; }, () => {
-        if (databaseArchive !== null && sqliteUpgradeModule !== null) {
-          if (databaseCandidates === undefined) throw new TypeError("database candidate custody is unavailable before service activation");
-          sqliteUpgradeModule.requireInstallerDatabaseCandidates(
-            databaseArchive, databaseCandidates, !databaseCandidateEffectsStarted);
+        if (databaseCustody === null || sqliteUpgradeModule === null || databaseCandidates === undefined) {
+          throw new TypeError("database candidate custody is unavailable before service activation");
         }
+        sqliteUpgradeModule.requireInstallerDatabaseCandidates(
+          databaseCustody, databaseCandidates, !databaseCandidateEffectsStarted);
         databaseWriterBaseline = databaseCandidates;
         databaseCandidates = undefined;
         restartAttempted = true;
         databaseCandidateEffectsStarted = true;
       }, rename);
     await waitForHealthyDaemon(locations, launcher);
-    if (databaseArchive !== null) {
-      databaseCandidates = sqliteUpgradeModule.observeInstallerDatabaseCandidates(databaseArchive, true, databaseWriterBaseline);
-      sqliteUpgradeModule.requireInstallerDatabaseCandidates(databaseArchive, databaseCandidates, false);
-    }
+    databaseCandidates = sqliteUpgradeModule.observeInstallerDatabaseCandidates(databaseCustody, true, databaseWriterBaseline);
+    sqliteUpgradeModule.requireInstallerDatabaseCandidates(databaseCustody, databaseCandidates, false);
     if (!established) await configuredSetup.setupModule.requireFreshInstallerReadiness(runtimeEnvironment(locations));
 
     // Readiness is an observation of the admitted deployment, not permission
@@ -1221,10 +1223,8 @@ export const runInstaller = async (
     } finally { closeSync(markerDescriptor); }
     requireInstallerDirectory(locations.installRoot, stagingIdentity);
     for (const custody of createdProjectManifests.values()) setupModule.requireInstallerManifest(custody);
-    if (databaseArchive !== null) {
-      if (databaseCandidates === undefined) throw new TypeError("database candidate custody unavailable before commit");
-      sqliteUpgradeModule.requireInstallerDatabaseCandidates(databaseArchive, databaseCandidates, false);
-    }
+    if (databaseCandidates === undefined) throw new TypeError("database candidate custody unavailable before commit");
+    sqliteUpgradeModule.requireInstallerDatabaseCandidates(databaseCustody, databaseCandidates, false);
     if (footprintEntryExists(marker)) fail("unexpected installation commit marker: " + marker);
     rename(temporaryMarker, marker);
   } catch (error) {
@@ -1232,8 +1232,8 @@ export const runInstaller = async (
     const compensate = (label: string, operation: () => void): void => {
       try { operation(); } catch (failure) { failures.push(new Error(label + ": " + String(failure), { cause: failure })); }
     };
-    if (databaseCandidates === undefined && databaseArchive !== null && sqliteUpgradeModule !== null) {
-      databaseCandidates = sqliteUpgradeModule.observeInstallerDatabaseCandidates(databaseArchive, databaseCandidateEffectsStarted, databaseWriterBaseline, !restartAttempted);
+    if (databaseCandidates === undefined && databaseCustody !== null && sqliteUpgradeModule !== null) {
+      databaseCandidates = sqliteUpgradeModule.observeInstallerDatabaseCandidates(databaseCustody, databaseCandidateEffectsStarted, databaseWriterBaseline, !restartAttempted);
     }
     if (restartAttempted) {
       compensate("cannot prove new service stopped; live deployment and recovery material retained",
@@ -1253,6 +1253,15 @@ export const runInstaller = async (
           module.restoreOrderDatabaseAfterFailedInstall(archive, databaseEffects, databaseCandidates, restartAttempted);
         }
         catch (failure) { databaseRestoreIncomplete = true; throw failure; }
+      });
+    } else if (databaseCustody !== null && sqliteUpgradeModule !== null) {
+      const custody = databaseCustody;
+      const module = sqliteUpgradeModule;
+      compensate("unarchived database custody incomplete: " + custody.stateRoot, () => {
+        try {
+          if (databaseCandidates === undefined) fail("database candidate custody is unavailable");
+          module.requireUnarchivedInstallerDatabaseForRestart(custody, databaseCandidates, restartAttempted);
+        } catch (failure) { databaseRestoreIncomplete = true; throw failure; }
       });
     }
     if (configSnapshot !== null && setupModule !== null) {

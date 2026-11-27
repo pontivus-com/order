@@ -316,7 +316,7 @@ const installerDatabaseRootIdentity = (stateRoot: string): InstallerDatabaseRoot
   return { canonicalPath, device: entry.dev, inode: entry.ino };
 };
 
-const requireInstallerDatabaseRoot = (archive: LegacyDatabaseArchive): void => {
+const requireInstallerDatabaseRoot = (archive: InstallerDatabaseCustody): void => {
   const observed = installerDatabaseRootIdentity(archive.stateRoot);
   if (observed.canonicalPath !== archive.rootIdentity.canonicalPath ||
       observed.device !== archive.rootIdentity.device || observed.inode !== archive.rootIdentity.inode) {
@@ -324,13 +324,19 @@ const requireInstallerDatabaseRoot = (archive: LegacyDatabaseArchive): void => {
   }
 };
 
-export type LegacyDatabaseArchive = Readonly<{
+// Invocation-local filesystem custody is independent of rollback-archive
+// policy. A current v3 or absent database has no archive to restore.
+export type InstallerDatabaseCustody = Readonly<{
   stateRoot: string;
   rootIdentity: InstallerDatabaseRootIdentity;
-  suffix: string;
-  archiveDatabase: string;
+  suffix: string | null;
   originals: readonly Readonly<{ path: string; identity: InstallerDatabaseFileIdentity | null; digest: string | null }>[];
   preparedCandidates: ReadonlyMap<string, InstallerDatabaseFileIdentity>;
+}>;
+
+export type LegacyDatabaseArchive = InstallerDatabaseCustody & Readonly<{
+  suffix: string;
+  archiveDatabase: string;
 }>;
 
 const inspectInstallerDatabaseFile = (path: string): InstallerDatabaseFileIdentity | null => {
@@ -581,6 +587,7 @@ export const prepareOrderDatabaseForInstall = (
   stateRoot: string,
   onIncompleteRestore: () => void = () => {},
   effects: InstallerDatabaseEffects = installerDatabaseEffects,
+  onUnarchived: (custody: InstallerDatabaseCustody) => void = () => {},
 ): LegacyDatabaseArchive | null => {
   const path = statePaths(stateRoot).database;
   // A missing state root has no database to archive. A dangling or
@@ -598,8 +605,19 @@ export const prepareOrderDatabaseForInstall = (
       throw new TypeError("installer database state root changed during preparation: " + stateRoot);
     }
   } catch (error) { onIncompleteRestore(); throw error; }
-  if (version === null) return null;
-  if (version === 3) return null;
+  if (version === null || version === 3) {
+    const preparedCandidates = new Map<string, InstallerDatabaseFileIdentity>();
+    for (const original of originals) {
+      if (original.identity !== null) preparedCandidates.set(original.path, original.identity);
+    }
+    const custody: InstallerDatabaseCustody = {
+      stateRoot, rootIdentity, suffix: null, originals, preparedCandidates,
+    };
+    onUnarchived(custody);
+    try { requireInstallerDatabaseCandidates(custody, observeInstallerDatabaseCandidates(custody, false), true); }
+    catch (error) { onIncompleteRestore(); throw error; }
+    return null;
+  }
   if (version !== 1 && version !== 2) {
     throw new TypeError(`unsupported Order SQLite schema version during update: ${version}`);
   }
@@ -670,7 +688,7 @@ export const prepareOrderDatabaseForInstall = (
 // Observe the invocation's candidate namespace before stopping its service.
 // A missing map entry is intentionally unproven, distinct from proven absence.
 export const observeInstallerDatabaseCandidates = (
-  archive: LegacyDatabaseArchive,
+  archive: InstallerDatabaseCustody,
   candidateEffectsStarted: boolean,
   priorCandidates?: ReadonlyMap<string, InstallerDatabaseCandidate | null>,
   quiesced = false,
@@ -696,7 +714,7 @@ export const observeInstallerDatabaseCandidates = (
         const expectedPrimary = priorCandidates === undefined ? prepared : priorCandidates.get(original.path) ?? null;
         if (expectedPrimary !== null && !sameInstallerDatabaseFile(candidate, expectedPrimary)) continue;
       }
-      if (candidate !== null && archive.originals.some(entry =>
+      if (archive.suffix !== null && candidate !== null && archive.originals.some(entry =>
           entry.identity !== null && sameInstallerDatabaseFile(candidate, entry.identity))) continue;
       const digest = quiesced && candidate !== null ? installerDatabaseDigest(original.path, candidate) : null;
       observed.set(original.path, candidate === null ? null : digest === null ? candidate : { ...candidate, quiescedDigest: digest });
@@ -722,13 +740,13 @@ export const observeInstallerDatabaseCandidates = (
 // permitting migration or startup to acquire it. Unexpected paths never gain
 // custody merely because a later service observation finds them.
 export const requireInstallerDatabaseCandidates = (
-  archive: LegacyDatabaseArchive,
+  archive: InstallerDatabaseCustody,
   expected: ReadonlyMap<string, InstallerDatabaseCandidate | null>,
   preparedOnly: boolean,
 ): void => {
   requireInstallerDatabaseRoot(archive);
   for (const original of archive.originals) {
-    requireArchivedDatabaseOriginal(original.path + archive.suffix, original);
+    if (archive.suffix !== null) requireArchivedDatabaseOriginal(original.path + archive.suffix, original);
     const candidate = expected.get(original.path);
     if (candidate === undefined || !expected.has(original.path)) {
       throw new TypeError("installer database candidate custody unavailable: " + original.path);
@@ -739,6 +757,40 @@ export const requireInstallerDatabaseCandidates = (
         installerDatabaseDigest(original.path, candidate) !== expectedDigest) {
       throw new TypeError("installer database candidate changed before admitted effects: " + original.path);
     }
+  }
+};
+
+// The same post-quiescence custody test protects both destructive legacy
+// compensation and non-mutating v3/fresh restart admission.
+const requireInstallerDatabaseCompensationCandidate = (
+  path: string,
+  candidates: ReadonlyMap<string, InstallerDatabaseCandidate | null>,
+  allowDisappearance: boolean,
+): InstallerDatabaseFileIdentity | null => {
+  const candidate = inspectInstallerDatabaseFile(path);
+  const observed = candidates.get(path);
+  if (!candidates.has(path) ||
+      (candidate !== null && (observed === undefined || !sameInstallerDatabaseFile(candidate, observed))) ||
+      (candidate === null && observed !== null && !allowDisappearance)) {
+    throw new TypeError("ambiguous installer database candidate retained: " + path);
+  }
+  if (candidate !== null && observed?.quiescedDigest !== undefined &&
+      installerDatabaseDigest(path, candidate) !== observed.quiescedDigest) {
+    throw new TypeError("ambiguous installer database candidate bytes retained: " + path);
+  }
+  return candidate;
+};
+
+export const requireUnarchivedInstallerDatabaseForRestart = (
+  custody: InstallerDatabaseCustody,
+  candidates: ReadonlyMap<string, InstallerDatabaseCandidate | null>,
+  serviceStopped: boolean,
+): void => {
+  if (custody.suffix !== null) throw new TypeError("expected unarchived installer database custody");
+  requireInstallerDatabaseRoot(custody);
+  for (const original of custody.originals) {
+    requireInstallerDatabaseCompensationCandidate(original.path, candidates,
+      serviceStopped && original.path !== statePaths(custody.stateRoot).database);
   }
 };
 
@@ -761,20 +813,8 @@ export const restoreOrderDatabaseAfterFailedInstall = (
     try {
       requireInstallerDatabaseRoot(archive);
       requireArchivedDatabaseOriginal(archived, original);
-      const candidate = inspectInstallerDatabaseFile(original.path);
-      const observed = candidates.get(original.path);
-      if (!candidates.has(original.path) ||
-          (candidate !== null && (observed === undefined || !sameInstallerDatabaseFile(candidate, observed))) ||
-          (candidate === null && observed !== null &&
-            (original.path === expectedPaths[0] || !allowSidecarDisappearance))) {
-        throw new TypeError("ambiguous installer database candidate retained: " + original.path);
-      }
-      // A quiesced checkpoint remains immutable until another writer is
-      // admitted. Preserve same-inode edits as well as replacements.
-      if (candidate !== null && observed?.quiescedDigest !== undefined &&
-          installerDatabaseDigest(original.path, candidate) !== observed.quiescedDigest) {
-        throw new TypeError("ambiguous installer database candidate bytes retained: " + original.path);
-      }
+      const candidate = requireInstallerDatabaseCompensationCandidate(original.path, candidates,
+        allowSidecarDisappearance && original.path !== expectedPaths[0]);
       // A previously observed WAL/SHM may disappear on verified service stop.
       if (original.identity === null) {
         if (candidate !== null) effects.unlink(original.path);

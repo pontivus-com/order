@@ -508,6 +508,7 @@ type InstallerTransactionFixture = Readonly<{
   readinessToken?: "missing" | "invalid";
   bind?: string;
   legacyDatabaseVersion?: 1 | 2 | 3;
+  repositoryNativeV2?: Readonly<{ root: string; activeExecution: boolean }>;
   legacyRootInWal?: boolean;
   loseDatabaseArchive?: boolean;
   databaseFault?: "archive" | "copy" | "partial-copy" | "restore" | "copy-and-restore" | "unlink" |
@@ -626,7 +627,28 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
       try { populateWal(...args); }
       catch (error) { walFixtureFailure = String(error); throw error; }
     };
-    if (fixture.legacyDatabaseVersion !== undefined) {
+    const migrationWorkItem = "work_11111111-1111-4111-8111-111111111111";
+    const migrationTarget = "docs/order/work-items/" + migrationWorkItem + "/work-request.md";
+    let migrationObservation = null;
+    if (fixture.repositoryNativeV2 !== undefined) {
+      const { openOrderDatabase } = await import("./src/shell/sqlite.ts");
+      const { renderWorkItemSourceMarkdown } = await import("./src/core/work-item-source.ts");
+      const markdown = renderWorkItemSourceMarkdown({
+        formatVersion: 1, id: migrationWorkItem, projectId: "installer-fixture", concernIds: [],
+        schemaId: "change-v1",
+      }, "Migration fixture");
+      fs.writeFileSync(path.join(fixture.repositoryNativeV2.root, "legacy.md"), markdown);
+      const sha = "sha256:" + crypto.createHash("sha256").update(markdown).digest("hex");
+      const db = openOrderDatabase(fixture.stateRoot);
+      try {
+        db.exec("ALTER TABLE workItems DROP COLUMN archived; PRAGMA user_version = 2;");
+        db.query("INSERT INTO workItems VALUES (?1,'installer-fixture',?2,'Migration fixture','origin',?3,'ACTIVE',NULL,'[]','2026-11-11T03:30:00.000Z')")
+          .run(migrationWorkItem, fixture.project, fixture.repositoryNativeV2.activeExecution ? "EXECUTION" : "PLAN");
+        db.query("INSERT INTO workItemSources VALUES (?1,'change-v1','legacy.md',?2,NULL)").run(migrationWorkItem, sha);
+        db.exec("CREATE TABLE sentinel(value TEXT NOT NULL) STRICT; INSERT INTO sentinel VALUES ('original');");
+      } finally { db.close(); }
+      if (fixture.databaseSidecars) leaveWal("UPDATE sentinel SET value='original WAL';", "original WAL", 2);
+    } else if (fixture.legacyDatabaseVersion !== undefined) {
       const db = new Database(databasePath, { create: true, strict: true });
       db.exec("CREATE TABLE sentinel(value TEXT NOT NULL) STRICT; INSERT INTO sentinel VALUES (\'original\'); PRAGMA user_version = " + fixture.legacyDatabaseVersion + ";");
       if (fixture.legacyRootInWal) db.exec("CREATE TABLE workItems(repositoryRoot TEXT NOT NULL) STRICT;");
@@ -741,7 +763,17 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
           }
           if (!candidateStarted) {
             candidateStarted = true;
-            if (fixture.legacyDatabaseVersion === 1 || fixture.legacyDatabaseVersion === 2) {
+            if (fixture.repositoryNativeV2 !== undefined) {
+              const db = new Database(databasePath, { create: false, readonly: true, strict: true });
+              try {
+                migrationObservation = {
+                  version: db.query("PRAGMA user_version").get().user_version,
+                  workItem: db.query("SELECT stage, archived FROM workItems WHERE id=?1").get(migrationWorkItem),
+                  source: db.query("SELECT sourcePath, sourceSha256 FROM workItemSources WHERE workItemId=?1").get(migrationWorkItem),
+                  document: readBytes(path.join(fixture.project, migrationTarget)),
+                };
+              } finally { db.close(); }
+            } else if (fixture.legacyDatabaseVersion === 1 || fixture.legacyDatabaseVersion === 2) {
               const statement = "CREATE TABLE IF NOT EXISTS sentinel(value TEXT NOT NULL) STRICT; DELETE FROM sentinel; INSERT INTO sentinel VALUES ('candidate'); PRAGMA user_version = 3;";
               if (fixture.candidateSidecars) leaveWal(statement, "candidate", 3);
               else {
@@ -1068,7 +1100,7 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
       marker: fs.existsSync(marker) ? fs.readFileSync(marker, "utf8") : null,
       config: (() => { try { const bytes = readBytes(configPath); return bytes === null ? null : JSON.parse(Buffer.from(bytes, "base64").toString("utf8")); } catch { return null; } })(),
       app: fs.existsSync(installRoot), launcher: fs.existsSync(launcher), unit: fs.existsSync(unitPath),
-      originalDatabase, originalConfig, retainedArchive, originalNamespace,
+      originalDatabase, originalConfig, retainedArchive, originalNamespace, migrationObservation,
       databaseNamespace: readDatabaseNamespace(),
       database: fs.existsSync(databasePath) ? fs.readFileSync(databasePath).toString("base64") : null,
       configBytes: readBytes(configPath), originalConfigIdentity, originalConfigMode,
@@ -1889,6 +1921,87 @@ describe("actual IA25 installer transaction", () => {
     expect(outcome.activity).toBe("inactive");
     expect(readFileSync(join(fixture.stateRoot, "order.sqlite3-shm"), "utf8")).toBe("unexpected replacement");
   }, 120_000);
+
+  it.each(["pre-start-replaced", "pre-start-content-drift", "pre-start-disappearance"] as const)(
+    "preserves unarchived v3 sidecars and blocks startup on %s", databaseFault => {
+      const fixture = transactionFixture();
+      createPriorDeployment(fixture);
+      const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes", legacyDatabaseVersion: 3,
+        databaseSidecars: true, databaseFault, databaseFaultSuffix: "-wal", readiness: { ready: true, blockers: [] } });
+      expect(outcome.failure).toContain("unarchived database custody incomplete");
+      expect(outcome.restartObservations).toEqual([]);
+      expect(outcome.activity).toBe("inactive");
+      expect(outcome.marker).toBe("b".repeat(40) + "\n");
+      expect(outcome.stateEntries.some((name: string) => name.includes(".legacy-v"))).toBe(false);
+      const target = join(fixture.stateRoot, "order.sqlite3-wal");
+      if (databaseFault === "pre-start-disappearance") {
+        expect(existsSync(target)).toBe(false);
+        expect(readFileSync(target + ".retained-candidate").toString("base64")).toBe(outcome.originalNamespace[1]);
+      } else if (databaseFault === "pre-start-replaced") {
+        expect(readFileSync(target, "utf8")).toBe("unexpected pre-start file");
+      } else {
+        expect(readFileSync(target).subarray(-"unexpected same-inode bytes".length).toString()).toBe("unexpected same-inode bytes");
+      }
+    }, 120_000);
+
+  it("blocks v3 prior restart on detectable sidecar replacement during compensation without inventing an archive", () => {
+    const fixture = transactionFixture();
+    createPriorDeployment(fixture);
+    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes", legacyDatabaseVersion: 3,
+      databaseSidecars: true, databaseFault: "candidate-drift", databaseFaultSuffix: "-wal",
+      failRestart: true, readiness: { ready: true, blockers: [] } });
+    expect(outcome.failure).toContain("injected host failure");
+    expect(outcome.failure).toContain("unarchived database custody incomplete");
+    expect(outcome.restartObservations.map((entry: { deployment: string }) => entry.deployment)).toEqual(["candidate"]);
+    expect(outcome.activity).toBe("inactive");
+    expect(outcome.stateEntries.some((name: string) => name.includes(".legacy-v"))).toBe(false);
+    expect(readFileSync(join(fixture.stateRoot, "order.sqlite3-wal"), "utf8")).toBe("unexpected replacement");
+    expect(readFileSync(join(fixture.stateRoot, "order.sqlite3-wal.retained-candidate")).toString("base64")).toBe(outcome.originalNamespace[1]);
+  }, 120_000);
+
+  it.each(["success", "migration-rejected", "activation-failed"] as const)(
+    "executes actual v2 repository-native migration in the installer: %s", scenario => {
+      const fixture = transactionFixture();
+      createPriorDeployment(fixture);
+      const legacyRoot = tempDir("order-transaction-legacy-work-items-");
+      const config = { version: 2, model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+        repositoryRoots: [fixture.project], referenceRoots: [], workItemRoot: legacyRoot };
+      writeFileSync(join(fixture.stateRoot, "config.json"), JSON.stringify(config), { mode: 0o600 });
+      const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes",
+        repositoryNativeV2: { root: legacyRoot, activeExecution: scenario === "migration-rejected" },
+        databaseSidecars: true, failRestart: scenario === "activation-failed",
+        readiness: { ready: true, blockers: [] } });
+      const source = readFileSync(join(legacyRoot, "legacy.md"));
+      const path = "docs/order/work-items/work_11111111-1111-4111-8111-111111111111/work-request.md";
+      const document = join(fixture.project, path);
+      if (scenario === "migration-rejected") {
+        expect(outcome.failure).toContain("migration is prohibited while post-signoff execution is active");
+        expect(outcome.restartObservations.map((entry: { deployment: string }) => entry.deployment)).toEqual(["prior"]);
+        expect(existsSync(document)).toBe(false);
+      } else {
+        expect(outcome.migrationObservation).toMatchObject({ version: 3, workItem: { stage: "R1", archived: 0 },
+          source: { sourcePath: path }, document: source.toString("base64") });
+        expect(readFileSync(document)).toEqual(source);
+      }
+      if (scenario === "success") {
+        expect(outcome.failure).toBeNull();
+        expect(outcome.marker).toBe(outcome.sourceCommit + "\n");
+        expect(outcome.config).toEqual({ version: 4, model: config.model,
+          repositoryRoots: config.repositoryRoots, referenceRoots: [] });
+        for (const [index, suffix] of ["", "-wal", "-shm"].entries()) {
+          const archive = outcome.stateEntries.find((name: string) => name.startsWith("order.sqlite3" + suffix + ".legacy-v2."));
+          expect(readFileSync(join(fixture.stateRoot, archive)).toString("base64")).toBe(outcome.originalNamespace[index]);
+        }
+      } else {
+        if (scenario === "activation-failed") expect(outcome.failure).toContain("injected host failure");
+        expect(outcome.failure).not.toContain("rollback incomplete");
+        expect(outcome.databaseNamespace).toEqual(outcome.originalNamespace);
+        expect(outcome.configBytes).toBe(outcome.originalConfig);
+        expect(outcome.marker).toBe("b".repeat(40) + "\n");
+        expect(outcome.activity).toBe("active");
+      }
+      expect(readFileSync(join(legacyRoot, "legacy.md"))).toEqual(source);
+    }, 120_000);
 
   it("does not mutate or archive a current v3 database with WAL/SHM present", () => {
     const fixture = transactionFixture();
