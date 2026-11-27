@@ -1,5 +1,9 @@
 import { createInterface } from "node:readline/promises";
 import {
+  accessSync,
+  constants,
+  lstatSync,
+  realpathSync,
   chmodSync,
   copyFileSync,
   existsSync,
@@ -14,6 +18,7 @@ import { dirname, isAbsolute, join } from "node:path";
 import { pathToFileURL } from "node:url";
 
 import type { LegacyDatabaseArchive } from "./shell/sqlite.ts";
+import type { InstallerConfigPublication, InstallerConfigSnapshot } from "./shell/config.ts";
 
 const bunVersion = "1.4.4";
 const nodeVersion = "26.13.0";
@@ -473,6 +478,8 @@ const buildApplication = (
 
 const configureOrder = async (
   locations: InstallerLocations,
+  established: boolean,
+  publication: InstallerConfigPublication,
   projectManifestCreated: (path: string) => void,
 ) => {
   const setupUrl = pathToFileURL(
@@ -481,11 +488,14 @@ const configureOrder = async (
   const setupModule = await import(setupUrl) as typeof import("./shell/setup.ts");
   const legacyV2Config = setupModule.readLegacyOrderConfigV2ForInstall(
     locations.stateRoot,
+    publication.snapshot,
   );
   const code = await setupModule.runInstallerGuidedSetup(
     runtimeEnvironment(locations),
     (value) => process.stdout.write(value),
     terminalQuestion,
+    established,
+    publication,
     projectManifestCreated,
   );
   if (code !== 0) fail("Order guided configuration did not complete");
@@ -543,18 +553,6 @@ const restoreUnit = (
   }
 };
 
-const restoreConfigSnapshot = (
-  snapshot: Readonly<{ path: string; bytes: Uint8Array | null }>,
-): void => {
-  if (snapshot.bytes === null) {
-    rmSync(snapshot.path, { force: true });
-    return;
-  }
-  writeFileSync(snapshot.path, snapshot.bytes, { mode: 0o600 });
-  chmodSync(snapshot.path, 0o600);
-};
-
-
 type LegacyGateweftLocations = Readonly<{
   installRoot: string;
   stateRoot: string;
@@ -596,6 +594,54 @@ const currentOrderFootprintExists = (locations: InstallerLocations): boolean =>
   existsSync(locations.stateRoot) ||
   existsSync(join(locations.binDir, "order")) ||
   existsSync(join(locations.userConfigHome, "systemd", "user", "pontivus-order.service"));
+
+const exactInstallationFile = (path: string, executable = false): boolean => {
+  try {
+    if (!lstatSync(path).isFile() || realpathSync(path) !== path) return false;
+    accessSync(path, constants.R_OK | (executable ? constants.X_OK : 0));
+    return true;
+  } catch { return false; }
+};
+
+const completeInstallationFootprint = (
+  installRoot: string,
+  launcher: string,
+  unitPath: string,
+): boolean => {
+  const marker = join(installRoot, "SOURCE_COMMIT");
+  if (!exactInstallationFile(marker) ||
+      !exactInstallationFile(join(installRoot, "app", "src", "cli.ts")) ||
+      !exactInstallationFile(join(installRoot, "app", "dist", "index.html")) ||
+      !exactInstallationFile(join(installRoot, "runtime", "bun", "bin", "bun"), true) ||
+      !exactInstallationFile(launcher, true) || !exactInstallationFile(unitPath)) return false;
+  return /^[0-9a-f]{40}\n$/.test(readFileSync(marker, "utf8"));
+};
+
+export const resolveEstablishedInstallation = async (
+  locations: InstallerLocations,
+  environment: NodeJS.ProcessEnv,
+  question: (prompt: string) => Promise<string> = terminalQuestion,
+): Promise<boolean> => {
+  const legacy = legacyGateweftLocations(locations, environment);
+  if (currentOrderFootprintExists(locations) && legacyGateweftFootprintExists(legacy)) {
+    fail("Gateweft predecessor and Order productive roots both exist; resolve the conflict before installing: " +
+      [locations.installRoot, locations.stateRoot, join(locations.binDir, "order"),
+        join(locations.userConfigHome, "systemd", "user", "pontivus-order.service"),
+        legacy.installRoot, legacy.stateRoot, legacy.launcher, legacy.unitPath].filter(existsSync).join(", "));
+  }
+  const candidate = legacyGateweftFootprintExists(legacy) ? legacy : {
+    installRoot: locations.installRoot,
+    launcher: join(locations.binDir, "order"),
+    unitPath: join(locations.userConfigHome, "systemd", "user", "pontivus-order.service"),
+  };
+  if (!completeInstallationFootprint(candidate.installRoot, candidate.launcher, candidate.unitPath)) return false;
+  for (;;) {
+    const answer = (await question("Did installation admission previously complete at " + candidate.installRoot +
+      " (successful install/update or explicitly reported committed with finalization incomplete)? [y/N]: ")).trim().toLowerCase();
+    if (answer === "y" || answer === "yes") return true;
+    if (answer === "" || answer === "n" || answer === "no" || answer === "unknown") return false;
+  }
+};
 
 const renameDatabaseNamespace = (
   stateRoot: string,
@@ -711,10 +757,7 @@ export const runInstaller = async (
   if (process.platform !== "linux") fail("Order v1 productive installation requires Linux");
   if (Bun.version !== bunVersion) fail("installer must run on exact Bun " + bunVersion);
   const locations = resolveLocations(environment);
-  const legacyLocations = legacyGateweftLocations(locations, environment);
-  const existingInstallation =
-    currentOrderFootprintExists(locations) ||
-    legacyGateweftFootprintExists(legacyLocations);
+  const existingInstallation = await resolveEstablishedInstallation(locations, environment);
 
   step(existingInstallation ? "updating existing installation" : "starting fresh installation");
   step("verifying host and source");
@@ -742,7 +785,9 @@ export const runInstaller = async (
   let launcherBackup: string | null = null;
   let activated = false;
   let serviceState: Readonly<{ unitPath: string; previousUnit: string | null }> | null = null;
-  let configSnapshot: Readonly<{ path: string; bytes: Uint8Array | null }> | null = null;
+  let configSnapshot: InstallerConfigSnapshot | null = null;
+  let publishedConfig: Parameters<InstallerConfigPublication["onPublished"]>[0] | null = null;
+  let configModule: typeof import("./shell/config.ts") | null = null;
   let databaseArchive: LegacyDatabaseArchive | null = null;
   let sqliteUpgradeModule: typeof import("./shell/sqlite.ts") | null = null;
   let configuredSetup: Awaited<ReturnType<typeof configureOrder>> | null = null;
@@ -801,19 +846,17 @@ export const runInstaller = async (
     renameSync(launcherTemporary, launcher);
     activated = true;
 
-    const runtimeUrl = pathToFileURL(
-      join(locations.installRoot, "app", "src", "shell", "runtime.ts"),
+    const configUrl = pathToFileURL(
+      join(locations.installRoot, "app", "src", "shell", "config.ts"),
     ).href;
-    const runtimeModule = await import(runtimeUrl) as typeof import("./shell/runtime.ts");
-    const configPath = runtimeModule.statePaths(locations.stateRoot).config;
-    configSnapshot = {
-      path: configPath,
-      bytes: existsSync(configPath) ? new Uint8Array(readFileSync(configPath)) : null,
-    };
+    configModule = await import(configUrl) as typeof import("./shell/config.ts");
+    configSnapshot = configModule.captureInstallerConfigSnapshot(locations.stateRoot);
 
     step("configuring provider, model and repository access");
     configuredSetup = await configureOrder(
       locations,
+      existingInstallation,
+      { snapshot: configSnapshot, onPublished: (identity) => { publishedConfig = identity; } },
       (path) => createdProjectManifests.push(path),
     );
 
@@ -852,6 +895,7 @@ export const runInstaller = async (
     writeProfilePath(locations.home, locations.binDir);
     if (installBackup !== null) rmSync(installBackup, { recursive: true, force: true });
     if (launcherBackup !== null) rmSync(launcherBackup, { force: true });
+    configModule.releaseInstallerConfigSnapshot(configSnapshot);
 
     process.stdout.write(
       [
@@ -877,9 +921,9 @@ export const runInstaller = async (
         // Preserve the original installer failure; the retained archive remains recoverable.
       }
     }
-    if (configSnapshot !== null) {
+    if (configSnapshot !== null && configModule !== null) {
       try {
-        restoreConfigSnapshot(configSnapshot);
+        configModule.restoreInstallerConfig(configSnapshot, publishedConfig);
       } catch {
         // Preserve the original installer failure; configuration restoration is best effort.
       }

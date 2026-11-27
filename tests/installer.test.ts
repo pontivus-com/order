@@ -188,6 +188,8 @@ const runSetup = (
         if (answer === undefined) throw new Error("unexpected prompt: " + prompt);
         return answer;
       },
+      false,
+      { snapshot: cfg.captureInstallerConfigSnapshot(${JSON.stringify(stateRoot)}), onPublished: () => {} },
     );
     console.log(JSON.stringify({
       code: result,
@@ -271,10 +273,10 @@ describe("guided productive installer setup", () => {
       referenceRoots: [],
     });
     expect(output.prompts).toEqual([
-      "Select model: ",
       "Target repository root: ",
       "Add another target repository root (blank to continue): ",
       "STAGE reference root (blank for none): ",
+      "Select model: ",
     ]);
     expect(output.stdout).toContain("Order configuration complete.");
     expect(output.stdout).not.toContain("requires operator action");
@@ -294,10 +296,16 @@ describe("guided productive installer setup", () => {
     const fakeRoot = tempDir("order-installer-failure-opencode-");
     const binary = createFakeOpenCode(fakeRoot, { loginExitCode: 2 });
 
-    const output = runSetup(home, stateRoot, binary, {});
+    const project = createProject();
+    const output = runSetup(home, stateRoot, binary, {
+      "Target repository root: ": project,
+      "Add another target repository root (blank to continue): ": "",
+      "STAGE reference root (blank for none): ": "",
+    });
     expect(output.code).toBe(2);
     expect(output.config).toBeNull();
-    expect(output.prompts).toEqual([]);
+    expect(output.prompts).toEqual(["Target repository root: ",
+      "Add another target repository root (blank to continue): ", "STAGE reference root (blank for none): "]);
     expect(output.stdout).not.toContain("requires operator action");
   });
 
@@ -306,6 +314,7 @@ describe("guided productive installer setup", () => {
     const stateRoot = tempDir("order-installer-cancel-state-");
     const fakeRoot = tempDir("order-installer-cancel-opencode-");
     const marker = join(fakeRoot, "login-started");
+    const project = createProject();
     const binary = createFakeOpenCode(fakeRoot, {
       loginMode: "hang",
       loginMarkerPath: marker,
@@ -316,7 +325,14 @@ describe("guided productive installer setup", () => {
       const result = await setup.runInstallerGuidedSetup(
         ${JSON.stringify(setupEnvironment(home, stateRoot, binary))},
         () => {},
-        async (prompt) => { throw new Error("cancelled setup must not prompt: " + prompt); },
+        async (prompt) => {
+          if (prompt === "Target repository root: ") return ${JSON.stringify(project)};
+          if (prompt === "Add another target repository root (blank to continue): " ||
+              prompt === "STAGE reference root (blank for none): ") return "";
+          throw new Error("unexpected prompt: " + prompt);
+        },
+        false,
+        { snapshot: cfg.captureInstallerConfigSnapshot(${JSON.stringify(stateRoot)}), onPublished: () => {} },
       );
       console.log(JSON.stringify({
         code: result,

@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Resolve explicit installation history before mutation, retain established configuration without live proof, and require guided root selection before fresh provider effects using the existing setup and config owners (IA25 guided setup slice).
+
 - Record exact original SQLite archive membership and perform path-specific reverse compensation without deleting a candidate whose required original is unproven (IA25 archive slice).
 
 - Add invocation-local no-follow configuration snapshot, private exact recovery copy, publication identity callback and guarded restoration in the canonical config shell owner (IA25 custody slice).
