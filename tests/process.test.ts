@@ -44,12 +44,13 @@ describe("process shell", () => {
         PIDFILE: pidFile,
       };
       const result = await p.runProcess(
-        ["bash", "-c", 'sleep 300 & echo "$!" > "$PIDFILE"; wait'],
+        ["bash", "-c", 'sleep 300 & echo "$!" > "$PIDFILE.tmp" && mv -- "$PIDFILE.tmp" "$PIDFILE" && wait'],
         ${JSON.stringify(root)},
         env,
         1,
       );
       const pid = Number(fs.readFileSync(pidFile, "utf8").trim());
+      if (!Number.isSafeInteger(pid) || pid <= 1) throw new Error("invalid descendant pid");
       const dead = async () => {
         for (let i = 0; i < 40; i += 1) {
           try { process.kill(pid, 0); } catch (error) {
@@ -87,7 +88,7 @@ describe("process shell", () => {
         PIDFILE: pidFile,
       };
       const running = p.runProcess(
-        ["bash", "-c", 'sleep 300 & echo "$!" > "$PIDFILE"; wait'],
+        ["bash", "-c", 'sleep 300 & echo "$!" > "$PIDFILE.tmp" && mv -- "$PIDFILE.tmp" "$PIDFILE" && wait'],
         ${JSON.stringify(root)},
         env,
         30,
@@ -98,6 +99,9 @@ describe("process shell", () => {
       }
       if (!fs.existsSync(pidFile)) throw new Error("descendant pid was not recorded");
       const pid = Number(fs.readFileSync(pidFile, "utf8").trim());
+      if (!Number.isSafeInteger(pid) || pid <= 1) throw new Error("invalid descendant pid");
+      // The atomically published PID must identify a live descendant before cancellation.
+      process.kill(pid, 0);
       controller.abort();
       const result = await running;
       const dead = async () => {
