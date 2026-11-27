@@ -188,8 +188,6 @@ const runSetup = (
         if (answer === undefined) throw new Error("unexpected prompt: " + prompt);
         return answer;
       },
-      false,
-      { snapshot: cfg.captureInstallerConfigSnapshot(${JSON.stringify(stateRoot)}), onPublished: () => {} },
     );
     console.log(JSON.stringify({
       code: result,
@@ -209,6 +207,35 @@ const runSetup = (
 };
 
 describe("guided productive installer setup", () => {
+  it("preserves the current database when its required original archive is missing", () => {
+    const root = tempDir("order-installer-archive-");
+    const script = `
+      const fs = await import("node:fs");
+      const { Database } = await import("bun:sqlite");
+      const r = await import("./src/shell/runtime.ts");
+      const s = await import("./src/shell/sqlite.ts");
+      const stateRoot = ${JSON.stringify(root)};
+      const path = r.statePaths(stateRoot).database;
+      const legacy = new Database(path, { create: true, strict: true });
+      legacy.exec("PRAGMA user_version = 1;");
+      legacy.close();
+      const archive = s.prepareOrderDatabaseForInstall(stateRoot);
+      const candidate = s.openOrderDatabase(stateRoot);
+      candidate.close();
+      const observed = fs.readFileSync(path);
+      fs.renameSync(archive.archiveDatabase, archive.archiveDatabase + ".retained");
+      let blocked = false;
+      try { s.restoreOrderDatabaseAfterFailedInstall(archive); } catch { blocked = true; }
+      console.log(JSON.stringify({ blocked, candidatePreserved: fs.readFileSync(path).equals(observed),
+        originalPreserved: fs.existsSync(archive.archiveDatabase + ".retained") }));
+    `;
+    const result = spawnSync("bun", ["--eval", script], { cwd: process.cwd(), encoding: "utf8", timeout: 30_000 });
+    if (result.status !== 0) throw new Error(result.stderr || result.stdout);
+    expect(JSON.parse(result.stdout.trim())).toEqual({
+      blocked: true, candidatePreserved: true, originalPreserved: true,
+    });
+  });
+
   it("retains exact private config custody and refuses to overwrite unexpected publication drift", () => {
     const state = tempDir("order-installer-config-custody-");
     const script = `
@@ -273,10 +300,10 @@ describe("guided productive installer setup", () => {
       referenceRoots: [],
     });
     expect(output.prompts).toEqual([
+      "Select model: ",
       "Target repository root: ",
       "Add another target repository root (blank to continue): ",
       "STAGE reference root (blank for none): ",
-      "Select model: ",
     ]);
     expect(output.stdout).toContain("Order configuration complete.");
     expect(output.stdout).not.toContain("requires operator action");
@@ -296,16 +323,10 @@ describe("guided productive installer setup", () => {
     const fakeRoot = tempDir("order-installer-failure-opencode-");
     const binary = createFakeOpenCode(fakeRoot, { loginExitCode: 2 });
 
-    const project = createProject();
-    const output = runSetup(home, stateRoot, binary, {
-      "Target repository root: ": project,
-      "Add another target repository root (blank to continue): ": "",
-      "STAGE reference root (blank for none): ": "",
-    });
+    const output = runSetup(home, stateRoot, binary, {});
     expect(output.code).toBe(2);
     expect(output.config).toBeNull();
-    expect(output.prompts).toEqual(["Target repository root: ",
-      "Add another target repository root (blank to continue): ", "STAGE reference root (blank for none): "]);
+    expect(output.prompts).toEqual([]);
     expect(output.stdout).not.toContain("requires operator action");
   });
 
@@ -314,7 +335,6 @@ describe("guided productive installer setup", () => {
     const stateRoot = tempDir("order-installer-cancel-state-");
     const fakeRoot = tempDir("order-installer-cancel-opencode-");
     const marker = join(fakeRoot, "login-started");
-    const project = createProject();
     const binary = createFakeOpenCode(fakeRoot, {
       loginMode: "hang",
       loginMarkerPath: marker,
@@ -325,14 +345,7 @@ describe("guided productive installer setup", () => {
       const result = await setup.runInstallerGuidedSetup(
         ${JSON.stringify(setupEnvironment(home, stateRoot, binary))},
         () => {},
-        async (prompt) => {
-          if (prompt === "Target repository root: ") return ${JSON.stringify(project)};
-          if (prompt === "Add another target repository root (blank to continue): " ||
-              prompt === "STAGE reference root (blank for none): ") return "";
-          throw new Error("unexpected prompt: " + prompt);
-        },
-        false,
-        { snapshot: cfg.captureInstallerConfigSnapshot(${JSON.stringify(stateRoot)}), onPublished: () => {} },
+        async (prompt) => { throw new Error("cancelled setup must not prompt: " + prompt); },
       );
       console.log(JSON.stringify({
         code: result,

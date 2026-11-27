@@ -104,8 +104,6 @@ describe("runtime shell", () => {
           prompts += 1;
           return "";
         },
-        true,
-        { snapshot: cfg.captureInstallerConfigSnapshot(${JSON.stringify(stateRoot)}), onPublished: () => {} },
       );
       console.log(JSON.stringify({
         code,

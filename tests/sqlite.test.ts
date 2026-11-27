@@ -133,33 +133,6 @@ describe("SQLite shell", () => {
     expect(parsed.sentinel).toBe("legacy");
   });
 
-  it("preserves the current database when its required original archive is missing", () => {
-    const root = tempDir();
-    const result = bun(`
-      const fs = await import("node:fs");
-      const { Database } = await import("bun:sqlite");
-      const r = await import("./src/shell/runtime.ts");
-      const s = await import("./src/shell/sqlite.ts");
-      const stateRoot = ${JSON.stringify(root)};
-      const path = r.statePaths(stateRoot).database;
-      const legacy = new Database(path, { create: true, strict: true });
-      legacy.exec("PRAGMA user_version = 1;");
-      legacy.close();
-      const archive = s.prepareOrderDatabaseForInstall(stateRoot);
-      const candidate = s.openOrderDatabase(stateRoot);
-      candidate.close();
-      const observed = fs.readFileSync(path);
-      fs.renameSync(archive.archiveDatabase, archive.archiveDatabase + ".retained");
-      let blocked = false;
-      try { s.restoreOrderDatabaseAfterFailedInstall(archive); } catch { blocked = true; }
-      console.log(JSON.stringify({ blocked, candidatePreserved: fs.readFileSync(path).equals(observed),
-        originalPreserved: fs.existsSync(archive.archiveDatabase + ".retained") }));
-    `);
-    expect(JSON.parse(result.stdout.trim())).toEqual({
-      blocked: true, candidatePreserved: true, originalPreserved: true,
-    });
-  });
-
   it("migrates v2 source paths and lifecycle state in place while preserving runtime history", () => {
     const root = tempDir();
     const result = bun(`

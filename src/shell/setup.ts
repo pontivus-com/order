@@ -3,7 +3,6 @@ import { isAbsolute, join, relative, sep } from "node:path";
 
 import {
   InstallationReadinessSchema,
-  OrderConfigSchema,
   type InstallationReadiness,
   type LegacyOrderConfigV2,
   type OrderConfig,
@@ -18,10 +17,7 @@ import {
 import {
   buildOrderConfig,
   readOrderConfig,
-  readInstallerConfigForUpgrade,
-  proveConfiguredDirectoryRoots,
-  type InstallerConfigPublication,
-  type InstallerConfigSnapshot,
+  readOrderConfigForUpgradeIfPresent,
   readOrderConfigIfPresent,
   writeOrderConfig,
 } from "./config.ts";
@@ -60,9 +56,8 @@ const byteEqual = (left: Uint8Array, right: Uint8Array): boolean => {
 
 export const readLegacyOrderConfigV2ForInstall = (
   stateRoot: string,
-  snapshot: InstallerConfigSnapshot,
 ): LegacyOrderConfigV2 | null => {
-  const config = readInstallerConfigForUpgrade(stateRoot, snapshot);
+  const config = readOrderConfigForUpgradeIfPresent(stateRoot);
   return config?.version === 2 ? config : null;
 };
 
@@ -354,80 +349,6 @@ const legacyTargetRootsForUpgrade = async (
   return roots;
 };
 
-const proveInstallerRoots = async (
-  roots: Pick<OrderConfig, "repositoryRoots" | "referenceRoots">,
-): Promise<void> => {
-  if (roots.repositoryRoots.length === 0) throw new TypeError("at least one exact target repository is required");
-  await loadConfiguredProjects(roots.repositoryRoots);
-  const references = proveConfiguredDirectoryRoots(roots.referenceRoots);
-  if (references.length !== roots.referenceRoots.length ||
-      references.some((root) => !roots.referenceRoots.includes(root))) {
-    throw new TypeError("retained reference root identity changed");
-  }
-  buildOrderConfig(null, roots.repositoryRoots, roots.referenceRoots);
-};
-
-const chooseInstallerRoots = async (
-  existing: OrderConfig | null,
-  question: SetupQuestion,
-  writeStdout: (value: string) => void,
-): Promise<Pick<OrderConfig, "repositoryRoots" | "referenceRoots">> => {
-  const proveTarget = async (path: string): Promise<void> => { await loadConfiguredProjects([path]); };
-  const proveReference = async (path: string): Promise<void> => {
-    if (proveConfiguredDirectoryRoots([path])[0] !== path) throw new TypeError("reference root identity changed");
-  };
-  const repair = async (
-    paths: readonly string[],
-    label: string,
-    prove: (path: string) => Promise<void>,
-  ): Promise<readonly string[]> => {
-    const retained: string[] = [];
-    for (const original of paths) {
-      let candidate = original;
-      for (;;) {
-        try {
-          await prove(candidate);
-          retained.push(candidate);
-          break;
-        } catch (error) {
-          writeStdout(label + " requires correction: " + candidate + " (" +
-            (error instanceof Error ? error.message : String(error)) + ")\n");
-          const answer = (await question("Replacement " + label + " root for " + original + " ('-' removes): ")).trim();
-          if (answer === "-") break;
-          if (answer.length > 0) candidate = answer;
-        }
-      }
-    }
-    return retained;
-  };
-  let repositoryRoots = await repair(existing?.repositoryRoots ?? [], "target repository", proveTarget);
-  let referenceRoots = await repair(existing?.referenceRoots ?? [], "STAGE reference", proveReference);
-  for (;;) {
-    if (repositoryRoots.length === 0) {
-      const target = (await question("Target repository root: ")).trim();
-      if (target.length === 0) throw new TypeError("an exact target repository root is required");
-      repositoryRoots = await collectAdditionalRoots(target, "target repository", question);
-    } else {
-      const target = (await question("New first target root (blank keeps current roots): ")).trim();
-      if (target.length > 0) repositoryRoots = await collectAdditionalRoots(target, "target repository", question);
-    }
-    const reference = (await question(existing === null && referenceRoots.length === 0
-      ? "STAGE reference root (blank for none): "
-      : "New first STAGE reference root (blank keeps current, '-' clears): ")).trim();
-    if (reference === "-") referenceRoots = [];
-    else if (reference.length > 0) referenceRoots = await collectAdditionalRoots(reference, "STAGE reference", question);
-    try {
-      const roots = { repositoryRoots, referenceRoots };
-      await proveInstallerRoots(roots);
-      return roots;
-    } catch (error) {
-      writeStdout("Configured roots require correction: " + (error instanceof Error ? error.message : String(error)) + "\n");
-      repositoryRoots = await repair(repositoryRoots, "target repository", proveTarget);
-      referenceRoots = await repair(referenceRoots, "STAGE reference", proveReference);
-    }
-  }
-};
-
 const runGuidedSetupInternal = async (
   reconfigure: boolean,
   allowLegacyUpdate: boolean,
@@ -435,27 +356,12 @@ const runGuidedSetupInternal = async (
   writeStdout: (value: string) => void,
   question: SetupQuestion,
   projectManifestCreated: (path: string) => void,
-  installer?: Readonly<{ established: boolean; publication: InstallerConfigPublication }>,
 ): Promise<number> => {
   const stateRoot = resolveStateRoot(environment);
   const home = requireSetupHome(environment);
-  const configured = installer === undefined
-    ? readOrderConfigIfPresent(stateRoot)
-    : readInstallerConfigForUpgrade(stateRoot, installer.publication.snapshot);
-
-  if (installer?.established && (configured === null || configured.version === 3 || configured.version === 4)) {
-    const retained = configured === null
-      ? OrderConfigSchema.parse({ version: 4, model: null, repositoryRoots: [], referenceRoots: [] })
-      : configured.version === 4 ? configured : OrderConfigSchema.parse({ ...configured, version: 4 });
-    writeOrderConfig(stateRoot, retained, installer.publication);
-    writeStdout(configured?.version === 4
-      ? "Order configuration version 4 retained unchanged.\n"
-      : "Order configuration version 4 established from retained installation choices.\n");
-    if (retained.model === null || retained.repositoryRoots.length === 0) {
-      writeStdout("requires operator action: complete setup in browser Settings.\n");
-    }
-    return 0;
-  }
+  const configured = allowLegacyUpdate
+    ? readOrderConfigForUpgradeIfPresent(stateRoot)
+    : readOrderConfigIfPresent(stateRoot);
 
   let existing = configured?.version === 4 ? configured : null;
   let upgrading = false;
@@ -507,43 +413,35 @@ const runGuidedSetupInternal = async (
   }
 
   if (allowLegacyUpdate && configured?.version === 3) {
-    existing = OrderConfigSchema.parse({ ...configured, version: 4 });
+    existing = buildOrderConfig(
+      configured.model,
+      configured.repositoryRoots,
+      configured.referenceRoots,
+    );
     upgrading = true;
   }
 
-  if (installer?.established && existing !== null) {
-    writeOrderConfig(stateRoot, existing, installer.publication);
-    writeStdout("Order configuration upgraded to version 4; existing choices retained.\n");
+  if (allowLegacyUpdate && configured?.version === 4 && !reconfigure) {
+    writeOrderConfig(stateRoot, configured);
+    const concerns = [
+      ...(configured.repositoryRoots.length === 0 ? ["repository"] : []),
+      ...(configured.model === null ? ["model"] : []),
+    ];
+    writeStdout("Order configuration version 4 retained unchanged.\n");
+    if (concerns.length > 0) {
+      writeStdout(
+        "requires operator action: complete " + concerns.join(" and ") +
+        " setup in browser Settings.\n",
+      );
+    }
     return 0;
   }
 
-  let installerRoots = installer === undefined ? null : await chooseInstallerRoots(existing, question, writeStdout);
-  let workspace = installerRoots?.repositoryRoots[0] ?? existing?.repositoryRoots[0] ?? home;
-  // Re-enter root correction before another provider effect if a previously
-  // proven target or reference identity drifts during discovery/startup.
-  const repairDrift = async (): Promise<boolean> => {
-    if (installerRoots === null) return false;
-    try { await proveInstallerRoots(installerRoots); return false; }
-    catch {
-      installerRoots = await chooseInstallerRoots(
-        OrderConfigSchema.parse({ version: 4, model: existing?.model ?? null, ...installerRoots }),
-        question, writeStdout,
-      );
-      workspace = installerRoots.repositoryRoots[0]!;
-      return true;
-    }
-  };
-  const availableModels = async () => {
-    for (;;) {
-      if (await repairDrift()) continue;
-      try { return await listAvailableOpenCodeModels(stateRoot, workspace, environment); }
-      catch (error) { if (!await repairDrift()) throw error; }
-    }
-  };
+  const workspace = existing?.repositoryRoots[0] ?? home;
 
   let models = existing === null
     ? []
-    : await availableModels().catch(() => []);
+    : await listAvailableOpenCodeModels(stateRoot, workspace, environment).catch(() => []);
   const existingModelIndex = existing?.model === null || existing?.model === undefined
     ? -1
     : models.findIndex((model) =>
@@ -569,27 +467,15 @@ const runGuidedSetupInternal = async (
     return 0;
   }
 
-  let authenticate = models.length === 0;
-  if (installer !== undefined && models.length > 0) {
-    for (;;) {
-      const choice = (await question("Retain existing provider credentials or log in again? Retain [Y/n]: ")).trim().toLowerCase();
-      if (choice === "" || choice === "y" || choice === "yes") break;
-      if (choice === "n" || choice === "no") { authenticate = true; break; }
-      writeStdout("Enter yes to retain or no to authenticate again.\n");
-    }
-  }
-  if (authenticate) {
-    for (;;) {
-      if (await repairDrift()) continue;
-      let login: Awaited<ReturnType<typeof loginOpenCodeProviderInteractive>>;
-      try { login = await loginOpenCodeProviderInteractive(stateRoot, workspace, environment); }
-      catch (error) { if (await repairDrift()) continue; throw error; }
-      if (login.cancelled) return 130;
-      if (await repairDrift()) continue;
-      if (login.exitCode !== 0) return login.exitCode;
-      models = await availableModels();
-      break;
-    }
+  if (models.length === 0) {
+    const login = await loginOpenCodeProviderInteractive(
+      stateRoot,
+      workspace,
+      environment,
+    );
+    if (login.cancelled) return 130;
+    if (login.exitCode !== 0) return login.exitCode;
+    models = await listAvailableOpenCodeModels(stateRoot, workspace, environment);
   }
   if (models.length === 0) {
     throw new TypeError("no enabled OpenCode models are available after provider authentication");
@@ -618,16 +504,7 @@ const runGuidedSetupInternal = async (
 
   let repositoryRoots: readonly string[];
   let referenceRoots: readonly string[];
-  if (installerRoots !== null) {
-    if (await repairDrift()) {
-      models = await availableModels();
-      if (!models.some((model) => model.providerID === selectedModel.providerID && model.id === selectedModel.id)) {
-        throw new TypeError("selected model is unavailable after correcting configured roots; retry guided setup");
-      }
-    }
-    repositoryRoots = installerRoots.repositoryRoots;
-    referenceRoots = installerRoots.referenceRoots;
-  } else if (existing !== null && !reconfigure) {
+  if (existing !== null && !reconfigure) {
     repositoryRoots = existing.repositoryRoots;
     referenceRoots = existing.referenceRoots;
   } else if (existing !== null) {
@@ -664,7 +541,7 @@ const runGuidedSetupInternal = async (
     repositoryRoots,
     referenceRoots,
   );
-  writeOrderConfig(stateRoot, config, installer?.publication);
+  writeOrderConfig(stateRoot, config);
   writeStdout(
     upgrading
       ? "Order configuration upgraded to version 4.\n"
@@ -692,18 +569,15 @@ export const runInstallerGuidedSetup = async (
   environment: NodeJS.ProcessEnv,
   writeStdout: (value: string) => void,
   question: SetupQuestion,
-  established: boolean,
-  publication: InstallerConfigPublication,
   projectManifestCreated: (path: string) => void = () => {},
 ): Promise<number> =>
   runGuidedSetupInternal(
-    !established,
+    false,
     true,
     environment,
     writeStdout,
     question,
     projectManifestCreated,
-    { established, publication },
   );
 
 const observeInstalledReadiness = async (
