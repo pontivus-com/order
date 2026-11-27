@@ -2817,7 +2817,14 @@ describe("daemon control plane", () => {
     expect(output.runCount).toBe(0);
   }, 30_000);
 
-  it("enforces same-project terminal investigation/audit lineage and delivery-only remediation", () => {
+  it.each([
+    ["investigation-v1", "INVESTIGATION_COMPLETE"],
+    ["audit-v1", "AUDIT_COMPLETE"],
+    ["investigation-v2", "DUPLICATE"],
+    ["audit-v2", "ALREADY_SATISFIED"],
+    ["audit-v2", "DUPLICATE"],
+    ["investigation-v2", "ALREADY_SATISFIED"],
+  ] as const)("enforces same-project %s %s lineage and delivery-only remediation", (parentSchemaId, parentOutcome) => {
     const repository = createRepository();
     const state = tempDir("order-daemon-remediation-");
     const workItemRoot = join(repository, "docs", "order", "work-items");
@@ -2848,7 +2855,7 @@ describe("daemon control plane", () => {
         id: parentId,
         projectId: "fixture",
         concernIds: ["shell"],
-        schemaId: "investigation-v1",
+        schemaId: ${JSON.stringify(parentSchemaId)},
       }, "finished investigation");
       const created = sourceShell.createWorkItemSourceFile(runtime.config.repositoryRoots[0], "docs/order/work-items", parentId,
         parentMarkdown,
@@ -2861,13 +2868,13 @@ describe("daemon control plane", () => {
         repositoryRoot: ${JSON.stringify(repository)},
         title: parentSource.title,
         origin: "DISCOVERED",
-        schemaId: "investigation-v1",
+        schemaId: ${JSON.stringify(parentSchemaId)},
         sourcePath: parentSource.path,
         sourceSha256: parentSource.sha256,
         derivedFromWorkItemId: null,
         stage: "COMPLETE",
         status: "COMPLETE",
-        outcome: "INVESTIGATION_COMPLETE",
+        outcome: ${JSON.stringify(parentOutcome)},
         concernIds: ["shell"],
         createdAt: rt.nowIsoDateTime(),
       });

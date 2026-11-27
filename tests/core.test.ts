@@ -1956,6 +1956,18 @@ describe("source-backed WorkItem core", () => {
     expect(linkedRemediationIsAllowed(parent, "order", "defect-v1")).toBe(true);
     expect(linkedRemediationIsAllowed(parent, "order", "audit-v1")).toBe(false);
     expect(linkedRemediationIsAllowed(parent, "other", "change-v1")).toBe(false);
+    for (const schemaId of ["investigation-v1", "investigation-v2", "audit-v1", "audit-v2"] as const) {
+      const outcomes = allowedR1CompletionsForSchema(schemaId);
+      for (const outcome of ["DUPLICATE", "ALREADY_SATISFIED", "INVESTIGATION_COMPLETE", "AUDIT_COMPLETE"] as const) {
+        for (const childSchemaId of ["change-v1", "change-v2", "defect-v1", "defect-v2"] as const) {
+          expect(linkedRemediationIsAllowed({ ...parent, schemaId, outcome }, "order", childSchemaId))
+            .toBe(outcomes.includes(outcome));
+        }
+      }
+    }
+    expect(linkedRemediationIsAllowed({ ...parent, stage: "R1", outcome: null }, "order", "change-v2")).toBe(false);
+    expect(linkedRemediationIsAllowed({ ...parent, schemaId: "change-v2", outcome: "ALREADY_SATISFIED" }, "order", "change-v2")).toBe(false);
+    expect(linkedRemediationIsAllowed({ ...parent, outcome: null }, "order", "change-v2")).toBe(false);
 
     const manifest = ProjectManifestSchema.parse({
       version: 1,

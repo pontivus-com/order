@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Use the existing source catalog's admitted R1 terminal outcomes for completed Investigation/Audit remediation parents, including DUPLICATE and ALREADY_SATISFIED, while retaining same-project delivery-only lineage (IA11).
+
 - Supply exact owning-stage durable decision and adoption history across attempts to stage conformance, requiring coverage in current canonical material rather than treating prior answers or unrelated adoption as authority (IA04).
 
 - Require exact reverse reconstruction and forward replay before interrupted proposal adoption is reconciled; enforce its canonical target and recorded durable intent (IA03).

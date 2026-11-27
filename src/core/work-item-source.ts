@@ -473,7 +473,7 @@ export const linkedRemediationIsAllowed = (
     parent.projectId === childProjectId &&
     parent.stage === "COMPLETE" &&
     (parentKind === "INVESTIGATION" || parentKind === "AUDIT") &&
-    (parent.outcome === "INVESTIGATION_COMPLETE" || parent.outcome === "AUDIT_COMPLETE") &&
+    allowedR1CompletionsForSchema(parent.schemaId).some((outcome) => outcome === parent.outcome) &&
     (childKind === "CHANGE" || childKind === "DEFECT")
   );
 };
