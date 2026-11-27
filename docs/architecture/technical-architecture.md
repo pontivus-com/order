@@ -1199,7 +1199,7 @@ Existing WorkItem/artifact/run/task/signoff keys remain canonical.
 
 Successful mutations invalidate only affected keys:
 
-- source reconcile -> workItems + selected WorkItem + sourceDiagnostics + affected source/lifecycle-artifact keys;
+- source reconcile -> workItems + selected WorkItem + sourceDiagnostics + affected source/lifecycle-artifact keys; exact Acceptance return also reobserves affected Approval/tasks/Runs/events and QA history/current-proof keys as required by P6 §38.3;
 - Approval authority reconcile -> workItems + selected WorkItem + runs/tasks/lifecycleArtifacts/artifacts/source/signoff/sourceDiagnostics observation keys for that WorkItem; this command changes lifecycle ownership only and never routes through source reconciliation;
 - create -> workItems + sourceDiagnostics; select created item/source;
 - WorkItem source save -> workItems + selected WorkItem + selected source + lifecycleArtifacts + runs/artifacts/signoff package for that WorkItem;
@@ -1263,7 +1263,7 @@ The inspection reads only the affected source; it does not rescan the full queue
 
 External source edits while the daemon is running are therefore observed by diagnostics/read-only productive inspection and become canonical workflow transitions only through explicit reconcile/save.
 
-During `EXECUTION`, reconciliation may update the current source projection but cannot authorize continued work: the approval/source comparison yields `APPROVAL_STALE` and returns to the earliest changed-material owner before another productive execution Run. Direct browser source/artifact editing remains disabled in EXECUTION. In AWAITING_ACCEPTANCE it likewise remains disabled; current source/authority inspection is observational and a stale source blocks QA-review admission and final acceptance. Only the explicit source reconciliation command with the exact current Approval/sequence returns to R1 under P6 §38; no implicit write, continuing signed work, or acceptance on drift.
+During `EXECUTION`, reconciliation may update the current source projection but cannot authorize continued work: the approval/source comparison yields `APPROVAL_STALE` and returns to the earliest changed-material owner before another productive execution Run. Direct browser source/artifact editing remains disabled in EXECUTION. In AWAITING_ACCEPTANCE it likewise remains disabled; current source/authority inspection is observational and a stale source blocks QA-review admission and final acceptance. Only the explicit selected source reconciliation command with the exact current Approval/sequence returns to R1 under P6 §38.3; ordinary bulk/startup/configuration use its no-implicit-return boundary. A valid source change adopts only its admitted projection; invalid-source invalidation does not adopt invalid bytes or alter the rejected classification. No implicit write, continuing signed work, or acceptance on drift.
 
 For a WorkItem already in `COMPLETE`, inspection/reconciliation does not reinterpret or reopen the historical lifecycle result. If source bytes change or disappear, Order preserves the completed runtime projection and reports `COMPLETED_SOURCE_CHANGED` or `COMPLETED_SOURCE_MISSING`. The operator must create a new WorkItem for new/changed intent rather than repurpose the completed stable id.
 
