@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Correct native Acceptance and dependent Workbench comparison fixtures to preserve exact candidate membership, current/historical action and proof, correction rail and task state, existing inspection returns and signed repository command feedback; no new UI surface, primitive or runtime scope.
+
 - Reconcile the canonical automatic task-admission contract with native Acceptance correction: one existing ordered scan, direct QA reviewer admission and exact negative proof, without runtime changes or task-scope expansion.
 
 - Clarify shared stale-authority presentation versus pure Acceptance command dispatch; extend the existing Acceptance reference surface with source-return and reopened-finding proof variants without changing task scope or protected verification.

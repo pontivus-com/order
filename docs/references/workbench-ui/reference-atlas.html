@@ -231,7 +231,7 @@ if(surf==="SURF-WI-001"&&state==="acceptance-current"){
 }
 if(surf==="SURF-WI-CONTEXT-001"&&state==="acceptance"){
   const source=document.querySelector('[data-surf="SURF-STEP-ACCEPTANCE-001"] main');
-  screen.querySelector("main > section").innerHTML=source.innerHTML;
+  screen.querySelector("main > section").replaceWith(source.firstElementChild.cloneNode(true));
   screen.querySelector(".context .facts").innerHTML='<div><dt>Selected object</dt><dd>Acceptance finding</dd></div><div><dt>Approval</dt><dd>Exact selected Approval id</dd></div><div><dt>Candidate set</dt><dd>Exact selected candidate hash</dd></div><div><dt>Report event</dt><dd>Exact event id / sequence</dd></div><div><dt>Member</dt><dd>Exact task / candidate event</dd></div>';
 }
 if(surf==="SURF-STEP-APPROVAL-001"&&state==="signed-acceptance"){
@@ -246,20 +246,29 @@ if(["SURF-STEP-EXEC-001","SURF-MAT-EXEC-TASK-001"].includes(surf)&&["qa-review",
   setText(".attention .primary",blocked?"Resume":"Cancel");
   setText(".detail .status",blocked?"Blocked":"Processing");
   setText(".masteritem.current span",blocked?"Current · blocked":"Current · candidate review");
-  const section=document.createElement("section");section.className="section";section.innerHTML='<h2>QA findings</h2><div class="resources"><div class="resource"><span>Primary action is clipped at narrow width.</span><button>Inspect finding</button></div><div class="resource"><span>Independent assessment</span><button>View evidence</button></div></div>';screen.querySelector(".detail").append(section);
+  screen.querySelectorAll(".masteritem:not(.current) span").forEach(el=>{el.textContent="Verified";});
+  const details=screen.querySelectorAll(".detail > .facts dd");
+  details[1].textContent=blocked?"Candidate review · blocked":"Independent candidate review · active";
+  details[2].textContent=blocked?"Current review blocked":"Independent review in progress";
+  const chronology=Array.from(screen.querySelectorAll(".detail > .section")).find(el=>el.querySelector("h2")?.textContent==="Chronology");
+  if(chronology)chronology.innerHTML='<h2>Chronology</h2><div class="resources"><div class="resource"><span>Original candidate independently verified</span><button>Open</button></div><div class="resource"><span>Human findings submitted</span><button>Inspect finding</button></div><div class="resource"><span>'+(blocked?"Candidate review blocked":"Candidate review started")+'</span><button>Open</button></div></div>';
+  const section=document.createElement("section");section.className="section";section.innerHTML='<h2>QA findings</h2><div class="resources"><div class="resource"><span>Primary action is clipped at narrow width.</span><button>Inspect finding</button></div></div><p>'+(blocked?"Current independent assessment not completed.":"Independent assessment in progress.")+'</p>';screen.querySelector(".detail").append(section);
 }
 if(surf==="SURF-MAT-EVIDENCE-001"&&["qa-original","qa-successor"].includes(state)){
   setText(".pagehead p",state==="qa-original"?"Original candidate proof selected from Acceptance":"Successor candidate proof selected from Acceptance");
-  setText(".facts dd",state==="qa-original"?"Original review evidence":"Successor review evidence");setText(".code","Reference fixture only.\nExact selected evidence bytes; no automatic latest substitution.");
+  setText(".facts dd",state==="qa-original"?"Original review evidence":"Successor review evidence");setText(".pagehead button","Back to Acceptance");setText(".code","Reference fixture only.\nExact selected evidence bytes; no automatic latest substitution.");
 }
 if(surf==="SURF-MAT-DOC-RO-001"&&state==="signed-acceptance"){
-  stateNotice("Read-only signed package document. Back returns to the selected Acceptance material.");
+  setText(".dochead p","Exact signed package document");setText(".docstatus .status","Read-only · signed");
+  screen.querySelector(".docstatus").insertAdjacentHTML("beforeend",'<button>Back to Acceptance</button>');
 }
 if(surf==="SURF-SET-REPO-001"&&state==="acceptance-guard"){
-  const row=screen.querySelector(".resource");row.innerHTML='<div><strong>Repository · order</strong><p>Active signed work is awaiting Acceptance. Disconnect and document-root relocation are unavailable.</p></div><button disabled>Disconnect</button>';
+  const row=screen.querySelector(".resource");row.innerHTML='<div><strong>Repository · order</strong><p>Active signed work is awaiting Acceptance.</p></div><button>Disconnect</button><button>Move documents</button>';
+  row.insertAdjacentHTML("afterend",'<div class="notice"><strong>Repository disconnect failed</strong><p>Active signed work is awaiting Acceptance. No repository configuration was changed.</p></div>');
 }
 if(surf==="SURF-SET-REPO-MOVE-001"&&state==="acceptance-guard"){
-  stateNotice("Move unavailable: this repository contains active signed work awaiting Acceptance.");setDisabled(".panelfoot .primary");
+  const panel=screen.querySelector(".taskpanel");const footer=panel?.querySelector(".panelfoot");
+  footer?.insertAdjacentHTML("beforebegin",'<div class="notice"><strong>Document move failed</strong><p>Active signed work is awaiting Acceptance. No documents or configuration were changed.</p></div>');
 }
 
 if(surf==="SURF-STEP-ACCEPTANCE-001"){
@@ -448,7 +457,7 @@ if(rail){
   reached.delete(current);
   // The current marker is independent of inspected material. Standalone reference
   // states describe the current cell only when that cell is selected.
-  const currentMarker=q.get("marker")||(current==="Complete"?"complete":current==="Acceptance"?(["stale-authority","reconcile-confirmation","source-stale-authority","source-reconcile-confirmation"].includes(state)?"stale":["proof-unavailable","proof-reanalysis-form"].includes(state)?"blocked":["correction-queued","loading"].includes(state)?"processing":"action required"):surf==="SURF-STEP-ACCEPTANCE-001"&&state==="historical-correction"?"processing":selected!==current?"ready":state==="blocked"?"blocked":state==="stale"?"stale":state==="required-input"||state==="pending"?"action required":state==="processing"||state==="running"||state==="applying"?"processing":"ready");
+  const currentMarker=q.get("marker")||(current==="Implementation"&&state==="qa-blocked"?"blocked":current==="Implementation"&&state==="qa-review"?"processing":current==="Complete"?"complete":current==="Acceptance"?(["stale-authority","reconcile-confirmation","source-stale-authority","source-reconcile-confirmation"].includes(state)?"stale":["proof-unavailable","proof-reanalysis-form"].includes(state)?"blocked":["correction-queued","loading"].includes(state)?"processing":"action required"):surf==="SURF-STEP-ACCEPTANCE-001"&&state==="historical-correction"?"processing":selected!==current?"ready":state==="blocked"?"blocked":state==="stale"?"stale":state==="required-input"||state==="pending"?"action required":state==="processing"||state==="running"||state==="applying"?"processing":"ready");
   const markerTones={"complete":"success","blocked":"danger","stale":"warning","action required":"warning","processing":"info","ready":"neutral"};
   cells.forEach((cell,index)=>{
     cell.classList.toggle("current",index===currentIndex);cell.classList.toggle("reached",reached.has(labels[index]));
