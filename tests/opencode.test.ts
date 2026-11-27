@@ -1615,7 +1615,7 @@ materialRefs = ["AGENTS.md"]
         async () => { throw new Error("unchanged exact legacy target must not prompt"); },
         true,
         { snapshot: cfg.captureInstallerConfigSnapshot(${JSON.stringify(state)}), onPublished: () => {} },
-        (custody) => created.push(custody.path),
+        (custody) => created.push({ path: custody.path, identified: custody.identity !== null }),
       );
       console.log(JSON.stringify({
         code,
@@ -1626,7 +1626,7 @@ materialRefs = ["AGENTS.md"]
       }));
     `, providerEnvironment(binary)) as {
       code: number;
-      created: string[];
+      created: { path: string; identified: boolean }[];
       config: {
         version: 4;
         model: { providerID: string; id: string };
@@ -1648,7 +1648,10 @@ materialRefs = ["AGENTS.md"]
     };
 
     expect(output.code).toBe(0);
-    expect(output.created).toEqual([join(workspace, "pontivus-order.toml")]);
+    expect(output.created).toEqual([
+      { path: join(workspace, "pontivus-order.toml"), identified: false },
+      { path: join(workspace, "pontivus-order.toml"), identified: true },
+    ]);
     expect(output.config.repositoryRoots).toEqual([workspace]);
     expect(output.config.referenceRoots).toEqual([]);
     expect(output.manifest.projectId).toBe(basename(workspace).toLowerCase());
