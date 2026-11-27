@@ -7,6 +7,7 @@ import {
   renameSync,
   readFileSync,
   rmSync,
+  statSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -483,6 +484,8 @@ type InstallerTransactionFixture = Readonly<{
   interruptAtReadiness?: boolean;
   failRestart?: boolean;
   failService?: "daemon-reload" | "enable";
+  priorEnablement?: "enabled" | "disabled";
+  failRestoreService?: "disable" | "daemon-reload" | "enable";
   failPredecessorRetirement?: boolean;
   failStaging?: boolean;
   stopMode?: "stuck" | "unknown" | "failed-inactive";
@@ -526,7 +529,7 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
     const prompts = [];
     let activity = fs.existsSync(unitPath) ? "active" : "inactive";
     let legacyActivity = fs.existsSync(legacyUnit) ? "active" : "inactive";
-    let enablement = fs.existsSync(unitPath) ? "enabled" : "";
+    let enablement = fs.existsSync(unitPath) ? fixture.priorEnablement ?? "enabled" : "";
     let restartFailed = false;
     let serviceFailed = false;
     let candidateStarted = false;
@@ -571,7 +574,12 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
           throw new Error("unexpected predecessor command " + JSON.stringify(argv));
         }
         if (verb === fixture.failService && !serviceFailed) { serviceFailed = true; return result("", 1); }
-        if (verb === "show-environment" || verb === "daemon-reload") return result();
+        if (candidateStarted && verb === fixture.failRestoreService) return result("", 1);
+        if (verb === "daemon-reload") {
+          if (!fs.existsSync(unitPath)) enablement = "";
+          return result();
+        }
+        if (verb === "show-environment") return result();
         if (verb === "show") {
           if (argv[3] === "--property=ActiveState") return result(activity + "\\n");
           if (argv[3] === "--property=UnitFileState") return result(enablement + "\\n");
@@ -979,6 +987,38 @@ describe("actual IA25 installer transaction", () => {
     expect(outcome.config).toBeNull();
     expect(outcome.app || outcome.launcher || outcome.unit).toBe(false);
     expect(outcome.events.some((event: { command: string[] }) => event.command[0] === "restart")).toBe(false);
+  }, 120_000);
+
+  it.each(["stuck", "unknown"] as const)("refuses current installation replacement on unproven prior quiescence: %s", stopMode => {
+    const fixture = transactionFixture();
+    createPriorDeployment(fixture);
+    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes",
+      readiness: { ready: true, blockers: [] }, stopMode });
+    expect(outcome.failure).not.toBeNull();
+    expect(outcome.marker).toBe("b".repeat(40) + "\n");
+    expect(outcome.configBytes).toBe(outcome.originalConfig);
+    expect(outcome.appBackups).toHaveLength(0);
+    expect(outcome.launcherBackups).toHaveLength(0);
+    expect(outcome.restartObservations).toEqual([]);
+  }, 120_000);
+
+  it.each(["disable", "daemon-reload", "enable"] as const)("restores independent unit bytes and blocks prior restart when %s compensation fails", failRestoreService => {
+    const fixture = transactionFixture();
+    createPriorDeployment(fixture);
+    const unit = join(fixture.home, ".config/systemd/user/pontivus-order.service");
+    chmodSync(unit, 0o640);
+    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes",
+      readiness: { ready: true, blockers: [] }, failRestart: true, failRestoreService,
+      priorEnablement: failRestoreService === "disable" ? "disabled" : "enabled" });
+    expect(outcome.failure).toContain("injected host failure");
+    expect(outcome.failure).toContain("service restoration incomplete");
+    expect(outcome.failure).toContain(failRestoreService);
+    expect(readFileSync(unit, "utf8")).toBe("old unit");
+    expect(statSync(unit).mode & 0o777).toBe(0o640);
+    expect(outcome.marker).toBe("b".repeat(40) + "\n");
+    expect(outcome.configBytes).toBe(outcome.originalConfig);
+    expect(outcome.activity).toBe("inactive");
+    expect(outcome.restartObservations.map((entry: { deployment: string }) => entry.deployment)).toEqual(["candidate"]);
   }, 120_000);
 
   it.each(["stuck", "unknown"] as const)("retains deployed material when failed restart cannot prove quiescence: %s", (stopMode) => {

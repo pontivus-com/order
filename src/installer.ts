@@ -518,7 +518,22 @@ const captureServiceState = (
   const unitPath = join(locations.userConfigHome, "systemd", "user", "pontivus-order.service");
   const entry = lstatSync(unitPath, { throwIfNoEntry: false });
   if (entry !== undefined && !entry.isFile()) fail("unsupported existing service unit: " + unitPath);
-  const previousUnit = entry === undefined ? null : readFileSync(unitPath);
+  const previousUnit = (() => {
+    if (entry === undefined) return null;
+    const descriptor = openSync(unitPath, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
+    try {
+      const opened = fstatSync(descriptor);
+      if (!opened.isFile() || opened.dev !== entry.dev || opened.ino !== entry.ino ||
+          opened.mode !== entry.mode) fail("service unit changed during snapshot: " + unitPath);
+      const bytes = readFileSync(descriptor);
+      const after = lstatSync(unitPath);
+      if (after.dev !== opened.dev || after.ino !== opened.ino || after.mode !== opened.mode ||
+          after.size !== opened.size || after.mtimeMs !== opened.mtimeMs || after.ctimeMs !== opened.ctimeMs) {
+        fail("service unit changed during snapshot: " + unitPath);
+      }
+      return bytes;
+    } finally { closeSync(descriptor); }
+  })();
   const enablement = runCommand(
     ["systemctl", "--user", "show", "--property=UnitFileState", "--value", "pontivus-order.service"],
     locations.home, environment,
@@ -583,20 +598,49 @@ const restoreUnit = (
   prior: ReturnType<typeof captureServiceState>,
   environment: NodeJS.ProcessEnv,
 ): void => {
+  const failures: unknown[] = [];
+  const compensate = (label: string, operation: () => void): boolean => {
+    try { operation(); return true; }
+    catch (error) { failures.push(new Error(label + ": " + String(error), { cause: error })); return false; }
+  };
   if (prior.enablement !== "enabled") {
-    runCommand(["systemctl", "--user", "disable", "pontivus-order.service"], locations.home, environment);
+    compensate("prior service disablement", () =>
+      runCommand(["systemctl", "--user", "disable", "pontivus-order.service"], locations.home, environment));
   }
-  if (prior.previousUnit === null) {
-    rmSync(prior.unitPath);
-  } else {
-    const temporary = prior.unitPath + ".restore." + crypto.randomUUID();
-    writeFileSync(temporary, prior.previousUnit, { mode: prior.mode! & 0o777, flag: "wx" });
-    renameSync(temporary, prior.unitPath);
+  const unitRestored = compensate("prior unit bytes/mode at " + prior.unitPath, () => {
+    if (prior.previousUnit === null) {
+      rmSync(prior.unitPath);
+      if (footprintEntryExists(prior.unitPath)) fail("prior absent unit still present: " + prior.unitPath);
+    } else {
+      const temporary = prior.unitPath + ".restore." + crypto.randomUUID();
+      const mode = prior.mode! & 0o777;
+      const descriptor = openSync(temporary, constants.O_WRONLY | constants.O_CREAT | constants.O_EXCL | constants.O_NOFOLLOW, 0o600);
+      try {
+        writeFileSync(descriptor, prior.previousUnit);
+        chmodSync(temporary, mode);
+      } finally { closeSync(descriptor); }
+      renameSync(temporary, prior.unitPath);
+      if ((lstatSync(prior.unitPath).mode & 0o777) !== mode ||
+          !readFileSync(prior.unitPath).equals(prior.previousUnit)) fail("restored service unit differs: " + prior.unitPath);
+    }
+  });
+  if (unitRestored) {
+    const reloaded = compensate("prior service daemon-reload", () =>
+      runCommand(["systemctl", "--user", "daemon-reload"], locations.home, environment));
+    if (reloaded && prior.enablement === "enabled") {
+      compensate("prior service enablement", () =>
+        runCommand(["systemctl", "--user", "enable", "pontivus-order.service"], locations.home, environment));
+    }
+    if (reloaded) compensate("prior service enablement observation", () => {
+      const observed = runCommand(
+        ["systemctl", "--user", "show", "--property=UnitFileState", "--value", "pontivus-order.service"],
+        locations.home, environment,
+      ).trim();
+      if (observed !== prior.enablement) fail("prior enablement not restored: " + observed);
+    });
   }
-  runCommand(["systemctl", "--user", "daemon-reload"], locations.home, environment);
-  if (prior.enablement === "enabled") {
-    runCommand(["systemctl", "--user", "enable", "pontivus-order.service"], locations.home, environment);
-  }
+  if (failures.length > 0) throw new AggregateError(failures,
+    "service restoration incomplete: " + failures.map(String).join("; "));
 };
 
 const completeDeploymentFootprint = (root: string, launcher: string, unit: string): boolean => {
@@ -998,7 +1042,7 @@ export const runInstaller = async (
   } catch (error) {
     const failures: unknown[] = [];
     const compensate = (label: string, operation: () => void): void => {
-      try { operation(); } catch (failure) { failures.push(new Error(label, { cause: failure })); }
+      try { operation(); } catch (failure) { failures.push(new Error(label + ": " + String(failure), { cause: failure })); }
     };
     if (restartAttempted) {
       compensate("cannot prove new service stopped; live deployment and recovery material retained",
