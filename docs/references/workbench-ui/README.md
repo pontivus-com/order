@@ -13,7 +13,7 @@ The active corpus is valid only for these exact inputs:
 - `GW-DOC-WORKBENCH-UX-V2` — blob `64184232833b59a9e6db5e1a28b841f48b3217cd`;
 - `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2` — blob `8fccbe031436a9eb54da8ae493b614e94cc957b1`;
 - `GW-DOC-WORKBENCH-THEME-V1` — blob `03dfc6be3600a1128b5639d011f4c0159d3497dd`;
-- current 0.6.0 DESIGN — blob `c2a46ff0f9877f5175ddad49eccdc2ed2a742aa4`.
+- current 0.6.0 DESIGN — blob `01c208e75252ce2b0556fe42518600f3205849a3`.
 
 These are the exact current authority versions projected by this corpus. If any bound owner changes, this corpus is stale until regenerated and reviewed. The owner wins on every conflict.
 
@@ -25,7 +25,7 @@ These are the exact current authority versions projected by this corpus. If any 
 
 ## Evidence integrity
 
-The 2026-11-27 REV-F11 installer forecast correction rebinds the DESIGN authority identity without changing settled SURF contracts or visual reference layout. This metadata binding is not visual acceptance or new rendered proof; IA26 must revalidate actual state/scope/selection equivalence.
+The 2026-11-27 REV-F11 installer forecast correction rebinds the DESIGN authority identity without changing settled SURF contracts or visual reference layout. The Workbench integration correction binds exact selection and prospective package inspection; replacement Dialogue is the existing P4 target. These metadata bindings are not visual acceptance or new rendered proof; IA26 must revalidate actual state/scope/selection equivalence.
 
 Reference fixtures are canonical semantic placeholders. They demonstrate information hierarchy, component anatomy, geometry, responsive recomposition and visual hierarchy without claiming that a runtime event occurred.
 
