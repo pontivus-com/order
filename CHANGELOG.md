@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Reconcile inherited installer custody evidence and specify exact stopped SQLite v3-to-v4 migration rollback through existing archive/compensation ownership; no new scope or implementation authorization.
+
 - Replace serial 0.6.0 package revalidation with one integrated evidence/correction/review milestone, preserving complete semantic audit coverage, exact bindings, gate prerequisites and independent readiness. Explicitly retain H4 and distinguish first-time pair sequencing and evidence recording from integrated publication; include native Acceptance and applicable completion alternatives in H2's authority-driven product walkthrough.
 
 - Reconcile native Acceptance stable requirement evidence and public product-language obligations across R1–PLAN without changing the signed task forecast.
