@@ -832,6 +832,32 @@ const artifactOwnerStage = (artifact: ArtifactRef): WorkStage | null =>
     ? artifact.role
     : null;
 
+// Admission is a same-Run fact, independent of later material freshness.
+export const admittedStageCompletion = (
+  workItemId: WorkItem["id"],
+  run: Run,
+  events: readonly RunEvent[],
+): Extract<RunEventPayload, { tag: "STAGE_COMPLETED" }> | null => {
+  if (run.workItemId !== workItemId || run.role !== "STAGE" || run.status !== "COMPLETED") return null;
+  const history = events.filter((event) => event.runId === run.id);
+  const completions = history.filter((event) => event.event.tag === "STAGE_COMPLETED");
+  const conformances = history.filter((event) => event.event.tag === "CONFORMANCE_PASSED");
+  const completion = completions[0];
+  const conformance = conformances[0];
+  if (completions.length !== 1 || conformances.length !== 1 ||
+      completion?.event.tag !== "STAGE_COMPLETED" ||
+      conformance?.event.tag !== "CONFORMANCE_PASSED" ||
+      history.some((event) => event.event.tag === "CONFORMANCE_FAILED" || event.event.tag === "STAGE_BLOCKED") ||
+      completion.sequence >= conformance.sequence ||
+      completion.event.completion.stage !== run.stage ||
+      conformance.event.stage !== run.stage ||
+      conformance.event.contextHash !== run.contextHash ||
+      completion.event.artifactRefIds.length !== 1 ||
+      conformance.event.outputArtifactRefIds.length !== 1 ||
+      completion.event.artifactRefIds[0] !== conformance.event.outputArtifactRefIds[0]) return null;
+  return completion.event;
+};
+
 export const deriveReachedStages = (
   workItem: WorkItem,
   runs: readonly Run[],
@@ -841,17 +867,16 @@ export const deriveReachedStages = (
 ): ReadonlySet<WorkStage> => {
   const reached = new Set<WorkStage>(["IDEA", workItem.stage]);
   for (const run of runs) {
+    if (run.workItemId !== workItem.id) continue;
     reached.add(run.stage);
     if (run.stage === "EXECUTION") {
       reached.add("AWAITING_SIGNOFF");
       reached.add("EXECUTION");
     }
   }
-  for (const event of events) {
-    if (event.event.tag === "STAGE_COMPLETED") {
-      reached.add(event.event.completion.stage);
-      reached.add(completionDestination(event.event.completion));
-    }
+  for (const run of runs) {
+    const completion = admittedStageCompletion(workItem.id, run, events);
+    if (completion !== null) reached.add(completionDestination(completion.completion));
   }
   if (tasks.length > 0) {
     reached.add("AWAITING_SIGNOFF");

@@ -2707,13 +2707,37 @@ describe("closed Workbench workflow-state kernel", () => {
       event: {
         tag: "STAGE_COMPLETED",
         completion: { stage: "R3", outcome: "READY_FOR_SIGNOFF" },
-        artifactRefIds: [],
+        artifactRefIds: [repositoryDraft.id],
       },
     });
+    const readinessConformed = RunEventSchema.parse({
+      ...readinessCompleted,
+      id: `event_${uuidC}`,
+      sequence: 2,
+      event: {
+        tag: "CONFORMANCE_PASSED", stage: "R3",
+        outputArtifactRefIds: [repositoryDraft.id],
+        contextHash: readinessRun.contextHash, evidence: [],
+      },
+    });
+    for (const invalid of [
+      [],
+      [readinessCompleted],
+      [readinessConformed],
+      [readinessCompleted, { ...readinessConformed, sequence: 0 }],
+      [readinessCompleted, { ...readinessConformed, runId: `run_${uuidA}` }],
+      [readinessCompleted, { ...readinessConformed, event: {
+        tag: "CONFORMANCE_PASSED", stage: "R3", outputArtifactRefIds: [repositoryDraft.id],
+        contextHash: hashB, evidence: [],
+      } }],
+      [readinessCompleted, readinessConformed, { ...readinessCompleted, sequence: 3 }],
+    ]) {
+      expect(deriveReachedStages(plan, [readinessRun], invalid as RunEvent[], [], []).has("AWAITING_SIGNOFF")).toBe(false);
+    }
     const returnedUpstream = deriveReachedStages(
       plan,
       [readinessRun],
-      [readinessCompleted],
+      [readinessCompleted, readinessConformed],
       [],
       [],
     );

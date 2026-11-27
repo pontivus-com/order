@@ -913,13 +913,6 @@ const seedConformance = async (
         storeArtifactDependency(database, output.id, dependency.id);
       }
     }
-    appendRunEvent(seedRuntime, run.id, {
-      tag: "CONFORMANCE_PASSED",
-      stage,
-      outputArtifactRefIds: [output.id],
-      contextHash: context.contextHash,
-      evidence: [],
-    });
     if (completion) {
       appendRunEvent(seedRuntime, run.id, {
         tag: "STAGE_COMPLETED",
@@ -927,6 +920,13 @@ const seedConformance = async (
         artifactRefIds: [output.id],
       });
     }
+    appendRunEvent(seedRuntime, run.id, {
+      tag: "CONFORMANCE_PASSED",
+      stage,
+      outputArtifactRefIds: [output.id],
+      contextHash: context.contextHash,
+      evidence: [],
+    });
   });
 };
 
@@ -1131,16 +1131,16 @@ const seedReadinessOutcomeItem = async (
     contextHash,
   });
   appendRunEvent(seedRuntime, run.id, {
+    tag: "STAGE_COMPLETED",
+    completion: { stage: "R3", outcome },
+    artifactRefIds: [output.id],
+  });
+  appendRunEvent(seedRuntime, run.id, {
     tag: "CONFORMANCE_PASSED",
     stage: "R3",
     outputArtifactRefIds: [output.id],
     contextHash,
     evidence: [],
-  });
-  appendRunEvent(seedRuntime, run.id, {
-    tag: "STAGE_COMPLETED",
-    completion: { stage: "R3", outcome },
-    artifactRefIds: [output.id],
   });
 };
 
@@ -1184,18 +1184,18 @@ const seedBlockedReadinessItem = async (
       contextHash: priorContextHash,
     });
     appendRunEvent(seedRuntime, prior.id, {
+      tag: "STAGE_COMPLETED",
+      completion: { stage: "R3", outcome: "READY_FOR_SIGNOFF" },
+      artifactRefIds: [output.id],
+    });
+  }
+    appendRunEvent(seedRuntime, prior.id, {
       tag: "CONFORMANCE_PASSED",
       stage: "R3",
       outputArtifactRefIds: [output.id],
       contextHash: priorContextHash,
       evidence: [],
     });
-    appendRunEvent(seedRuntime, prior.id, {
-      tag: "STAGE_COMPLETED",
-      completion: { stage: "R3", outcome: "READY_FOR_SIGNOFF" },
-      artifactRefIds: [output.id],
-    });
-  }
 
   const contextHash = sha256Text("readiness-blocked-" + title);
   const run = RunSchema.parse({

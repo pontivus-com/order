@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Require same-Run completed STAGE and subsequent matching conformance evidence for historical stage reach (IA17).
+
 - Use the existing source catalog's admitted R1 terminal outcomes for completed Investigation/Audit remediation parents, including DUPLICATE and ALREADY_SATISFIED, while retaining same-project delivery-only lineage (IA11).
 
 - Supply exact owning-stage durable decision and adoption history across attempts to stage conformance, requiring coverage in current canonical material rather than treating prior answers or unrelated adoption as authority (IA04).
