@@ -2,6 +2,8 @@
 
 # Order 0.6.0 readiness review
 
+**Historical exact-package review.** This report applies only to its recorded prior package and repository baseline. The combined authority/REV-F11 upstream return invalidates its use for the staged integration candidate. Current progression and authorization are owned exclusively by the campaign register; a fresh adversarial R3 is required after affected reviews. The historical evidence and verdict below are retained unchanged.
+
 ## Exact reviewed package
 
 Repository evidence baseline: `bd52d338589bafea93ad334faf5861dc94e6625a`. Separate read-only adversarial review after G4/G5 and G5A correction closure. Prior authorization on baseline `79f9d77da12b899a64e2713631e4d98eafaaea00`, R3 blob `719a542e5364e4f552b680d48bebe589b40916ca`, decision PR #83 comment 7205787959, is historical only; terminated at `b3234e20f7fa9593091879c033d23f6d25f86331` before upstream mutation. Current authorization is absent.
