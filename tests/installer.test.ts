@@ -738,13 +738,14 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
               String(from).includes(".legacy-v") && to === databasePath) throw new Error("injected archive restoration");
           fs.renameSync(from, to);
         },
-        copy: (from, to) => {
+        copy: (source, target, from, to) => {
           if (fixture.databaseFault === "copy" && to === databasePath) throw new Error("injected database copy");
           if ((fixture.databaseFault === "partial-copy" || fixture.databaseFault === "copy-and-restore") && to === databasePath) {
-            fs.writeFileSync(to, "partial candidate");
+            fs.writeFileSync(target, "partial candidate");
             throw new Error("injected partial database copy");
           }
-          fs.copyFileSync(from, to);
+          fs.writeFileSync(target, fs.readFileSync(source));
+          fs.fsyncSync(target);
         },
         unlink: target => {
           if (fixture.databaseFault === "unlink" && target === databasePath + "-wal") throw new Error("injected candidate unlink");
