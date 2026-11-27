@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Correct the existing Workbench reference responsive and QA modal/status anatomy; verify the existing Acceptance and dependent-state comparison matrix without adding surfaces or production scope.
+
 - Bind failed human retest observations and evidence to the exact subsequent QA submission, reviewer context and existing certification; preserve original reports and the signed task/renderer scope.
 
 - Correct native Acceptance and dependent Workbench comparison fixtures to preserve exact candidate membership, current/historical action and proof, correction rail and task state, existing inspection returns and signed repository command feedback; no new UI surface, primitive or runtime scope.
