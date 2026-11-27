@@ -500,7 +500,9 @@ type InstallerTransactionFixture = Readonly<{
   readinessStatus?: number;
   readinessError?: "timeout" | "redirect";
   failFinalization?: boolean;
-  failCleanup?: "config" | "application" | "launcher";
+  failCleanup?: "config" | "application" | "launcher" | "unit";
+  readinessToken?: "missing" | "invalid";
+  bind?: string;
   legacyDatabaseVersion?: 1 | 2 | 3;
   legacyRootInWal?: boolean;
   loseDatabaseArchive?: boolean;
@@ -514,7 +516,7 @@ type InstallerTransactionFixture = Readonly<{
   driftConfig?: boolean;
   configFault?: "snapshot-sync" | "publication" | "publication-sync" | "restore" | "restore-sync" | "retire" |
     "snapshot-file-sync" | "snapshot-changed" | "publication-write" | "publication-file-sync" |
-    "publication-target-drift" | "publication-temp-replaced" | "restore-write" | "restore-file-sync";
+    "publication-target-drift" | "publication-temp-replaced" | "publication-readback-drift" | "restore-write" | "restore-file-sync";
   configOwnerMismatch?: boolean;
 }>;
 
@@ -723,7 +725,10 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
           });
           activity = "active";
           if (prior) return result();
-          fs.writeFileSync(path.join(fixture.stateRoot, "daemon-token"), token, { mode: 0o600 });
+          if (fixture.readinessToken !== "missing") {
+            fs.writeFileSync(path.join(fixture.stateRoot, "daemon-token"),
+              fixture.readinessToken === "invalid" ? "invalid-secret-token" : token, { mode: 0o600 });
+          }
           if (!candidateStarted) {
             candidateStarted = true;
             if (fixture.legacyDatabaseVersion === 1 || fixture.legacyDatabaseVersion === 2) {
@@ -876,7 +881,8 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
       };
       const remove = (target, options) => {
         if ((fixture.failCleanup === "application" && String(target).startsWith(installRoot + ".previous.")) ||
-            (fixture.failCleanup === "launcher" && String(target).startsWith(launcher + ".previous."))) {
+            (fixture.failCleanup === "launcher" && String(target).startsWith(launcher + ".previous.")) ||
+            (fixture.failCleanup === "unit" && String(target).startsWith(unitPath + ".previous."))) {
           throw new Error("injected cleanup failure: " + target);
         }
         fs.rmSync(target, options);
@@ -948,6 +954,11 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
             fs.writeFileSync(configPath, Buffer.from(originalConfig, "base64"), { mode: 0o600 });
           }
           fs.fsyncSync(descriptor);
+          if (directory && configPhase === "publication" && fixture.configFault === "publication-readback-drift") {
+            const bytes = fs.readFileSync(configPath);
+            fs.renameSync(configPath, configPath + ".retained-publication");
+            fs.writeFileSync(configPath, bytes, { mode: 0o600 });
+          }
         },
         unlink: target => {
           if (fixture.configFault === "retire" && String(target).includes(".installer-recovery.")) {
@@ -994,7 +1005,7 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
       PONTIVUS_ORDER_INSTALL_ROOT: join(fixture.home, ".local/share/pontivus-order"),
       PONTIVUS_ORDER_BIN_DIR: join(fixture.home, ".local/bin"),
       PONTIVUS_ORDER_STATE_ROOT: fixture.stateRoot,
-      PONTIVUS_ORDER_BIND: "127.0.0.1:7347",
+      PONTIVUS_ORDER_BIND: fixture.bind ?? "127.0.0.1:7347",
     },
   });
   if ((fixture.interruptAtReadiness || fixture.interruptAt) && result.status === 77) return { interrupted: true, stdout: result.stdout };
@@ -1327,6 +1338,22 @@ describe("actual IA25 installer transaction", () => {
     expect(outcome.failure).toContain("canonical installed readiness could not be confirmed");
     expect(outcome.marker).toBeNull();
     expect(outcome.app || outcome.launcher || outcome.unit).toBe(false);
+    expect(outcome.failure).not.toContain("a".repeat(64));
+  }, 120_000);
+
+  it.each([
+    { readinessToken: "missing" as const },
+    { readinessToken: "invalid" as const },
+    { bind: "0.0.0.0:7347" },
+    { bind: "127.0.0.1:99999" },
+  ])("rejects unsafe readiness credential or bind before sending a request: %j", fault => {
+    const outcome = runInstallerTransaction({ ...transactionFixture(),
+      readiness: { ready: true, blockers: [] }, ...fault });
+    expect(outcome.failure).toContain("installed");
+    expect(outcome.marker).toBeNull();
+    expect(outcome.app || outcome.launcher || outcome.unit).toBe(false);
+    expect(outcome.events.some((event: { command: string[] }) => event.command[0] === "readiness")).toBe(false);
+    expect(outcome.failure).not.toContain("invalid-secret-token");
     expect(outcome.failure).not.toContain("a".repeat(64));
   }, 120_000);
 
@@ -1818,6 +1845,21 @@ describe("actual IA25 installer transaction", () => {
     expect(outcome.activity).toBe("inactive");
   }, 120_000);
 
+  it("rejects valid identical-byte publication replacement before canonical readback", () => {
+    const fixture = transactionFixture();
+    createPriorDeployment(fixture);
+    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes",
+      readiness: { ready: true, blockers: [] }, configFault: "publication-readback-drift" });
+    expect(outcome.failure).toContain("identity or bytes changed");
+    expect(outcome.failure).toContain("rollback incomplete");
+    expect(outcome.restartObservations).toEqual([]);
+    expect(outcome.activity).toBe("inactive");
+    const recovery = outcome.stateEntries.find((name: string) => name.startsWith("config.json.installer-recovery."));
+    expect(readFileSync(join(fixture.stateRoot, recovery)).toString("base64")).toBe(outcome.originalConfig);
+    expect(readFileSync(join(fixture.stateRoot, "config.json.retained-publication"))).toEqual(
+      readFileSync(join(fixture.stateRoot, "config.json")));
+  }, 120_000);
+
   it("retains an unexpectedly replaced publication temporary without deleting it", () => {
     const fixture = transactionFixture();
     createPriorDeployment(fixture);
@@ -1857,7 +1899,7 @@ describe("actual IA25 installer transaction", () => {
     expect(outcome.stateEntries.some((name: string) => name.startsWith("config.json.installer-recovery."))).toBe(false);
   }, 120_000);
 
-  it.each(["snapshot-sync", "restore", "restore-sync"] as const)("retains private recovery bytes and prevents restart after %s failure", configFault => {
+  it.each(["snapshot-sync", "snapshot-file-sync", "restore", "restore-sync"] as const)("retains private recovery bytes and prevents restart after %s failure", configFault => {
     const fixture = transactionFixture();
     createPriorDeployment(fixture);
     const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes",
@@ -1868,7 +1910,7 @@ describe("actual IA25 installer transaction", () => {
     expect(readFileSync(join(fixture.stateRoot, recovery)).toString("base64")).toBe(outcome.originalConfig);
     expect(outcome.activity).toBe("inactive");
     expect(outcome.events.filter((event: { command: string[] }) => event.command[0] === "restart"))
-      .toHaveLength(configFault === "snapshot-sync" ? 0 : 1);
+      .toHaveLength(configFault.startsWith("snapshot") ? 0 : 1);
   }, 120_000);
 
   it("configuration recovery unlink failure after commit is non-destructive", () => {
@@ -1896,6 +1938,23 @@ describe("actual IA25 installer transaction", () => {
     expect(readFileSync(join(fixture.stateRoot, recovery)).toString("base64")).toBe(outcome.originalConfig);
     expect(outcome.activity).toBe("inactive");
     expect(outcome.events.filter((event: { command: string[] }) => event.command[0] === "restart")).toHaveLength(1);
+  }, 120_000);
+
+  it("retains service recovery after post-commit retirement failure", () => {
+    const fixture = transactionFixture();
+    createPriorDeployment(fixture);
+    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes",
+      readiness: { ready: true, blockers: [] }, failCleanup: "unit" });
+    expect(outcome.failure).toContain("installation committed; finalization incomplete");
+    const directory = join(fixture.home, ".config/systemd/user");
+    const recovery = readdirSync(directory).find(name => name.startsWith("pontivus-order.service.previous."));
+    expect(recovery).toBeDefined();
+    expect(outcome.failure).toContain(join(directory, recovery!));
+    expect(readFileSync(join(directory, recovery!), "utf8")).toBe("old unit");
+    expect(outcome.marker).toBe(outcome.sourceCommit + "\n");
+    expect(outcome.activity).toBe("active");
+    expect(outcome.appBackups).toHaveLength(1);
+    expect(outcome.launcherBackups).toHaveLength(1);
   }, 120_000);
 
   it.each(["config", "application", "launcher"] as const)("keeps committed deployment after %s retirement fails", failCleanup => {

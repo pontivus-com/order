@@ -539,10 +539,13 @@ export const writeOrderConfig = (
       try { if (lstatSync(temporary).isFile()) unlinkSync(temporary); } catch {}
       throw error;
     }
+    fsyncConfigDirectory(target, effects.fsync);
+    return readOrderConfig(stateRoot);
   } else {
     let created: Pick<InstallerConfigIdentity, "device" | "inode"> | null = null;
+    let identity: InstallerConfigIdentity;
     try {
-      const identity = writeExclusiveConfigBytes(temporary, bytes, 0o600, effects,
+      identity = writeExclusiveConfigBytes(temporary, bytes, 0o600, effects,
         value => { created = value; });
       requireInstallerConfigIdentity(temporary, identity);
       requireInstallerConfigIdentity(target, installer.snapshot.original);
@@ -556,10 +559,13 @@ export const writeOrderConfig = (
       }
       throw error;
     }
+    fsyncConfigDirectory(target, effects.fsync);
+    // Use the already observed exact publication for canonical readback.
+    // A syntactically valid replacement must not acquire installer custody.
+    const observed = requireInstallerConfigIdentity(target, identity);
+    if (observed === null) throw new TypeError("installer configuration publication is absent: " + target);
+    return canonicalCurrentOrderConfig(stateRoot, parseConfigBytes(observed.bytes));
   }
-
-  fsyncConfigDirectory(target, effects.fsync);
-  return readOrderConfig(stateRoot);
 };
 
 export type OrderConfigExpectedWriteResult =

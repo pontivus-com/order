@@ -618,9 +618,10 @@ const writeExclusiveInstallerFile = (path: string, bytes: Uint8Array, mode: numb
 
 type ServiceRecovery = Readonly<{ path: string; identity: InstallerFileIdentity }>;
 
-const releaseServiceRecovery = (recovery: ServiceRecovery): void => {
+const releaseServiceRecovery = (recovery: ServiceRecovery, remove: typeof rmSync = rmSync): void => {
   requireInstallerFile(recovery.path, recovery.identity);
-  rmSync(recovery.path);
+  remove(recovery.path);
+  requireInstallerFile(recovery.path, null);
 };
 
 const captureServiceState = (
@@ -1328,7 +1329,7 @@ export const runInstaller = async (
   // Never roll back a committed installation because finalization failed.
   try {
     if (configSnapshot !== null && setupModule !== null) setupModule.releaseInstallerConfigSnapshot(configSnapshot, configEffects);
-    if (unitRecovery !== null) releaseServiceRecovery(unitRecovery);
+    if (unitRecovery !== null) releaseServiceRecovery(unitRecovery, remove);
     if (legacyMigration !== null) retireLegacyGateweftArtifacts(legacyMigration, locations, environment);
     writeProfilePath(locations.home, locations.binDir);
     if (installBackup !== null) {
