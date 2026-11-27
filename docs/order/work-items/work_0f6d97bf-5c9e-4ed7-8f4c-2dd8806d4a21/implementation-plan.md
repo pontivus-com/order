@@ -28,7 +28,7 @@ Retain evidenced closed F6B semantic APIs and responsibilities; correct rejected
 | `implementation-plan/09-a09-provider-settings.md` | `1c897157eb48bcb7e107b4c2401d7290865dab25` |
 | `implementation-plan/10-a10-recovery-accessibility.md` | `41d6cd0f833180d0c750c5943ed0b1ee6d5d4fd5` |
 | `implementation-plan/11-a11-component-certification.md` | `84cb71df374f69619af5c795dd0f26b7f0a232f9` |
-| `implementation-plan/12-action-catalog.md` | `f1af6524cee7f7b913464f10b676101275703893` |
+| `implementation-plan/12-action-catalog.md` | `e5ccc39158716c307a541f1d1bc599d22291a70c` |
 | `implementation-plan/13-verification-closeout.md` | `b6d52162c54354bd610e7004cdc5feb2f58349f3` |
 
 A source hash mismatch makes PLAN non-current until recompiled. Directory files have no independent order-tasks block or lifecycle state.
@@ -1735,8 +1735,8 @@ The IA27–IA34 plus IA38 union is exactly **38 unique SURF rows** with no dupli
 - certify required-new semantic component modules and exact allowlisted consumers; reject duplicate feature-local owners for section/facts/resource/review/document/result responsibilities;
 - certify `WorkbenchReview` exposes no arbitrary body compatibility shape, `WorkbenchContextPanel` exposes no generic hierarchy escape, repeated resources use ResourceList, and required-absent generic workflow owners/aliases remain zero;
 - certify the affected route renderers satisfy the DESIGN physical-SoC dispositions and no migrated feature selector family recreates the shared semantic component grammar;
-- capture every one of the nine lifecycle steps — Work request, Research, Requirements, Solution design, Implementation plan, Readiness review, Approval, Implementation and Complete — from populated deterministic canonical fixtures, not empty shells;
-- capture every one of the 37 `SURF-*` contracts declared by current `solution-design.md`, including Queue, Create, Settings/repositories, Settings/OpenCode/accounts, model/runtime Settings, Context, document authoring/read-only, dialogue/activity, proposal review, evidence, approval-task detail, execution-task detail and all confirmation/destructive overlays;
+- for final post-cutover IA26, capture every one of the ten lifecycle steps — Work request, Research, Requirements, Solution design, Implementation plan, Readiness review, Approval, Implementation, Acceptance and Complete — from populated deterministic canonical fixtures, not empty shells; pre-cutover phase-local proof covers only the admitted phase rows, not the unimplemented Acceptance stage;
+- for final post-cutover IA26, capture every one of the 38 `SURF-*` contracts declared by current `solution-design.md`, including the Acceptance surface and all 37 other governed surfaces; pre-cutover phase-local proof and current-state diagnostic completeness remain separate and must not be treated as exhaustive target acceptance;
 - capture all materially distinct DESIGN/P3 states needed to prove current-attention precedence, dialogue interaction, proposal, document, Implementation task, Queue, application notices, installation readiness, linked-remediation Create/Complete branches, OpenCode login terminal states, safety confirmations, responsive composition and theme parity;
 - prove all four WorkItem kinds represented by the reference pack — Change, Defect, Investigation and Audit — at the information-contract surfaces where the kinds materially differ;
 - capture every primary workflow step at a wide desktop viewport and at a narrow viewport; additionally capture Light and Dark representatives for every primary interaction class and System against both mocked effective schemes, preserving the existing semantic theme assertions;
