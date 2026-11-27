@@ -538,7 +538,7 @@ const resolveRenderedReference = (
     "&kind=" + encodeURIComponent(entry.workItemKind) +
     (lifecycleFixture === null ? "" : "&current=" + encodeURIComponent(lifecycleFixture.current) +
       "&reached=" + encodeURIComponent(lifecycleFixture.reached.join("|"))) +
-    (entry.id === "ia26-implementation-validation-recorded-wide-light" ? "&attempt=reviewer-1" :
+    (entry.id === "ia26-implementation-validation-recorded-wide-light" ? "&attempt=reviewer-2" :
       entry.id === "ia26-implementation-builder-attempt-wide-light" ? "&attempt=builder-1" : "");
   return {
     manifestPath: referenceManifestPath,
@@ -781,7 +781,7 @@ const captureRenderedAcceptance = async (
       if (entry.id === "ia26-implementation-validation-recorded-wide-light" || entry.id === "ia26-implementation-builder-attempt-wide-light") {
         const reviewer = entry.id === "ia26-implementation-validation-recorded-wide-light";
         await expect(referenceSurface.locator(".attempts .masteritem.current strong")).toHaveText(
-          reviewer ? "Independent review · Attempt 1" : "Implementation agent · Attempt 1");
+          reviewer ? "Independent review · Attempt 2" : "Implementation agent · Attempt 1");
         await expect(referenceSurface.locator(".attempt-heading")).toHaveText("Attempts");
         if (reviewer) await expect(referenceSurface.locator(".validation-results tbody tr")).toHaveCount(8);
         else await expect(referenceSurface.locator(".validation-results")).toContainText("No validation results in this attempt");
@@ -1265,7 +1265,7 @@ test("System, Light and Dark preserve representative Workbench semantic roles", 
     await openWorkItem(page, "Verified candidate");
     await selectWorkflowStep(page, "Implementation");
     await expect(page.getByTestId("execution-workspace")).toBeVisible();
-    await selectWorkflowMaterial(page, "Independent review · Attempt 1");
+    await selectWorkflowMaterial(page, "Independent review · Attempt 2");
     const reviewEvidence = page
       .locator('[data-evidence-path="review.txt"]')
       .first()
@@ -4515,8 +4515,8 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   await openWorkItem(page, "Verified candidate");
   await selectWorkflowStep(page, "Implementation");
   await expect(page.getByTestId("execution-workspace")).toBeVisible();
-  await selectWorkflowMaterial(page, "Independent review · Attempt 1");
-  await expect(page.getByTestId("selected-run-header")).toContainText("Independent review · Attempt 1");
+  await selectWorkflowMaterial(page, "Independent review · Attempt 2");
+  await expect(page.getByTestId("selected-run-header")).toContainText("Independent review · Attempt 2");
   await expect(page.getByTestId("validation-matrix").getByTestId("validation-stage-V7")).toContainText("Passed");
   await expect(page.getByTestId("workflow-rail").getByRole("button", { name: "Complete", exact: true })).toHaveAttribute("aria-current", "step");
   await expect(page.getByTestId("workflow-rail").getByRole("button", { name: "Implementation", exact: true })).toHaveAttribute("aria-pressed", "true");
@@ -4526,7 +4526,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     workflowStep: "Implementation",
     surface: "SURF-STEP-EXEC-001",
     state: "validation-recorded",
-    fixture: "Verified candidate reached Implementation · Independent review · Attempt 1",
+    fixture: "Verified candidate reached Implementation · Independent review · Attempt 2",
     viewport: light,
     theme: "Light",
     route: routeValue(),
@@ -5560,7 +5560,7 @@ test("canonical Run feedback remains visible in the owning workflow context with
   await backToQueue(page);
 
   await openWorkItem(page, "Failed implementation feedback");
-  await selectWorkflowMaterial(page, "Independent review · Attempt 1");
+  await selectWorkflowMaterial(page, "Independent review · Attempt 2");
   await expect(
     page.getByText("Independent review failed", { exact: true }),
   ).toBeVisible();
@@ -7025,9 +7025,12 @@ test("candidate Complete surface and reached Implementation expose V0-V7, exact 
   await expect(attempts).toBeVisible();
   await expect(approvedTasks.getByText("Attempts", { exact: true })).toBeVisible();
   const builderRow = attempts.getByRole("button", { name: /Implementation agent · Attempt 1/ });
-  const reviewerRow = attempts.getByRole("button", { name: /Independent review · Attempt 1/ });
+  const reviewerRow = attempts.getByRole("button", { name: /Independent review · Attempt 2/ });
   await expect(builderRow.locator('[data-tone="success"]')).toContainText("Completed");
   await expect(reviewerRow.locator('[data-tone="success"]')).toContainText("Completed");
+  // Ordinals are task-global; the reviewer must not share the builder's label.
+  await expect(attempts.getByRole("button", { name: /Independent review · Attempt 1/ })).toHaveCount(0);
+  await expect(attempts.getByRole("button")).toHaveCount(2);
   const rowGeometry = await builderRow.evaluate((button) => {
     const parent = button.closest(".order-workbench-master-attempt-group")?.previousElementSibling;
     if (!(parent instanceof HTMLElement)) throw new Error("Attempt has no visible parent task");
@@ -7044,7 +7047,7 @@ test("candidate Complete surface and reached Implementation expose V0-V7, exact 
   await expect(page.getByLabel("Task overview")).toContainText("Recorded boundary: complete");
   await expect(page.getByTestId("validation-matrix")).toContainText("No validation results in this attempt");
   await expect(page.getByTestId("validation-matrix")).not.toContainText("boundary:");
-  await selectWorkflowMaterial(page, "Independent review · Attempt 1");
+  await selectWorkflowMaterial(page, "Independent review · Attempt 2");
   await expect(page.getByRole("region", { name: "Agent activity" })).toBeVisible();
   await expect(page.getByRole("region", { name: "Agent activity" }))
     .toContainText("Reviewing candidate evidence");

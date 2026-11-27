@@ -1666,7 +1666,7 @@ describe("actual IA25 installer transaction", () => {
     const archive = outcome.stateEntries.find((name: string) => name.startsWith("order.sqlite3" + databaseFaultSuffix + ".legacy-v2."));
     expect(outcome.failure).toContain("injected partial database copy");
     expect(outcome.failure).toContain("injected archive restoration");
-    expect(outcome.failure).toContain("database preparation compensation incomplete");
+    expect(outcome.failure).toContain("database inspection or preparation custody incomplete");
     expect(outcome.failure.indexOf("injected partial database copy")).toBeLessThan(outcome.failure.indexOf("injected archive restoration"));
     expect(readFileSync(join(fixture.stateRoot, archive)).toString("base64") === outcome.originalNamespace[index]).toBe(true);
     expect(readFileSync(join(fixture.stateRoot, "order.sqlite3" + databaseFaultSuffix), "utf8")).toBe("partial candidate");
@@ -1750,7 +1750,7 @@ describe("actual IA25 installer transaction", () => {
     const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes",
       readiness: { ready: true, blockers: [] }, legacyDatabaseVersion: 2, databaseFault: "copy-and-restore" });
     expect(outcome.failure).toContain("injected partial database copy");
-    expect(outcome.failure).toContain("database preparation compensation incomplete");
+    expect(outcome.failure).toContain("database inspection or preparation custody incomplete");
     const archive = outcome.stateEntries.find((name: string) => name.startsWith("order.sqlite3.legacy-v2."));
     expect(readFileSync(join(fixture.stateRoot, archive)).toString("base64")).toBe(outcome.originalDatabase);
     expect(readFileSync(join(fixture.stateRoot, "order.sqlite3"), "utf8")).toBe("partial candidate");
