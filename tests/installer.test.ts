@@ -475,6 +475,10 @@ type InstallerTransactionFixture = Readonly<{
   readiness: unknown;
   establishedHistory?: string;
   failRestart?: boolean;
+  failService?: "daemon-reload" | "enable";
+  stopMode?: "stuck" | "unknown" | "failed-inactive";
+  readinessStatus?: number;
+  readinessError?: "timeout" | "redirect";
   failFinalization?: boolean;
 }>;
 
@@ -504,6 +508,7 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
     let activity = fs.existsSync(unitPath) ? "active" : "inactive";
     let enablement = fs.existsSync(unitPath) ? "enabled" : "";
     let restartFailed = false;
+    let serviceFailed = false;
     const token = "a".repeat(64);
     const result = (stdout = "", exitCode = 0) => ({
       stdout: Buffer.from(stdout), stderr: Buffer.from(exitCode === 0 ? "" : "injected host failure"),
@@ -513,13 +518,19 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
       if (argv[0] === "systemctl") {
         events.push({ command: argv.slice(2), marker: fs.existsSync(marker) });
         const verb = argv[2];
+        if (verb === fixture.failService && !serviceFailed) { serviceFailed = true; return result("", 1); }
         if (verb === "show-environment" || verb === "daemon-reload") return result();
         if (verb === "show") {
           if (argv[3] === "--property=ActiveState") return result(activity + "\\n");
           if (argv[3] === "--property=UnitFileState") return result(enablement + "\\n");
           throw new Error("unexpected systemctl property " + argv[3]);
         }
-        if (verb === "stop") { activity = "inactive"; return result(); }
+        if (verb === "stop") {
+          if (fixture.stopMode === "stuck") return result("", 1);
+          if (fixture.stopMode === "unknown") { activity = "unknown"; return result("", 1); }
+          activity = "inactive";
+          return fixture.stopMode === "failed-inactive" ? result("", 1) : result();
+        }
         if (verb === "enable") { enablement = "enabled"; return result(); }
         if (verb === "disable") { enablement = "disabled"; return result(); }
         if (verb === "restart") {
@@ -571,7 +582,8 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
       if (url.pathname === "/api/settings/readiness") {
         events.push({ command: ["readiness"], marker: fs.existsSync(marker),
           auth: new Headers(init?.headers).get("Authorization") === "Bearer " + token });
-        return new Response(JSON.stringify(fixture.readiness), { status: 200, headers: { "content-type": "application/json" } });
+        if (fixture.readinessError) throw new TypeError("injected " + fixture.readinessError);
+        return new Response(JSON.stringify(fixture.readiness), { status: fixture.readinessStatus ?? 200, headers: { "content-type": "application/json" } });
       }
       return originalFetch(input, init);
     };
@@ -671,6 +683,63 @@ describe("actual IA25 installer transaction", () => {
     expect(outcome.activity).toBe("inactive");
     const commands = outcome.events.map((event: { command: string[] }) => event.command[0]);
     expect(commands.indexOf("stop")).toBeGreaterThan(commands.indexOf("restart"));
+  }, 120_000);
+
+  it.each(["daemon-reload", "enable"] as const)("compensates actual service %s failure", (failService) => {
+    const outcome = runInstallerTransaction({ ...transactionFixture(),
+      readiness: { ready: true, blockers: [] }, failService });
+    expect(outcome.failure).toContain("injected host failure");
+    expect(outcome.marker).toBeNull();
+    expect(outcome.config).toBeNull();
+    expect(outcome.app || outcome.launcher || outcome.unit).toBe(false);
+    expect(outcome.events.some((event: { command: string[] }) => event.command[0] === "restart")).toBe(false);
+  }, 120_000);
+
+  it.each(["stuck", "unknown"] as const)("retains deployed material when failed restart cannot prove quiescence: %s", (stopMode) => {
+    const outcome = runInstallerTransaction({ ...transactionFixture(),
+      readiness: { ready: true, blockers: [] }, failRestart: true, stopMode });
+    expect(outcome.failure).toContain("cannot safely restore active deployment");
+    expect(outcome.marker).toBeNull();
+    expect(outcome.config).not.toBeNull();
+    expect(outcome.app && outcome.launcher && outcome.unit).toBe(true);
+    expect(outcome.events.filter((event: { command: string[] }) => event.command[0] === "restart")).toHaveLength(1);
+  }, 120_000);
+
+  it("allows compensation only after independently observed inactivity despite stop failure", () => {
+    const outcome = runInstallerTransaction({ ...transactionFixture(),
+      readiness: { ready: true, blockers: [] }, failRestart: true, stopMode: "failed-inactive" });
+    expect(outcome.failure).toContain("injected host failure");
+    expect(outcome.marker).toBeNull();
+    expect(outcome.config).toBeNull();
+    expect(outcome.app || outcome.launcher || outcome.unit).toBe(false);
+    expect(outcome.activity).toBe("inactive");
+  }, 120_000);
+
+  it.each([
+    "REPOSITORY_REQUIRED", "REPOSITORY_CONFIGURATION_REQUIRES_ATTENTION", "MODEL_INVALID",
+    "REFERENCE_ROOT_CONFIGURATION_REQUIRES_ATTENTION", "OPENCODE_ACCOUNT_REQUIRED",
+  ])("blocks fresh commit on canonical readiness blocker %s", (blocker) => {
+    const outcome = runInstallerTransaction({ ...transactionFixture(),
+      readiness: { ready: false, blockers: [blocker] } });
+    expect(outcome.failure).toContain(blocker);
+    expect(outcome.marker).toBeNull();
+    expect(outcome.app || outcome.launcher || outcome.unit).toBe(false);
+  }, 120_000);
+
+  it.each([
+    { readiness: { ready: true, blockers: ["MODEL_INVALID"] } },
+    { readiness: { ready: false, blockers: [] } },
+    { readiness: { invalid: true } },
+    { readiness: { ready: true, blockers: [] }, readinessStatus: 401 },
+    { readiness: { ready: true, blockers: [] }, readinessStatus: 503 },
+    { readiness: null, readinessError: "timeout" as const },
+    { readiness: null, readinessError: "redirect" as const },
+  ])("rejects unproven fresh readiness: %j", (response) => {
+    const outcome = runInstallerTransaction({ ...transactionFixture(), ...response });
+    expect(outcome.failure).toContain("canonical installed readiness could not be confirmed");
+    expect(outcome.marker).toBeNull();
+    expect(outcome.app || outcome.launcher || outcome.unit).toBe(false);
+    expect(outcome.failure).not.toContain("a".repeat(64));
   }, 120_000);
 
   it("post-commit finalization failure retains admitted application and marker", () => {

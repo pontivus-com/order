@@ -19,7 +19,7 @@ import {
 import { dirname, isAbsolute, join } from "node:path";
 import { pathToFileURL } from "node:url";
 
-import type { InstallerConfigPublication, InstallerConfigSnapshot } from "./shell/config.ts";
+import type { InstallerConfigPublication, InstallerConfigSnapshot } from "./shell/setup.ts";
 import type { LegacyDatabaseArchive } from "./shell/sqlite.ts";
 
 const bunVersion = "1.4.4";
@@ -870,7 +870,7 @@ export const runInstaller = async (
   let priorStopped = false;
   let unitPublished = false;
   let restartAttempted = false;
-  let configModule: typeof import("./shell/config.ts") | null = null;
+  let setupModule: typeof import("./shell/setup.ts") | null = null;
   let configSnapshot: InstallerConfigSnapshot | null = null;
   let published: Parameters<InstallerConfigPublication["onPublished"]>[0] | null = null;
   let databaseArchive: LegacyDatabaseArchive | null = null;
@@ -925,8 +925,8 @@ export const runInstaller = async (
     launcherActivated = true;
     launcherTemporary = null;
 
-    configModule = await import(pathToFileURL(join(locations.installRoot, "app", "src", "shell", "config.ts")).href) as typeof import("./shell/config.ts");
-    configSnapshot = configModule.captureInstallerConfigSnapshot(locations.stateRoot);
+    setupModule = await import(pathToFileURL(join(locations.installRoot, "app", "src", "shell", "setup.ts")).href) as typeof import("./shell/setup.ts");
+    configSnapshot = setupModule.captureInstallerConfigSnapshot(locations.stateRoot);
     step("configuring provider, model and repository access");
     configuredSetup = await configureOrder(locations, established, {
       snapshot: configSnapshot, onPublished: identity => { published = identity; },
@@ -975,9 +975,9 @@ export const runInstaller = async (
         catch (failure) { databaseRestoreIncomplete = true; throw failure; }
       });
     }
-    if (configSnapshot !== null && configModule !== null) {
+    if (configSnapshot !== null && setupModule !== null) {
       const snapshot = configSnapshot;
-      const module = configModule;
+      const module = setupModule;
       compensate("configuration restoration incomplete: " + (snapshot.recoveryPath ?? snapshot.target),
         () => module.restoreInstallerConfig(snapshot, published));
     }
@@ -1014,7 +1014,7 @@ export const runInstaller = async (
 
   // Never roll back a committed installation because finalization failed.
   try {
-    if (configSnapshot !== null && configModule !== null) configModule.releaseInstallerConfigSnapshot(configSnapshot);
+    if (configSnapshot !== null && setupModule !== null) setupModule.releaseInstallerConfigSnapshot(configSnapshot);
     if (legacyMigration !== null) retireLegacyGateweftArtifacts(legacyMigration, locations, environment);
     writeProfilePath(locations.home, locations.binDir);
     if (installBackup !== null) rmSync(installBackup, { recursive: true });

@@ -48,6 +48,10 @@ import {
   scanLegacyV2WorkItemSourcesForInstall,
 } from "./work-item-source.ts";
 
+// The installed setup boundary exposes the existing config owner’s rollback effects.
+export { captureInstallerConfigSnapshot, releaseInstallerConfigSnapshot, restoreInstallerConfig } from "./config.ts";
+export type { InstallerConfigPublication, InstallerConfigSnapshot } from "./config.ts";
+
 export type SetupQuestion = (prompt: string) => Promise<string>;
 
 const byteEqual = (left: Uint8Array, right: Uint8Array): boolean => {
