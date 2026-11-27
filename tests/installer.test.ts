@@ -3,6 +3,7 @@ import {
   chmodSync,
   existsSync,
   mkdtempSync,
+  mkdirSync,
   readFileSync,
   rmSync,
   writeFileSync,
@@ -477,6 +478,7 @@ type InstallerTransactionFixture = Readonly<{
   historyAnswers?: readonly string[];
   cancelHistory?: boolean;
   failMarker?: boolean;
+  failRename?: "app-backup" | "launcher-backup" | "app-activation" | "launcher-activation" | "unit-publication" | "marker-publication";
   interruptAtReadiness?: boolean;
   failRestart?: boolean;
   failService?: "daemon-reload" | "enable";
@@ -610,7 +612,21 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
     };
     let failure = null;
     try {
-      await installer.runInstaller({ sourceRoot, sourceCommit }, process.env, question);
+      let injected = false;
+      const rename = (from, to) => {
+        const kind = from === installRoot && String(to).startsWith(installRoot + ".previous.") ? "app-backup" :
+          from === launcher && String(to).startsWith(launcher + ".previous.") ? "launcher-backup" :
+          String(from).includes("/.pontivus-order-install.") && to === installRoot ? "app-activation" :
+          String(from).includes("/.pontivus-order.") && to === launcher ? "launcher-activation" :
+          String(from).startsWith(unitPath + ".tmp.") && to === unitPath ? "unit-publication" :
+          String(from).startsWith(marker + ".tmp.") && to === marker ? "marker-publication" : null;
+        if (!injected && kind !== null && kind === fixture.failRename) {
+          injected = true;
+          throw new Error("injected rename failure: " + kind);
+        }
+        fs.renameSync(from, to);
+      };
+      await installer.runInstaller({ sourceRoot, sourceCommit }, process.env, question, rename);
     } catch (error) { failure = String(error); }
     console.log("ORDER_TRANSACTION_RESULT " + JSON.stringify({
       failure, prompts, events, activity, enablement, sourceCommit,
@@ -645,7 +661,61 @@ const transactionFixture = (): Omit<InstallerTransactionFixture, "readiness"> =>
   binary: createFakeOpenCode(tempDir("order-transaction-provider-"), {}),
 });
 
+const createPriorDeployment = (fixture: ReturnType<typeof transactionFixture>): void => {
+  const root = join(fixture.home, ".local/share/pontivus-order");
+  const launcher = join(fixture.home, ".local/bin/order");
+  const unit = join(fixture.home, ".config/systemd/user/pontivus-order.service");
+  for (const directory of [join(root, "app/src"), join(root, "app/dist"), join(root, "runtime/bun/bin"),
+    join(fixture.home, ".local/bin"), join(fixture.home, ".config/systemd/user")]) {
+    mkdirSync(directory, { recursive: true });
+  }
+  writeFileSync(join(root, "SOURCE_COMMIT"), "b".repeat(40) + "\n");
+  writeFileSync(join(root, "app/src/cli.ts"), "old application");
+  writeFileSync(join(root, "app/dist/index.html"), "old browser");
+  writeFileSync(join(root, "runtime/bun/bin/bun"), "old runtime", { mode: 0o755 });
+  writeFileSync(launcher, "old launcher", { mode: 0o755 });
+  writeFileSync(unit, "old unit", { mode: 0o644 });
+  writeFileSync(join(fixture.stateRoot, "config.json"),
+    ' { "version": 4, "model": null, "repositoryRoots": [], "referenceRoots": [] }\n', { mode: 0o600 });
+};
+
 describe("actual IA25 installer transaction", () => {
+  it.each(["app-backup", "launcher-backup", "app-activation", "launcher-activation",
+    "unit-publication", "marker-publication"] as const)(
+    "restores exact established bytes after failure at %s", (failRename) => {
+      const fixture = transactionFixture();
+      createPriorDeployment(fixture);
+      const root = join(fixture.home, ".local/share/pontivus-order");
+      const launcher = join(fixture.home, ".local/bin/order");
+      const unit = join(fixture.home, ".config/systemd/user/pontivus-order.service");
+      const originalConfig = readFileSync(join(fixture.stateRoot, "config.json"));
+      const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes",
+        readiness: { ready: true, blockers: [] }, failRename });
+      expect(outcome.failure).toContain("injected rename failure: " + failRename);
+      expect(outcome.marker).toBe("b".repeat(40) + "\n");
+      expect(readFileSync(join(root, "app/src/cli.ts"), "utf8")).toBe("old application");
+      expect(readFileSync(launcher, "utf8")).toBe("old launcher");
+      expect(readFileSync(unit, "utf8")).toBe("old unit");
+      expect(readFileSync(join(fixture.stateRoot, "config.json"))).toEqual(originalConfig);
+      expect(outcome.activity).toBe("active");
+      expect(outcome.enablement).toBe("enabled");
+      expect(outcome.stdout).not.toContain("Order updated successfully.");
+    }, 120_000);
+
+  it("unproven interrupted update retains prior deployment backup and stops without mutation", () => {
+    const fixture = transactionFixture();
+    createPriorDeployment(fixture);
+    const root = join(fixture.home, ".local/share/pontivus-order");
+    const backup = root + ".previous.interrupted";
+    mkdirSync(backup);
+    writeFileSync(join(backup, "sentinel"), "recoverable prior deployment");
+    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "no",
+      readiness: { ready: true, blockers: [] } });
+    expect(outcome.failure).toContain(backup);
+    expect(outcome.events.some((event: { command: string[] }) => event.command[0] === "stop")).toBe(false);
+    expect(readFileSync(join(backup, "sentinel"), "utf8")).toBe("recoverable prior deployment");
+    expect(outcome.marker).toBe("b".repeat(40) + "\n");
+  }, 120_000);
   it("commits only after fresh canonical readiness; established incomplete update retains choices", () => {
     const fixture = transactionFixture();
     const fresh = runInstallerTransaction({ ...fixture, readiness: { ready: true, blockers: [] } });

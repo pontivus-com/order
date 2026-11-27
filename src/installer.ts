@@ -541,11 +541,12 @@ const activateService = (
   environment: NodeJS.ProcessEnv,
   unitPublished: () => void,
   restartAttempted: () => void,
+  rename: typeof renameSync,
 ): void => {
   mkdirSync(dirname(unitPath), { recursive: true });
   const temporary = unitPath + ".tmp." + crypto.randomUUID();
   writeFileSync(temporary, buildUserServiceUnit(launcher), { encoding: "utf8", mode: 0o644, flag: "wx" });
-  renameSync(temporary, unitPath);
+  rename(temporary, unitPath);
   unitPublished();
   runCommand(["systemctl", "--user", "daemon-reload"], locations.home, environment);
   runCommand(["systemctl", "--user", "enable", "pontivus-order.service"], locations.home, environment);
@@ -848,6 +849,7 @@ export const runInstaller = async (
   args: InstallerArguments,
   environment: NodeJS.ProcessEnv = process.env,
   question: typeof terminalQuestion = terminalQuestion,
+  rename: typeof renameSync = renameSync,
 ): Promise<void> => {
   if (process.platform !== "linux") fail("Order v1 productive installation requires Linux");
   if (Bun.version !== bunVersion) fail("installer must run on exact Bun " + bunVersion);
@@ -930,18 +932,18 @@ export const runInstaller = async (
     step("activating application");
     if (existsSync(locations.installRoot)) {
       const backup = locations.installRoot + ".previous." + crypto.randomUUID();
-      renameSync(locations.installRoot, backup);
+      rename(locations.installRoot, backup);
       installBackup = backup;
     }
     if (existsSync(launcher)) {
       const backup = launcher + ".previous." + crypto.randomUUID();
-      renameSync(launcher, backup);
+      rename(launcher, backup);
       launcherBackup = backup;
     }
-    renameSync(staging, locations.installRoot);
+    rename(staging, locations.installRoot);
     appActivated = true;
     staging = null;
-    renameSync(launcherTemporary, launcher);
+    rename(launcherTemporary, launcher);
     launcherActivated = true;
     launcherTemporary = null;
 
@@ -966,7 +968,7 @@ export const runInstaller = async (
     }
     step("installing and starting user service");
     activateService(locations, launcher, prior.unitPath, environment,
-      () => { unitPublished = true; }, () => { restartAttempted = true; });
+      () => { unitPublished = true; }, () => { restartAttempted = true; }, rename);
     await waitForHealthyDaemon(locations, launcher);
     if (!established) await configuredSetup.setupModule.requireFreshInstallerReadiness(runtimeEnvironment(locations));
 
@@ -974,7 +976,7 @@ export const runInstaller = async (
     const marker = join(locations.installRoot, "SOURCE_COMMIT");
     const temporaryMarker = marker + ".tmp." + crypto.randomUUID();
     writeFileSync(temporaryMarker, args.sourceCommit + "\n", { encoding: "utf8", flag: "wx" });
-    renameSync(temporaryMarker, marker);
+    rename(temporaryMarker, marker);
   } catch (error) {
     const failures: unknown[] = [];
     const compensate = (label: string, operation: () => void): void => {
@@ -1009,7 +1011,7 @@ export const runInstaller = async (
       const backup = launcherBackup;
       compensate("launcher restoration incomplete: " + backup, () => {
         if (footprintEntryExists(launcher)) fail("launcher destination occupied: " + launcher);
-        renameSync(backup, launcher);
+        rename(backup, launcher);
       });
     }
     if (appActivated) compensate("new application removal incomplete: " + locations.installRoot, () => rmSync(locations.installRoot, { recursive: true }));
@@ -1017,7 +1019,7 @@ export const runInstaller = async (
       const backup = installBackup;
       compensate("application restoration incomplete: " + backup, () => {
         if (footprintEntryExists(locations.installRoot)) fail("application destination occupied: " + locations.installRoot);
-        renameSync(backup, locations.installRoot);
+        rename(backup, locations.installRoot);
       });
     }
     if (unitPublished) compensate("service unit restoration incomplete: " + prior.unitPath, () => restoreUnit(locations, prior, environment));
