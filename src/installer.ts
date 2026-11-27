@@ -1065,17 +1065,30 @@ export const runInstaller = async (
     databaseArchive = sqliteUpgradeModule.prepareOrderDatabaseForInstall(locations.stateRoot,
       () => { databaseRestoreIncomplete = true; }, databaseEffects);
     if (databaseArchive !== null) {
+      databaseCandidates = sqliteUpgradeModule.observeInstallerDatabaseCandidates(databaseArchive, false);
+      sqliteUpgradeModule.requireInstallerDatabaseCandidates(databaseArchive, databaseCandidates, true);
       process.stdout.write("Order installer — retained rollback database archive at " + databaseArchive.archiveDatabase + "\n");
     }
     if (configuredSetup.legacyV2Config !== null) {
+      databaseCandidates = undefined;
       databaseCandidateEffectsStarted = true;
       await configuredSetup.setupModule.migrateRepositoryNativeV2StateForInstall(locations.stateRoot, configuredSetup.legacyV2Config);
+      if (databaseArchive !== null) {
+        databaseCandidates = sqliteUpgradeModule.observeInstallerDatabaseCandidates(databaseArchive, true);
+        sqliteUpgradeModule.requireInstallerDatabaseCandidates(databaseArchive, databaseCandidates, false);
+      }
       process.stdout.write("Order installer — migrated WorkItem documentation into target repositories; retained legacy source root as backup: " +
         configuredSetup.legacyV2Config.workItemRoot + "\n");
     }
     step("installing and starting user service");
     activateService(locations, launcher, prior.unitPath, environment,
       () => { unitPublished = true; }, () => {
+        if (databaseArchive !== null && sqliteUpgradeModule !== null) {
+          if (databaseCandidates === undefined) fail("database candidate custody is unavailable before service activation");
+          sqliteUpgradeModule.requireInstallerDatabaseCandidates(
+            databaseArchive, databaseCandidates, !databaseCandidateEffectsStarted);
+        }
+        databaseCandidates = undefined;
         restartAttempted = true;
         databaseCandidateEffectsStarted = true;
       }, rename);

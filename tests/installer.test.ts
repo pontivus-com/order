@@ -501,7 +501,7 @@ type InstallerTransactionFixture = Readonly<{
   legacyDatabaseVersion?: 1 | 2 | 3;
   loseDatabaseArchive?: boolean;
   databaseFault?: "archive" | "copy" | "partial-copy" | "restore" | "copy-and-restore" | "unlink" |
-    "archive-drift" | "archive-symlink" | "candidate-drift" | "copy-replaced" | "candidate-drift-after-health";
+    "archive-drift" | "archive-symlink" | "candidate-drift" | "copy-replaced" | "candidate-drift-after-health" | "pre-start-replaced";
   databaseFaultSuffix?: "" | "-wal" | "-shm";
   databaseSidecars?: boolean;
   versionInWal?: 1 | 2 | 3;
@@ -833,6 +833,10 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
         }
         fs.renameSync(from, to);
         if (kind === "app-activation" && fixture.interruptAt === "app-activation") process.exit(77);
+        if (kind === "unit-publication" && fixture.databaseFault === "pre-start-replaced") {
+          if (fs.existsSync(faultPath)) fs.renameSync(faultPath, faultPath + ".retained-candidate");
+          fs.writeFileSync(faultPath, "unexpected pre-start file");
+        }
         if (kind === "marker-publication" && fixture.failCleanup === "config") {
           const name = fs.readdirSync(fixture.stateRoot).find(name => name.startsWith("config.json.installer-recovery."));
           if (!name) throw new Error("expected configuration recovery copy");
@@ -1421,6 +1425,24 @@ describe("actual IA25 installer transaction", () => {
     expect(outcome.restartObservations).toEqual([
       { deployment: "prior", databaseMatchesOriginal: true, configMatchesOriginal: true },
     ]);
+  }, 120_000);
+
+  it.each([1, 2] as const)("refuses v%i startup when an unexpected sidecar appears before service activation", legacyDatabaseVersion => {
+    const fixture = transactionFixture();
+    createPriorDeployment(fixture);
+    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes", legacyDatabaseVersion,
+      databaseSidecars: true, databaseFault: "pre-start-replaced", databaseFaultSuffix: "-wal",
+      readiness: { ready: true, blockers: [] } });
+    expect(outcome.failure).toContain("installer database identity changed or missing");
+    expect(outcome.failure).toContain("ambiguous installer database candidate retained");
+    expect(outcome.failure).toContain("rollback incomplete");
+    expect(readFileSync(join(fixture.stateRoot, "order.sqlite3-wal"), "utf8")).toBe("unexpected pre-start file");
+    const archive = outcome.stateEntries.find((name: string) => name.startsWith("order.sqlite3-wal.legacy-v"));
+    expect(readFileSync(join(fixture.stateRoot, archive)).toString("base64") === outcome.originalNamespace[1]).toBe(true);
+    expect(outcome.databaseNamespace[0] === outcome.originalNamespace[0]).toBe(true);
+    expect(outcome.databaseNamespace[2] === outcome.originalNamespace[2]).toBe(true);
+    expect(outcome.restartObservations).toEqual([]);
+    expect(outcome.activity).toBe("inactive");
   }, 120_000);
 
   it("preserves a replaced candidate after health observation and before commit", () => {

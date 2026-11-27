@@ -629,6 +629,28 @@ export const observeInstallerDatabaseCandidates = (
   return observed;
 };
 
+// At each admitted writer boundary, prove the expected namespace before
+// permitting migration or startup to acquire it. Unexpected paths never gain
+// custody merely because a later service observation finds them.
+export const requireInstallerDatabaseCandidates = (
+  archive: LegacyDatabaseArchive,
+  expected: ReadonlyMap<string, InstallerDatabaseFileIdentity | null>,
+  preparedOnly: boolean,
+): void => {
+  for (const original of archive.originals) {
+    requireArchivedDatabaseOriginal(original.path + archive.suffix, original);
+    const candidate = expected.get(original.path);
+    if (candidate === undefined || !expected.has(original.path)) {
+      throw new TypeError("installer database candidate custody unavailable: " + original.path);
+    }
+    requireInstallerDatabaseFile(original.path, candidate);
+    if (preparedOnly && candidate !== null &&
+        installerDatabaseDigest(original.path, candidate) !== original.digest) {
+      throw new TypeError("installer database candidate changed before admitted effects: " + original.path);
+    }
+  }
+};
+
 export const restoreOrderDatabaseAfterFailedInstall = (
   archive: LegacyDatabaseArchive,
   effects: InstallerDatabaseEffects = installerDatabaseEffects,
