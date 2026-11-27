@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Bind the newly corrected FR092 signed repository-disconnect obligation to T1's acceptanceRefs; retain the exact existing scope and verification sensor.
+
 - Reconcile direct QA replay candidate lineage, mixed-set last-no-op completion, signed source freshness and repository disconnect/document-root admission with native Acceptance authority; correct FR092/093 evidence and task/proof allocation. Existing 61-path T1, 59 exclusions and protected sensors are unchanged; no production mutation or authorization.
 
 - Reconcile inherited exact authority context, durable-decision and proposal-adoption mechanisms with the Acceptance specification; require current-Approval automatic task admission and negative signed documentation-Git proof. No new production scope or authorization.
