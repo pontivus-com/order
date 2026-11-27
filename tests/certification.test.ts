@@ -2828,14 +2828,42 @@ describe("public release delivery certification", () => {
     expect(ci).toContain('--grep "rendered acceptance"');
     expect(ci.indexOf("name: browser"))
       .toBeLessThan(ci.indexOf("name: rendered acceptance IA26"));
+    const signedPhases = ["IA27_28", "IA29", "IA31", "IA30", "IA32", "IA33", "IA34"];
+    let previous = ci.indexOf("name: Install Playwright Chromium");
+    for (const phase of signedPhases) {
+      const capture = ci.indexOf("name: signed rendered " + phase + "\n");
+      const upload = ci.indexOf("name: Upload signed rendered " + phase + "\n");
+      expect(capture).toBeGreaterThan(previous);
+      expect(upload).toBeGreaterThan(capture);
+      const captureStep = ci.slice(capture, upload);
+      expect(captureStep).toContain('PONTIVUS_ORDER_SIGNED_RENDERED_PHASE: "' + phase + '"');
+      expect(captureStep).toContain("continue-on-error: true");
+      expect(captureStep).toContain("exit-status.json");
+      expect(captureStep).toContain(phase === "IA27_28" ?
+        '--grep "rendered acceptance phase 1"' : '--grep "rendered acceptance IA26 captures downstream Workbench"');
+      const uploadStep = ci.slice(upload, ci.indexOf("\n      - name:", upload));
+      expect(uploadStep).toContain("!cancelled()");
+      expect(uploadStep).toContain("continue-on-error: true");
+      expect(uploadStep).toContain("rendered-signed-" + phase.toLowerCase());
+      previous = upload;
+    }
+    expect(previous).toBeLessThan(ci.indexOf("name: Validate current-state diagnostic completeness"));
+    expect(ci.indexOf("name: Upload bounded IA27/IA28 evidence"))
+      .toBeLessThan(ci.indexOf("name: Validate current-state diagnostic completeness"));
+    expect(ci.indexOf("name: Require all independently published signed phase evidence"))
+      .toBeGreaterThan(ci.indexOf("name: Upload rendered acceptance IA26"));
+    expect(ci).not.toContain("PONTIVUS_ORDER_HUX_PRIORITY_ONLY");
+    const browser = read("tests/browser.spec.ts");
+    expect(browser).toContain("signedRenderedPhases.find");
+    expect(browser).toContain('signedRenderedPhase !== null ? signedRenderedPhase === phase');
+    expect(browser).toContain("validateSignedPhaseEvidence(entries)");
+    expect(browser).toContain("exact phase SURF coverage");
+    expect(browser).toContain("exact phase capture identities");
+    expect(browser).not.toContain("huxPriorityCaptureIds");
     expect(
       [...ci.matchAll(/^\s*uses:\s*(\S+)\s*$/gm)].map((match) => match[1]),
-    ).toEqual([
-      "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
-      "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
-      "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
-      "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
-    ]);
+    ).toEqual(Array.from({ length: signedPhases.length + 3 },
+      () => "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02"));
 
     expect(release).toContain("name: Release");
     expect(release).toContain("scripts/verify-release.ts --mode release-commit");

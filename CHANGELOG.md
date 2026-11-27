@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Dispatch seven independent signed rendered phase scenarios before ordinary browser verification, publish their exact candidate and phase evidence even on failure, and retain full diagnostics and exhaustive IA26 (IA20/IA26 verification preparation).
+
 - Share exact schema-admitted terminal R1 artifact selection and reject ambiguous terminal provenance in the observational Approval boundary (IA17).
 
 - Keep installer archive regression proof within the signed installer test owner. Defer guided-admission API changes pending resolution of the existing out-of-scope shell test contract; do not introduce implicit established-installation admission.

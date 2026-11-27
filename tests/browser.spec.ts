@@ -42,77 +42,224 @@ if (![
 const diagnosticCurrentState = renderedEvidenceKind === "diagnostic_current_state";
 
 const diagnosticPhase = process.env.PONTIVUS_ORDER_DIAGNOSTIC_PHASE ?? null;
-const huxPriorityOnly = process.env.PONTIVUS_ORDER_HUX_PRIORITY_ONLY === "1";
-const huxPriorityCaptureIds = new Set<string>([
-  "ia26-work-request-step-wide-light",
-  "ia26-source-document-editor-wide-dark",
-  "ia26-source-document-editor-narrow-light",
-  "ia26-lifecycle-document-editor-wide-light",
-  "ia26-lifecycle-document-readonly-wide-light",
-  "ia26-research-wide-light",
-  "ia26-proposal-review-wide-light",
-  "ia26-readiness-review-wide-light",
-  "ia26-readiness-review-narrow-light",
-  "ia26-readiness-required-input-wide-light",
-  "ia26-research-narrow-light",
-  "ia26-requirements-wide-light",
-  "ia26-requirements-narrow-light",
-  "ia26-implementation-plan-wide-light",
-  "ia26-implementation-plan-narrow-light",
-  "ia26-approval-wide-light",
-  "ia26-approval-task-wide-light",
-  "ia26-approval-task-wide-dark",
-  "ia26-approval-task-narrow-light",
-  "ia26-approval-task-narrow-dark",
-  "ia26-approval-narrow-light",
-  "ia26-approval-wide-dark",
-  "ia26-approval-narrow-dark",
-  "hux-app-queue-wide-light",
-  "hux-app-queue-narrow-dark",
-  "hux-shell-document-wide-light",
-  "hux-shell-document-narrow-dark",
-  "hux-shell-review-wide-light",
-  "hux-shell-review-narrow-dark",
-  "ia26-work-request-step-narrow-light",
-  "ia26-work-request-step-wide-dark",
-  "ia26-source-document-editor-wide-light",
-  "ia26-stage-dialogue-open-wide-light",
-  "ia26-stage-dialogue-open-wide-dark",
-  "ia26-stage-dialogue-required-input-wide-light",
-  "ia26-stage-dialogue-processing-wide-light",
-  "ia26-settings-frame-wide-light",
-  "ia26-implementation-wide-light",
-  "ia26-implementation-wide-dark",
-  "ia26-implementation-task-wide-light",
-  "ia26-implementation-narrow-light",
-  "ia26-implementation-processing-wide-light",
-  "ia26-implementation-blocked-wide-light",
-  "ia26-implementation-validation-recorded-wide-light",
-  "ia26-implementation-builder-attempt-wide-light",
-  "ia26-settings-repository-move-wide-light",
-  "ia26-settings-opencode-login-failed-wide-light",
-  "ia26-settings-model-narrow-light",
-  "ia26-context-wide-dark",
-  "ia26-evidence-wide-dark",
-  "ia26-confirm-documentation-git-wide-light",
-  "ia26-confirm-repository-disconnect-wide-light",
-  "ia26-confirm-archive-wide-dark",
-  "ia26-confirm-dirty-material-wide-light",
-  "ia26-confirm-dirty-destination-wide-light",
-  "ia26-confirm-opencode-remove-wide-light",
-  "ia26-create-workitem-wide-dark",
-  "ia26-complete-candidate-wide-light",
-  "ia26-complete-investigation-linked-wide-light",
-  "ia26-stage-dialogue-closed-wide-light",
-  "ia26-proposal-review-adopted-wide-light",
-  "ia26-proposal-review-rejected-wide-light",
-  "ia26-proposal-review-adopting-wide-light",
-  "ia26-queue-wide-dark",
-]);
+const signedRenderedPhases = ["IA27_28","IA29","IA31","IA30","IA32","IA33","IA34"] as const;
+type SignedRenderedPhase = typeof signedRenderedPhases[number];
+const rawSignedRenderedPhase = process.env.PONTIVUS_ORDER_SIGNED_RENDERED_PHASE;
+const signedRenderedPhase = rawSignedRenderedPhase === undefined ? null :
+  signedRenderedPhases.find((phase) => phase === rawSignedRenderedPhase);
+if (signedRenderedPhase === undefined ||
+    (signedRenderedPhase !== null && (renderedEvidenceKind !== "ia26_acceptance" ||
+      diagnosticPhase !== null || renderedAcceptanceDir === undefined))) {
+  throw new TypeError("invalid or incompatible PONTIVUS_ORDER_SIGNED_RENDERED_PHASE");
+}
+
 const renderedDiagnosticPhases = ["IA34", "IA29", "IA30", "IA31", "IA32", "IA33"] as const;
 type RenderedDiagnosticPhase = typeof renderedDiagnosticPhases[number];
 const runRenderedPhase = (phase: RenderedDiagnosticPhase): boolean =>
-  !diagnosticCurrentState || diagnosticPhase === phase;
+  signedRenderedPhase !== null ? signedRenderedPhase === phase :
+    !diagnosticCurrentState || diagnosticPhase === phase;
+
+// These are the explicitly named scenario variants, not a post-execution filter.
+// Owned surfaces follow the action catalog's disjoint 37-SURF partition.
+const signedPhaseCaptureIds = {
+  IA27_28: [
+    "application-wide-light-active-account",
+    "diagnostic-application-wide-light-account-required",
+    "application-wide-light-installation-readiness",
+    "diagnostic-application-wide-light-readiness-all-blockers",
+    "diagnostic-queue-wide-light-loading",
+    "diagnostic-queue-wide-light-true-empty",
+    "diagnostic-application-wide-light-browser-session-required",
+    "queue-wide-light-source-diagnostic",
+    "queue-wide-light-populated",
+    "queue-wide-light-archived",
+    "queue-wide-light-no-matches",
+    "queue-narrow-light-populated",
+    "application-queue-wide-dark",
+    "ia26-queue-wide-dark",
+    "application-toolbar-wide-system-light",
+    "application-toolbar-wide-system-dark",
+    "ia26-queue-system-light",
+    "ia26-queue-system-dark",
+    "hux-app-queue-wide-light",
+    "hux-app-queue-narrow-dark",
+    "create-work-item-wide-light-change",
+    "ia26-create-workitem-wide-dark",
+    "create-linked-remediation-wide-light",
+    "application-toolbar-workitem-wide-light",
+    "application-toolbar-workitem-medium-light",
+    "workitem-shell-wide-light-chrome",
+    "workitem-shell-wide-light-current-attention",
+    "workitem-context-wide-light-selected-workitem",
+    "application-toolbar-workitem-narrow-light",
+    "workitem-shell-narrow-light-chrome",
+    "workitem-shell-narrow-light-current-attention",
+    "application-toolbar-settings-wide-light",
+    "application-toolbar-settings-medium-light",
+    "application-toolbar-settings-narrow-light",
+    "hux-shell-approval-wide-light",
+    "hux-shell-approval-wide-dark",
+    "hux-shell-approval-narrow-light",
+    "hux-shell-approval-narrow-dark",
+  ],
+  IA29: [
+    "hux-shell-document-wide-light",
+    "hux-shell-document-narrow-dark",
+    "ia26-work-request-step-wide-light",
+    "ia26-work-request-step-narrow-light",
+    "ia26-workitem-medium-light",
+    "ia26-work-request-step-wide-dark",
+    "ia26-workitem-shell-wide-dark",
+    "ia26-context-wide-dark",
+    "ia26-source-document-wide-light",
+    "ia26-source-document-editor-wide-light",
+    "ia26-source-document-editor-narrow-light",
+    "ia26-source-document-editor-wide-dark",
+    "ia26-source-document-dirty-wide-light",
+    "ia26-source-document-conflict-wide-light",
+    "ia26-confirm-dirty-material-wide-light",
+    "ia26-confirm-dirty-destination-wide-light",
+    "ia26-lifecycle-document-editor-wide-light",
+    "ia26-lifecycle-document-readonly-wide-light",
+    "ia26-confirm-documentation-git-wide-light",
+    "ia26-confirm-archive-wide-light",
+    "ia26-confirm-archive-wide-dark",
+    "ia26-work-type-change-source-wide-light",
+    "ia26-work-type-defect-source-wide-light",
+    "ia26-work-type-investigation-source-wide-light",
+    "ia26-work-type-audit-source-wide-light",
+  ],
+  IA31: [
+    "ia26-proposal-review-wide-light",
+    "ia26-proposal-review-wide-dark",
+    "ia26-proposal-review-adopted-wide-light",
+    "ia26-proposal-review-rejected-wide-light",
+    "ia26-proposal-review-adopting-wide-light",
+    "ia26-readiness-review-wide-light",
+    "ia26-readiness-review-narrow-light",
+    "ia26-approval-wide-light",
+    "ia26-approval-narrow-light",
+    "ia26-approval-wide-dark",
+    "ia26-approval-narrow-dark",
+    "hux-shell-review-narrow-dark",
+    "hux-shell-review-wide-light",
+    "ia26-approval-task-wide-light",
+    "ia26-approval-task-wide-dark",
+    "ia26-approval-task-narrow-light",
+    "ia26-approval-task-narrow-dark",
+    "ia26-readiness-required-input-wide-light",
+  ],
+  IA30: [
+    "ia26-research-wide-light",
+    "ia26-research-narrow-light",
+    "ia26-requirements-wide-light",
+    "ia26-requirements-narrow-light",
+    "ia26-solution-design-wide-light",
+    "ia26-solution-design-narrow-light",
+    "ia26-implementation-plan-wide-light",
+    "ia26-implementation-plan-narrow-light",
+    "ia26-stage-dialogue-open-wide-light",
+    "ia26-stage-dialogue-open-wide-dark",
+    "ia26-stage-dialogue-required-input-wide-light",
+    "ia26-stage-dialogue-processing-wide-light",
+    "ia26-stage-dialogue-closed-wide-light",
+  ],
+  IA32: [
+    "ia26-implementation-wide-light",
+    "ia26-implementation-wide-dark",
+    "ia26-implementation-task-wide-light",
+    "ia26-implementation-narrow-light",
+    "ia26-implementation-processing-wide-light",
+    "ia26-implementation-blocked-wide-light",
+    "ia26-implementation-validation-recorded-wide-light",
+    "ia26-implementation-builder-attempt-wide-light",
+  ],
+  IA33: [
+    "ia26-complete-candidate-wide-light",
+    "ia26-complete-candidate-wide-dark",
+    "ia26-complete-candidate-narrow-light",
+    "ia26-complete-investigation-linked-wide-light",
+    "ia26-evidence-wide-light",
+    "ia26-evidence-wide-dark",
+  ],
+  IA34: [
+    "ia26-settings-frame-wide-light",
+    "ia26-settings-repositories-wide-light",
+    "ia26-settings-repository-add-wide-light",
+    "ia26-settings-repository-move-wide-light",
+    "ia26-confirm-repository-disconnect-wide-light",
+    "ia26-settings-opencode-wide-light",
+    "ia26-settings-opencode-rename-wide-light",
+    "ia26-confirm-opencode-remove-wide-light",
+    "ia26-settings-opencode-add-wide-light",
+    "ia26-settings-opencode-login-pending-wide-light",
+    "ia26-settings-opencode-login-completed-wide-light",
+    "ia26-settings-opencode-login-failed-wide-light",
+    "ia26-settings-opencode-login-expired-wide-light",
+    "ia26-settings-opencode-login-cancelled-wide-light",
+    "ia26-settings-model-wide-light",
+    "ia26-settings-model-wide-dark",
+    "ia26-settings-diagnostics-model-wide-light",
+    "ia26-settings-model-narrow-light",
+  ],
+} as const;
+const signedPhaseOwnedSurfaces = {
+  IA27_28: [
+    "SURF-WI-001",
+    "SURF-WI-CONTEXT-001",
+    "SURF-APP-001",
+    "SURF-QUEUE-001",
+    "SURF-CREATE-001",
+  ],
+  IA29: [
+    "SURF-STEP-WR-001",
+    "SURF-MAT-SOURCE-001",
+    "SURF-MAT-DOC-001",
+    "SURF-MAT-DOC-RO-001",
+    "SURF-CONF-DIRTY-DEST-001",
+    "SURF-CONF-DIRTY-MATERIAL-001",
+    "SURF-CONF-ARCHIVE-001",
+    "SURF-CONF-DOC-GIT-001",
+  ],
+  IA31: [
+    "SURF-MAT-PROPOSAL-001",
+    "SURF-STEP-R3-001",
+    "SURF-STEP-APPROVAL-001",
+    "SURF-MAT-APPROVAL-TASK-001",
+  ],
+  IA30: [
+    "SURF-STEP-R1-001",
+    "SURF-STEP-R2-001",
+    "SURF-STEP-DESIGN-001",
+    "SURF-STEP-PLAN-001",
+    "SURF-MAT-ACTIVITY-001",
+  ],
+  IA32: [
+    "SURF-STEP-EXEC-001",
+    "SURF-MAT-EXEC-TASK-001",
+  ],
+  IA33: [
+    "SURF-STEP-COMPLETE-001",
+    "SURF-MAT-EVIDENCE-001",
+  ],
+  IA34: [
+    "SURF-SET-001",
+    "SURF-SET-REPO-001",
+    "SURF-SET-REPO-ADD-001",
+    "SURF-SET-REPO-MOVE-001",
+    "SURF-SET-OC-001",
+    "SURF-SET-OC-RENAME-001",
+    "SURF-SET-OC-ADD-001",
+    "SURF-SET-OC-LOGIN-001",
+    "SURF-SET-MODEL-001",
+    "SURF-CONF-REPO-DISCONNECT-001",
+    "SURF-CONF-OC-REMOVE-001",
+  ],
+} as const;
+const signedPhaseSharedSurfaces: Readonly<Partial<Record<SignedRenderedPhase, readonly string[]>>> = {
+  IA29: ["SURF-WI-001", "SURF-WI-CONTEXT-001"],
+  IA31: ["SURF-WI-001"],
+};
 
 type ReferenceViewportClass = "wide" | "narrow";
 type ReferenceTheme = "light" | "dark" | "system";
@@ -429,6 +576,7 @@ const writeRenderedAcceptanceEvidence = (
     const prior = JSON.parse(readFileSync(manifestPath, "utf8")) as {
       candidateSha?: unknown;
       evidenceKind?: unknown;
+      signedPhase?: unknown;
       entries?: unknown;
     };
     if (prior.candidateSha !== renderedAcceptanceCandidateSha) {
@@ -436,6 +584,9 @@ const writeRenderedAcceptanceEvidence = (
     }
     if (prior.evidenceKind !== renderedEvidenceKind) {
       throw new TypeError("rendered evidence kind changed within one evidence run");
+    }
+    if ((prior.signedPhase ?? null) !== signedRenderedPhase) {
+      throw new TypeError("signed rendered phase changed within one evidence run");
     }
     if (Array.isArray(prior.entries)) {
       priorEntries = prior.entries as readonly RenderedAcceptanceEntry[];
@@ -457,6 +608,7 @@ const writeRenderedAcceptanceEvidence = (
         schemaVersion: 2,
         candidateSha: renderedAcceptanceCandidateSha,
         evidenceKind: renderedEvidenceKind,
+        signedPhase: signedRenderedPhase,
         label: renderedAcceptanceLabel,
         entries: merged,
       },
@@ -482,6 +634,7 @@ const writeRenderedAcceptanceEvidence = (
       "Exact candidate: `" + renderedAcceptanceCandidateSha + "`",
       "",
       "Evidence kind: `" + renderedEvidenceKind + "`",
+      "Signed phase: " + (signedRenderedPhase ?? "none (unscoped or diagnostic/bounded)"),
       "",
       "| Capture | Surface/state | Scope | Reference | Authority |",
       "|---|---|---|---|---|",
@@ -553,9 +706,7 @@ const captureRenderedAcceptance = async (
   expect(page.viewportSize(), entry.id + " runtime viewport").toEqual(entry.viewport);
   if (entry.workflowStep === "Approval" && !entry.state.includes("stale") &&
       (entry.surface === "SURF-STEP-APPROVAL-001" ||
-       entry.surface === "SURF-MAT-APPROVAL-TASK-001" ||
-       entry.id.startsWith("bounded-hux-shell-approval") ||
-       entry.id.startsWith("hux-shell-review"))) {
+       entry.surface === "SURF-MAT-APPROVAL-TASK-001")) {
     await expect(page.getByText("Resolving approval package…", { exact: true })).toHaveCount(0);
     await expect(page.getByTestId("review-verdict")).toBeVisible();
   }
@@ -660,7 +811,7 @@ const captureRenderedAcceptance = async (
     screenshot,
     ...(referenceScreenshot === undefined ? {} : { referenceScreenshot }),
   };
-  if (diagnosticCurrentState) {
+  if (diagnosticCurrentState || signedRenderedPhase !== null) {
     writeRenderedAcceptanceEvidence([captured]);
   }
   return captured;
@@ -1918,22 +2069,51 @@ test("queue opens a primary workspace, keeps context compact, preserves URL hist
 });
 
 
+const validateSignedPhaseEvidence = (entries: readonly RenderedAcceptanceEntry[]): void => {
+  if (signedRenderedPhase === null) return;
+  const expectedIds = signedPhaseCaptureIds[signedRenderedPhase];
+  expect(entries.map((entry) => entry.id).sort(), "exact phase capture identities")
+    .toEqual([...expectedIds].sort());
+  const owned: readonly string[] = signedPhaseOwnedSurfaces[signedRenderedPhase];
+  const shared = signedPhaseSharedSurfaces[signedRenderedPhase] ?? [];
+  expect([...new Set(entries.map((entry) => entry.surface))].sort(), "exact phase SURF coverage")
+    .toEqual([...owned, ...shared].sort());
+  for (const entry of entries) {
+    expect(readFileSync(join(renderedAcceptanceDir!, entry.screenshot)).length).toBeGreaterThan(0);
+    expect(entry.reference.manifestPath).toBe(referenceManifestPath);
+    expect(entry.reference.sourcePath).toBe(referenceAtlasPath);
+    if (entry.reference.comparisonEligible) {
+      expect(entry.referenceScreenshot, entry.id).toBeDefined();
+      expect(readFileSync(join(renderedAcceptanceDir!, "references", entry.referenceScreenshot!)).length).toBeGreaterThan(0);
+    }
+  }
+  const manifest = JSON.parse(readFileSync(join(renderedAcceptanceDir!, "manifest.json"), "utf8")) as {
+    candidateSha: string; evidenceKind: string; signedPhase: string; entries: RenderedAcceptanceEntry[];
+  };
+  expect(manifest.candidateSha).toBe(renderedAcceptanceCandidateSha);
+  expect(manifest.evidenceKind).toBe("ia26_acceptance");
+  expect(manifest.signedPhase).toBe(signedRenderedPhase);
+  expect(manifest.entries.map((entry) => entry.id).sort()).toEqual([...expectedIds].sort());
+};
+
 test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   page,
   request,
 }) => {
   test.skip(
-    renderedAcceptanceDir === undefined,
+    renderedAcceptanceDir === undefined ||
+      (signedRenderedPhase !== null && signedRenderedPhase !== "IA27_28"),
     "rendered acceptance capture runs only in its GitHub Actions evidence step",
   );
   test.setTimeout(300_000);
+  const phaseOneNegativeStates = diagnosticCurrentState || signedRenderedPhase === "IA27_28";
   const runtimeErrors: string[] = [];
   let expectedDiagnosticConsoleErrors = 0;
   page.on("pageerror", (error) => runtimeErrors.push("pageerror: " + error.message));
   page.on("console", (message) => {
     if (message.type() !== "error") return;
     if (
-      diagnosticCurrentState &&
+      phaseOneNegativeStates &&
       expectedDiagnosticConsoleErrors > 0 &&
       message.text().includes("status of 401 (Unauthorized)")
     ) {
@@ -2030,7 +2210,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     ],
   }));
 
-  if (diagnosticCurrentState) {
+  if (phaseOneNegativeStates) {
     renderedAccountState = OpenCodeAccountStateSchema.parse({
       accounts: [],
       activeAccountId: null,
@@ -2093,7 +2273,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   renderedReadinessBlockers = [];
   await page.reload();
 
-  if (diagnosticCurrentState) {
+  if (phaseOneNegativeStates) {
     renderedReadinessBlockers = [
       "REPOSITORY_REQUIRED",
       "REPOSITORY_CONFIGURATION_REQUIRES_ATTENTION",
@@ -2413,6 +2593,27 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       "GW-DOC-WORKBENCH-THEME-V1",
     ],
   }));
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "ia26-queue-wide-dark", workItemKind: "QUEUE", workflowStep: null,
+    surface: "SURF-QUEUE-001", state: "operational-scan-dark", fixture: "populated Queue",
+    viewport: { width: 1440, height: 900 }, theme: "Dark", route: "/",
+    authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
+  }, page.getByTestId("work-item-queue")));
+  await page.setViewportSize({ width: 700, height: 800 });
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "hux-app-queue-narrow-dark", workItemKind: "QUEUE", workflowStep: null,
+    surface: "SURF-APP-001", state: "default", fixture: "populated Queue shared toolbar",
+    viewport: { width: 700, height: 800 }, theme: "Dark", route: "/",
+    authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
+  }));
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.getByRole("radio", { name: "Light" }).click();
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "hux-app-queue-wide-light", workItemKind: "QUEUE", workflowStep: null,
+    surface: "SURF-APP-001", state: "default", fixture: "populated Queue shared toolbar",
+    viewport: { width: 1440, height: 900 }, theme: "Light", route: "/",
+    authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
+  }));
   await page.getByRole("radio", { name: "System" }).click();
   await page.emulateMedia({ colorScheme: "light" });
   await expect(page.locator("html")).not.toHaveAttribute("data-theme");
@@ -2432,7 +2633,19 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     ],
     captureScope: "production application toolbar only",
   }, page.getByTestId("workbench-toolbar")));
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "ia26-queue-system-light", workItemKind: "QUEUE", workflowStep: null,
+    surface: "SURF-APP-001", state: "system-theme-effective-light", fixture: "populated Queue",
+    viewport: { width: 1440, height: 900 }, theme: "System/light", route: "/",
+    authorityRefs: ["GW-DOC-WORKBENCH-THEME-V1"],
+  }));
   await page.emulateMedia({ colorScheme: "dark" });
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "ia26-queue-system-dark", workItemKind: "QUEUE", workflowStep: null,
+    surface: "SURF-APP-001", state: "system-theme-effective-dark", fixture: "populated Queue",
+    viewport: { width: 1440, height: 900 }, theme: "System/dark", route: "/",
+    authorityRefs: ["GW-DOC-WORKBENCH-THEME-V1"],
+  }));
   entries.push(await captureRenderedAcceptance(page, {
     id: "application-toolbar-wide-system-dark",
     workItemKind: "QUEUE",
@@ -2493,7 +2706,16 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM",
     ],
   }, createDialog));
+  await page.getByRole("radio", { name: "Dark" }).click();
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "ia26-create-workitem-wide-dark", workItemKind: "CHANGE", workflowStep: "Work request",
+    surface: "SURF-CREATE-001", state: "ordinary-change-populated-dark",
+    fixture: "Create WorkItem deterministic CHANGE input", viewport: { width: 1440, height: 900 },
+    theme: "Dark", route: "/", captureScope: "production Create dialog only",
+    authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
+  }, createDialog));
   await createDialog.getByRole("button", { name: "Cancel", exact: true }).click();
+  await page.getByRole("radio", { name: "Light" }).click();
 
   await openWorkItem(page, "Completed investigation");
   const completedInvestigation = await workItemForTitle(page, "Completed investigation");
@@ -2775,12 +2997,16 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
 
   // Bounded HUX-10/HUX-11 evidence: exercise the same shell over a real Review
   // destination, without changing or accepting the Review body.
-  if (renderedEvidenceKind === "bounded_phase_acceptance") {
+  if (!diagnosticCurrentState) {
     await page.goto("/");
     await page.setViewportSize({ width: 1440, height: 900 });
     await openWorkItem(page, "Awaiting sign-off");
     await selectWorkflowStep(page, "Approval");
-    await expect(page.getByRole("button", { name: "Sign off exact package", exact: true })).toBeVisible();
+    await expect(page.getByTestId("workbench-workitem-shell")).toBeVisible();
+    await expect(page.getByTestId("work-item-heading")).toHaveText("Awaiting sign-off");
+    await expect(page.getByTestId("workflow-rail").getByRole("button", { name: "Approval", exact: true }))
+      .toHaveAttribute("aria-current", "step");
+    await expect(page.getByLabel("Current application destination").getByText("Work item", { exact: true })).toBeVisible();
     for (const viewport of [{ width: 1440, height: 900 }, { width: 700, height: 800 }]) {
       await page.setViewportSize(viewport);
       for (const theme of ["Light", "Dark"] as const) {
@@ -2789,7 +3015,8 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
         await expect(page.getByTestId("workbench-identity").getByTestId("work-item-heading")).toBeVisible();
         await expect(page.getByTestId("workbench-toolbar").getByLabel("Current application destination")).toBeVisible();
         entries.push(await captureRenderedAcceptance(page, {
-          id: "bounded-hux-shell-approval-" + (viewport.width === 1440 ? "wide" : "narrow") + "-" + theme.toLowerCase(),
+          id: (renderedEvidenceKind === "bounded_phase_acceptance" ? "bounded-" : "") +
+            "hux-shell-approval-" + (viewport.width === 1440 ? "wide" : "narrow") + "-" + theme.toLowerCase(),
           workItemKind: "CHANGE",
           workflowStep: "Approval",
           surface: "SURF-WI-001",
@@ -2803,9 +3030,10 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       }
     }
     await page.getByRole("radio", { name: "Light" }).click();
-    expect(entries.filter((entry) => entry.id.startsWith("bounded-hux-shell-approval-"))).toHaveLength(4);
+    expect(entries.filter((entry) => entry.id.includes("hux-shell-approval-"))).toHaveLength(4);
   }
-  if (!diagnosticCurrentState) writeRenderedAcceptanceEvidence(entries);
+  if (!diagnosticCurrentState && signedRenderedPhase === null) writeRenderedAcceptanceEvidence(entries);
+  validateSignedPhaseEvidence(entries);
   expect([...new Set(entries.map((entry) => entry.surface))].sort()).toEqual([
     "SURF-APP-001",
     "SURF-CREATE-001",
@@ -2823,7 +3051,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   request,
 }) => {
   test.skip(
-    renderedAcceptanceDir === undefined,
+    renderedAcceptanceDir === undefined || signedRenderedPhase === "IA27_28",
     "IA26 rendered acceptance runs only in its GitHub Actions evidence step",
   );
   test.setTimeout(300_000);
@@ -2920,7 +3148,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     entry: RenderedAcceptanceInput,
     target?: Locator,
   ): Promise<void> => {
-    if (huxPriorityOnly && !huxPriorityCaptureIds.has(entry.id)) return;
     entries.push(await captureRenderedAcceptance(page, entry, target));
   };
   const light = { width: 1440, height: 900 } as const;
@@ -3235,29 +3462,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
 
   }
 
-  if (huxPriorityOnly) {
-    // Capture the shared chrome explicitly; the same exact candidate will
-    // also be exercised in the Document and Review families below.
-    await page.goto("/");
-    for (const [viewport, theme, suffix] of [
-      [light, "Light", "wide-light"],
-      [narrow, "Dark", "narrow-dark"],
-    ] as const) {
-      await page.setViewportSize(viewport);
-      await page.getByRole("radio", { name: theme }).click();
-      await expect(page.getByTestId("workbench-toolbar")).toBeVisible();
-      await capture({
-        id: "hux-app-queue-" + suffix, workItemKind: "QUEUE",
-        workflowStep: null, surface: "SURF-APP-001",
-        state: "default", fixture: "populated Queue shared toolbar",
-        viewport, theme, route: routeValue(),
-        authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
-      });
-    }
-    await page.setViewportSize(light);
-    await page.getByRole("radio", { name: "Light" }).click();
-  }
-
   if (runRenderedPhase("IA29")) {
   // IA29 — Work request, document materials, and safety confirmations.
   await page.goto("/");
@@ -3316,7 +3520,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     });
     await page.setViewportSize(light);
   }
-  if (huxPriorityOnly) {
+  if (!diagnosticCurrentState) {
     for (const [viewport, theme, suffix] of [
       [light, "Light", "wide-light"],
       [narrow, "Dark", "narrow-dark"],
@@ -3718,19 +3922,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   await create.getByRole("button", { name: "Concerns", exact: true }).click();
   await page.getByRole("option", { name: "browser" }).click();
   await page.keyboard.press("Escape");
-  await capture({
-    id: "ia26-create-workitem-wide-dark",
-    workItemKind: "CHANGE",
-    workflowStep: "Work request",
-    surface: "SURF-CREATE-001",
-    state: "ordinary-change-populated-dark",
-    fixture: "IA26 confirmation fixture Create task",
-    viewport: light,
-    theme: "Dark",
-    route: routeValue(),
-    captureScope: "production Create dialog only",
-    authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
-  }, create);
   await create.getByRole("button", { name: "Create work item" }).click();
   await expect(page.getByTestId("work-item-heading")).toHaveText("IA26 confirmation fixture");
   await page.getByRole("radio", { name: "Light" }).click();
@@ -4133,7 +4324,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
       fixture: "Awaiting sign-off", viewport, theme: "Dark", route: routeValue(),
       authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
     }, approval);
-    if (huxPriorityOnly && suffix === "narrow") {
+    if (!diagnosticCurrentState && suffix === "narrow") {
       await capture({
         id: "hux-shell-review-narrow-dark", workItemKind: "CHANGE",
         workflowStep: "Approval", surface: "SURF-WI-001",
@@ -4145,7 +4336,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   }
   await page.setViewportSize(light);
   await page.getByRole("radio", { name: "Light" }).click();
-  if (huxPriorityOnly) {
+  if (!diagnosticCurrentState) {
     await capture({
       id: "hux-shell-review-wide-light", workItemKind: "CHANGE",
       workflowStep: "Approval", surface: "SURF-WI-001", state: "default",
@@ -4316,6 +4507,45 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   }, page.getByTestId("execution-workspace"));
   await backToQueue(page);
 
+  await openWorkItem(page, "Verified candidate");
+  await selectWorkflowStep(page, "Implementation");
+  await expect(page.getByTestId("execution-workspace")).toBeVisible();
+  await selectWorkflowMaterial(page, "Independent review · Attempt 1");
+  await expect(page.getByTestId("selected-run-header")).toContainText("Independent review · Attempt 1");
+  await expect(page.getByTestId("validation-matrix").getByTestId("validation-stage-V7")).toContainText("Passed");
+  await expect(page.getByTestId("workflow-rail").getByRole("button", { name: "Complete", exact: true })).toHaveAttribute("aria-current", "step");
+  await expect(page.getByTestId("workflow-rail").getByRole("button", { name: "Implementation", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await capture({
+    id: "ia26-implementation-validation-recorded-wide-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Implementation",
+    surface: "SURF-STEP-EXEC-001",
+    state: "validation-recorded",
+    fixture: "Verified candidate reached Implementation · Independent review · Attempt 1",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    authorityRefs: ["GW-DOC-WORKBENCH-UX"],
+  }, page.getByTestId("execution-workspace"));
+  await selectWorkflowMaterial(page, "Implementation agent · Attempt 1");
+  await expect(page.getByTestId("selected-run-header")).toContainText("Implementation agent · Attempt 1");
+  await expect(page.getByLabel("Task overview")).toContainText("Recorded boundary: complete");
+  await expect(page.getByTestId("validation-matrix")).toContainText("No validation results in this attempt");
+  await expect(page.getByTestId("validation-matrix")).not.toContainText("boundary:");
+  await capture({
+    id: "ia26-implementation-builder-attempt-wide-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Implementation",
+    surface: "SURF-STEP-EXEC-001",
+    state: "validation-recorded",
+    fixture: "Verified candidate reached Implementation · Implementation agent · Attempt 1",
+    viewport: light,
+    theme: "Light",
+    route: routeValue(),
+    authorityRefs: ["GW-DOC-WORKBENCH-UX"],
+  }, page.getByTestId("execution-workspace"));
+  await backToQueue(page);
+
   }
 
   if (runRenderedPhase("IA33")) {
@@ -4362,42 +4592,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }, complete);
   await page.setViewportSize(light);
-  await selectWorkflowStep(page, "Implementation");
-  await expect(page.getByTestId("execution-workspace")).toBeVisible();
-  await selectWorkflowMaterial(page, "Independent review · Attempt 1");
-  await expect(page.getByTestId("selected-run-header")).toContainText("Independent review · Attempt 1");
-  await expect(page.getByTestId("validation-matrix").getByTestId("validation-stage-V7")).toContainText("Passed");
-  await expect(page.getByTestId("workflow-rail").getByRole("button", { name: "Complete", exact: true })).toHaveAttribute("aria-current", "step");
-  await expect(page.getByTestId("workflow-rail").getByRole("button", { name: "Implementation", exact: true })).toHaveAttribute("aria-pressed", "true");
-  await capture({
-    id: "ia26-implementation-validation-recorded-wide-light",
-    workItemKind: "CHANGE",
-    workflowStep: "Implementation",
-    surface: "SURF-STEP-EXEC-001",
-    state: "validation-recorded",
-    fixture: "Verified candidate reached Implementation · Independent review · Attempt 1",
-    viewport: light,
-    theme: "Light",
-    route: routeValue(),
-    authorityRefs: ["GW-DOC-WORKBENCH-UX"],
-  }, page.getByTestId("execution-workspace"));
-  await selectWorkflowMaterial(page, "Implementation agent · Attempt 1");
-  await expect(page.getByTestId("selected-run-header")).toContainText("Implementation agent · Attempt 1");
-  await expect(page.getByLabel("Task overview")).toContainText("Recorded boundary: complete");
-  await expect(page.getByTestId("validation-matrix")).toContainText("No validation results in this attempt");
-  await expect(page.getByTestId("validation-matrix")).not.toContainText("boundary:");
-  await capture({
-    id: "ia26-implementation-builder-attempt-wide-light",
-    workItemKind: "CHANGE",
-    workflowStep: "Implementation",
-    surface: "SURF-STEP-EXEC-001",
-    state: "validation-recorded",
-    fixture: "Verified candidate reached Implementation · Implementation agent · Attempt 1",
-    viewport: light,
-    theme: "Light",
-    route: routeValue(),
-    authorityRefs: ["GW-DOC-WORKBENCH-UX"],
-  }, page.getByTestId("execution-workspace"));
   await backToQueue(page);
 
   await openWorkItem(page, "Completed investigation");
@@ -4447,52 +4641,16 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   }, evidence);
   await page.getByRole("radio", { name: "Light" }).click();
 
-  // Operational-scan dark representative plus System effective-scheme evidence.
-  await page.goto("/");
-  await page.getByRole("radio", { name: "Dark" }).click();
-  await capture({
-    id: "ia26-queue-wide-dark",
-    workItemKind: "QUEUE",
-    workflowStep: null,
-    surface: "SURF-QUEUE-001",
-    state: "operational-scan-dark",
-    fixture: "populated Queue",
-    viewport: light,
-    theme: "Dark",
-    route: "/",
-    authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
-  }, page.getByTestId("work-item-queue"));
-  await page.getByRole("radio", { name: "System" }).click();
-  await page.emulateMedia({ colorScheme: "light" });
-  await capture({
-    id: "ia26-queue-system-light",
-    workItemKind: "QUEUE",
-    workflowStep: null,
-    surface: "SURF-APP-001",
-    state: "system-theme-effective-light",
-    fixture: "populated Queue",
-    viewport: light,
-    theme: "System/light",
-    route: "/",
-    authorityRefs: ["GW-DOC-WORKBENCH-THEME-V1"],
-  });
-  await page.emulateMedia({ colorScheme: "dark" });
-  await capture({
-    id: "ia26-queue-system-dark",
-    workItemKind: "QUEUE",
-    workflowStep: null,
-    surface: "SURF-APP-001",
-    state: "system-theme-effective-dark",
-    fixture: "populated Queue",
-    viewport: light,
-    theme: "System/dark",
-    route: "/",
-    authorityRefs: ["GW-DOC-WORKBENCH-THEME-V1"],
-  });
 
   }
 
   if (!diagnosticCurrentState) {
+  if (signedRenderedPhase !== null) {
+    validateSignedPhaseEvidence(entries);
+    expect(expectedConflictConsoleErrors).toBe(0);
+    expect(runtimeErrors).toEqual([]);
+    return;
+  }
   writeRenderedAcceptanceEvidence(entries);
 
   const manifest = JSON.parse(
@@ -4500,20 +4658,6 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   ) as { candidateSha: string; entries: RenderedAcceptanceEntry[] };
   expect(manifest.candidateSha).toBe(renderedAcceptanceCandidateSha);
   const allEntries = manifest.entries;
-  if (huxPriorityOnly) {
-    expect(allEntries.map((entry) => entry.id).sort())
-      .toEqual([...huxPriorityCaptureIds].sort());
-    for (const entry of allEntries) {
-      expect(entry.reference.manifestPath).toBe(referenceManifestPath);
-      expect(entry.reference.sourcePath).toBe(referenceAtlasPath);
-      expect(referenceSurfaceById.has(entry.reference.surface)).toBe(true);
-      expect(entry.reference.comparisonEligible, entry.id).toBe(true);
-      expect(entry.referenceScreenshot, entry.id).toBeDefined();
-      expect(readFileSync(join(renderedAcceptanceDir!, "references", entry.referenceScreenshot!)).length).toBeGreaterThan(0);
-    }
-    expect(runtimeErrors).toEqual([]);
-    return;
-  }
   const requiredSurfaces = [
     "SURF-APP-001",
     "SURF-CONF-ARCHIVE-001",
