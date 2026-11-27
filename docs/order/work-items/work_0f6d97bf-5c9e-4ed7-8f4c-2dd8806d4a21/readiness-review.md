@@ -16,7 +16,7 @@ The previous exact R3 blob `719a542e5364e4f552b680d48bebe589b40916ca` and its si
 **P4 Workbench blob:** `8fccbe031436a9eb54da8ae493b614e94cc957b1`
 **P4 Workbench Theme blob:** `03dfc6be3600a1128b5639d011f4c0159d3497dd`
 
-Protected pre-signoff sensor `293b2ed8638a24cbec0507801f01fa08674ec10b`; exact candidate input digest `8ed9579c7ff09a8112786f91947725a63241fbdf`. One T1, 47 exact scope/changeSurface paths, same 68 exclusions. The correction adds only tests/shell.test.ts and tests/order-migration.test.ts. All IA25 INST-01–12 propositions, six gates, 37 SURF, 46 scenarios and final V0–V7 remain binding.
+Protected pre-signoff sensor `a38197bec3f1f1e84ff4bc0036abe322e4c5e1e1`; exact candidate input digest `62bbac6f6c65832d43a1997398aa0cc8fe5251a5`. One T1, 47 exact scope/changeSurface paths, same 68 exclusions. The correction adds only tests/shell.test.ts and tests/order-migration.test.ts. All IA25 INST-01–12 propositions, six gates, 37 SURF, 46 scenarios and final V0–V7 remain binding.
 
 ## Required fresh review
 

@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Rebind derived Workbench reference evidence to the corrected DESIGN and synchronize the exact IA25 trace assertion during REV-F10 revalidation.
+
 - Return IA25 upstream for the exact two omitted installer regression-fixture owners; synchronize the 47-path DESIGN/PLAN forecast and protected pre-signoff scope sensor, preserve 68 exclusions, and require renewed exact-package review and authorization (REV-F10).
 
 - Reopen the real Create dialog after theme changes in phase-local proof rather than interacting through its modal boundary.

@@ -13,7 +13,7 @@ The active corpus is valid only for these exact inputs:
 - `GW-DOC-WORKBENCH-UX-V2` — blob `64184232833b59a9e6db5e1a28b841f48b3217cd`;
 - `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2` — blob `8fccbe031436a9eb54da8ae493b614e94cc957b1`;
 - `GW-DOC-WORKBENCH-THEME-V1` — blob `03dfc6be3600a1128b5639d011f4c0159d3497dd`;
-- current 0.6.0 DESIGN — blob `91f576d5c21782034224157ef9d2b4ec2ff81fa1`.
+- current 0.6.0 DESIGN — blob `92fffd59364e825f72b6b41c59b6a4479fd85a8c`.
 
 These are the exact current authority versions projected by this corpus. If any bound owner changes, this corpus is stale until regenerated and reviewed. The owner wins on every conflict.
 

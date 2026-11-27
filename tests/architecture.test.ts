@@ -3280,7 +3280,7 @@ describe("architecture fitness", () => {
         "failure after rename before fsync/readback (publication captured)",
         "Present legacy config with external-root ENOENT",
         "in `tests/shell.test.ts` pass the explicit established decision",
-        "in `tests/order-migration.test.ts` replace the unconditional-success systemctl stub",
+        "In `tests/order-migration.test.ts` replace the unconditional-success systemctl stub",
         "`tests/sqlite.test.ts` is outside T1",
       ]],
     ] as const;
