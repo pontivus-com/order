@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Reconcile the three Workbench reference viewport classes with signed comparison proof, and correct the protected authorization sensor to the current 61-path/59-exclusion T1 package; no runtime or scope change.
+
 - Correct the existing Workbench reference responsive and QA modal/status anatomy; verify the existing Acceptance and dependent-state comparison matrix without adding surfaces or production scope.
 
 - Bind failed human retest observations and evidence to the exact subsequent QA submission, reviewer context and existing certification; preserve original reports and the signed task/renderer scope.

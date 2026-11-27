@@ -216,7 +216,7 @@ const verifyCampaignReviewedInputs = (
     }
     const scope = new Set(task.scope);
     const exclusions = new Set(task.exclusions);
-    if (scope.size !== 60 || exclusions.size !== 60 || task.scope.length !== scope.size || task.exclusions.length !== exclusions.size || [...scope].some((path) => exclusions.has(path))) {
+    if (scope.size !== 61 || exclusions.size !== 59 || task.scope.length !== scope.size || task.exclusions.length !== exclusions.size || [...scope].some((path) => exclusions.has(path))) {
       throw new Error("invalid exact T1 scope/exclusions");
     }
     const allowed = normal ? scope : new Set(exactField("bounded paths", "([^\\r\\n]+)").split(", "));
@@ -384,8 +384,8 @@ describe("architecture fitness", () => {
       mkdirSync(join(root, "item"));
       const plan = "\x60\x60\x60order-tasks\n" + JSON.stringify({ tasks: [{
         id: "T1",
-        scope: ["a.ts", "CHANGELOG.md", ...Array.from({ length: 58 }, (_, i) => "scope-" + i)],
-        exclusions: ["protected.md", ...Array.from({ length: 59 }, (_, i) => "excluded-" + i)],
+        scope: ["a.ts", "CHANGELOG.md", ...Array.from({ length: 59 }, (_, i) => "scope-" + i)],
+        exclusions: ["protected.md", ...Array.from({ length: 58 }, (_, i) => "excluded-" + i)],
       }] }) + "\n\x60\x60\x60\n";
       const baselineInputs = new Map([
         ["a.ts", "100644\t" + blob("old\n")],
@@ -3647,7 +3647,8 @@ describe("architecture fitness", () => {
             theme?: { blob?: string };
             design?: { blob?: string };
           };
-          surfaces?: readonly { id?: string; source?: string; selector?: string }[];
+          viewportClasses?: Readonly<Record<string, number>>;
+          surfaces?: readonly { id?: string; source?: string; selector?: string; viewports?: readonly string[] }[];
         };
         const designSurfaceIds = [
           ...design.matchAll(/^#{5,6} (SURF-[A-Z0-9-]+)\b/gm),
@@ -3664,6 +3665,16 @@ describe("architecture fitness", () => {
           violations.push("Workbench reference manifest must explicitly be non-authoritative");
         }
         exactSet("Workbench reference manifest SURF set", referenceSurfaceIds, designSurfaceIds);
+        const referenceWidths = referenceManifest.viewportClasses ?? {};
+        exactSet("Workbench reference viewport class set", Object.keys(referenceWidths), ["wide", "medium", "narrow"]);
+        for (const [name, width] of Object.entries({ wide: 1440, medium: 1000, narrow: 760 })) {
+          if (referenceWidths[name] !== width) violations.push("Workbench reference representative viewport mismatch: " + name);
+        }
+        for (const surface of referenceManifest.surfaces ?? []) {
+          const viewports = surface.viewports ?? [];
+          exactSet("Workbench reference responsive coverage " + surface.id, [...viewports], ["wide", "medium", "narrow"]);
+          if (duplicates([...viewports]).length > 0) violations.push("duplicate reference viewport class: " + surface.id);
+        }
         const blobSha = (path: string): string => {
           const bytes = readFileSync(join(repositoryRoot, path));
           return createHash("sha1")

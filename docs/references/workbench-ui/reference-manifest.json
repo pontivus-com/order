@@ -21,7 +21,7 @@
     "design": {
       "id": "work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21/DESIGN",
       "path": "docs/order/work-items/work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21/solution-design.md",
-      "blob": "1d2de00ef0a4ba06972180f04773fa2cea174007"
+      "blob": "7e8c93f030ebb926926ea7ff663697655a7ad213"
     }
   },
   "fixturePolicy": {
@@ -33,6 +33,7 @@
   "query": "?surf=<SURF-ID>&state=<declared-state>&theme=light|dark|system&step=<selected-stage>&kind=<work-item-kind>&current=<fixture-current-stage>&reached=<fixture-reached-stage-list>&attempt=<fixture-selected-attempt>",
   "viewportClasses": {
     "wide": 1440,
+    "medium": 1000,
     "narrow": 760
   },
   "surfaces": [
@@ -48,6 +49,7 @@
       ],
       "viewports": [
         "wide",
+        "medium",
         "narrow"
       ],
       "themes": [
@@ -77,6 +79,7 @@
       ],
       "viewports": [
         "wide",
+        "medium",
         "narrow"
       ],
       "themes": [
@@ -103,6 +106,7 @@
       ],
       "viewports": [
         "wide",
+        "medium",
         "narrow"
       ],
       "themes": [
@@ -129,6 +133,7 @@
       ],
       "viewports": [
         "wide",
+        "medium",
         "narrow"
       ],
       "themes": [
@@ -155,6 +160,7 @@
       ],
       "viewports": [
         "wide",
+        "medium",
         "narrow"
       ],
       "themes": [
@@ -181,6 +187,7 @@
       ],
       "viewports": [
         "wide",
+        "medium",
         "narrow"
       ],
       "themes": [
@@ -208,6 +215,7 @@
       ],
       "viewports": [
         "wide",
+        "medium",
         "narrow"
       ],
       "themes": [
@@ -233,6 +241,7 @@
       ],
       "viewports": [
         "wide",
+        "medium",
         "narrow"
       ],
       "themes": [
@@ -258,6 +267,7 @@
       ],
       "viewports": [
         "wide",
+        "medium",
         "narrow"
       ],
       "themes": [
@@ -283,6 +293,7 @@
       ],
       "viewports": [
         "wide",
+        "medium",
         "narrow"
       ],
       "themes": [
@@ -311,6 +322,7 @@
       ],
       "viewports": [
         "wide",
+        "medium",
         "narrow"
       ],
       "themes": [
@@ -336,6 +348,7 @@
       ],
       "viewports": [
         "wide",
+        "medium",
         "narrow"
       ],
       "themes": [
@@ -364,6 +377,7 @@
       ],
       "viewports": [
         "wide",
+        "medium",
         "narrow"
       ],
       "themes": [
@@ -394,6 +408,7 @@
       ],
       "viewports": [
         "wide",
+        "medium",
         "narrow"
       ],
       "themes": [
@@ -421,6 +436,7 @@
       ],
       "viewports": [
         "wide",
+        "medium",
         "narrow"
       ],
       "themes": [
@@ -449,6 +465,7 @@
       ],
       "viewports": [
         "wide",
+        "medium",
         "narrow"
       ],
       "themes": [
@@ -478,6 +495,7 @@
       ],
       "viewports": [
         "wide",
+        "medium",
         "narrow"
       ],
       "themes": [
@@ -505,6 +523,7 @@
       ],
       "viewports": [
         "wide",
+        "medium",
         "narrow"
       ],
       "themes": [
@@ -532,6 +551,7 @@
       ],
       "viewports": [
         "wide",
+        "medium",
         "narrow"
       ],
       "themes": [
@@ -559,6 +579,7 @@
       ],
       "viewports": [
         "wide",
+        "medium",
         "narrow"
       ],
       "themes": [
@@ -587,6 +608,7 @@
       ],
       "viewports": [
         "wide",
+        "medium",
         "narrow"
       ],
       "themes": [
@@ -618,6 +640,7 @@
       ],
       "viewports": [
         "wide",
+        "medium",
         "narrow"
       ],
       "themes": [
@@ -706,6 +729,7 @@
       ],
       "viewports": [
         "wide",
+        "medium",
         "narrow"
       ],
       "themes": [
@@ -734,6 +758,7 @@
       ],
       "viewports": [
         "wide",
+        "medium",
         "narrow"
       ],
       "themes": [
@@ -762,6 +787,7 @@
       ],
       "viewports": [
         "wide",
+        "medium",
         "narrow"
       ],
       "themes": [
@@ -789,6 +815,7 @@
       ],
       "viewports": [
         "wide",
+        "medium",
         "narrow"
       ],
       "themes": [
@@ -818,6 +845,7 @@
       ],
       "viewports": [
         "wide",
+        "medium",
         "narrow"
       ],
       "themes": [
@@ -847,6 +875,7 @@
       ],
       "viewports": [
         "wide",
+        "medium",
         "narrow"
       ],
       "themes": [
@@ -876,6 +905,7 @@
       ],
       "viewports": [
         "wide",
+        "medium",
         "narrow"
       ],
       "themes": [
@@ -902,6 +932,7 @@
       ],
       "viewports": [
         "wide",
+        "medium",
         "narrow"
       ],
       "themes": [
@@ -932,6 +963,7 @@
       ],
       "viewports": [
         "wide",
+        "medium",
         "narrow"
       ],
       "themes": [
@@ -957,6 +989,7 @@
       ],
       "viewports": [
         "wide",
+        "medium",
         "narrow"
       ],
       "themes": [
@@ -982,6 +1015,7 @@
       ],
       "viewports": [
         "wide",
+        "medium",
         "narrow"
       ],
       "themes": [
@@ -1008,6 +1042,7 @@
       ],
       "viewports": [
         "wide",
+        "medium",
         "narrow"
       ],
       "themes": [
@@ -1034,6 +1069,7 @@
       ],
       "viewports": [
         "wide",
+        "medium",
         "narrow"
       ],
       "themes": [
@@ -1059,6 +1095,7 @@
       ],
       "viewports": [
         "wide",
+        "medium",
         "narrow"
       ],
       "themes": [
@@ -1084,6 +1121,7 @@
       ],
       "viewports": [
         "wide",
+        "medium",
         "narrow"
       ],
       "themes": [

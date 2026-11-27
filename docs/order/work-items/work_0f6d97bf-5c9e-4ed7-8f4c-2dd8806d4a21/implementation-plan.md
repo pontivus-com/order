@@ -4,7 +4,7 @@
 
 ## Canonical PLAN authority
 
-This root is the single deterministic P7 artifact for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. Its modular directory is the maintainable authoring decomposition, not independent executable authority. This revalidation-candidate implementation specification binds R1 `31043ff989e1ac68b1238ca34f91b0550e64fadc`, R2 `b155e22c89df2870804a3dcab934ccf9490d7870`, DESIGN `1d2de00ef0a4ba06972180f04773fa2cea174007`, current P4 and P6. Prior closures were reopened by ALIGN-A01-F03, ALIGN-A07-F01, ALIGN-A09-F02, REV-F10 and the consolidated authority/REV-F11 return; campaign §17A/§18 own gate state and authorization. No gate advance or sign-off is inferred.
+This root is the single deterministic P7 artifact for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. Its modular directory is the maintainable authoring decomposition, not independent executable authority. This revalidation-candidate implementation specification binds R1 `31043ff989e1ac68b1238ca34f91b0550e64fadc`, R2 `b155e22c89df2870804a3dcab934ccf9490d7870`, DESIGN `7e8c93f030ebb926926ea7ff663697655a7ad213`, current P4 and P6. Prior closures were reopened by ALIGN-A01-F03, ALIGN-A07-F01, ALIGN-A09-F02, REV-F10 and the consolidated authority/REV-F11 return; campaign §17A/§18 own gate state and authorization. No gate advance or sign-off is inferred.
 
 **Revalidation candidate for native final QA/QC.** The compiled PLAN now includes QA1–QA6, IA35–IA39 and expanded candidate scope. This is not executable authorization: the exact consumer/forecast, protected architecture sensor and derived reference corpus have been revised for review. Actual exact-head fitness execution, current R1–R3 and campaign gate revalidation remain mandatory; static reconciliation does not establish PASS. External campaign final human acceptance remains distinct from native Acceptance.
 
@@ -28,8 +28,8 @@ Retain evidenced closed F6B semantic APIs and responsibilities; correct rejected
 | `implementation-plan/09-a09-provider-settings.md` | `9383ac9657e9b1f1d8e12d94800fa56ba37055be` |
 | `implementation-plan/10-a10-recovery-accessibility.md` | `41d6cd0f833180d0c750c5943ed0b1ee6d5d4fd5` |
 | `implementation-plan/11-a11-component-certification.md` | `84cb71df374f69619af5c795dd0f26b7f0a232f9` |
-| `implementation-plan/12-action-catalog.md` | `cc83b4465a6b605beee86578b3818c3f538774ba` |
-| `implementation-plan/13-verification-closeout.md` | `e4e88b4c89b51028eca1bfe7d4f7261e838c2e7d` |
+| `implementation-plan/12-action-catalog.md` | `e5ce541a3c4374f11b5014c60b38f4a088662dd1` |
+| `implementation-plan/13-verification-closeout.md` | `ea7940d69c2495cfbaf626910991b04a147d3894` |
 
 A source hash mismatch makes PLAN non-current until recompiled. Directory files have no independent order-tasks block or lifecycle state.
 
@@ -446,7 +446,7 @@ This decomposition is revalidated under C19-F09/C20-F11 after the prior G4-G6 cl
 
 - R1 `research.md`: `31043ff989e1ac68b1238ca34f91b0550e64fadc`.
 - R2 `requirements.md`: `b155e22c89df2870804a3dcab934ccf9490d7870`.
-- DESIGN `solution-design.md`: `1d2de00ef0a4ba06972180f04773fa2cea174007` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and QA1–QA6 expanded forecast.
+- DESIGN `solution-design.md`: `7e8c93f030ebb926926ea7ff663697655a7ad213` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and QA1–QA6 expanded forecast.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `ee8acad4e39f4641476eb46d99ca168afab3db3d`.
 - P3 `GW-DOC-WORKBENCH-UX-V2`: `7569fc5be387c974fe7fe0c3bc123c300f147311` — §11.4A/§12/§13/§14 (including §14.8A.1–2) own semantic information classes, state-is-not-interface behavior, direct primary interaction composition, no generic workflow-material selector, continuous Dialogue semantics, Terminal-result primacy, singular technical inspection, task anatomy and composition invariants.
 - P3 `GW-DOC-MARKDOWN-WORKBENCH-V1`: `1668746eae4ac8a0fc766e9e09150527cd07c347` — §17.4 owns one compact Markdown editor-control region, overflow-before-wrap formatting and control→canvas adjacency.
@@ -1755,6 +1755,8 @@ Any `FAIL` creates a blocking remediation item owned by the defective implementa
 
 **Forbidden:** treating any derived reference corpus as semantic/product authority; pixel-diff threshold as the sole acceptance criterion; screenshot approval in place of existing semantic/browser assertions; generated screenshots blessed from the current implementation without comparison; a new visual-regression SaaS/platform dependency; committing runtime screenshots as a second design system; changing product behavior merely to match a superseded SVG.  
 
+**Responsive reference comparison integration (IA26, before first signed IA27/IA28 publication):** In the existing `tests/browser.spec.ts` extend `ReferenceViewportClass`, manifest typing and `referenceViewportClass` to the three P4 classes (>=1280 wide; 800–1279 medium; <800 narrow for positive finite widths). Do not use manifest representative widths as class boundaries. Resolve eligible comparison only for exact declared SURF/state/selection/scope/theme and actual matching viewport width/height; render the atlas with the capture's actual dimensions, not the class representative if different. Extend the existing capture and completeness mechanism in `tests/browser.spec.ts`/`tests/certification.test.ts`, using `tests/e2e-server.ts` only for required canonical fixtures, to require a 1000 px medium comparison for each phase-owned SURF and every Acceptance/dependent state required by IA38/IA39, with existing wide/narrow and effective-theme coverage retained. Final IA26 requires all 38 SURF classes and all applicable state/theme obligations; missing, ineligible, duplicate or mismatched required comparisons fail evidence generation, not merely appear as unmatched diagnostics. Prove 799/800/1279/1280 boundaries, 1440/1000/760 representative widths, 390/700 narrow, wrong dimensions/scope/theme rejection and missing required medium rejection. Preserve existing diagnostic-only mode and phase ownership, without using diagnostic evidence as acceptance. No new verification framework, production path or additional task.
+
 **Evidence execution scope:** SD30 includes `tests/e2e-server.ts` for canonical persisted fixtures, and only `docs/references/workbench-ui/reference-atlas.html`, `reference-manifest.json`, `README.md` for derived mapping/render/provenance. Independently review against P3/P4/DESIGN, never mirror bad runtime. Require settled full reachable content, independent current/reached/selected stage and task/Run identity, actual action/state results, exact scope/viewport/effective theme. Broad fallbacks or non-equivalent fixtures cannot satisfy coverage. Operator UI-01–UI-20 issue-only review (UI-02 superseded by UI-08); exhaustive internal evidence separately retained. Full 47 scenario and 38 SURF datum/action proof under closeout; no new verification framework.
 
 **Proof:** required PR Verification rendered-evidence step succeeds on the exact candidate, publishes exhaustive scope-valid evidence, and the separately reviewable screen-by-screen acceptance ledger has no unresolved `FAIL`; capture generation/coverage alone cannot satisfy IA26.
@@ -1996,7 +1998,7 @@ GitHub Actions must:
 2. run the IA26 capture cases in `tests/browser.spec.ts` against the exact checked-out PR merge candidate;
 3. capture actual PNG output for every IA26-required workflow/surface/state/view/theme row;
 4. generate a machine-readable manifest and comparison index containing the exact candidate SHA and, for every capture, WorkItem kind, workflow step/surface/state, fixture identity, viewport, effective theme, route/selection, current authority refs, corresponding reference path and mandatory governed `captureScope`;
-5. prove exhaustive coverage **and scope equivalence**: a runtime crop may be compared only with a reference governing the same composition scope; a component crop may not stand beside a full-screen reference as equivalent acceptance evidence;
+5. prove exhaustive coverage **and scope/viewport equivalence**: a runtime crop may be compared only with a reference governing the same composition scope; a component crop may not stand beside a full-screen reference as equivalent acceptance evidence. Use the IA26 responsive comparison integration in the action catalog: all three P4 classes for each governed SURF, exact actual viewport dimensions and effective theme, and every applicable phase/state comparison, including IA38/IA39 Acceptance and dependent states. Require representative 1000 px medium evidence, retain existing wide/narrow coverage, and reject missing or ineligible mandatory comparison rows; representative widths never classify the runtime viewport;
 6. fail evidence generation on missing/duplicate mappings, missing/invalid captureScope, unreachable declared state, runtime error, missing/empty capture or incomplete manifest/index;
 7. upload the actual captures plus manifest/index as one PR-run artifact using `actions/upload-artifact` pinned to commit `ea165f8d65b6e75b540449e92b4886f43607fa02` (the current `v4` ref at PLAN correction time), with artifact identity including the exact checked-out candidate SHA.
 

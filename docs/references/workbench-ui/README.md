@@ -13,7 +13,7 @@ The active corpus is valid only for these exact inputs:
 - `GW-DOC-WORKBENCH-UX-V2` — blob `7569fc5be387c974fe7fe0c3bc123c300f147311`;
 - `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2` — blob `7985991b91c5717677da6a38e057c00eb2e4e2fe`;
 - `GW-DOC-WORKBENCH-THEME-V1` — blob `03dfc6be3600a1128b5639d011f4c0159d3497dd`;
-- current 0.6.0 DESIGN — blob `1d2de00ef0a4ba06972180f04773fa2cea174007`.
+- current 0.6.0 DESIGN — blob `7e8c93f030ebb926926ea7ff663697655a7ad213`.
 
 These are the exact current authority versions projected by this corpus. If any bound owner changes, this corpus is stale until regenerated and reviewed. The owner wins on every conflict.
 
@@ -38,6 +38,8 @@ The runtime capture and reference must identify the same SURF, state, governed s
 A reference mismatch never authorizes implementation to change product behavior. The reviewer resolves the discrepancy against the exact bound authority first.
 
 The 38-SURF universe is derived from current DESIGN, never from this directory.
+
+The manifest declares representative comparison widths wide=1440, medium=1000 and narrow=760 for every governed surface. Actual responsive class comes from P4 §8.12, not these fixture widths. An eligible runtime comparison uses identical actual viewport dimensions, state/selection, scope and effective theme. IA26/IA38/IA39 own required medium proof and fail on missing applicable comparisons; the historical 800 static renders below do not establish runtime proof.
 
 
 ## Native Acceptance reference delta
