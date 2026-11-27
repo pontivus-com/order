@@ -2749,6 +2749,15 @@ describe("architecture fitness", () => {
       /\/\d{2}-a\d{2}-/.test(path),
     );
 
+    // The inventory follows prospective canonical authority, not the current runtime enum.
+    const coverageLedger = sourceText(workItemRoot + "/0.6.0-concern-coverage-ledger.md");
+    const lifecycleStageSection = coverageLedger.split("## 6. Lifecycle-stage coverage")[1]?.split("## 7.")[0] ?? "";
+    const canonicalStageGrammar = sourceText("docs/contracts/canonical-contracts.md").match(/type WorkStage =([\s\S]*?);/)?.[1] ?? "";
+    const coveredStages = [...lifecycleStageSection.matchAll(/^\| ([A-Z][A-Z0-9_]*)(?: \/ [^|]+)? \|/gm)].map((match) => match[1]);
+    const canonicalStages = [...canonicalStageGrammar.matchAll(/"([A-Z0-9_]+)"/g)].map((match) => match[1]);
+    expect(canonicalStages.length).toBeGreaterThan(0);
+    expect(coveredStages).toEqual(canonicalStages);
+
     const requirements = sourceText(requirementsPath);
     const research = sourceText(researchPath);
     const design = sourceText(designPath);
