@@ -118,6 +118,9 @@ describe("Order predecessor cutover boundary", () => {
       'const environment = { ...process.env, HOME: home, PATH: fakeBin + ":" + (process.env.PATH ?? ""), SYSTEMCTL_LOG: log, SYSTEMCTL_ACTIVITY: activity, SYSTEMCTL_ENABLEMENT: enablement };',
       'const blocked = []; for (const mode of ["stuck", "unknown"]) { fs.writeFileSync(activity, "active\\n"); try { installer.migrateLegacyGateweftInstallation(locations, {...environment, SYSTEMCTL_STOP_MODE: mode}); blocked.push(false); } catch { blocked.push(fs.existsSync(legacyInstall) && fs.existsSync(legacyState) && !fs.existsSync(locations.installRoot) && !fs.existsSync(locations.stateRoot) && fs.readFileSync(path.join(legacyState,"gateweft.sqlite3"),"utf8") === "db"); } }',
       'fs.writeFileSync(activity, "active\\n");',
+      'fs.writeFileSync(path.join(legacyState, "order.sqlite3-wal"), "conflict");',
+      'let partialMoveRestored = false; try { installer.migrateLegacyGateweftInstallation(locations, environment); } catch { partialMoveRestored = fs.readFileSync(path.join(legacyState,"gateweft.sqlite3"),"utf8") === "db" && fs.readFileSync(path.join(legacyState,"gateweft.sqlite3-wal"),"utf8") === "wal" && fs.readFileSync(path.join(legacyState,"order.sqlite3-wal"),"utf8") === "conflict" && !fs.existsSync(path.join(legacyState,"order.sqlite3")) && fs.existsSync(legacyInstall) && !fs.existsSync(locations.installRoot) && !fs.existsSync(locations.stateRoot); }',
+      'fs.unlinkSync(path.join(legacyState, "order.sqlite3-wal"));',
       'const first = installer.migrateLegacyGateweftInstallation(locations, {...environment, SYSTEMCTL_STOP_MODE: "failed-inactive"});',
       'const inactiveAfterStop = fs.readFileSync(activity, "utf8").trim();',
       'const migrated = { detected:first.detected, installMoved:first.installMoved, stateMoved:first.stateMoved, serviceWasActive:first.serviceWasActive, legacyInstallGone:!fs.existsSync(legacyInstall), legacyStateGone:!fs.existsSync(legacyState), marker:fs.readFileSync(path.join(locations.installRoot,"marker"),"utf8"), db:fs.readFileSync(path.join(locations.stateRoot,"order.sqlite3"),"utf8"), wal:fs.readFileSync(path.join(locations.stateRoot,"order.sqlite3-wal"),"utf8"), launcherRetained:fs.existsSync(legacyLauncher), unitRetained:fs.existsSync(legacyUnit) };',
@@ -126,13 +129,14 @@ describe("Order predecessor cutover boundary", () => {
       "const second = installer.migrateLegacyGateweftInstallation(locations, environment);",
       "installer.retireLegacyGateweftArtifacts(second, locations, environment);",
       'const retired = { launcherGone:!fs.existsSync(legacyLauncher), unitGone:!fs.existsSync(legacyUnit), orderInstallExists:fs.existsSync(locations.installRoot), orderStateExists:fs.existsSync(locations.stateRoot) };',
-      'console.log(JSON.stringify({blocked, inactiveAfterStop, migrated, rolledBack, retired, activity:fs.readFileSync(activity,"utf8").trim(), enablement:fs.readFileSync(enablement,"utf8").trim(), log:fs.readFileSync(log,"utf8")}));',
+      'console.log(JSON.stringify({blocked, partialMoveRestored, inactiveAfterStop, migrated, rolledBack, retired, activity:fs.readFileSync(activity,"utf8").trim(), enablement:fs.readFileSync(enablement,"utf8").trim(), log:fs.readFileSync(log,"utf8")}));',
     ]);
 
     const evidence = result.stdout.trim().split("\n").at(-1);
     if (!evidence) throw new Error("migration proof emitted no JSON evidence");
     const parsed = JSON.parse(evidence);
     expect(parsed.blocked).toEqual([true, true]);
+    expect(parsed.partialMoveRestored).toBe(true);
     expect(parsed.inactiveAfterStop).toBe("inactive");
     expect(parsed.activity).toBe("inactive");
     expect(parsed.enablement).toBe("disabled");

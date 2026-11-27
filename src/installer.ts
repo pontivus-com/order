@@ -204,9 +204,15 @@ export const buildUserServiceUnit = (launcher: string): string =>
 
 const terminalQuestion = async (prompt: string): Promise<string> => {
   const input = createInterface({ input: process.stdin, output: process.stdout });
+  const cancellation = new AbortController();
+  const cancel = () => cancellation.abort();
+  input.once("close", cancel);
+  input.once("SIGINT", cancel);
   try {
-    return await input.question(prompt);
+    return await input.question(prompt, { signal: cancellation.signal });
   } finally {
+    input.removeListener("close", cancel);
+    input.removeListener("SIGINT", cancel);
     input.close();
   }
 };
@@ -613,6 +619,7 @@ export type LegacyGateweftMigration = Readonly<{
   installMoved: boolean;
   stateMoved: boolean;
   serviceWasActive: boolean;
+  databaseMoves: readonly ("" | "-wal" | "-shm")[];
 }>;
 
 const legacyGateweftLocations = (
@@ -683,20 +690,19 @@ const requireServiceQuiescence = (
   }
 };
 
-const renameDatabaseNamespace = (
+const moveDatabaseNamespace = (
   stateRoot: string,
   fromName: "gateweft.sqlite3" | "order.sqlite3",
   toName: "gateweft.sqlite3" | "order.sqlite3",
+  suffix: "" | "-wal" | "-shm",
 ): void => {
-  for (const suffix of ["", "-wal", "-shm"] as const) {
-    const from = join(stateRoot, fromName + suffix);
-    if (!existsSync(from)) continue;
-    const to = join(stateRoot, toName + suffix);
-    if (existsSync(to)) {
-      fail("legacy/current database namespaces both exist in " + stateRoot);
-    }
-    renameSync(from, to);
+  const from = join(stateRoot, fromName + suffix);
+  const to = join(stateRoot, toName + suffix);
+  if (!lstatSync(from, { throwIfNoEntry: false })?.isFile() ||
+      lstatSync(to, { throwIfNoEntry: false }) !== undefined) {
+    fail("cannot establish exclusive database namespace move: " + from + " -> " + to);
   }
+  renameSync(from, to);
 };
 
 export const migrateLegacyGateweftInstallation = (
@@ -705,24 +711,16 @@ export const migrateLegacyGateweftInstallation = (
 ): LegacyGateweftMigration => {
   const legacy = legacyGateweftLocations(locations, environment);
   const detected = legacyGateweftFootprintExists(legacy);
+  const databaseMoves: ("" | "-wal" | "-shm")[] = [];
   const empty: LegacyGateweftMigration = {
-    locations: legacy,
-    detected,
-    installMoved: false,
-    stateMoved: false,
-    serviceWasActive: false,
+    locations: legacy, detected, installMoved: false, stateMoved: false,
+    serviceWasActive: false, databaseMoves,
   };
   if (!detected) return empty;
-
   if (currentOrderFootprintExists(locations)) {
     fail("Gateweft predecessor and Order productive roots both exist; resolve the conflict before installing");
   }
-
-  const serviceWasActive = observeServiceActivity(
-    "gateweft.service",
-    locations.home,
-    environment,
-  ) === "active";
+  const serviceWasActive = observeServiceActivity("gateweft.service", locations.home, environment) === "active";
   if (serviceWasActive) {
     step("quiescing Gateweft predecessor service");
     requireServiceQuiescence("gateweft.service", locations.home, environment);
@@ -730,6 +728,9 @@ export const migrateLegacyGateweftInstallation = (
 
   let installMoved = false;
   let stateMoved = false;
+  const currentMigration = (): LegacyGateweftMigration => ({
+    ...empty, installMoved, stateMoved, serviceWasActive, databaseMoves: [...databaseMoves],
+  });
   try {
     if (existsSync(legacy.installRoot)) {
       mkdirSync(dirname(locations.installRoot), { recursive: true });
@@ -740,19 +741,19 @@ export const migrateLegacyGateweftInstallation = (
       mkdirSync(dirname(locations.stateRoot), { recursive: true });
       renameSync(legacy.stateRoot, locations.stateRoot);
       stateMoved = true;
-      renameDatabaseNamespace(locations.stateRoot, "gateweft.sqlite3", "order.sqlite3");
+      for (const suffix of ["", "-wal", "-shm"] as const) {
+        if (lstatSync(join(locations.stateRoot, "gateweft.sqlite3" + suffix), { throwIfNoEntry: false }) === undefined) continue;
+        moveDatabaseNamespace(locations.stateRoot, "gateweft.sqlite3", "order.sqlite3", suffix);
+        databaseMoves.push(suffix);
+      }
     }
-    return { locations: legacy, detected: true, installMoved, stateMoved, serviceWasActive };
+    return currentMigration();
   } catch (error) {
-    if (stateMoved && existsSync(locations.stateRoot)) {
-      renameDatabaseNamespace(locations.stateRoot, "order.sqlite3", "gateweft.sqlite3");
-      renameSync(locations.stateRoot, legacy.stateRoot);
-    }
-    if (installMoved && existsSync(locations.installRoot)) {
-      renameSync(locations.installRoot, legacy.installRoot);
-    }
-    if (serviceWasActive) {
-      runCommand(["systemctl", "--user", "restart", "gateweft.service"], locations.home, environment);
+    try {
+      rollbackLegacyGateweftMigration(currentMigration(), locations, environment);
+    } catch (failure) {
+      throw new AggregateError([error, failure], "predecessor migration failed and rollback incomplete; retain " +
+        [locations.installRoot, locations.stateRoot, legacy.installRoot, legacy.stateRoot].join(", "));
     }
     throw error;
   }
@@ -764,16 +765,35 @@ export const rollbackLegacyGateweftMigration = (
   environment: NodeJS.ProcessEnv = process.env,
 ): void => {
   if (!migration.detected) return;
-  if (migration.stateMoved && existsSync(locations.stateRoot)) {
-    renameDatabaseNamespace(locations.stateRoot, "order.sqlite3", "gateweft.sqlite3");
-    renameSync(locations.stateRoot, migration.locations.stateRoot);
+  if (observeServiceActivity("gateweft.service", locations.home, environment) !== "inactive") {
+    fail("predecessor must remain stopped before rollback");
   }
-  if (migration.installMoved && existsSync(locations.installRoot)) {
+  const failures: unknown[] = [];
+  const compensate = (operation: () => void): void => {
+    try { operation(); } catch (failure) { failures.push(failure); }
+  };
+  if (migration.stateMoved) {
+    for (const suffix of [...migration.databaseMoves].reverse()) {
+      compensate(() => moveDatabaseNamespace(locations.stateRoot, "order.sqlite3", "gateweft.sqlite3", suffix));
+    }
+    if (failures.length === 0) compensate(() => {
+      if (lstatSync(migration.locations.stateRoot, { throwIfNoEntry: false }) !== undefined) {
+        fail("predecessor state destination occupied: " + migration.locations.stateRoot);
+      }
+      renameSync(locations.stateRoot, migration.locations.stateRoot);
+    });
+  }
+  if (migration.installMoved) compensate(() => {
+    if (lstatSync(migration.locations.installRoot, { throwIfNoEntry: false }) !== undefined) {
+      fail("predecessor install destination occupied: " + migration.locations.installRoot);
+    }
     renameSync(locations.installRoot, migration.locations.installRoot);
-  }
-  if (migration.serviceWasActive) {
-    runCommand(["systemctl", "--user", "restart", "gateweft.service"], locations.home, environment);
-  }
+  });
+  if (failures.length === 0 && migration.serviceWasActive) compensate(() =>
+    runCommand(["systemctl", "--user", "restart", "gateweft.service"], locations.home, environment));
+  if (failures.length > 0) throw new AggregateError(failures,
+    "predecessor restoration incomplete; retained roots: " +
+    [locations.installRoot, locations.stateRoot, migration.locations.installRoot, migration.locations.stateRoot].join(", "));
 };
 
 export const retireLegacyGateweftArtifacts = (
@@ -882,16 +902,14 @@ export const runInstaller = async (
     launcherActivated = true;
     launcherTemporary = null;
 
-    configModule = await import(pathToFileURL(join(locations.installRoot, "app", "src", "shell", "config.ts")).href)
-      as typeof import("./shell/config.ts");
+    configModule = await import(pathToFileURL(join(locations.installRoot, "app", "src", "shell", "config.ts")).href) as typeof import("./shell/config.ts");
     configSnapshot = configModule.captureInstallerConfigSnapshot(locations.stateRoot);
     step("configuring provider, model and repository access");
     configuredSetup = await configureOrder(locations, established, {
       snapshot: configSnapshot, onPublished: identity => { published = identity; },
     }, path => createdProjectManifests.push(path));
 
-    sqliteUpgradeModule = await import(pathToFileURL(join(locations.installRoot, "app", "src", "shell", "sqlite.ts")).href)
-      as typeof import("./shell/sqlite.ts");
+    sqliteUpgradeModule = await import(pathToFileURL(join(locations.installRoot, "app", "src", "shell", "sqlite.ts")).href) as typeof import("./shell/sqlite.ts");
     databaseArchive = sqliteUpgradeModule.prepareOrderDatabaseForInstall(locations.stateRoot,
       () => { databaseRestoreIncomplete = true; });
     if (databaseArchive !== null) {
