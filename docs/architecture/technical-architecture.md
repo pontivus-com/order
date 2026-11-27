@@ -1318,7 +1318,7 @@ Permanent tests must prove at least:
 - source edit during active daemon invalidates promotion/approval as required;
 - source-bound sign-off/V0/V1 freshness with required non-null Approval source binding;
 - fresh SQLite initialization creates the complete current schema with `user_version = 4`;
-- ordinary startup rejects unsupported versions; only stopped-daemon installer migrates supported predecessors under P6 §§32/37;
+- ordinary startup rejects unsupported versions; only stopped-daemon installer migrates supported predecessors under P6 §§32/38;
 - current lifecycle-artifact query selects only canonical current role snapshots and excludes superseded history;
 - direct R1/R2/DESIGN/PLAN Markdown save is hash-guarded and returns to owner;
 - R3 direct write rejected;

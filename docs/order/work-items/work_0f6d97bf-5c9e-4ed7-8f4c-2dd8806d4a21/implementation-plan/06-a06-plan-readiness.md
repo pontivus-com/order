@@ -47,3 +47,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 ## Realization trace consequence
 
 IA30 consumes PLAN R1/R2/DESIGN/source/evidence and derived parsed task/change-surface inspection; IA05 task admission. IA16/31 own R3 typed outcome, findings and recovery/return with no additional gate.
+
+## Native Acceptance integration
+
+QA integration: IA35/IA37 route stale or invalid signed package to exact existing owner; IA39 proves no acceptance when missing/corrupt evidence, or stale Approval; fresh R3 and exact sign-off after return. T1 cannot be signed until the protected architecture/package sensor and exact forecast/reference/proof bindings are independently closed.

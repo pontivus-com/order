@@ -46,3 +46,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 ## Realization trace consequence
 
 IA30 owns R2/DESIGN primary routing and upstream material; IA03 canonical authority admission, IA31 Proposal, IA14 current attention. Prove all applicable states and absent actions.
+
+## Native Acceptance integration
+
+QA integration: IA35/IA37 enforce upstream ownership and fresh signed authority on actual requirement/design/scope changes, including explicit no-op challenge to PLAN. IA38 presents the exact current reconciliation route rather than editing signed materials in Acceptance. IA39 proves no provider-created human acceptance.

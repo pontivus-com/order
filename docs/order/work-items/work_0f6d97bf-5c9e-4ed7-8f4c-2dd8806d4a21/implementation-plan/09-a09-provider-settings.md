@@ -64,3 +64,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 ## Realization trace consequence
 
 IA18/34 consume exact default-visible repository facts and distinct configuration/account task states; IA30 bounded activity/human failure projection. Prove actual inputs/pending/recovery and negative diagnostic leakage.
+
+## Native Acceptance integration
+
+QA integration: IA36 extends installer stopped migration from v3 to v4 and earlier supported predecessors, preserving exact rows/rollback custody and configuration version; IA37 extends signed-work repository/root guard, including Acceptance and linked blocked correction. IA39 verifies no destructive Settings mutation invalidates active signed evidence, proves exact migration and failed activation rollback.

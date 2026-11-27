@@ -61,3 +61,7 @@ IA20/21/22/23/26 consume complete P3 §23 allocation in closeout and 37 DESIGN d
 ### A09/A10 installation certification dependency
 
 IA25 owns the executable transaction matrix and actual-orchestrator evidence; A11 verifies complete allocation and exact candidate results alongside IA23 integrated proof. Helper-level and structural assertions alone cannot discharge transaction fault-injection cases, including AUD-01/02 established v3/v4 recovery and per-file SQLite archive/restore custody. No separate installation certification framework or new proof-only production policy.
+
+## Native Acceptance integration
+
+QA integration: IA38 uses existing Review/Form/ResourceList/Evidence with one new AcceptanceWorkspace; no new structural primitive. IA39 allocates scenario 47 and SURF-STEP-ACCEPTANCE-001, adds affected prior surface/state proof, no loss of 37/46/HUX. Pre-signoff protected architecture sensor registration and reference target revalidation are mandatory; no T1 mutation of the sensor.

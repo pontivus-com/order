@@ -885,7 +885,7 @@ Order uses SQLite `PRAGMA user_version` as the productive schema marker:
 - `4`: use the database;
 - any other value: ordinary runtime startup fails before mutation.
 
-The productive installer is the sole bounded version-transition owner. It migrates stopped v3 to v4 under §37; supported earlier versions follow existing bounded predecessor migration to v3 then v4. Ordinary runtime opens only v4.
+The productive installer is the sole bounded version-transition owner. It migrates stopped v3 to v4 under §38; supported earlier versions follow existing bounded predecessor migration to v3 then v4. Ordinary runtime opens only v4.
 
 ## 16. SQLite schema
 
@@ -2306,7 +2306,7 @@ At the v3 cutover, ordinary productive runtime accepted only config v3 and v2 wa
 
 ### 32.5 SQLite schema v3
 
-`PRAGMA user_version = 3` is the historical predecessor marker; productive v4 is owned by §37.
+`PRAGMA user_version = 3` is the historical predecessor marker; productive v4 is owned by §38.
 
 The physical `workItemSources` columns remain:
 
@@ -3607,18 +3607,18 @@ Because same-Approval task dependencies do not transport candidate bytes and eve
 
 
 
-## 37. Candidate acceptance canonical contracts (productive SQLite v4)
+## 38. Candidate acceptance canonical contracts (productive SQLite v4)
 
 Authority: GW-DOC-WORK-LIFECYCLE §§2.2–2.4, GW-DOC-WORKBENCH-UX §14.8A, GW-DOC-VALIDATION-STANDARD §11.1 and GW-DOC-EXECUTION-CONTROL-PLANE. This section owns the carrier and command grammar; historical v3 records remain immutable.
 
-### 37.1 Exact membership and stage invariants
+### 38.1 Exact membership and stage invariants
 
 Use one new WorkStage AWAITING_ACCEPTANCE, ordinary human label Acceptance. Existing WorkStatus and WorkOutcome unchanged. After all exact current Approval tasks are successful, all-no-op -> COMPLETE/ALREADY_SATISFIED, otherwise -> AWAITING_ACCEPTANCE/ACTIVE/outcome null. Task CANDIDATE_DONE is technical success. Final accept -> COMPLETE/COMPLETE/CANDIDATE_DONE. Only this transition completes new candidate-producing work. Existing persisted historical COMPLETE is never reopened or assigned fabricated acceptance. A later bug after accepted completion is separate governed work. Current Approval is available for EXECUTION and AWAITING_ACCEPTANCE, final provenance only at COMPLETE. Source/authority freshness is rechecked before QA review admission and final acceptance; actual drift routes to earliest existing owner and invalidates current Approval. Reads never reconcile/mutate. Historical selections never control current mutation.
 
 For each signed task select its unique latest admitted successful terminal Run: CANDIDATE_RECORDED (with exact same reviewer V0-V7 evidence and replayed patch) or admitted TASK_ALREADY_SATISFIED (zero diff, exact completed BUILDER). Derive an ordered array of (ExecutionTaskId, RunEventId) sorted by task id, covering exactly all signed tasks under ApprovalId. Canonical candidate-set hash is SHA-256 of UTF-8 JSON serialization of [ApprovalId, ordered array of [ExecutionTaskId, RunEventId]] using existing canonical ID/JSON/hash functions; no path/role/hash alias, browser-created identity, partial membership or candidate aggregate persistence. Recompute on each mutation. No-op entries are evidence only; no fabricated candidate or acceptance action for all-no-op. Multiple independent task patches remain separate; any cross-task integrated behavior must be authorized as a cumulative task; never merge them implicitly.
 
 
-### 37.2 Review event contract
+### 38.2 Review event contract
 
 One canonical append-only CandidateReviewEvent domain stream per Approval (not a DTO or second execution state machine). Schema-first strict discriminated union in core; one SQLite table with id (existing UUID scalar), approvalId FK, sequence integer >=1, occurredAt IsoDateTime, actor non-empty human identity for human events / null for coordinator events, eventJson canonical validated union; unique (approvalId,sequence). Event id is finding id for REPORT and submission id for SUBMIT; no duplicate status columns or copied candidate/task fields beyond exact references. Variants:
 - OPENED { candidateHash } coordinator-only, atomic at initial entry to Acceptance; subsequent return records exact candidate hash via REVIEW_COMPLETED.
@@ -3634,7 +3634,7 @@ One canonical append-only CandidateReviewEvent domain stream per Approval (not a
 All operator commands bind expected candidate hash and expected latest review sequence (0 if no events); per-WorkItem mutation guard plus transactional recheck. Exact stale, foreign, duplicate, missing/corrupt evidence, unavailable current candidate or active/queued correction -> existing typed 409/404/400 as applicable; no writes or automatic retries on conflict. Reads return existing entities/event arrays, no view DTO, no new workflow-state cache. Retain history across restart and upstream return; current pending state derived from events/current Approval. No provider can emit human/coordinator acceptance events. Do not append to a completed Run, synthesize REVIEW_FAILED, create a fake provider session or reuse the original Approval as final acceptance. SQLite migration: new additive event table requires new productive schema identity (v4, not config v4); preserve all v3 rows exactly and legacy COMPLETE semantics, fresh create latest, transactional migration while stopped, verify rollback custody under existing installer safety owner; historical v1/v2 migration continues via existing canonical v3 transformation then v4. Reconcile P6 §§15/16/32/35 and P4 installer/migration owners and proof before PLAN; no dual productive schema interpretation.
 
 
-### 37.3 Admission and provider proof
+### 38.3 Admission and provider proof
 
 Original REPORT identity and evidence remain immutable; unsubmitted open reports survive replacement and can be submitted against the successor, and disposed reports on the replaced task require retest again. Failed retest records current observed behavior/rationale and leaves the finding unresolved and resubmittable. Before submission a mistaken observation can be withdrawn with rationale and explicit non-defect attestation; after assessment withdrawal requires independent supporting evidence. Never waive a demonstrated binding defect. A finding against a no-op member of a mixed set requires explicit PLAN reanalysis; all-no-op completion remains terminal.
 
@@ -3642,7 +3642,7 @@ GET /api/work-items/:id/approvals/:approvalId/qa-events returns canonical Candid
 
 QA-linked REVIEW_PASSED/REVIEW_FAILED requires typed qaAssessments array of { findingId, verdict: SATISFIED | NOT_REPRODUCED | FAIL_REPAIRABLE | UPSTREAM, rationale, evidence: RunEventId[] }; ordinary reviewer events omit it. Exact submitted IDs once each, same task and admitted lineage; PASS only SATISFIED/NOT_REPRODUCED plus ordinary V4 proof. Failure verdicts agree with existing failure classification/return owner. Coordinator atomically records REVIEW_STARTED with task RUNNING and EXECUTION; final successful reviewer records candidate and REVIEW_COMPLETED with return to Acceptance; blocked/upstream outcomes retain linked history. ACCEPT and terminal WorkItem update commit together. Human disposition never provider-authored.
 
-### 37.4 SQLite v4
+### 38.4 SQLite v4
 
 ```sql
 CREATE TABLE candidateReviewEvents (

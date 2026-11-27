@@ -48,3 +48,7 @@ Package atoms in phase: **4**.
 5. SD02 certification is owned by IA02 and proves the productive production path, including stable-current versus explicit-versioned materiality with both retained and current sources selected/reachable, not only the pure helper/daemon unit boundary;
 6. action-specific tests plus `13-verification-closeout.md` pass;
 7. any evidence contradiction returns upstream rather than broadening scope.
+
+## Native Acceptance integration
+
+QA integration: IA35/IA37 preserve source-bound Approval and exact current authority through Acceptance; IA38 proves current vs historical inspection and governed upstream return; IA39 proves source/authority staleness and no silent reauthorization. New-scope work remains independent; no new portable relationship or work kind.

@@ -70,3 +70,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 ## Realization trace consequence
 
 SD03/05/06: IA11/12 consume the complete Create/Queue datum and diagnostic contracts; IA13 owns pre-Save consequence and Git review, IA29 Document composition. Proof: SURF-CREATE/QUEUE and IA29-owned source/document/confirmation rows.
+
+## Native Acceptance integration
+
+QA integration: IA35/IA38 extend current signed-state editability, source/title, documentation Git, queue and archive admission. Test Acceptance, queued correction, correction blocked, upstream return, legacy COMPLETE, stale and historical selections. Reuse positive pre-signoff allowlists; neither no active Run nor open Acceptance makes the signed documents editable. IA39 proves no repository/DB mutation for rejected operations.

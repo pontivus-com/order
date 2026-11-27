@@ -52,3 +52,7 @@ IA14 owns reason/action through historical/supporting/transient selection, IA31 
 ### A09 installation-recovery dependency
 
 Consume SD19/F7 and IA25 as the sole installation transaction owner. A10 re-audit must challenge historical ambiguity, partial predecessor migration/application/launcher/service activation, every pre-commit rollback and post-commit finalization failure, then verify the same invocation-local classification is used on retry and reporting. Do not reinterpret installation recovery as WorkItem lifecycle recovery or add a second recovery owner. IA25 owns its behavioral oracle, including established v3/v4 recovery and partial SQLite archive/restore with secondary compensation failure; A10 verifies the cross-domain consequence and may not pass while the upstream installer boundary is unresolved.
+
+## Native Acceptance integration
+
+QA integration: IA35 derives queued processing, human-action-required, missing/corrupt proof blocker and stale authority; IA37 resumes the exact linked QA review/repair or returns upstream, never unrelated Builder; IA38 keeps current attention reachable during historical inspection, suppresses incoherent controls, preserves focus/dirty navigation. IA39 proves failed retest, successor and stale command races, theme and narrow behavior.

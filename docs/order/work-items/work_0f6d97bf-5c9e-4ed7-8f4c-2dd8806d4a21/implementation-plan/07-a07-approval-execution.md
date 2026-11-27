@@ -56,3 +56,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 ## Realization trace consequence
 
 IA17/31 own exact package/task currentness, Context provenance and decision feedback; IA32 current execution owner, task/Run selection, latest-reviewer-only current validation boundary, exact causal remediator failure and actual blocker; historical attempt detail cannot reuse current progress. Preserve IA07/08 reuse proof. Prove complete signed contract and actual state/action outcomes.
+
+## Native Acceptance integration
+
+QA integration: IA35 extends current Approval and exact signed-member identity, IA36 persists event stream, IA37 owns automatic scheduler continuation and QA replay/repair/restart. IA38 consumes current candidate evidence and task history in Review/Implementation; IA39 proves global execution exclusion, concurrent commands, no fabricated V4, exact resume and no mandatory manual task starts. Technical success with candidate enters Acceptance; all no-op completes directly.

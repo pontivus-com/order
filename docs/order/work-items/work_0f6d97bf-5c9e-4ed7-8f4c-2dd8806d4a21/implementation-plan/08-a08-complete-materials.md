@@ -52,3 +52,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 ## Realization trace consequence
 
 IA13/29 own maturity/Save presentation; IA30 reply context; IA19/33 exact outcome material/proof and Evidence. Preserve read purity and mutation admission; no fabricated reach or result.
+
+## Native Acceptance integration
+
+QA integration: IA35/IA36 bind immutable ACCEPT event and exact ordered candidate members; IA38 implements Acceptance Review and Complete provenance, exact test-copy/evidence inspection, old rounds read-only. IA39 proves legacy/no-code bypass, later defects separate, no auto delivery and rejected historical commands. No fabricated combined candidate workspace or human decision.
