@@ -2,6 +2,8 @@ import { existsSync, lstatSync, readFileSync } from "node:fs";
 import { isAbsolute, join, relative, sep } from "node:path";
 
 import {
+  InstallationReadinessSchema,
+  type InstallationReadiness,
   type LegacyOrderConfigV2,
   type OrderConfig,
   type RepositoryPath,
@@ -31,7 +33,7 @@ import {
   createWorkingTreeFileExclusive,
   readWorkingTreeFile,
 } from "./repository.ts";
-import { resolveStateRoot, sha256 } from "./runtime.ts";
+import { loadDaemonToken, resolveStateRoot, sha256 } from "./runtime.ts";
 import {
   migrateOrderDatabaseV2ToV3,
   readLegacyWorkItemRepositoryRootsForInstall,
@@ -577,3 +579,55 @@ export const runInstallerGuidedSetup = async (
     question,
     projectManifestCreated,
   );
+
+const observeInstalledReadiness = async (
+  environment: NodeJS.ProcessEnv,
+): Promise<InstallationReadiness> => {
+  // Credential transport is restricted to the exact installed loopback bind.
+  const bind = environment.PONTIVUS_ORDER_BIND;
+  if (bind === undefined || !/^(?:127\.0\.0\.1|\[::1\]):[0-9]+$/.test(bind)) {
+    throw new TypeError("installed daemon bind is not a valid loopback endpoint");
+  }
+  try {
+    const origin = new URL("http://" + bind);
+    const token = loadDaemonToken(resolveStateRoot(environment));
+    const response = await fetch(new URL("/api/settings/readiness", origin), {
+      method: "GET",
+      headers: { Authorization: "Bearer " + token },
+      redirect: "error",
+      signal: AbortSignal.timeout(180_000),
+    });
+    if (response.status !== 200) {
+      await response.body?.cancel();
+      throw new TypeError("readiness HTTP observation failed");
+    }
+    return InstallationReadinessSchema.parse(await response.json());
+  } catch {
+    // Never propagate a raw response, authorization header or transport detail.
+    throw new TypeError("canonical installed readiness could not be confirmed");
+  }
+};
+
+export const requireFreshInstallerReadiness = async (
+  environment: NodeJS.ProcessEnv,
+): Promise<void> => {
+  const readiness = await observeInstalledReadiness(environment);
+  if (!readiness.ready) {
+    throw new TypeError("fresh installation is not productively ready: " +
+      readiness.blockers.join(", ") + "; retry guided installation after correcting these blockers");
+  }
+};
+
+export const reportEstablishedInstallerReadiness = async (
+  environment: NodeJS.ProcessEnv,
+  writeStdout: (value: string) => void,
+): Promise<void> => {
+  try {
+    const readiness = await observeInstalledReadiness(environment);
+    writeStdout(readiness.ready
+      ? "Productive readiness confirmed.\n"
+      : "Requires operator action in browser Settings: " + readiness.blockers.join(", ") + "\n");
+  } catch {
+    writeStdout("Productive readiness could not be confirmed; inspect browser Settings.\n");
+  }
+};

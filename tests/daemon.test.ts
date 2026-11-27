@@ -870,6 +870,59 @@ const seedSignoffScript = (
 };
 
 describe("daemon control plane", () => {
+  it("admits only authenticated canonical loopback readiness in the installed setup owner", () => {
+    const state = tempDir("order-installer-readiness-");
+    const result = bunEval(`
+      const setup = await import("./src/shell/setup.ts");
+      const runtime = await import("./src/shell/runtime.ts");
+      const token = runtime.loadOrCreateDaemonToken(${JSON.stringify(state)});
+      let body = { ready: true, blockers: [] };
+      let status = 200;
+      let redirected = false;
+      let authenticated = true;
+      const server = Bun.serve({ hostname: "127.0.0.1", port: 0, fetch(request) {
+        authenticated &&= request.method === "GET" &&
+          new URL(request.url).pathname === "/api/settings/readiness" &&
+          request.headers.get("authorization") === "Bearer " + token;
+        if (redirected) return Response.redirect("http://127.0.0.1:" + server.port + "/unexpected");
+        return Response.json(body, { status });
+      } });
+      const env = { ...process.env, PONTIVUS_ORDER_STATE_ROOT: ${JSON.stringify(state)},
+        PONTIVUS_ORDER_BIND: "127.0.0.1:" + server.port };
+      const failures = [];
+      const reject = async (environment = env) => {
+        try { await setup.requireFreshInstallerReadiness(environment); failures.push(null); }
+        catch (error) { failures.push(String(error)); }
+      };
+      try {
+        await setup.requireFreshInstallerReadiness(env);
+        body = { ready: false, blockers: ["OPENCODE_ACCOUNT_REQUIRED"] };
+        await reject();
+        body = { ready: true, blockers: ["MODEL_INVALID"] };
+        await reject();
+        body = { ready: true, blockers: [], secret: token };
+        await reject();
+        status = 503;
+        await reject();
+        status = 200;
+        redirected = true;
+        await reject();
+        redirected = false;
+        await reject({ ...env, PONTIVUS_ORDER_BIND: "example.com:7347" });
+        await reject({ ...env, PONTIVUS_ORDER_BIND: "127.0.0.1:7347/extra" });
+        let report = "";
+        await setup.reportEstablishedInstallerReadiness(env, (line) => report += line);
+        console.log(JSON.stringify({ failures, authenticated, report, leaked: JSON.stringify(failures).includes(token) || report.includes(token) }));
+      } finally { server.stop(true); }
+    `) as { failures: (string | null)[]; authenticated: boolean; report: string; leaked: boolean };
+    expect(result.authenticated).toBe(true);
+    expect(result.failures).toHaveLength(7);
+    expect(result.failures.every((failure) => failure !== null)).toBe(true);
+    expect(result.failures[0]).toContain("OPENCODE_ACCOUNT_REQUIRED");
+    expect(result.report).toContain("could not be confirmed");
+    expect(result.leaked).toBe(false);
+  }, 30_000);
+
   it("observes exact Approval identity, immutable membership and successful final task aggregate", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-approval-observation-");
@@ -1930,6 +1983,21 @@ describe("daemon control plane", () => {
         const before = await fetch(origin + "/api/settings/config", { headers: { cookie } }).then(
           (response) => response.json(),
         );
+        const readinessPath = origin + "/api/settings/readiness";
+        const browserReadiness = await fetch(readinessPath, { headers: { cookie } });
+        const bearerReadiness = await fetch(readinessPath, { headers: { authorization: "Bearer " + daemonToken } });
+        const sameReadiness = JSON.stringify(await browserReadiness.json()) === JSON.stringify(await bearerReadiness.json());
+        const unauthenticated = await fetch(readinessPath);
+        const wrongBearer = await fetch(readinessPath, { headers: { authorization: "Bearer invalid" } });
+        const otherSettings = await fetch(origin + "/api/settings/config", { headers: { authorization: "Bearer " + daemonToken } });
+        const wrongMethod = await fetch(readinessPath, { method: "POST", headers: { authorization: "Bearer " + daemonToken } });
+        const unchanged = await fetch(origin + "/api/settings/config", { headers: { cookie } }).then((response) => response.json());
+        const readinessProof = {
+          browser: browserReadiness.status, bearer: bearerReadiness.status, sameReadiness,
+          unauthenticated: unauthenticated.status, wrongBearer: wrongBearer.status,
+          otherSettings: otherSettings.status, wrongMethod: wrongMethod.status,
+          unchanged: unchanged.sha256 === before.sha256 && owner.current === initial,
+        };
         const mutation = await fetch(origin + "/api/settings/repositories/connect", {
           method: "POST",
           headers: { cookie, origin, "content-type": "application/json" },
@@ -1944,6 +2012,7 @@ describe("daemon control plane", () => {
         );
         console.log(JSON.stringify({
           mutationStatus: mutation.status,
+          readinessProof,
           mutationBody,
           runtimeReplaced: owner.current !== initial,
           after,
@@ -1955,12 +2024,18 @@ describe("daemon control plane", () => {
       }
     `, providerEnvironment(binary, state)) as {
       mutationStatus: number;
+      readinessProof: { browser: number; bearer: number; sameReadiness: boolean; unauthenticated: number; wrongBearer: number; otherSettings: number; wrongMethod: number; unchanged: boolean };
       runtimeReplaced: boolean;
       after: { config: { repositoryRoots: string[] } };
     };
 
     expect(output.mutationStatus).toBe(200);
     expect(output.runtimeReplaced).toBe(true);
+    expect(output.readinessProof).toMatchObject({
+      browser: 200, bearer: 200, sameReadiness: true,
+      unauthenticated: 401, wrongBearer: 401, otherSettings: 401, unchanged: true,
+    });
+    expect(output.readinessProof.wrongMethod).toBeGreaterThanOrEqual(400);
     expect(output.after.config.repositoryRoots).toEqual([repository]);
   });
 

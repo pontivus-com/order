@@ -588,6 +588,11 @@ const routeApi = async (
     }
   }
 
+  if (request.method === "GET" && url.pathname === "/api/settings/readiness" &&
+      hasDaemonBearer(request, sessions)) {
+    return jsonResponse(await installationReadiness(owner));
+  }
+
   const parts = apiPath(url);
   const browserAuth = request.method === "GET"
     ? requireBrowserQuery(request, sessions)
