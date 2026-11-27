@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Admit the existing 0.6.0 stacked Workbench integration target to the permanent exact-candidate PR Verification trigger under repository delivery §10; retain all gates and retire the target when supporting integration concludes.
+
 - Reconcile native Acceptance identity generation and candidate hash ownership with the existing canonical UUID/crypto boundary; admit only the proven existing shell runtime path into the revised 61-path design candidate and rebind the protected scope sensor and derived reference authority.
 
 - Reconcile the 60-path PLAN governance, native Acceptance recovery exceptions and exact phase-local IA38/IA39 evidence dispatch and independent QA checkpoints before renewed 0.6.0 readiness; no scope or execution authorization change.
