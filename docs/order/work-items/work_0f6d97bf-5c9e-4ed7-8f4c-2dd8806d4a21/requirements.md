@@ -148,12 +148,12 @@ This ledger records the historical exact factual basis consumed by R2 after G-F1
 
 | Stable requirement | R1 realization verdict | Exact R1 evidence | R2 disposition | Primary concern |
 |---|---|---|---|---|
-| `GW-FR-001-GOVERNED-LIFECYCLE` | `CONFORMS` | `C01-O03`, `C01-O05`, `C01-O08` | `REFERENCE` | C01 |
+| `GW-FR-001-GOVERNED-LIFECYCLE` | `MIXED` | `C01-O03`, `C01-O05`, `C01-O08`, `C01-O90` | `REFERENCE` | C01 |
 | `GW-FR-002-REPRODUCIBLE-AUTHORITY` | `CONFORMS` | `C01-O01`, `C01-O07` | `REFERENCE` | C01 |
 | `GW-FR-003-DURABLE-BOUNDED-EXECUTION` | `CONFORMS` | `C12-O01`, `C12-O02`, `C12-O07` | `REFERENCE` | C12 |
 | `GW-FR-004-INDEPENDENT-VALIDATION` | `CONFORMS_WITH_DEPENDENCY` | `C12-O08`, `C12-O09`, `C12-O10`, `C12-O11`, `C12-O12`, `C20-O10` | `REFERENCE` | C20 |
-| `GW-FR-005-LOCAL-WORKBENCH` | `CONFORMS` | `C05-O01`, `C05-O04`, `C05-O12`, `C19-O06`, `C19-O08` | `REFERENCE` | C05 |
-| `GW-FR-006-MINIMUM-VERIFIED-CANDIDATE` | `CONFORMS` | `C12-O12`, `C12-O13`, `C12-O19` | `REFERENCE` | C12 |
+| `GW-FR-005-LOCAL-WORKBENCH` | `MIXED` | `C05-O01`, `C05-O04`, `C05-O12`, `C19-O06`, `C19-O08`, `C05-O90` | `REFERENCE` | C05 |
+| `GW-FR-006-MINIMUM-VERIFIED-CANDIDATE` | `MIXED` | `C12-O12`, `C12-O13`, `C12-O19`, `C12-O90` | `REFERENCE` | C12 |
 | `GW-FR-007-GUIDED-PRODUCTIVE-BOOTSTRAP` | `MIXED` | `DIRECT-FR007`, `C16-F04` | `REFERENCE` | C16 |
 | `GW-FR-008-GOVERNED-REPOSITORY-ACCESS` | `CONFORMS` | `C16-O02`, `C16-O05`, `C22-O10` | `REFERENCE` | C22 |
 | `GW-FR-009-PORTABLE-WORK-ITEM-SOURCE` | `CONFORMS` | `C04-O01`, `C04-O04` | `REFERENCE` | C04 |
@@ -245,11 +245,11 @@ This ledger records the historical exact factual basis consumed by R2 after G-F1
 | `GW-FR-225-RESPONSIVE-SEMANTIC-CONTINUITY` | `CONFORMS` | `C18-O01`, `C18-O04` | `REFERENCE` | C18 |
 | `GW-FR-226-WORKFLOW-CRITICAL-FEEDBACK` | `MIXED` | `C17-O08`, `DIRECT-FR226` | `REFERENCE` | C17 |
 | `GW-FR-227-CERTIFICATION-MATRIX` | `VERIFICATION_GAP` | `C20-O12` | `REFERENCE` | C20 |
-| `GW-FR-228-FUNCTIONAL-STATE-TRANSITION-CLOSURE` | `CONFORMS` | `C01-O05` | `REFERENCE` | C01 |
+| `GW-FR-228-FUNCTIONAL-STATE-TRANSITION-CLOSURE` | `MIXED` | `C01-O05`, `C01-O90` | `REFERENCE` | C01 |
 | `GW-FR-229-PROVIDER-TURN-CONTROL-EXCLUSIVITY` | `CONFORMS` | `C15-O05`, `C15-O07`, `C15-O11` | `REFERENCE` | C15 |
 | `GW-FR-230-CLOSED-WORKBENCH-INTERACTION-GRAMMAR` | `CONFORMS` | `C05-O08`, `C05-O12`, `C19-O01` | `REFERENCE` | C05 |
 | `GW-FR-231-CANONICAL-WORKBENCH-VISUAL-LANGUAGE` | `MIXED` | `C19-O01`, `C19-O03`, `C19-O04`, `C19-O07`, `C19-O09`, `C19-O10`, `C19-O12` | `REFERENCE` | C19 |
-| `GW-FR-232-CLOSED-WORKFLOW-STATE-LANGUAGE` | `CONFORMS` | `C01-O03`, `C01-O11` | `REFERENCE` | C01 |
+| `GW-FR-232-CLOSED-WORKFLOW-STATE-LANGUAGE` | `MIXED` | `C01-O03`, `C01-O11`, `C01-O90` | `REFERENCE` | C01 |
 | `GW-FR-233-CANONICAL-WORKFLOW-RAIL-PROJECTION` | `MIXED` | `C05-O01`, `C05-O02` | `REFERENCE` | C05 |
 | `GW-FR-234-UNIFIED-WORKBENCH-COMPONENT-PRESENTATION` | `CONFORMS_WITH_VERIFICATION_GAP` | `C19-O04`, `C19-O10`, `C19-O11`, `C19-O12` | `REFERENCE` | C19 |
 | `GW-FR-235-GLOBAL-THEME-PARITY` | `CONFORMS_WITH_VERIFICATION_GAP` | `C19-O06`, `C19-O08`, `C19-O11`, `C20-O12` | `REFERENCE` | C19 |
@@ -455,7 +455,7 @@ R1 `9fa36f2f5e8938e7ecf88a4dc90dcc7fc16a77cb` is the factual input. The 112 stab
 
 | Pair | Existing functional contract rechecked | Residual disposition |
 |---|---|---|
-| A01 C01 + C21 | R1 terminal outcome without delivery; BLOCKED and RETURNED remain nonterminal conditions; verified candidate only for executed delivery; no automatic product commit/push/merge/deploy; documentation commit explicitly permitted. | SD01/IA19 public wording remains; no new lifecycle state. |
+| A01 C01 + C21 | R1 terminal outcome without delivery; BLOCKED and RETURNED remain nonterminal conditions; verified candidate only for executed delivery; no automatic product commit/push/merge/deploy; documentation commit explicitly permitted. | SD01/IA19 public wording distinguishes technical candidate verification from human Acceptance and terminal completion; native stage realization belongs to QA1–QA6. |
 | A02 C22 + C02 | Resolve the applicable subset from mandatory stage policy, pinned schema, explicit references and transitive dependencies; reject unresolved required references before provider invocation. Four governed kinds, controlled concerns and fixed linked-remediation project. | SD02/IA02 authority closure remains; already-correct intake is reuse subject to exact proof. |
 | A03 C03 + C04 | One project/kind-filtered queue and one source creation/discovery owner; exact source and lifecycle document identity, edit return semantics and governed path/status review before Git commit. | Retain consumer proof, not duplicate source or Git ownership. |
 | A04 C05 + C06 | Historical/supporting inspection preserves current exact reason and permitted action; one primary interaction, explicit Evidence replace/Back; durable clarification follows canonical owner and current reply anchor. | C05-F01 / SD07 / IA14 remains; exact current request and durability proof retained. |

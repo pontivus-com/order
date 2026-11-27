@@ -189,7 +189,7 @@ Ownership of shared-path edits is semantic and ordered: IA01 owns manifest schem
 
 **Solution:** SD01.  
 **Anchors:** `README.md`; `ui/src/TerminalResult.tsx::TerminalResult`; `ui/src/workbench-presentation.ts`.  
-**Required mutation/proof disposition:** Correct README blocked/upstream-return versus terminal-result copy. Retain shared WorkOutcome label and documentation-Git exception. IA33 owns exact candidate proof.  
+**Required mutation/proof disposition:** Correct README blocked/upstream-return versus terminal-result copy and distinguish technical candidate verification, native human Acceptance and terminal completion; preserve no-code/all-no-op exceptions. Retain shared WorkOutcome label and documentation-Git exception. IA33 owns exact candidate proof.  
 **Forbidden:** lifecycle/state/WorkOutcome contract changes; second product-label table in `TerminalResult`; generic enum prettification fallback; new DTO/view-model/service/state owner; candidate resources for non-candidate outcomes.  
 
 **Shared human-language projection:** existing pure presentation path is mutable for SD01/07/11 and consumers. STAGE_COMPLETED need not mean successful readiness judgment; distinguish Run execution from result disposition. Remove generic enum/path/payload fallback from ordinary event/result presentation, exact identity in authorized inspection. IA14 owns attention, IA16 R3 verdict, IA30/32/33 shared vocabulary consumption. Reuse typed failure contract; absent required carrier returns to DESIGN.
@@ -197,7 +197,7 @@ Ownership of shared-path edits is semantic and ordered: IA01 owns manifest schem
 **Proof:**
 - `tests/workbench-presentation.test.ts` — exhaustive current `WorkOutcome` → canonical product-facing label cases, including `CANDIDATE_DONE -> Verified candidate`, and no underscore/title prettification fallback;
 - `tests/browser.spec.ts` — Complete/TerminalResult candidate case renders **Verified candidate** and candidate resources; representative no-code terminal case renders its canonical non-candidate label and no candidate resources;
-- `tests/certification.test.ts` — README contains verified-result umbrella + conditional implementation/candidate wording + explicit documentation-Git exception, and rejects universal candidate/delivery wording or an absolute no-commit claim that erases that exception.
+- `tests/certification.test.ts` — README contains verified-result umbrella + conditional implementation/candidate wording + technical verification/native Acceptance/terminal distinction + explicit documentation-Git exception, and rejects universal candidate/delivery wording or an absolute no-commit claim that erases that exception.
 
 ## IA20 — exhaustive renderer classification certification
 
