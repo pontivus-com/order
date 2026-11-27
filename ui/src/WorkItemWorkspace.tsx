@@ -8,7 +8,6 @@ import {
   artifactHasCurrentStageConformance,
   deriveCurrentAttention,
   deriveExecutionOwner,
-  latestApprovalTasks,
   deriveObservationCoherence,
   deriveValidationBoundary,
   deriveProposalDecision,
@@ -175,6 +174,13 @@ export const WorkItemWorkspace = ({
     queryFn: () => api.listArtifacts(workItem.id),
     enabled: historicalArtifactsRequired,
   });
+  const currentApprovalRequired = workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE";
+  const currentApprovalQuery = useQuery({
+    queryKey: workbenchQueryKeys.currentApproval(workItem.id),
+    queryFn: () => api.getCurrentApproval(workItem.id),
+    enabled: currentApprovalRequired,
+  });
+  const currentApproval = currentApprovalRequired ? currentApprovalQuery.data : undefined;
   const tasksRequired =
     selectedStep === "AWAITING_SIGNOFF" ||
     selectedStep === "EXECUTION" ||
@@ -253,6 +259,14 @@ export const WorkItemWorkspace = ({
           type: "active",
         }),
         queryClient.refetchQueries({
+          queryKey: workbenchQueryKeys.currentApproval(workItem.id),
+          type: "active",
+        }),
+        queryClient.refetchQueries({
+          queryKey: workbenchQueryKeys.approvals(workItem.id),
+          type: "active",
+        }),
+        queryClient.refetchQueries({
           queryKey: workbenchQueryKeys.lifecycleArtifacts(workItem.id),
           type: "active",
         }),
@@ -286,11 +300,10 @@ export const WorkItemWorkspace = ({
       ]
     : artifacts;
   const tasks = tasksQuery.data ?? [];
-  const currentExecutionTasks = workItem.stage === "EXECUTION" ? latestApprovalTasks(tasks) : [];
-  const coherenceTasks =
-    workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE"
-      ? latestApprovalTasks(tasks)
-      : [];
+  const coherenceTasks = currentApproval == null
+    ? []
+    : tasks.filter((task) => task.approvalId === currentApproval.id);
+  const currentExecutionTasks = workItem.stage === "EXECUTION" ? coherenceTasks : [];
   const runEventQueries = useQueries({
     queries: runs.map((run) => ({
       queryKey: workbenchQueryKeys.runEvents(run.id),
@@ -422,6 +435,7 @@ export const WorkItemWorkspace = ({
     (
       runsQuery.data === undefined ||
       tasksQuery.data === undefined ||
+      currentApprovalQuery.data === undefined ||
       executionEventsPending
     );
   const validationBoundary = executionObservationPending
@@ -481,6 +495,7 @@ export const WorkItemWorkspace = ({
       allArtifactsQuery.data === undefined
     ) ||
     currentExecutionTasksFetching ||
+    (currentApprovalRequired && currentApprovalQuery.isPending) ||
     executionEventsPending ||
     currentStageEventsPending ||
     selectedStageConformancePending ||
@@ -498,7 +513,7 @@ export const WorkItemWorkspace = ({
     currentExecutionEventsError ??
     (
       workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE"
-        ? tasksQuery.error
+        ? tasksQuery.error ?? currentApprovalQuery.error
         : null
     ) ??
     (historicalArtifactsRequired ? allArtifactsQuery.error : null) ??
@@ -1369,18 +1384,20 @@ export const WorkItemWorkspace = ({
           <ExecutionWorkspace
             workItem={workItem}
             material={material}
-            tasks={tasks}
+            tasks={workItem.stage === "EXECUTION" ? currentExecutionTasks : tasks}
             runs={runs}
             runEvents={allRunEvents}
             artifacts={allArtifacts}
             statePending={
               runsQuery.isPending ||
               tasksQuery.isPending ||
+              (currentApprovalRequired && currentApprovalQuery.isPending) ||
               allArtifactsQuery.isPending
             }
             stateError={
               runsQuery.error ??
               tasksQuery.error ??
+              (currentApprovalRequired ? currentApprovalQuery.error : null) ??
               allArtifactsQuery.error
             }
             executionOwner={executionOwner}

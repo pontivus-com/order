@@ -175,6 +175,8 @@ export const App = () => {
         queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItemSourceRoot }),
         queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.lifecycleArtifactsRoot }),
         queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.signoffPackageRoot }),
+        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.currentApprovalRoot }),
+        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.approvalsRoot }),
       ]);
     },
   });

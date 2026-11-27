@@ -1687,8 +1687,8 @@ writeFileSync(
 
 const seedTerminalResult = async (
   item: ReturnType<typeof workItem>,
-  path: "docs/investigation-result.md" | "docs/audit-result.md",
-  outcome: "INVESTIGATION_COMPLETE" | "AUDIT_COMPLETE",
+  path: "docs/investigation-result.md" | "docs/audit-result.md" | "docs/r1.md",
+  outcome: "INVESTIGATION_COMPLETE" | "AUDIT_COMPLETE" | "DISPROVEN" | "DUPLICATE" | "ALREADY_SATISFIED",
 ): Promise<void> => {
   storeWorkItem(database, item);
   const output = await currentFileArtifact(seedRuntime, item, path, "R1", "P1");
@@ -1755,7 +1755,7 @@ for (const [title, outcome] of [
   ["Duplicate work", "DUPLICATE"],
   ["Already satisfied work", "ALREADY_SATISFIED"],
 ] as const) {
-  storeWorkItem(database, workItem(title, "COMPLETE", "COMPLETE", outcome));
+  await seedTerminalResult(workItem(title, "COMPLETE", "COMPLETE", outcome), "docs/r1.md", outcome);
 }
 
 const seedExecutionFeedback = (

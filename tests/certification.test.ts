@@ -1395,8 +1395,10 @@ describe("Order cross-boundary certification", () => {
     expect(workspace).toContain("deriveObservationCoherence");
     expect(workspace).toContain("deriveCurrentAttention");
     expect(workspace).toContain("deriveValidationBoundary");
-    expect(workspace).toContain('workItem.stage === "EXECUTION" ? latestApprovalTasks(tasks) : []');
-    expect(workspace).toContain('workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE"\n      ? latestApprovalTasks(tasks)\n      : []');
+    expect(workspace).toContain("api.getCurrentApproval(workItem.id)");
+    expect(workspace).toContain("tasks.filter((task) => task.approvalId === currentApproval.id)");
+    expect(workspace).not.toContain("latestApprovalTasks(tasks)");
+    expect(workspace).toContain('workItem.stage === "EXECUTION" ? coherenceTasks : []');
     expect(workspace).toContain("deriveObservationCoherence(\n    workItem,\n    runs,\n    allRunEvents,\n    coherenceTasks");
     expect(workspace).toContain("executionObservationPending");
     expect(workspace).toContain("executionEventsPending");

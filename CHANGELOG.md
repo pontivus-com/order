@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Consume exact current/final Approval identity in workspace task ownership and invalidate the canonical Approval queries on lifecycle mutations (IA17).
+
 - Expose canonical observational current/final Approval, history and immutable signed membership routes with typed browser query clients (IA17).
 
 - Require same-Run completed STAGE and subsequent matching conformance evidence for historical stage reach (IA17).
