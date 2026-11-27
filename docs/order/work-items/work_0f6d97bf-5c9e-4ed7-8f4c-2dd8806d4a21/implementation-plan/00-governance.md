@@ -8,14 +8,14 @@ This decomposition is revalidated under C19-F09/C20-F11 after the prior G4-G6 cl
 
 - R1 `research.md`: `31043ff989e1ac68b1238ca34f91b0550e64fadc`.
 - R2 `requirements.md`: `a3ec09f816ad9dae58a969717ab298612564997c`.
-- DESIGN `solution-design.md`: `19ea4d0be200f963ea113e9dd41d65f8483c4e74` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and QA1–QA6 expanded forecast.
+- DESIGN `solution-design.md`: `a9211c727f52dacfaf98ce92d601fe92168ca9e7` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and QA1–QA6 expanded forecast.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `ee8acad4e39f4641476eb46d99ca168afab3db3d`.
 - P3 `GW-DOC-WORKBENCH-UX-V2`: `d4491745b1540639ed57be11c69428415d5860af` — §11.4A/§12/§13/§14 (including §14.8A.1–2) own semantic information classes, state-is-not-interface behavior, direct primary interaction composition, no generic workflow-material selector, continuous Dialogue semantics, Terminal-result primacy, singular technical inspection, task anatomy and composition invariants.
 - P3 `GW-DOC-MARKDOWN-WORKBENCH-V1`: `1668746eae4ac8a0fc766e9e09150527cd07c347` — §17.4 owns one compact Markdown editor-control region, overflow-before-wrap formatting and control→canvas adjacency.
 - P4 `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`: `3ac940966906e4377bc762482a68c756b2ff66bc` — sole permanent owner of structural + semantic Workbench component responsibilities/APIs, consumer boundaries, composition laws and remediation disposition semantics.
 - P4 `GW-DOC-WORKBENCH-THEME-V1`: `03dfc6be3600a1128b5639d011f4c0159d3497dd` — owns the corrected semantic-disclosure, technical-inspection and task-panel visual roles.
 - P4 `GW-DOC-TECHNICAL-ARCHITECTURE-V2`: `41a4520d77295c2c53b011bbfb651226cb6d5f65` — canonical installer/readiness and technical ownership.
-- P6 `GW-DOC-CANONICAL-CONTRACTS-V2`: `1ab09b8554ad8502fd8a23441aafb7ab52442815`.
+- P6 `GW-DOC-CANONICAL-CONTRACTS-V2`: `673ae14659ce121aa04555f219ae62676c11b7a5`.
 - SD13 checkpoint and SD10 scope/forecast/V4-V6 realization are consumed only because current DESIGN positively proves those canonical capabilities; T1 does not reimplement them.
 
 ## Traceability law
