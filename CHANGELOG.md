@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Revalidate the 0.6.0 campaign foundation and concern inventory against the successful exact-candidate CI, recording G0/G1 closure and native Acceptance coverage in the canonical registers.
+
 - Verify both manifest custody publications in the exact-target setup fixture (exclusive creation before identity observation, then identified custody), without serializing filesystem BigInt identities.
 
 - Reconcile the existing exact-target setup regression fixture with the manifest custody callback: serialize its asserted path only, retaining the no-prompt, manifest and configuration assertions and the production BigInt custody identity.
