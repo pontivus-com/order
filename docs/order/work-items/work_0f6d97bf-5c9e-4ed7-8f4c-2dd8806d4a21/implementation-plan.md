@@ -16,7 +16,7 @@ Retain evidenced closed F6B semantic APIs and responsibilities; correct rejected
 
 | Source component | Git blob |
 |---|---|
-| `implementation-plan/00-governance.md` | `c6766b22ee4b3f5e8a274a03885d0c220ee7c8f0` |
+| `implementation-plan/00-governance.md` | `6a6bb38f029145cf12095c5764c6144e3be9e417` |
 | `implementation-plan/01-a01-lifecycle-product.md` | `b8a8d72b4cf67b905527ef3f2a334e2d850ba56a` |
 | `implementation-plan/02-a02-governance-intake.md` | `555b3517cd5134dbbfb15097250c80fb73df4226` |
 | `implementation-plan/03-a03-queue-source.md` | `c6aa646d9c96c772258aab8b3e5f5deaff30cf75` |
