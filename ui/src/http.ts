@@ -256,6 +256,24 @@ export const listLifecycleArtifacts = async (
     `/api/work-items/${encodeURIComponent(workItemId)}/lifecycle-artifacts`,
   ));
 
+export const getCurrentApproval = async (workItemId: WorkItemId): Promise<Approval | null> =>
+  ApprovalSchema.nullable().parse(await json(
+    `/api/work-items/${encodeURIComponent(workItemId)}/current-approval`,
+  ));
+
+export const listApprovals = async (workItemId: WorkItemId): Promise<readonly Approval[]> =>
+  ApprovalSchema.array().parse(await json(
+    `/api/work-items/${encodeURIComponent(workItemId)}/approvals`,
+  ));
+
+export const listApprovalArtifacts = async (
+  workItemId: WorkItemId,
+  approvalId: Approval["id"],
+): Promise<readonly ArtifactRef[]> =>
+  ArtifactRefSchema.array().parse(await json(
+    `/api/work-items/${encodeURIComponent(workItemId)}/approvals/${encodeURIComponent(approvalId)}/artifacts`,
+  ));
+
 export const listExecutionTasks = async (
   workItemId: WorkItemId,
 ): Promise<readonly ExecutionTask[]> =>

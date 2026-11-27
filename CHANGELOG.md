@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Expose canonical observational current/final Approval, history and immutable signed membership routes with typed browser query clients (IA17).
+
 - Require same-Run completed STAGE and subsequent matching conformance evidence for historical stage reach (IA17).
 
 - Use the existing source catalog's admitted R1 terminal outcomes for completed Investigation/Audit remediation parents, including DUPLICATE and ALREADY_SATISFIED, while retaining same-project delivery-only lineage (IA11).

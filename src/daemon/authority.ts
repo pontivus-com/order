@@ -28,6 +28,7 @@ import {
   normalizeRepositoryPath,
 } from "../core/canonical.ts";
 import {
+  admittedStageCompletion,
   artifactReturnOwner,
   routeApprovalStale,
   transitionWorkItem,
@@ -48,10 +49,12 @@ import {
 } from "../core/governance.ts";
 import {
   admitSignedTaskBlockForSchema,
+  aggregateTaskCompletion,
   materializeExecutionTasks,
   parseSignedTaskBlockFromPlan,
 } from "../core/execution.ts";
 import {
+  allowedR1CompletionsForSchema,
   stageTemplateForSchema,
   stageDocumentAuthorityRefs,
   authorityDispositionOwnerRefs,
@@ -169,6 +172,73 @@ export const currentApprovalForWorkItem = (
   runtime: CoordinatorRuntime,
   workItemId: WorkItemId,
 ): Approval | null => loadCurrentApprovalForWorkItem(runtime.database, workItemId);
+
+// Observational reads are distinct from the internal execution-owner lookup.
+export const observeCurrentApproval = async (
+  runtime: CoordinatorRuntime,
+  workItemId: WorkItemId,
+): Promise<Approval | null> => {
+  const workItem = getWorkItem(runtime, workItemId);
+  if (workItem.stage !== "EXECUTION" && workItem.stage !== "COMPLETE") return null;
+  if (workItem.stage === "COMPLETE") {
+    const terminalR1 = listRuns(runtime, workItemId).flatMap((run) => {
+      const completion = admittedStageCompletion(workItemId, run, listRunEvents(runtime, run.id));
+      if (completion?.completion.stage !== "R1" || completion.completion.outcome === "CONFIRMED") return [];
+      return [completion.completion.outcome];
+    });
+    if (terminalR1.length > 0) {
+      if (!terminalR1.every((outcome) => outcome === workItem.outcome &&
+          allowedR1CompletionsForSchema(workItem.schemaId).includes(outcome))) {
+        throw new TypeError("inconsistent terminal R1 completion evidence");
+      }
+      return null;
+    }
+  }
+  const approval = currentApprovalForWorkItem(runtime, workItemId);
+  if (approval === null) throw new TypeError("required current or final Approval is missing");
+  if (workItem.stage === "COMPLETE") {
+    const bytes = await signedPlanBytes(runtime, approval);
+    const plan = getArtifact(runtime, approval.planArtifactRefId);
+    if (plan.workItemId !== workItemId || plan.role !== "PLAN" ||
+        plan.gitCommit !== approval.baselineCommit || sha256(bytes) !== plan.sha256) {
+      throw new TypeError("final Approval PLAN identity is inconsistent");
+    }
+    const block = admitSignedTaskBlockForSchema(workItem.schemaId, parseSignedTaskBlockFromPlan(bytes));
+    const tasks = await canonicalTasksForApproval(runtime, approval);
+    const ids = new Set(tasks.map((task) => task.planTaskId));
+    const aggregate = aggregateTaskCompletion(tasks);
+    if (tasks.length !== block.tasks.length || ids.size !== tasks.length ||
+        !block.tasks.every((task) => ids.has(task.id)) ||
+        !aggregate.complete || aggregate.outcome !== workItem.outcome) {
+      throw new TypeError("final Approval lacks exact successful signed task completion evidence");
+    }
+  }
+  return approval;
+};
+
+export const observeApprovalHistory = (
+  runtime: CoordinatorRuntime,
+  workItemId: WorkItemId,
+): readonly Approval[] => {
+  getWorkItem(runtime, workItemId);
+  return loadApprovalsForWorkItem(runtime.database, workItemId);
+};
+
+export const observeApprovalArtifacts = async (
+  runtime: CoordinatorRuntime,
+  workItemId: WorkItemId,
+  approvalId: Approval["id"],
+): Promise<readonly ArtifactRef[]> => {
+  getWorkItem(runtime, workItemId);
+  const approval = getApproval(runtime, approvalId);
+  if (approval.workItemId !== workItemId) throw new TypeError("Approval does not exist for WorkItem");
+  const closure = await verifyApprovalClosureBytes(runtime, approval);
+  if (closure.plan.role !== "PLAN" || closure.r3.role !== "R3") {
+    throw new TypeError("Approval closure root identity is inconsistent");
+  }
+  return [...new Map([closure.plan, closure.r3, ...closure.material].map((artifact) =>
+    [artifact.id, artifact] as const)).values()];
+};
 
 export const taskRowsForApproval = (
   runtime: CoordinatorRuntime,

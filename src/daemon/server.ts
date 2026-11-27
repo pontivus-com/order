@@ -10,6 +10,7 @@ import { extname, resolve, sep } from "node:path";
 
 import { orderVersion } from "../version.ts";
 import {
+  ApprovalIdSchema,
   ArtifactRefIdSchema,
   CommitWorkItemDocumentationSchema,
   ConnectRepositorySchema,
@@ -60,6 +61,9 @@ import {
   listArtifacts,
   listCurrentLifecycleArtifacts,
   listExecutionTasks,
+  observeCurrentApproval,
+  observeApprovalHistory,
+  observeApprovalArtifacts,
   listProjects,
   listWorkItemSchemas,
   listRunEvents,
@@ -838,6 +842,16 @@ const routeApi = async (
         CommitWorkItemDocumentationSchema.parse(await readJsonBody(request))
       );
       return jsonResponse(await commitDocumentation(runtime, workItemId, body));
+    }
+    if (parts[3] === "current-approval" && parts.length === 4 && request.method === "GET") {
+      return jsonResponse(await observeCurrentApproval(runtime, workItemId));
+    }
+    if (parts[3] === "approvals" && parts.length === 4 && request.method === "GET") {
+      return jsonResponse(observeApprovalHistory(runtime, workItemId));
+    }
+    if (parts[3] === "approvals" && parts.length === 6 && parts[5] === "artifacts" && request.method === "GET") {
+      const approvalId = await parseRequest(() => ApprovalIdSchema.parse(parts[4]));
+      return jsonResponse(await observeApprovalArtifacts(runtime, workItemId, approvalId));
     }
     if (parts[3] === "tasks" && parts.length === 4 && request.method === "GET") {
       return jsonResponse(await listExecutionTasks(runtime, workItemId));

@@ -1,5 +1,6 @@
 import type { QueryClient } from "@tanstack/react-query";
 import type {
+  ApprovalId,
   ArtifactRefId,
   EvidencePath,
   OpenCodeAccountLoginAttemptId,
@@ -22,6 +23,8 @@ export const workbenchQueryKeys = {
   openCodeAccountState: ["openCodeAccountState"] as const,
   lifecycleArtifactsRoot: ["lifecycleArtifacts"] as const,
   signoffPackageRoot: ["signoffPackage"] as const,
+  currentApprovalRoot: ["currentApproval"] as const,
+  approvalsRoot: ["approvals"] as const,
   runEventsRoot: ["runEvents"] as const,
 
   workItem: (workItemId: WorkItemId) =>
@@ -37,6 +40,12 @@ export const workbenchQueryKeys = {
     ["lifecycleArtifacts", workItemId] as const,
   signoffPackage: (workItemId: WorkItemId) =>
     ["signoffPackage", workItemId] as const,
+  currentApproval: (workItemId: WorkItemId) =>
+    ["currentApproval", workItemId] as const,
+  approvals: (workItemId: WorkItemId) =>
+    ["approvals", workItemId] as const,
+  approvalArtifacts: (workItemId: WorkItemId, approvalId: ApprovalId) =>
+    ["approvals", workItemId, approvalId, "artifacts"] as const,
   tasks: (workItemId: WorkItemId) =>
     ["tasks", workItemId] as const,
   runs: (workItemId: WorkItemId) =>
@@ -62,6 +71,8 @@ export const workbenchMutationInvalidationKeys = (
   workbenchQueryKeys.runs(workItemId),
   workbenchQueryKeys.runEventsRoot,
   workbenchQueryKeys.tasks(workItemId),
+  workbenchQueryKeys.currentApproval(workItemId),
+  workbenchQueryKeys.approvals(workItemId),
   workbenchQueryKeys.lifecycleArtifacts(workItemId),
   workbenchQueryKeys.artifacts(workItemId),
   workbenchQueryKeys.workItemSource(workItemId),

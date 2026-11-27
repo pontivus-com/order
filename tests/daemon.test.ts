@@ -870,6 +870,36 @@ const seedSignoffScript = (
 };
 
 describe("daemon control plane", () => {
+  it("observes exact Approval identity, immutable membership and successful final task aggregate", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-approval-observation-");
+    const output = bunEval(seedSignoffScript(repository, state) + `
+      const current = await coord.observeCurrentApproval(runtime, work);
+      const history = coord.observeApprovalHistory(runtime, work);
+      const members = await coord.observeApprovalArtifacts(runtime, work, approval.id);
+      sql.updateWorkItemLifecycle(database, work, { stage: "PLAN", status: "ACTIVE", outcome: null });
+      const returned = await coord.observeCurrentApproval(runtime, work);
+      sql.updateWorkItemLifecycle(database, work, { stage: "COMPLETE", status: "COMPLETE", outcome: "ALREADY_SATISFIED" });
+      let missing = false;
+      try { await coord.observeCurrentApproval(runtime, work); } catch { missing = true; }
+      database.query("UPDATE executionTasks SET state = 'ALREADY_SATISFIED' WHERE approvalId = ?1").run(approval.id);
+      const final = await coord.observeCurrentApproval(runtime, work);
+      console.log(JSON.stringify({
+        current: current?.id, approval: approval.id, history: history.map((value) => value.id),
+        roots: members.some((value) => value.id === approval.planArtifactRefId) &&
+          members.some((value) => value.id === approval.r3ArtifactRefId),
+        returned, missing, final: final?.id,
+      }));
+      database.close();
+    `) as { current: string; approval: string; history: string[]; roots: boolean; returned: null; missing: boolean; final: string };
+    expect(output.current).toBe(output.approval);
+    expect(output.history).toEqual([output.approval]);
+    expect(output.roots).toBe(true);
+    expect(output.returned).toBeNull();
+    expect(output.missing).toBe(true);
+    expect(output.final).toBe(output.approval);
+  }, 30_000);
+
   it("labels configured STAGE reference roots as read-only non-authoritative context", async () => {
     const repository = createRepository();
     const sourceMarkdown = `---
