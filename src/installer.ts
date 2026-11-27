@@ -12,11 +12,12 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  readdirSync,
   renameSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
-import { dirname, isAbsolute, join } from "node:path";
+import { basename, dirname, isAbsolute, join } from "node:path";
 import { pathToFileURL } from "node:url";
 
 import type { InstallerConfigPublication, InstallerConfigSnapshot } from "./shell/setup.ts";
@@ -664,6 +665,17 @@ const currentOrderFootprintExists = (locations: InstallerLocations): boolean =>
   [locations.installRoot, locations.stateRoot, join(locations.binDir, "order"),
     join(locations.userConfigHome, "systemd", "user", "pontivus-order.service")].some(footprintEntryExists);
 
+// Observe only existing installer backup-name families for diagnostics. Never
+// adopt, move, or remove a backup from an earlier invocation automatically.
+const retainedDeploymentBackups = (target: string): readonly string[] => {
+  const parent = dirname(target);
+  if (!footprintEntryExists(parent)) return [];
+  const prefix = basename(target) + ".previous.";
+  return readdirSync(parent)
+    .filter(name => name.startsWith(prefix))
+    .map(name => join(parent, name));
+};
+
 const predecessorConflict = (locations: InstallerLocations, legacy: LegacyGateweftLocations): never =>
   fail("Gateweft predecessor and Order productive roots both exist; resolve the conflict before installing: " +
     [legacy.installRoot, legacy.stateRoot, legacy.launcher, legacy.unitPath,
@@ -857,6 +869,13 @@ export const runInstaller = async (
   const established = completeDeploymentFootprint(historyRoot,
     predecessor ? legacy.launcher : launcher, predecessor ? legacy.unitPath : unitPath) &&
     await confirmInstallationHistory(historyRoot, question);
+  const retainedBackups = [locations.installRoot, launcher].flatMap(retainedDeploymentBackups);
+  if (retainedBackups.length > 0) {
+    if (!established) fail("installation history is unproven; explicitly resolve retained prior deployment before retry: " +
+      retainedBackups.join(", "));
+    process.stdout.write("Earlier recovery material is retained for explicit operator disposition: " +
+      retainedBackups.join(", ") + "\n");
+  }
   step(established ? "updating existing installation" : "starting fresh/unproven installation");
 
   const prior = captureServiceState(locations, environment);
@@ -872,6 +891,7 @@ export const runInstaller = async (
   let restartAttempted = false;
   let setupModule: typeof import("./shell/setup.ts") | null = null;
   let configSnapshot: InstallerConfigSnapshot | null = null;
+  let configCaptureIncomplete: string | null = null;
   let published: Parameters<InstallerConfigPublication["onPublished"]>[0] | null = null;
   let databaseArchive: LegacyDatabaseArchive | null = null;
   let databaseRestoreIncomplete = false;
@@ -926,7 +946,8 @@ export const runInstaller = async (
     launcherTemporary = null;
 
     setupModule = await import(pathToFileURL(join(locations.installRoot, "app", "src", "shell", "setup.ts")).href) as typeof import("./shell/setup.ts");
-    configSnapshot = setupModule.captureInstallerConfigSnapshot(locations.stateRoot);
+    configSnapshot = setupModule.captureInstallerConfigSnapshot(locations.stateRoot,
+      path => { configCaptureIncomplete = path; });
     step("configuring provider, model and repository access");
     configuredSetup = await configureOrder(locations, established, {
       snapshot: configSnapshot, onPublished: identity => { published = identity; },
@@ -966,6 +987,7 @@ export const runInstaller = async (
         "installation failed: " + String(error) + "; cannot safely restore active deployment; retained paths: " +
         [locations.installRoot, locations.stateRoot, installBackup, launcherBackup, configSnapshot?.recoveryPath].filter(Boolean).join(", "));
     }
+    if (configCaptureIncomplete !== null) failures.push(new Error("configuration snapshot incomplete; retained material: " + configCaptureIncomplete));
     if (databaseRestoreIncomplete) failures.push(new Error("database preparation compensation incomplete at " + locations.stateRoot));
     if (databaseArchive !== null && sqliteUpgradeModule !== null) {
       const archive = databaseArchive;
@@ -986,7 +1008,7 @@ export const runInstaller = async (
     if (launcherBackup !== null) {
       const backup = launcherBackup;
       compensate("launcher restoration incomplete: " + backup, () => {
-        if (existsSync(launcher)) fail("launcher destination occupied: " + launcher);
+        if (footprintEntryExists(launcher)) fail("launcher destination occupied: " + launcher);
         renameSync(backup, launcher);
       });
     }
@@ -994,7 +1016,7 @@ export const runInstaller = async (
     if (installBackup !== null) {
       const backup = installBackup;
       compensate("application restoration incomplete: " + backup, () => {
-        if (existsSync(locations.installRoot)) fail("application destination occupied: " + locations.installRoot);
+        if (footprintEntryExists(locations.installRoot)) fail("application destination occupied: " + locations.installRoot);
         renameSync(backup, locations.installRoot);
       });
     }

@@ -398,16 +398,26 @@ const writeExclusiveConfigBytes = (
   }
 };
 
-export const captureInstallerConfigSnapshot = (stateRoot: string): InstallerConfigSnapshot => {
+export const captureInstallerConfigSnapshot = (
+  stateRoot: string,
+  onIncompleteCapture: (recoveryPath: string) => void = () => {},
+): InstallerConfigSnapshot => {
   ensureSupportedStateRoot(stateRoot);
   const target = statePaths(stateRoot).config;
   const original = observeInstallerConfig(target);
   if (original === null) return { target, original: null, recoveryPath: null, recoveryIdentity: null };
   const recoveryPath = target + ".installer-recovery." + crypto.randomUUID();
-  const recoveryIdentity = writeExclusiveConfigBytes(recoveryPath, original.bytes, original.identity.mode);
-  fsyncConfigDirectory(recoveryPath);
-  requireInstallerConfigIdentity(target, original.identity);
-  return { target, original: original.identity, recoveryPath, recoveryIdentity };
+  try {
+    const recoveryIdentity = writeExclusiveConfigBytes(recoveryPath, original.bytes, original.identity.mode);
+    fsyncConfigDirectory(recoveryPath);
+    requireInstallerConfigIdentity(target, original.identity);
+    return { target, original: original.identity, recoveryPath, recoveryIdentity };
+  } catch (error) {
+    // Even when capture itself fails, never lose the path of recovery bytes
+    // already created or imply the original remained unchanged.
+    onIncompleteCapture(recoveryPath);
+    throw new Error("installer configuration capture incomplete; inspect " + recoveryPath, { cause: error });
+  }
 };
 
 export const readInstallerConfigForUpgrade = (

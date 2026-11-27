@@ -474,6 +474,10 @@ type InstallerTransactionFixture = Readonly<{
   binary: string;
   readiness: unknown;
   establishedHistory?: string;
+  historyAnswers?: readonly string[];
+  cancelHistory?: boolean;
+  failMarker?: boolean;
+  interruptAtReadiness?: boolean;
   failRestart?: boolean;
   failService?: "daemon-reload" | "enable";
   stopMode?: "stuck" | "unknown" | "failed-inactive";
@@ -582,15 +586,23 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
       if (url.pathname === "/api/settings/readiness") {
         events.push({ command: ["readiness"], marker: fs.existsSync(marker),
           auth: new Headers(init?.headers).get("Authorization") === "Bearer " + token });
+        if (fixture.interruptAtReadiness) process.exit(77);
+        if (fixture.failMarker) fs.mkdirSync(marker);
         if (fixture.readinessError) throw new TypeError("injected " + fixture.readinessError);
         return new Response(JSON.stringify(fixture.readiness), { status: fixture.readinessStatus ?? 200, headers: { "content-type": "application/json" } });
       }
       return originalFetch(input, init);
     };
     if (fixture.failFinalization) fs.mkdirSync(path.join(fixture.home, ".profile"), { recursive: true });
+    const historyAnswers = [...(fixture.historyAnswers ?? [])];
     const question = async (prompt) => {
       prompts.push(prompt);
-      if (prompt.startsWith("Did installation admission previously complete")) return fixture.establishedHistory ?? "";
+      if (prompt.startsWith("Did installation admission previously complete")) {
+        if (fixture.cancelHistory) throw new Error("installation history cancelled");
+        return historyAnswers.shift() ?? fixture.establishedHistory ?? "";
+      }
+      if (prompt === "Retain saved OpenCode credentials or login again? [retain/login]: ") return "retain";
+      if (prompt === "Select model [1]: ") return "";
       if (prompt === "Target repository root: ") return fixture.project;
       if (prompt === "Add another target repository root (blank to continue): " || prompt === "STAGE reference root (blank for none): ") return "";
       if (prompt === "Select model: ") return "1";
@@ -619,6 +631,7 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
       PONTIVUS_ORDER_BIND: "127.0.0.1:7347",
     },
   });
+  if (fixture.interruptAtReadiness && result.status === 77) return { interrupted: true, stdout: result.stdout };
   if (result.status !== 0) throw new Error(result.stderr || result.stdout || String(result.error));
   const line = result.stdout.split("\n").find(value => value.startsWith("ORDER_TRANSACTION_RESULT "));
   if (line === undefined) throw new Error("actual installer transaction did not settle: " + result.stdout);
@@ -741,6 +754,51 @@ describe("actual IA25 installer transaction", () => {
     expect(outcome.app || outcome.launcher || outcome.unit).toBe(false);
     expect(outcome.failure).not.toContain("a".repeat(64));
   }, 120_000);
+
+  it("failed marker publication compensates without ordinary success", () => {
+    const outcome = runInstallerTransaction({ ...transactionFixture(),
+      readiness: { ready: true, blockers: [] }, failMarker: true });
+    expect(outcome.failure).not.toBeNull();
+    expect(outcome.marker).toBeNull();
+    expect(outcome.app || outcome.launcher || outcome.unit).toBe(false);
+    expect(outcome.stdout).not.toContain("Order installed successfully.");
+  }, 120_000);
+
+  it("complete-looking deployment still needs affirmative history; cancellation is non-mutating", () => {
+    const fixture = transactionFixture();
+    const fresh = runInstallerTransaction({ ...fixture, readiness: { ready: true, blockers: [] } });
+    expect(fresh.failure).toBeNull();
+    const installRoot = join(fixture.home, ".local/share/pontivus-order");
+    const originalMarker = readFileSync(join(installRoot, "SOURCE_COMMIT"));
+    const originalConfig = readFileSync(join(fixture.stateRoot, "config.json"));
+    const cancelled = runInstallerTransaction({ ...fixture,
+      readiness: { ready: true, blockers: [] }, cancelHistory: true });
+    expect(cancelled.failure).toContain("installation history cancelled");
+    expect(cancelled.events.some((event: { command: string[] }) => event.command[0] === "stop")).toBe(false);
+    expect(readFileSync(join(installRoot, "SOURCE_COMMIT"))).toEqual(originalMarker);
+    expect(readFileSync(join(fixture.stateRoot, "config.json"))).toEqual(originalConfig);
+    const declined = runInstallerTransaction({ ...fixture,
+      readiness: { ready: false, blockers: ["MODEL_INVALID"] }, historyAnswers: ["invalid", "unknown"] });
+    expect(declined.failure).toContain("MODEL_INVALID");
+    expect(declined.prompts.filter((prompt: string) => prompt.startsWith("Did installation"))).toHaveLength(2);
+    expect(declined.marker).toBe(originalMarker.toString("utf8"));
+    expect(readFileSync(join(fixture.stateRoot, "config.json"))).toEqual(originalConfig);
+    expect(declined.stdout).not.toContain("Order updated successfully.");
+  }, 240_000);
+
+  it("interrupted first installation has no admission marker and must pass fresh readiness on retry", () => {
+    const fixture = transactionFixture();
+    const stopped = runInstallerTransaction({ ...fixture,
+      readiness: { ready: true, blockers: [] }, interruptAtReadiness: true });
+    expect(stopped.interrupted).toBe(true);
+    const installRoot = join(fixture.home, ".local/share/pontivus-order");
+    expect(existsSync(join(installRoot, "SOURCE_COMMIT"))).toBe(false);
+    const retried = runInstallerTransaction({ ...fixture,
+      readiness: { ready: false, blockers: ["MODEL_INVALID"] }, establishedHistory: "yes" });
+    expect(retried.failure).toContain("MODEL_INVALID");
+    expect(retried.prompts.some((prompt: string) => prompt.startsWith("Did installation"))).toBe(false);
+    expect(retried.stdout).not.toContain("Order updated successfully.");
+  }, 180_000);
 
   it("post-commit finalization failure retains admitted application and marker", () => {
     const outcome = runInstallerTransaction({
