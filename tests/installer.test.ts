@@ -494,6 +494,7 @@ type InstallerTransactionFixture = Readonly<{
   loseDatabaseArchive?: boolean;
   databaseFault?: "archive" | "copy" | "partial-copy" | "restore" | "copy-and-restore" | "unlink";
   driftConfig?: boolean;
+  configFault?: "snapshot-sync" | "publication" | "publication-sync" | "restore" | "restore-sync" | "retire";
 }>;
 
 // Execute the production transaction and the installed setup/config/SQLite modules.
@@ -712,7 +713,35 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
           fs.unlinkSync(target);
         },
       };
-      await installer.runInstaller({ sourceRoot, sourceCommit }, process.env, question, rename, remove, databaseEffects);
+      let configPhase = "snapshot";
+      let injectedConfigSync = false;
+      const configEffects = {
+        rename: (from, to) => {
+          if (to === configPath && String(from).includes(".installer-restore.")) {
+            if (fixture.configFault === "restore") throw new Error("injected configuration restoration");
+            fs.renameSync(from, to);
+            configPhase = "restore";
+          } else {
+            if (fixture.configFault === "publication") throw new Error("injected configuration publication");
+            fs.renameSync(from, to);
+            configPhase = "publication";
+          }
+        },
+        fsync: descriptor => {
+          if (!injectedConfigSync && fs.fstatSync(descriptor).isDirectory() && fixture.configFault === configPhase + "-sync") {
+            injectedConfigSync = true;
+            throw new Error("injected configuration " + configPhase + " fsync");
+          }
+          fs.fsyncSync(descriptor);
+        },
+        unlink: target => {
+          if (fixture.configFault === "retire" && String(target).includes(".installer-recovery.")) {
+            throw new Error("injected configuration retirement");
+          }
+          fs.unlinkSync(target);
+        },
+      };
+      await installer.runInstaller({ sourceRoot, sourceCommit }, process.env, question, rename, remove, databaseEffects, configEffects);
     } catch (error) { failure = String(error); }
     console.log("ORDER_TRANSACTION_RESULT " + JSON.stringify({
       failure, prompts, events, activity, enablement, legacyActivity, sourceCommit,
@@ -1091,6 +1120,45 @@ describe("actual IA25 installer transaction", () => {
     expect(outcome.configBytes).toBe(outcome.originalConfig);
     expect(outcome.activity).toBe("inactive");
     expect(outcome.events.filter((event: { command: string[] }) => event.command[0] === "restart")).toHaveLength(1);
+  }, 120_000);
+
+  it.each(["publication", "publication-sync"] as const)("preserves original config bytes after %s failure", configFault => {
+    const fixture = transactionFixture();
+    createPriorDeployment(fixture);
+    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes",
+      readiness: { ready: true, blockers: [] }, configFault });
+    expect(outcome.failure).toContain("injected configuration publication");
+    expect(outcome.configBytes).toBe(outcome.originalConfig);
+    expect(outcome.marker).toBe("b".repeat(40) + "\n");
+    expect(outcome.activity).toBe("active");
+    expect(outcome.stateEntries.some((name: string) => name.startsWith("config.json.installer-recovery."))).toBe(false);
+  }, 120_000);
+
+  it.each(["snapshot-sync", "restore", "restore-sync"] as const)("retains private recovery bytes and prevents restart after %s failure", configFault => {
+    const fixture = transactionFixture();
+    createPriorDeployment(fixture);
+    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes",
+      readiness: { ready: true, blockers: [] }, configFault, failRestart: true });
+    expect(outcome.failure).toContain("configuration");
+    expect(outcome.failure).toContain("rollback incomplete");
+    const recovery = outcome.stateEntries.find((name: string) => name.startsWith("config.json.installer-recovery."));
+    expect(readFileSync(join(fixture.stateRoot, recovery)).toString("base64")).toBe(outcome.originalConfig);
+    expect(outcome.activity).toBe("inactive");
+    expect(outcome.events.filter((event: { command: string[] }) => event.command[0] === "restart"))
+      .toHaveLength(configFault === "snapshot-sync" ? 0 : 1);
+  }, 120_000);
+
+  it("configuration recovery unlink failure after commit is non-destructive", () => {
+    const fixture = transactionFixture();
+    createPriorDeployment(fixture);
+    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes",
+      readiness: { ready: true, blockers: [] }, configFault: "retire" });
+    expect(outcome.failure).toContain("installation committed; finalization incomplete");
+    expect(outcome.failure).toContain("injected configuration retirement");
+    expect(outcome.marker).toBe(outcome.sourceCommit + "\n");
+    expect(outcome.activity).toBe("active");
+    const recovery = outcome.stateEntries.find((name: string) => name.startsWith("config.json.installer-recovery."));
+    expect(readFileSync(join(fixture.stateRoot, recovery)).toString("base64")).toBe(outcome.originalConfig);
   }, 120_000);
 
   it("blocks prior service restart when configuration publication identity drifts", () => {

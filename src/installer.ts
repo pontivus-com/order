@@ -867,6 +867,7 @@ export const runInstaller = async (
   rename: typeof renameSync = renameSync,
   remove: typeof rmSync = rmSync,
   databaseEffects?: Parameters<typeof import("./shell/sqlite.ts").prepareOrderDatabaseForInstall>[2],
+  configEffects?: InstallerConfigPublication["effects"],
 ): Promise<void> => {
   if (process.platform !== "linux") fail("Order v1 productive installation requires Linux");
   if (Bun.version !== bunVersion) fail("installer must run on exact Bun " + bunVersion);
@@ -966,10 +967,10 @@ export const runInstaller = async (
 
     setupModule = await import(pathToFileURL(join(locations.installRoot, "app", "src", "shell", "setup.ts")).href) as typeof import("./shell/setup.ts");
     configSnapshot = setupModule.captureInstallerConfigSnapshot(locations.stateRoot,
-      path => { configCaptureIncomplete = path; });
+      path => { configCaptureIncomplete = path; }, configEffects);
     step("configuring provider, model and repository access");
     configuredSetup = await configureOrder(locations, established, {
-      snapshot: configSnapshot, onPublished: identity => { published = identity; },
+      snapshot: configSnapshot, onPublished: identity => { published = identity; }, effects: configEffects,
     }, path => createdProjectManifests.push(path), question);
 
     sqliteUpgradeModule = await import(pathToFileURL(join(locations.installRoot, "app", "src", "shell", "sqlite.ts")).href) as typeof import("./shell/sqlite.ts");
@@ -1020,7 +1021,7 @@ export const runInstaller = async (
       const snapshot = configSnapshot;
       const module = setupModule;
       compensate("configuration restoration incomplete: " + (snapshot.recoveryPath ?? snapshot.target),
-        () => module.restoreInstallerConfig(snapshot, published));
+        () => module.restoreInstallerConfig(snapshot, published, configEffects));
     }
     for (const path of createdProjectManifests.reverse()) compensate("manifest restoration incomplete: " + path, () => rmSync(path));
     if (launcherActivated) compensate("new launcher removal incomplete: " + launcher, () => rmSync(launcher));
@@ -1055,7 +1056,7 @@ export const runInstaller = async (
 
   // Never roll back a committed installation because finalization failed.
   try {
-    if (configSnapshot !== null && setupModule !== null) setupModule.releaseInstallerConfigSnapshot(configSnapshot);
+    if (configSnapshot !== null && setupModule !== null) setupModule.releaseInstallerConfigSnapshot(configSnapshot, configEffects);
     if (legacyMigration !== null) retireLegacyGateweftArtifacts(legacyMigration, locations, environment);
     writeProfilePath(locations.home, locations.binDir);
     if (installBackup !== null) remove(installBackup, { recursive: true });

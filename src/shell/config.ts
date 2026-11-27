@@ -315,9 +315,19 @@ export type InstallerConfigSnapshot = Readonly<{
   recoveryIdentity: InstallerConfigIdentity | null;
 }>;
 
+type InstallerConfigEffects = Readonly<{
+  rename: typeof renameSync;
+  fsync: typeof fsyncSync;
+  unlink: typeof unlinkSync;
+}>;
+const installerConfigEffects: InstallerConfigEffects = {
+  rename: renameSync, fsync: fsyncSync, unlink: unlinkSync,
+};
+
 export type InstallerConfigPublication = Readonly<{
   snapshot: InstallerConfigSnapshot;
   onPublished: (identity: InstallerConfigIdentity) => void;
+  effects?: InstallerConfigEffects | undefined;
 }>;
 
 type ObservedInstallerConfig = Readonly<{
@@ -375,9 +385,9 @@ const requireInstallerConfigIdentity = (
   return observed;
 };
 
-const fsyncConfigDirectory = (target: string): void => {
+const fsyncConfigDirectory = (target: string, sync: typeof fsyncSync = fsyncSync): void => {
   const parentDescriptor = openSync(dirname(target), constants.O_RDONLY | constants.O_DIRECTORY);
-  try { fsyncSync(parentDescriptor); } finally { closeSync(parentDescriptor); }
+  try { sync(parentDescriptor); } finally { closeSync(parentDescriptor); }
 };
 
 const writeExclusiveConfigBytes = (
@@ -401,6 +411,7 @@ const writeExclusiveConfigBytes = (
 export const captureInstallerConfigSnapshot = (
   stateRoot: string,
   onIncompleteCapture: (recoveryPath: string) => void = () => {},
+  effects: InstallerConfigEffects = installerConfigEffects,
 ): InstallerConfigSnapshot => {
   ensureSupportedStateRoot(stateRoot);
   const target = statePaths(stateRoot).config;
@@ -409,14 +420,14 @@ export const captureInstallerConfigSnapshot = (
   const recoveryPath = target + ".installer-recovery." + crypto.randomUUID();
   try {
     const recoveryIdentity = writeExclusiveConfigBytes(recoveryPath, original.bytes, original.identity.mode);
-    fsyncConfigDirectory(recoveryPath);
+    fsyncConfigDirectory(recoveryPath, effects.fsync);
     requireInstallerConfigIdentity(target, original.identity);
     return { target, original: original.identity, recoveryPath, recoveryIdentity };
   } catch (error) {
     // Even when capture itself fails, never lose the path of recovery bytes
     // already created or imply the original remained unchanged.
     onIncompleteCapture(recoveryPath);
-    throw new Error("installer configuration capture incomplete; inspect " + recoveryPath, { cause: error });
+    throw new Error("installer configuration capture incomplete: " + String(error) + "; inspect " + recoveryPath, { cause: error });
   }
 };
 
@@ -429,24 +440,28 @@ export const readInstallerConfigForUpgrade = (
   return observed === null ? null : readOrderConfigForUpgrade(stateRoot, observed.bytes);
 };
 
-export const releaseInstallerConfigSnapshot = (snapshot: InstallerConfigSnapshot): void => {
+export const releaseInstallerConfigSnapshot = (
+  snapshot: InstallerConfigSnapshot,
+  effects: InstallerConfigEffects = installerConfigEffects,
+): void => {
   if (snapshot.recoveryPath === null || snapshot.recoveryIdentity === null) return;
   requireInstallerConfigIdentity(snapshot.recoveryPath, snapshot.recoveryIdentity);
-  unlinkSync(snapshot.recoveryPath);
-  fsyncConfigDirectory(snapshot.recoveryPath);
+  effects.unlink(snapshot.recoveryPath);
+  fsyncConfigDirectory(snapshot.recoveryPath, effects.fsync);
 };
 
 export const restoreInstallerConfig = (
   snapshot: InstallerConfigSnapshot,
   published: InstallerConfigIdentity | null,
+  effects: InstallerConfigEffects = installerConfigEffects,
 ): void => {
   if (published === null) {
     requireInstallerConfigIdentity(snapshot.target, snapshot.original);
   } else {
     requireInstallerConfigIdentity(snapshot.target, published);
     if (snapshot.original === null) {
-      unlinkSync(snapshot.target);
-      fsyncConfigDirectory(snapshot.target);
+      effects.unlink(snapshot.target);
+      fsyncConfigDirectory(snapshot.target, effects.fsync);
       requireInstallerConfigIdentity(snapshot.target, null);
     } else {
       if (snapshot.recoveryPath === null || snapshot.recoveryIdentity === null) {
@@ -460,12 +475,12 @@ export const restoreInstallerConfig = (
       const temporary = snapshot.target + ".installer-restore." + crypto.randomUUID();
       const restored = writeExclusiveConfigBytes(temporary, original.bytes, snapshot.original.mode);
       requireInstallerConfigIdentity(snapshot.target, published);
-      renameSync(temporary, snapshot.target);
-      fsyncConfigDirectory(snapshot.target);
+      effects.rename(temporary, snapshot.target);
+      fsyncConfigDirectory(snapshot.target, effects.fsync);
       requireInstallerConfigIdentity(snapshot.target, restored);
     }
   }
-  releaseInstallerConfigSnapshot(snapshot);
+  releaseInstallerConfigSnapshot(snapshot, effects);
 };
 
 export const writeOrderConfig = (
@@ -482,9 +497,10 @@ export const writeOrderConfig = (
   }
   const bytes = new TextEncoder().encode(JSON.stringify(canonical) + "\n");
   const identity = writeExclusiveConfigBytes(temporary, bytes, 0o600);
+  const effects = installer?.effects ?? installerConfigEffects;
   try {
     if (installer !== undefined) requireInstallerConfigIdentity(target, installer.snapshot.original);
-    renameSync(temporary, target);
+    effects.rename(temporary, target);
     installer?.onPublished(identity);
   } catch (error) {
     try {
@@ -495,7 +511,7 @@ export const writeOrderConfig = (
     throw error;
   }
 
-  fsyncConfigDirectory(target);
+  fsyncConfigDirectory(target, effects.fsync);
   return readOrderConfig(stateRoot);
 };
 
