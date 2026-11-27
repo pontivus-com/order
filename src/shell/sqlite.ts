@@ -450,7 +450,7 @@ export const prepareOrderDatabaseForInstall = (
     }
     if (failures.length > 0) {
       onIncompleteRestore();
-      throw new AggregateError([error, ...failures], "installer database prepare failed; incomplete restoration at " + failures.map(String).join("; "));
+      throw new AggregateError([error, ...failures], "installer database prepare failed: " + String(error) + "; incomplete restoration at " + failures.map(String).join("; "));
     }
     throw error;
   }

@@ -433,7 +433,11 @@ const runGuidedSetupInternal = async (
       version: 4, model: null, repositoryRoots: [], referenceRoots: [],
     });
     writeOrderConfig(stateRoot, retained, publication);
-    writeStdout("Order configuration version 4 retained or migrated.\n");
+    writeStdout(upgrading
+      ? "Order configuration upgraded to version 4; existing provider/model/repository/reference choices retained.\n"
+      : configured === null
+        ? "Order configuration version 4 initialized for established recovery.\n"
+        : "Order configuration version 4 retained unchanged.\n");
     if (retained.repositoryRoots.length === 0 || retained.model === null) {
       writeStdout("requires operator action: complete setup in browser Settings.\n");
     }

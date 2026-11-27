@@ -2558,7 +2558,15 @@ describe("0.6.0 composed closure certification", () => {
 
     const setup = read("src/shell/setup.ts");
     expect(setup).not.toContain("allowLegacyUpdate && configured === null && !reconfigure");
-    expect(setup).toContain("allowLegacyUpdate && configured?.version === 4 && !reconfigure");
+    expect(setup).toContain("publication !== undefined && established");
+    expect(setup).toContain("readInstallerConfigForUpgrade(stateRoot, publication.snapshot)");
+    expect(setup).toContain("writeOrderConfig(stateRoot, retained, publication)");
+    expect(setup.indexOf("publication !== undefined && established")).toBeLessThan(setup.indexOf("let models = existing === null"));
+    const installer = read("src/installer.ts");
+    expect(installer).toContain("await confirmInstallationHistory(historyRoot, question)");
+    expect(installer).toContain("if (!established) await configuredSetup.setupModule.requireFreshInstallerReadiness");
+    expect(installer.indexOf("requireFreshInstallerReadiness(runtimeEnvironment(locations))")).toBeLessThan(installer.indexOf("rename(temporaryMarker, marker)"));
+    expect(installer.indexOf("rename(temporaryMarker, marker)")).toBeLessThan(installer.indexOf("// Never roll back a committed installation because finalization failed."));
     expect(setup).toContain("setup in browser Settings.");
 
     const presentation = read("ui/src/workbench-presentation.ts");

@@ -1543,6 +1543,8 @@ materialRefs = ["AGENTS.md"]
         env,
         (value) => stdout.push(value),
         async () => { throw new Error("v3→v4 migration must not prompt"); },
+        true,
+        { snapshot: cfg.captureInstallerConfigSnapshot(${JSON.stringify(state)}), onPublished: () => {} },
       );
       console.log(JSON.stringify({
         code,
@@ -1611,6 +1613,8 @@ materialRefs = ["AGENTS.md"]
         env,
         (value) => stdout.push(value),
         async () => { throw new Error("unchanged exact legacy target must not prompt"); },
+        true,
+        { snapshot: cfg.captureInstallerConfigSnapshot(${JSON.stringify(state)}), onPublished: () => {} },
         (path) => created.push(path),
       );
       console.log(JSON.stringify({
@@ -1745,6 +1749,8 @@ materialRefs = ["AGENTS.md"]
         env,
         (value) => stdout.push(value),
         async () => { throw new Error("valid legacy installer update must not prompt"); },
+        true,
+        { snapshot: cfg.captureInstallerConfigSnapshot(${JSON.stringify(state)}), onPublished: () => {} },
       );
       console.log(JSON.stringify({
         code,
