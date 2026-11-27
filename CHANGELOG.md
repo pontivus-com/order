@@ -6,7 +6,7 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
-- Replace serial 0.6.0 package revalidation with one integrated evidence/correction/review milestone, preserving complete semantic audit coverage, exact bindings, gate prerequisites and independent readiness.
+- Replace serial 0.6.0 package revalidation with one integrated evidence/correction/review milestone, preserving complete semantic audit coverage, exact bindings, gate prerequisites and independent readiness. Explicitly retain H4 and distinguish first-time pair sequencing and evidence recording from integrated publication.
 
 - Reconcile native Acceptance stable requirement evidence and public product-language obligations across R1–PLAN without changing the signed task forecast.
 
