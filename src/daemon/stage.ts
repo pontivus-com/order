@@ -1161,6 +1161,12 @@ const adoptArtifactProposalUnlocked = async (
     throw new TypeError("artifact proposals are pre-signoff only");
   }
   const initialDecision = requireCurrentProposalDecision(runtime, proposal, run);
+  let adoptionRequested = proposalAdoptionRequest(runtime, proposal) !== null;
+  if (
+    adoptionRequested !== (initialDecision.tag === "ADOPTION_IN_PROGRESS")
+  ) {
+    throw new TypeError("proposal adoption intent does not match current proposal decision");
+  }
   if (
     workItem.stage === "EXECUTION" ||
     workItem.stage === "COMPLETE"
@@ -1191,6 +1197,7 @@ const adoptArtifactProposalUnlocked = async (
       );
     }
     if (
+      !adoptionRequested &&
       sha256(
         readWorkingTreeFile(
           workItem.repositoryRoot,
@@ -1214,12 +1221,6 @@ const adoptArtifactProposalUnlocked = async (
     }
   }
 
-  let adoptionRequested = proposalAdoptionRequest(runtime, proposal) !== null;
-  if (
-    adoptionRequested !== (initialDecision.tag === "ADOPTION_IN_PROGRESS")
-  ) {
-    throw new TypeError("proposal adoption intent does not match current proposal decision");
-  }
   if (!adoptionRequested) {
     await verifyProposalPatchAdoption(
       workItem.repositoryRoot,

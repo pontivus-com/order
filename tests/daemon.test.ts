@@ -5763,12 +5763,16 @@ describe("daemon control plane", () => {
     );
     expect(output.runCount).toBe(0);
   }, 30_000);
-  it("adopts only current manifest-resolved permanent authority and rejects a stale base", () => {
+  it.each([
+    ["R2", "P2", "ordinary"],
+    ["R2", "P2", "before-effect"],
+    ["DESIGN", "P4", "after-effect"],
+  ] as const)("adopts %s %s permanent authority with %s intent and rejects a stale base", (ownerStage, layer, interruption) => {
     const repository = createRepository();
     writeFileSync(join(repository, "docs", "product.md"), "# product\n");
     writeFileSync(
       join(repository, "pontivus-order.toml"),
-      fixtureManifest.replace("p2 = []", 'p2 = ["docs/product.md"]'),
+      fixtureManifest.replace(layer.toLowerCase() + " = []", layer.toLowerCase() + ' = ["docs/product.md"]'),
     );
     runGit(repository, "add", ".");
     runGit(repository, "commit", "--amend", "--no-edit");
@@ -5801,7 +5805,7 @@ describe("daemon control plane", () => {
         concernIds: ["shell"],
       });
       sql.updateWorkItemLifecycle(database, created.id, {
-        stage: "R2",
+        stage: ${JSON.stringify(ownerStage)},
         status: "ACTIVE",
         outcome: null,
       });
@@ -5810,7 +5814,7 @@ describe("daemon control plane", () => {
         id: rt.newRunId(),
         workItemId: workItem.id,
         executionTaskId: null,
-        stage: "R2",
+        stage: ${JSON.stringify(ownerStage)},
         mode: "INTERACTIVE",
         role: "STAGE",
         triggerEventId: null,
@@ -5825,7 +5829,7 @@ describe("daemon control plane", () => {
       });
       runStore.appendRunEvent(runtime, run.id, {
         tag: "STAGE_STARTED",
-        stage: "R2",
+        stage: ${JSON.stringify(ownerStage)},
         mode: "INTERACTIVE",
         contextHash: run.contextHash,
       });
@@ -5841,7 +5845,7 @@ describe("daemon control plane", () => {
         targetPath: productPath,
         baseSha256: base,
         role: "GOVERNANCE",
-        authorityLayer: "P2",
+        authorityLayer: ${JSON.stringify(layer)},
         unifiedDiff:
           "--- a/docs/product.md\\n" +
           "+++ b/docs/product.md\\n" +
@@ -5850,7 +5854,30 @@ describe("daemon control plane", () => {
           "+# product adopted\\n",
         rationale: "Adopt the durable product decision",
       });
+      if (${JSON.stringify(interruption)} !== "ordinary") {
+        runStore.appendRunEvent(runtime, run.id, {
+          tag: "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED",
+          proposalEventId: proposal.id,
+        });
+      }
+      if (${JSON.stringify(interruption)} === "after-effect") {
+        await repo.adoptProposalPatch(repositoryRoot, productPath, base, proposal.event.unifiedDiff);
+      }
       const adopted = await coord.adoptArtifactProposal(runtime, proposal.id);
+      let driftError = null;
+      const driftPath = "docs/drift.md";
+      const before = "line one\\nline two\\nline three\\nline four\\nline five\\n";
+      const driftPatch = "--- a/docs/drift.md\\n+++ b/docs/drift.md\\n@@ -1,3 +1,3 @@\\n-line one\\n+adopted one\\n line two\\n line three\\n";
+      fs.writeFileSync(repositoryRoot + "/" + driftPath, before);
+      await repo.adoptProposalPatch(repositoryRoot, driftPath, rt.sha256Text(before), driftPatch);
+      fs.appendFileSync(repositoryRoot + "/" + driftPath, "unrelated change\\n");
+      const observed = fs.readFileSync(repositoryRoot + "/" + driftPath, "utf8");
+      try {
+        await repo.adoptProposalPatch(repositoryRoot, driftPath, rt.sha256Text(before), driftPatch, true);
+      } catch (error) {
+        driftError = error instanceof Error ? error.message : String(error);
+      }
+      const driftPreserved = fs.readFileSync(repositoryRoot + "/" + driftPath, "utf8") === observed;
 
       runStore.appendRunEvent(runtime, run.id, {
         tag: "AGENT_MESSAGE_FINAL",
@@ -5863,7 +5890,7 @@ describe("daemon control plane", () => {
         targetPath: productPath,
         baseSha256: staleBase,
         role: "GOVERNANCE",
-        authorityLayer: "P2",
+        authorityLayer: ${JSON.stringify(layer)},
         unifiedDiff:
           "--- a/docs/product.md\\n" +
           "+++ b/docs/product.md\\n" +
@@ -5900,6 +5927,8 @@ describe("daemon control plane", () => {
           ),
         staleReadError,
         staleError,
+        driftError,
+        driftPreserved,
         adoptionRequests: events.filter((event) =>
           event.event.tag === "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED"
         ).length,
@@ -5911,20 +5940,24 @@ describe("daemon control plane", () => {
       contentAfterFirstAdoption: boolean;
       staleReadError: string | null;
       staleError: string | null;
+      driftError: string | null;
+      driftPreserved: boolean;
       adoptionRequests: number;
       stage: string;
     };
 
     expect(output.adopted).toEqual({
       role: "GOVERNANCE",
-      layer: "P2",
+      layer,
       path: "docs/product.md",
     });
     expect(output.contentAfterFirstAdoption).toBe(true);
     expect(output.staleReadError).toContain("baseSha256 is stale");
     expect(output.staleError).toContain("baseSha256 is stale");
     expect(output.adoptionRequests).toBe(1);
-    expect(output.stage).toBe("R2");
+    expect(output.stage).toBe(ownerStage);
+    expect(output.driftError).toContain("reconstructed base");
+    expect(output.driftPreserved).toBe(true);
   }, 30_000);
 
   it("rejects STAGE completion after durable decision input without later adoption", () => {

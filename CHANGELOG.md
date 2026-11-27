@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Require exact reverse reconstruction and forward replay before interrupted proposal adoption is reconciled; enforce its canonical target and recorded durable intent (IA03).
+
 - Bind current-v2 lifecycle context and conformance to exact upstream and producing-output authority declarations, including structured R2/PLAN refs, and require a fresh productive turn when newly declared material changes the context (IA02).
 
 - Begin IA02 productive-context integration: resolve additive current-v2 stage declarations and their transitive dependencies in canonical precedence order, with exact pinned-header parsing and retained-v1 isolation.
