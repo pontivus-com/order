@@ -215,6 +215,10 @@ Order classifies failures before deciding what may happen next.
 
 The model does not choose the failure class where deterministic evidence can decide it.
 
+### 11.1 Final human QA/QC correction
+
+The technical V0-V7 sequence remains unchanged. After verified candidate handoff, human findings are observations against exact candidate and signed acceptance criteria; they are not synthetic V4 failures. An admitted QA review uses an independent read-only reviewer with the exact candidate replay and submitted findings; actual repairable V4 failure enters the existing bounded REMEDIATOR path. All existing per-class and operational budgets remain cumulative within the same Approval/task; reporting again does not reset them. Genuine upstream defects return to the owning stage. Every successor candidate requires its own current V0-V7 proof; human retest/disposition is separate and cannot manufacture a validation pass. Final human acceptance requires all findings resolved and exact current candidate membership, and never changes the technical evidence or performs delivery.
+
 ## 12. Evidence law
 
 `CANDIDATE_DONE` requires one current coordinator-owned `VALIDATION_PASSED` result for every V0-V7 stage and one `CANDIDATE_RECORDED` event linking those results to the exact final candidate state as defined by [GW-DOC-CANONICAL-CONTRACTS §§10,17](../contracts/canonical-contracts.md).
