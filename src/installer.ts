@@ -1259,8 +1259,9 @@ export const runInstaller = async (
       const module = sqliteUpgradeModule;
       compensate("unarchived database custody incomplete: " + custody.stateRoot, () => {
         try {
-          if (databaseCandidates === undefined) fail("database candidate custody is unavailable");
-          module.requireUnarchivedInstallerDatabaseForRestart(custody, databaseCandidates, restartAttempted);
+          const candidates = databaseCandidates;
+          if (candidates === undefined) throw new TypeError("database candidate custody is unavailable");
+          module.requireUnarchivedInstallerDatabaseForRestart(custody, candidates, restartAttempted);
         } catch (failure) { databaseRestoreIncomplete = true; throw failure; }
       });
     }
