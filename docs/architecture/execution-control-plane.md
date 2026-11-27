@@ -246,7 +246,7 @@ Initial terminal outcomes include:
 - `ENVIRONMENT_BLOCKED`;
 - `PROVIDER_FAILURE`.
 
-`CANDIDATE_DONE` means every applicable validation stage passed. It does not authorize commit, PR, merge, deployment, or production mutation.
+`CANDIDATE_DONE` means every applicable validation stage passed for an execution task. When the current Approval has at least one such task and all tasks succeeded, enter final human Acceptance, not terminal WorkItem completion; all-no-op completes directly. Human findings are durable observations against exact candidates, not provider output or synthetic validation failures. The existing scheduler admits a submitted QA review only under current Approval, exact candidate and global single-running-task exclusion; a new read-only REVIEWER replays the exact candidate and evaluates findings against signed criteria. A real repairable V4 failure invokes existing bounded REMEDIATOR and fresh V0–V7 proof; a genuine specification or authority defect follows existing upstream return; exhausted retry blocks. Existing budgets are not reset. Final human acceptance is a separate atomic WorkItem completion decision, not a Run or gate. Neither technical success nor acceptance authorizes commit, PR, merge, deployment, or production mutation.
 
 
 ## 12. Signed in-task verification checkpoints
