@@ -1,6 +1,11 @@
 import { createInterface } from "node:readline/promises";
 import {
   chmodSync,
+  closeSync,
+  constants,
+  fstatSync,
+  openSync,
+  realpathSync,
   copyFileSync,
   existsSync,
   lstatSync,
@@ -581,17 +586,25 @@ const restoreUnit = (
 
 const completeDeploymentFootprint = (root: string, launcher: string, unit: string): boolean => {
   try {
-    const regular = (path: string, executable = false): boolean => {
-      const entry = lstatSync(path, { throwIfNoEntry: false });
-      return entry !== undefined && entry.isFile() && (!executable || (entry.mode & 0o111) !== 0);
+    const readRegular = (path: string, executable = false): string | null => {
+      if (realpathSync(path) !== path) return null;
+      const entry = lstatSync(path);
+      if (!entry.isFile() || (executable && (entry.mode & 0o111) === 0)) return null;
+      const descriptor = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
+      try {
+        const opened = fstatSync(descriptor);
+        if (!opened.isFile() || opened.dev !== entry.dev || opened.ino !== entry.ino ||
+            opened.mode !== entry.mode) return null;
+        return path === join(root, "SOURCE_COMMIT") ? readFileSync(descriptor, "utf8") : "";
+      } finally { closeSync(descriptor); }
     };
-    const marker = join(root, "SOURCE_COMMIT");
-    return lstatSync(root).isDirectory() && regular(marker) &&
-      /^[0-9a-f]{40}\n$/.test(readFileSync(marker, "utf8")) &&
-      regular(join(root, "app", "src", "cli.ts")) &&
-      regular(join(root, "app", "dist", "index.html")) &&
-      regular(join(root, "runtime", "bun", "bin", "bun"), true) &&
-      regular(launcher, true) && regular(unit);
+    const marker = readRegular(join(root, "SOURCE_COMMIT"));
+    return realpathSync(root) === root && lstatSync(root).isDirectory() &&
+      marker !== null && /^[0-9a-f]{40}\n$/.test(marker) &&
+      readRegular(join(root, "app", "src", "cli.ts")) !== null &&
+      readRegular(join(root, "app", "dist", "index.html")) !== null &&
+      readRegular(join(root, "runtime", "bun", "bin", "bun"), true) !== null &&
+      readRegular(launcher, true) !== null && readRegular(unit) !== null;
   } catch { return false; }
 };
 
@@ -635,19 +648,24 @@ const legacyGateweftLocations = (
   unitPath: join(locations.userConfigHome, "systemd", "user", "gateweft.service"),
 });
 
+const footprintEntryExists = (path: string): boolean =>
+  lstatSync(path, { throwIfNoEntry: false }) !== undefined;
+
 const legacyGateweftFootprintExists = (
   locations: LegacyGateweftLocations,
 ): boolean =>
-  existsSync(locations.installRoot) ||
-  existsSync(locations.stateRoot) ||
-  existsSync(locations.launcher) ||
-  existsSync(locations.unitPath);
+  [locations.installRoot, locations.stateRoot, locations.launcher, locations.unitPath].some(footprintEntryExists);
 
 const currentOrderFootprintExists = (locations: InstallerLocations): boolean =>
-  existsSync(locations.installRoot) ||
-  existsSync(locations.stateRoot) ||
-  existsSync(join(locations.binDir, "order")) ||
-  existsSync(join(locations.userConfigHome, "systemd", "user", "pontivus-order.service"));
+  [locations.installRoot, locations.stateRoot, join(locations.binDir, "order"),
+    join(locations.userConfigHome, "systemd", "user", "pontivus-order.service")].some(footprintEntryExists);
+
+const predecessorConflict = (locations: InstallerLocations, legacy: LegacyGateweftLocations): never =>
+  fail("Gateweft predecessor and Order productive roots both exist; resolve the conflict before installing: " +
+    [legacy.installRoot, legacy.stateRoot, legacy.launcher, legacy.unitPath,
+      locations.installRoot, locations.stateRoot, join(locations.binDir, "order"),
+      join(locations.userConfigHome, "systemd", "user", "pontivus-order.service")]
+      .filter(footprintEntryExists).join(", "));
 
 // A successful stop command is not evidence of service quiescence.
 const observeServiceActivity = (
@@ -718,7 +736,7 @@ export const migrateLegacyGateweftInstallation = (
   };
   if (!detected) return empty;
   if (currentOrderFootprintExists(locations)) {
-    fail("Gateweft predecessor and Order productive roots both exist; resolve the conflict before installing");
+    predecessorConflict(locations, legacy);
   }
   const serviceWasActive = observeServiceActivity("gateweft.service", locations.home, environment) === "active";
   if (serviceWasActive) {
@@ -752,7 +770,7 @@ export const migrateLegacyGateweftInstallation = (
     try {
       rollbackLegacyGateweftMigration(currentMigration(), locations, environment);
     } catch (failure) {
-      throw new AggregateError([error, failure], "predecessor migration failed and rollback incomplete; retain " +
+      throw new AggregateError([error, failure], "predecessor migration failed: " + String(error) + "; rollback incomplete; retain " +
         [locations.installRoot, locations.stateRoot, legacy.installRoot, legacy.stateRoot].join(", "));
     }
     throw error;
@@ -828,7 +846,7 @@ export const runInstaller = async (
   }
   const predecessor = legacyGateweftFootprintExists(legacy);
   if (predecessor && currentOrderFootprintExists(locations)) {
-    fail("Gateweft predecessor and Order productive roots both exist; resolve the conflict before installing");
+    predecessorConflict(locations, legacy);
   }
   const historyRoot = predecessor ? legacy.installRoot : locations.installRoot;
   const established = completeDeploymentFootprint(historyRoot,
@@ -940,15 +958,17 @@ export const runInstaller = async (
       compensate("cannot prove new service stopped; live deployment and recovery material retained",
         () => requireServiceQuiescence("pontivus-order.service", locations.home, environment));
       if (failures.length > 0) throw new AggregateError([error, ...failures],
-        "installation failed; cannot safely restore active deployment; retained paths: " +
+        "installation failed: " + String(error) + "; cannot safely restore active deployment; retained paths: " +
         [locations.installRoot, locations.stateRoot, installBackup, launcherBackup, configSnapshot?.recoveryPath].filter(Boolean).join(", "));
     }
-    if (unitPublished) compensate("service unit restoration incomplete", () => restoreUnit(locations, prior, environment));
     if (databaseRestoreIncomplete) failures.push(new Error("database preparation compensation incomplete at " + locations.stateRoot));
     if (databaseArchive !== null && sqliteUpgradeModule !== null) {
       const archive = databaseArchive;
       const module = sqliteUpgradeModule;
-      compensate("database restoration incomplete: " + archive.archiveDatabase, () => module.restoreOrderDatabaseAfterFailedInstall(archive));
+      compensate("database restoration incomplete: " + archive.archiveDatabase, () => {
+        try { module.restoreOrderDatabaseAfterFailedInstall(archive); }
+        catch (failure) { databaseRestoreIncomplete = true; throw failure; }
+      });
     }
     if (configSnapshot !== null && configModule !== null) {
       const snapshot = configSnapshot;
@@ -973,6 +993,7 @@ export const runInstaller = async (
         renameSync(backup, locations.installRoot);
       });
     }
+    if (unitPublished) compensate("service unit restoration incomplete: " + prior.unitPath, () => restoreUnit(locations, prior, environment));
     if (staging !== null) { const path = staging; compensate("staging cleanup incomplete: " + path, () => rmSync(path, { recursive: true })); }
     if (launcherTemporary !== null) { const path = launcherTemporary; compensate("temporary launcher cleanup incomplete: " + path, () => rmSync(path)); }
     if (failures.length === 0 && legacyMigration !== null) {
@@ -981,7 +1002,8 @@ export const runInstaller = async (
     }
     if (failures.length === 0 && priorStopped) compensate("prior service restart failed",
       () => runCommand(["systemctl", "--user", "restart", "pontivus-order.service"], locations.home, environment));
-    if (failures.length > 0) throw new AggregateError([error, ...failures], "installation failed; rollback incomplete: " + failures.map(String).join("; "));
+    if (failures.length > 0) throw new AggregateError([error, ...failures],
+      "installation failed: " + String(error) + "; rollback incomplete: " + failures.map(String).join("; "));
     throw error;
   }
 
@@ -993,8 +1015,9 @@ export const runInstaller = async (
     if (installBackup !== null) rmSync(installBackup, { recursive: true });
     if (launcherBackup !== null) rmSync(launcherBackup);
   } catch (error) {
-    throw new Error("installation committed; finalization incomplete; retained material may remain at " +
-      [installBackup, launcherBackup, configSnapshot?.recoveryPath, legacy.launcher, legacy.unitPath].filter(Boolean).join(", "),
+    throw new Error("installation committed; finalization incomplete: " + String(error) + "; retained material at " +
+      [installBackup, launcherBackup, configSnapshot?.recoveryPath, legacy.launcher, legacy.unitPath]
+        .filter((path): path is string => typeof path === "string" && footprintEntryExists(path)).join(", "),
       { cause: error });
   }
   if (established && configuredSetup !== null) {

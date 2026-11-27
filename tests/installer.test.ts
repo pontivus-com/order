@@ -89,7 +89,7 @@ if (
   args[1] === "auth" &&
   args[2] === "login"
 ) {
-  record({ kind: "login", args });
+  record({ kind: "login", args, cwd: process.cwd() });
   if (config.loginMarkerPath) writeFileSync(config.loginMarkerPath, "started\\n");
   if (config.loginMode === "hang") await Bun.sleep(60_000);
   process.exit(config.loginExitCode ?? 0);
@@ -107,7 +107,7 @@ if (
   process.exit(2);
 }
 
-record({ kind: "serve", args });
+record({ kind: "serve", args, cwd: process.cwd() });
 const json = (value) =>
   new Response(JSON.stringify(value), {
     headers: { "content-type": "application/json" },
@@ -167,6 +167,7 @@ const runSetup = (
   stateRoot: string,
   binary: string,
   answers: Readonly<Record<string, string>>,
+  established = false,
 ): Readonly<{
   code: number;
   config: unknown;
@@ -188,7 +189,7 @@ const runSetup = (
         if (answer === undefined) throw new Error("unexpected prompt: " + prompt);
         return answer;
       },
-      false,
+      ${JSON.stringify(established)},
       { snapshot: cfg.captureInstallerConfigSnapshot(${JSON.stringify(stateRoot)}), onPublished: () => {} },
     );
     console.log(JSON.stringify({
@@ -277,6 +278,61 @@ describe("guided productive installer setup", () => {
     expect(JSON.parse(result.stdout.trim())).toEqual({
       absentRestored: true, exact: true, released: true, blocked: true, retained: true, symlinkBlocked: true,
     });
+  });
+
+  it("established admission retains unavailable v3 choices and handles proven absent config without provider work", () => {
+    const home = tempDir("order-established-home-");
+    const stateRoot = tempDir("order-established-state-");
+    const absentState = tempDir("order-established-absent-");
+    const fakeRoot = tempDir("order-established-provider-");
+    const recordPath = join(fakeRoot, "calls.jsonl");
+    const binary = createFakeOpenCode(fakeRoot, { recordPath });
+    const old = {
+      version: 3,
+      model: { providerID: "retained-provider", id: "retained-model" },
+      repositoryRoots: [join(home, "unavailable-repository")],
+      referenceRoots: [join(home, "unavailable-reference")],
+    };
+    writeFileSync(join(stateRoot, "config.json"), JSON.stringify(old) + "\n", { mode: 0o600 });
+    const retained = runSetup(home, stateRoot, binary, {}, true);
+    expect(retained.code).toBe(0);
+    expect(retained.prompts).toEqual([]);
+    expect(retained.config).toEqual({ ...old, version: 4 });
+    const absent = runSetup(home, absentState, binary, {}, true);
+    expect(absent.code).toBe(0);
+    expect(absent.prompts).toEqual([]);
+    expect(absent.config).toEqual({ version: 4, model: null, repositoryRoots: [], referenceRoots: [] });
+    expect(existsSync(recordPath)).toBe(false);
+  });
+
+  it("fresh retained configuration repairs unavailable roots before any provider process", () => {
+    const home = tempDir("order-repair-home-");
+    const stateRoot = tempDir("order-repair-state-");
+    const project = createProject();
+    const missingTarget = join(home, "missing-target");
+    const missingReference = join(home, "missing-reference");
+    const fakeRoot = tempDir("order-repair-provider-");
+    const recordPath = join(fakeRoot, "calls.jsonl");
+    const binary = createFakeOpenCode(fakeRoot, { recordPath });
+    const model = { providerID: "opencode", id: "glm-5.3-flash-free" };
+    writeFileSync(join(stateRoot, "config.json"), JSON.stringify({
+      version: 4, model, repositoryRoots: [missingTarget], referenceRoots: [missingReference],
+    }) + "\n", { mode: 0o600 });
+    const output = runSetup(home, stateRoot, binary, {
+      ["Replacement for " + missingTarget + " (blank removes): "]: project,
+      ["Replacement for " + missingReference + " (blank removes): "]: "",
+      "Retain saved OpenCode credentials or login again? [retain/login]: ": "login",
+      "Select model [1]: ": "",
+    });
+    expect(output.code).toBe(0);
+    expect(output.config).toEqual({ version: 4, model, repositoryRoots: [project], referenceRoots: [] });
+    expect(output.prompts.slice(0, 2)).toEqual([
+      "Replacement for " + missingTarget + " (blank removes): ",
+      "Replacement for " + missingReference + " (blank removes): ",
+    ]);
+    const calls = readFileSync(recordPath, "utf8").trim().split("\n").map(line => JSON.parse(line));
+    expect(calls.some(call => call.kind === "login")).toBe(true);
+    expect(calls.every(call => call.cwd === project)).toBe(true);
   });
 
   it("fresh success completes provider, model and repository choices before returning zero", () => {

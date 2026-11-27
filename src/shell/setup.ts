@@ -438,11 +438,15 @@ const runGuidedSetupInternal = async (
 
   // Fresh or unproven installation must establish exact roots before provider work.
   let installerRoots: Pick<OrderConfig, "repositoryRoots" | "referenceRoots"> | null = null;
-  if (publication !== undefined) {
+  const repairInstallerRoots = async (
+    initial: Pick<OrderConfig, "repositoryRoots" | "referenceRoots">,
+    askOptionalReference: boolean,
+  ): Promise<Pick<OrderConfig, "repositoryRoots" | "referenceRoots">> => {
     const accepted: string[] = [];
     const repairRoots = async (roots: readonly string[], target: boolean): Promise<string[]> => {
       const result: string[] = [];
       const prove = async (path: string, retained: boolean): Promise<string> => {
+        if (!isAbsolute(path)) throw new TypeError("configured root must be absolute");
         const exact = proveConfiguredDirectoryRoots([path])[0]!;
         if (retained && exact !== path) throw new TypeError("stored root identity changed");
         if ([stateRoot, ...accepted].some(root => pathIsWithin(root, exact) || pathIsWithin(exact, root))) {
@@ -469,24 +473,59 @@ const runGuidedSetupInternal = async (
       }
       return result;
     };
-    let repositoryRoots = await repairRoots(existing?.repositoryRoots ?? [], true);
+    let repositoryRoots = await repairRoots(initial.repositoryRoots, true);
     while (repositoryRoots.length === 0) {
       const first = (await question("Target repository root: ")).trim();
       if (first === "") throw new TypeError("an exact target repository root is required");
       repositoryRoots = await repairRoots(await collectAdditionalRoots(first, "target repository", question), true);
     }
-    let referenceRoots = await repairRoots(existing?.referenceRoots ?? [], false);
-    if ((existing?.referenceRoots.length ?? 0) === 0) {
+    let referenceRoots = await repairRoots(initial.referenceRoots, false);
+    if (askOptionalReference && initial.referenceRoots.length === 0) {
       const first = (await question("STAGE reference root (blank for none): ")).trim();
       if (first !== "") referenceRoots = await repairRoots(await collectAdditionalRoots(first, "reference", question), false);
     }
-    installerRoots = buildOrderConfig(null, repositoryRoots, referenceRoots);
-  }
+    return buildOrderConfig(null, repositoryRoots, referenceRoots);
+  };
 
-  const workspace = installerRoots?.repositoryRoots[0] ?? existing?.repositoryRoots[0] ?? home;
+  if (publication !== undefined) {
+    installerRoots = await repairInstallerRoots(existing ?? { repositoryRoots: [], referenceRoots: [] }, true);
+  }
+  const reproveInstallerRoots = async (): Promise<boolean> => {
+    if (installerRoots === null) return true;
+    try {
+      const roots = installerRoots;
+      const exact = buildOrderConfig(null, roots.repositoryRoots, roots.referenceRoots);
+      if (JSON.stringify(exact.repositoryRoots) !== JSON.stringify(roots.repositoryRoots) ||
+          JSON.stringify(exact.referenceRoots) !== JSON.stringify(roots.referenceRoots)) return false;
+      await loadConfiguredProjects(roots.repositoryRoots);
+      return true;
+    } catch { return false; }
+  };
+  const repairStartupDrift = async (): Promise<boolean> => {
+    if (installerRoots === null || await reproveInstallerRoots()) return false;
+    writeStdout("Configured roots changed before provider startup; repair the exact roots.\n");
+    installerRoots = await repairInstallerRoots(installerRoots, false);
+    return true;
+  };
+  const providerOperation = async <T>(
+    operation: (workspace: string) => Promise<T>,
+    onProviderFailure?: () => T,
+  ): Promise<T> => {
+    for (;;) {
+      await repairStartupDrift();
+      const workspace = installerRoots?.repositoryRoots[0] ?? existing?.repositoryRoots[0] ?? home;
+      try {
+        return await operation(workspace);
+      } catch (error) {
+        if (await repairStartupDrift()) continue;
+        if (onProviderFailure !== undefined) return onProviderFailure();
+        throw error;
+      }
+    }
+  };
   let models = existing === null
     ? []
-    : await listAvailableOpenCodeModels(stateRoot, workspace, environment).catch(() => []);
+    : await providerOperation(workspace => listAvailableOpenCodeModels(stateRoot, workspace, environment), () => []);
   if (installerRoots !== null && models.length > 0) {
     const choice = (await question("Retain saved OpenCode credentials or login again? [retain/login]: ")).trim().toLowerCase();
     if (choice === "login") models = [];
@@ -518,14 +557,14 @@ const runGuidedSetupInternal = async (
   }
 
   if (models.length === 0) {
-    const login = await loginOpenCodeProviderInteractive(
+    const login = await providerOperation(workspace => loginOpenCodeProviderInteractive(
       stateRoot,
       workspace,
       environment,
-    );
+    ));
     if (login.cancelled) return 130;
     if (login.exitCode !== 0) return login.exitCode;
-    models = await listAvailableOpenCodeModels(stateRoot, workspace, environment);
+    models = await providerOperation(workspace => listAvailableOpenCodeModels(stateRoot, workspace, environment));
   }
   if (models.length === 0) {
     throw new TypeError("no enabled OpenCode models are available after provider authentication");
@@ -555,6 +594,9 @@ const runGuidedSetupInternal = async (
   let repositoryRoots: readonly string[];
   let referenceRoots: readonly string[];
   if (installerRoots !== null) {
+    if (!await reproveInstallerRoots()) {
+      throw new TypeError("configured root identity changed after model selection; retry guided installation");
+    }
     repositoryRoots = installerRoots.repositoryRoots;
     referenceRoots = installerRoots.referenceRoots;
   } else if (existing !== null && !reconfigure) {
