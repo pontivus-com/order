@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Add invocation-local no-follow configuration snapshot, private exact recovery copy, publication identity callback and guarded restoration in the canonical config shell owner (IA25 custody slice).
+
 - Add the installed setup owner's canonical authenticated loopback readiness observation, exact GET-only Bearer admission, and safe fresh/update readiness reporting (IA25 transport slice).
 
 - Consume exact current/final Approval identity in workspace task ownership and invalidate the canonical Approval queries on lifecycle mutations (IA17).

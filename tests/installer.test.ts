@@ -207,6 +207,47 @@ const runSetup = (
 };
 
 describe("guided productive installer setup", () => {
+  it("retains exact private config custody and refuses to overwrite unexpected publication drift", () => {
+    const state = tempDir("order-installer-config-custody-");
+    const script = `
+      const fs = await import("node:fs");
+      const cfg = await import("./src/shell/config.ts");
+      const stateRoot = ${JSON.stringify(state)};
+      const target = stateRoot + "/config.json";
+      const config = { version: 4, model: null, repositoryRoots: [], referenceRoots: [] };
+      const absent = cfg.captureInstallerConfigSnapshot(stateRoot);
+      let published = null;
+      cfg.writeOrderConfig(stateRoot, config, { snapshot: absent, onPublished: (value) => published = value });
+      cfg.restoreInstallerConfig(absent, published);
+      const absentRestored = !fs.existsSync(target);
+      const raw = "  " + JSON.stringify(config) + "\\n";
+      fs.writeFileSync(target, raw, { mode: 0o600 });
+      const original = cfg.captureInstallerConfigSnapshot(stateRoot);
+      published = null;
+      cfg.writeOrderConfig(stateRoot, config, { snapshot: original, onPublished: (value) => published = value });
+      cfg.restoreInstallerConfig(original, published);
+      const exact = fs.readFileSync(target, "utf8") === raw;
+      const released = !fs.existsSync(original.recoveryPath);
+      const drift = cfg.captureInstallerConfigSnapshot(stateRoot);
+      published = null;
+      cfg.writeOrderConfig(stateRoot, config, { snapshot: drift, onPublished: (value) => published = value });
+      fs.appendFileSync(target, " ");
+      let blocked = false;
+      try { cfg.restoreInstallerConfig(drift, published); } catch { blocked = true; }
+      const retained = fs.readFileSync(drift.recoveryPath, "utf8") === raw;
+      fs.unlinkSync(target);
+      fs.symlinkSync(stateRoot + "/missing", target);
+      let symlinkBlocked = false;
+      try { cfg.captureInstallerConfigSnapshot(stateRoot); } catch { symlinkBlocked = true; }
+      console.log(JSON.stringify({ absentRestored, exact, released, blocked, retained, symlinkBlocked }));
+    `;
+    const result = spawnSync("bun", ["--eval", script], { cwd: process.cwd(), encoding: "utf8", timeout: 30_000 });
+    if (result.status !== 0) throw new Error(result.stderr || result.stdout);
+    expect(JSON.parse(result.stdout.trim())).toEqual({
+      absentRestored: true, exact: true, released: true, blocked: true, retained: true, symlinkBlocked: true,
+    });
+  });
+
   it("fresh success completes provider, model and repository choices before returning zero", () => {
     const home = tempDir("order-installer-home-");
     const stateRoot = tempDir("order-installer-state-");

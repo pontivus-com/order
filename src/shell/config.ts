@@ -254,8 +254,9 @@ const canonicalLegacyOrderConfigV2 = (
 
 export const readOrderConfigForUpgrade = (
   stateRoot: string,
+  admittedBytes?: Uint8Array,
 ): OrderConfig | LegacyOrderConfigV3 | LegacyOrderConfigV2 | LegacyPredecessorConfigV1 => {
-  const value = readConfigValue(stateRoot);
+  const value = admittedBytes === undefined ? readConfigValue(stateRoot) : parseConfigBytes(admittedBytes);
   const current = OrderConfigSchema.safeParse(value);
   if (current.success) return canonicalCurrentOrderConfig(stateRoot, current.data);
   const v3 = LegacyOrderConfigV3Schema.safeParse(value);
@@ -299,29 +300,182 @@ export const readOrderConfigIfPresent = (
   }
 };
 
+// Installer-only rollback custody. These identities live only for this invocation.
+type InstallerConfigIdentity = Readonly<{
+  device: bigint;
+  inode: bigint;
+  mode: number;
+  sha256: Sha256;
+}>;
+
+export type InstallerConfigSnapshot = Readonly<{
+  target: string;
+  original: InstallerConfigIdentity | null;
+  recoveryPath: string | null;
+  recoveryIdentity: InstallerConfigIdentity | null;
+}>;
+
+export type InstallerConfigPublication = Readonly<{
+  snapshot: InstallerConfigSnapshot;
+  onPublished: (identity: InstallerConfigIdentity) => void;
+}>;
+
+type ObservedInstallerConfig = Readonly<{
+  identity: InstallerConfigIdentity;
+  bytes: Uint8Array;
+}>;
+
+const observeInstallerConfig = (target: string): ObservedInstallerConfig | null => {
+  const entry = lstatSync(target, { bigint: true, throwIfNoEntry: false });
+  if (entry !== undefined && !entry.isFile()) {
+    throw new TypeError("installer config target must be a regular non-symlink file: " + target);
+  }
+  let descriptor: number;
+  try {
+    descriptor = openSync(target, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
+  } catch (error) {
+    if (entry === undefined && asErrorCode(error) === "ENOENT" &&
+        lstatSync(target, { throwIfNoEntry: false }) === undefined) return null;
+    throw error;
+  }
+  try {
+    validateConfigDescriptor(descriptor);
+    const stat = fstatSync(descriptor, { bigint: true });
+    if (entry === undefined || entry.dev !== stat.dev || entry.ino !== stat.ino || entry.mode !== stat.mode) {
+      throw new TypeError("installer config target changed during inspection: " + target);
+    }
+    const bytes = new Uint8Array(readFileSync(descriptor));
+    const after = lstatSync(target, { bigint: true });
+    if (after.dev !== stat.dev || after.ino !== stat.ino || after.mode !== stat.mode ||
+        after.size !== stat.size || after.mtimeNs !== stat.mtimeNs || after.ctimeNs !== stat.ctimeNs) {
+      throw new TypeError("installer config target changed during read: " + target);
+    }
+    return { identity: { device: stat.dev, inode: stat.ino, mode: Number(stat.mode & 0o777n), sha256: sha256(bytes) }, bytes };
+  } finally {
+    closeSync(descriptor);
+  }
+};
+
+const configIdentityMatches = (
+  observed: InstallerConfigIdentity | null,
+  expected: InstallerConfigIdentity | null,
+): boolean => observed === null || expected === null
+  ? observed === expected
+  : observed.device === expected.device && observed.inode === expected.inode &&
+    observed.mode === expected.mode && observed.sha256 === expected.sha256;
+
+const requireInstallerConfigIdentity = (
+  target: string,
+  expected: InstallerConfigIdentity | null,
+): ObservedInstallerConfig | null => {
+  const observed = observeInstallerConfig(target);
+  if (!configIdentityMatches(observed?.identity ?? null, expected)) {
+    throw new TypeError("installer config identity or bytes changed: " + target);
+  }
+  return observed;
+};
+
+const fsyncConfigDirectory = (target: string): void => {
+  const parentDescriptor = openSync(dirname(target), constants.O_RDONLY | constants.O_DIRECTORY);
+  try { fsyncSync(parentDescriptor); } finally { closeSync(parentDescriptor); }
+};
+
+const writeExclusiveConfigBytes = (
+  path: string,
+  bytes: Uint8Array,
+  mode: number,
+): InstallerConfigIdentity => {
+  const descriptor = openSync(path,
+    constants.O_WRONLY | constants.O_CREAT | constants.O_EXCL | constants.O_NOFOLLOW, 0o600);
+  try {
+    writeFileSync(descriptor, bytes);
+    fchmodSync(descriptor, mode);
+    fsyncSync(descriptor);
+    const stat = fstatSync(descriptor, { bigint: true });
+    return { device: stat.dev, inode: stat.ino, mode, sha256: sha256(bytes) };
+  } finally {
+    closeSync(descriptor);
+  }
+};
+
+export const captureInstallerConfigSnapshot = (stateRoot: string): InstallerConfigSnapshot => {
+  ensureSupportedStateRoot(stateRoot);
+  const target = statePaths(stateRoot).config;
+  const original = observeInstallerConfig(target);
+  if (original === null) return { target, original: null, recoveryPath: null, recoveryIdentity: null };
+  const recoveryPath = target + ".installer-recovery." + crypto.randomUUID();
+  const recoveryIdentity = writeExclusiveConfigBytes(recoveryPath, original.bytes, original.identity.mode);
+  fsyncConfigDirectory(recoveryPath);
+  requireInstallerConfigIdentity(target, original.identity);
+  return { target, original: original.identity, recoveryPath, recoveryIdentity };
+};
+
+export const readInstallerConfigForUpgrade = (
+  stateRoot: string,
+  snapshot: InstallerConfigSnapshot,
+): ReturnType<typeof readOrderConfigForUpgrade> | null => {
+  if (snapshot.target !== statePaths(stateRoot).config) throw new TypeError("installer config snapshot belongs to another state root");
+  const observed = requireInstallerConfigIdentity(snapshot.target, snapshot.original);
+  return observed === null ? null : readOrderConfigForUpgrade(stateRoot, observed.bytes);
+};
+
+export const releaseInstallerConfigSnapshot = (snapshot: InstallerConfigSnapshot): void => {
+  if (snapshot.recoveryPath === null || snapshot.recoveryIdentity === null) return;
+  requireInstallerConfigIdentity(snapshot.recoveryPath, snapshot.recoveryIdentity);
+  unlinkSync(snapshot.recoveryPath);
+  fsyncConfigDirectory(snapshot.recoveryPath);
+};
+
+export const restoreInstallerConfig = (
+  snapshot: InstallerConfigSnapshot,
+  published: InstallerConfigIdentity | null,
+): void => {
+  if (published === null) {
+    requireInstallerConfigIdentity(snapshot.target, snapshot.original);
+  } else {
+    requireInstallerConfigIdentity(snapshot.target, published);
+    if (snapshot.original === null) {
+      unlinkSync(snapshot.target);
+      fsyncConfigDirectory(snapshot.target);
+      requireInstallerConfigIdentity(snapshot.target, null);
+    } else {
+      if (snapshot.recoveryPath === null || snapshot.recoveryIdentity === null) {
+        throw new TypeError("installer original config recovery copy is missing: " + snapshot.target);
+      }
+      const original = requireInstallerConfigIdentity(snapshot.recoveryPath, snapshot.recoveryIdentity);
+      if (original === null || original.identity.sha256 !== snapshot.original.sha256 ||
+          original.identity.mode !== snapshot.original.mode) {
+        throw new TypeError("installer original config recovery copy is inconsistent: " + snapshot.recoveryPath);
+      }
+      const temporary = snapshot.target + ".installer-restore." + crypto.randomUUID();
+      const restored = writeExclusiveConfigBytes(temporary, original.bytes, snapshot.original.mode);
+      requireInstallerConfigIdentity(snapshot.target, published);
+      renameSync(temporary, snapshot.target);
+      fsyncConfigDirectory(snapshot.target);
+      requireInstallerConfigIdentity(snapshot.target, restored);
+    }
+  }
+  releaseInstallerConfigSnapshot(snapshot);
+};
+
 export const writeOrderConfig = (
   stateRoot: string,
   config: OrderConfig,
+  installer?: InstallerConfigPublication,
 ): OrderConfig => {
   ensureSupportedStateRoot(stateRoot);
   const canonical = canonicalCurrentOrderConfig(stateRoot, config);
   const target = statePaths(stateRoot).config;
   const temporary = target + ".tmp." + process.pid + "." + crypto.randomUUID();
-  const descriptor = openSync(
-    temporary,
-    constants.O_WRONLY | constants.O_CREAT | constants.O_EXCL | constants.O_NOFOLLOW,
-    0o600,
-  );
-  try {
-    fchmodSync(descriptor, 0o600);
-    writeFileSync(descriptor, JSON.stringify(canonical) + "\n", "utf8");
-    fsyncSync(descriptor);
-  } finally {
-    closeSync(descriptor);
+  if (installer !== undefined && installer.snapshot.target !== target) {
+    throw new TypeError("installer config snapshot belongs to another state root");
   }
-
+  const bytes = new TextEncoder().encode(JSON.stringify(canonical) + "\n");
+  const identity = writeExclusiveConfigBytes(temporary, bytes, 0o600);
   try {
+    if (installer !== undefined) requireInstallerConfigIdentity(target, installer.snapshot.original);
     renameSync(temporary, target);
+    installer?.onPublished(identity);
   } catch (error) {
     try {
       if (lstatSync(temporary).isFile()) unlinkSync(temporary);
@@ -331,15 +485,7 @@ export const writeOrderConfig = (
     throw error;
   }
 
-  const parentDescriptor = openSync(
-    dirname(target),
-    constants.O_RDONLY | constants.O_DIRECTORY,
-  );
-  try {
-    fsyncSync(parentDescriptor);
-  } finally {
-    closeSync(parentDescriptor);
-  }
+  fsyncConfigDirectory(target);
   return readOrderConfig(stateRoot);
 };
 
