@@ -154,6 +154,10 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Changed
 
+- Formalize Order's existing P0-P8 functional-pyramid discipline at its canonical governance owner: add proposition-level placement and downward derivation rules, strengthen canonical ownership/explicit flow with semantic-lifecycle closure and noninterference, and open a repository-native conformance WorkItem/register to audit canonical placement and producer-to-consumer meaning without adding Span runtime integration.
+
+- Clarify repository delivery and agent operating rules to batch intermediate implementation commits and trigger remote PR verification at governed milestones while retaining all required checkpoint, acceptance, and exact-candidate release checks.
+
 - Capture separately selected builder and independent-review attempt evidence, retaining the recorded task boundary without attributing reviewer validation results to the builder.
 
 - Apply semantic workflow rail marker colors and symbols to the existing canonical summary projection; stop connectors short of each marker and distinguish reached history from a validation verdict. Make approved-task attempt provenance explicit with aligned full-width subordinate rows and semantic task/Run statuses. Correct the not-started Readiness fixture assertion and inconsistent empty findings copy; retain exact lifecycle behavior.

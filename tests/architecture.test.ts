@@ -297,6 +297,42 @@ const verifyCampaignReviewedInputs = (
 };
 
 describe("architecture fitness", () => {
+  it("keeps pyramid placement and semantic-lifecycle law at the canonical P0/P1 owner", () => {
+    const governance = sourceText("docs/governance/systems-governance.md");
+
+    expect(governance).toContain(
+      "### Pyramid proposition placement, authority and derivation law",
+    );
+    expect(governance).toContain(
+      "### Semantic lifecycle closure and noninterference",
+    );
+
+    const placement = governance.split(
+      "### Pyramid proposition placement, authority and derivation law",
+    )[1]?.split("## 3. P0 — Order governance kernel")[0] ?? "";
+    for (const layer of ["P0", "P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8"]) {
+      expect(placement).toMatch(new RegExp("\\*\\*" + layer + "\\*\\*"));
+    }
+
+    for (const ruleId of [
+      "GW-P1-CANONICAL-OWNERSHIP",
+      "GW-P1-EXPLICIT-FLOW",
+      "GW-P1-DOC-CANONICALITY",
+    ]) {
+      expect(governance).toContain(ruleId);
+    }
+
+    expect(governance).toContain(
+      "technical access to a field or type is not semantic authorization",
+    );
+    expect(governance).toContain(
+      "changes to that fact must not alter the consumer's semantic result",
+    );
+    expect(governance).not.toMatch(
+      /GW-P1-(?:SEMANTIC-LIFECYCLE|FUNCTIONAL-PYRAMID|NONINTERFERENCE)/,
+    );
+  });
+
   it("distinguishes exact campaign review inputs from bounded candidate differences", () => {
     const sha = "1".repeat(40);
     const changedSha = "2".repeat(40);

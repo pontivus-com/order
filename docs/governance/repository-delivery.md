@@ -250,6 +250,18 @@ It validates at minimum:
 
 A submitted review may provide additional evidence, but review presence or reviewer identity is not a required status gate. A material push invalidates earlier verification evidence because the workflow reruns against the new exact candidate.
 
+### Milestone-driven implementation CI cadence
+
+For repository implementation work, schedule remote PR verification at the relevant implementation/evidence milestones, not at every intermediate commit, correction, or conversational handoff.
+
+- Derive milestones from the governing implementation plan and its mandatory checkpoint, dependency, and acceptance boundaries. For ordinary work without a prescribed sequence, use coherent implementation batches and exact-candidate pre-merge verification. Do not add arbitrary verification stops between those boundaries.
+- Complete related authorized implementation and test changes as a batch. Create coherent intermediate commits without advancing the PR branch ref; publish the accumulated fast-forward commit sequence once at the next required milestone. Preserve the exact signed scope and ordinary PR audit trail.
+- Perform source review, diff/scope checks and available focused local checks during implementation. Do not substitute source review for a required executable check. A mandatory P7 in-task checkpoint or phase-local evidence/acceptance dependency must still be satisfied before the dependent work begins; when remote execution is necessary, that boundary is a valid CI milestone.
+- Do not dispatch or rerun full CI solely to verify every small edit or poll an unfinished run as an implementation activity. Continue independent authorized work while verification runs where the governing dependencies permit. Consolidate related failure analysis and corrections into a single repair batch before rerunning the applicable verification; do not weaken tests or knowingly advance past a failed prerequisite.
+- Retain results against the exact candidate and milestone. Any change invalidating required evidence must be reverified at the next applicable boundary; never carry a stale PASS forward as current proof. Final PR verification, explicit human acceptance where required, and release verification remain mandatory against the exact admitted candidate.
+
+This is a publication and execution-cadence rule, not a new product gate or permission to alter signed plans, skip mandatory checks, bypass review, or disable the permanent PR workflow. Existing PR triggers and required status checks remain unchanged.
+
 ### Release verification/publication
 
 Triggered only by the merged release-version change on `master` or an equivalent exact retry bound to the same commit/version. An exact retry may be requested through `workflow_dispatch` or, when dispatch is unavailable, by merging an ordinary governed PR that adds exactly one `.github/release-retries/*.txt` request containing the 40-character release commit SHA; that request invokes the same permanent release workflow and does not create a second release path.

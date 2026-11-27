@@ -46,6 +46,7 @@ Operational consequences for agents:
 - create/use a short-lived branch from current `master` for every documentation, governance, code, test, dependency, configuration or release-metadata change;
 - update `CHANGELOG.md` under `[Unreleased]` in every ordinary work PR and declare the exact release impact/target train in the PR body;
 - open a pull request targeting `master`; repository write access or a user request to apply a change authorizes the scoped branch/PR work, not bypass of the PR boundary;
+- follow the milestone-driven publication and CI cadence in `GW-DOC-PUBLIC-REPOSITORY-DELIVERY` §10; use batched branch updates rather than a CI-triggering push after every intermediate commit;
 - do not merge until required verification/status checks for the PR are green and material review discussion is resolved;
 - version bumps occur only in dedicated `release/vX.Y.Z` PRs under the canonical release standard;
 - after a release PR merges, tags/GitHub Releases/assets are produced only through the governed release path; never tag an unmerged PR head or move an existing release tag;
