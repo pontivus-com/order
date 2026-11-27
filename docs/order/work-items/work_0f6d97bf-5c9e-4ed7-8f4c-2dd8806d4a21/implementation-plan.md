@@ -4,7 +4,7 @@
 
 ## Canonical PLAN authority
 
-This root is the single deterministic P7 artifact for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. Its modular directory is the maintainable authoring decomposition, not independent executable authority. This revalidation-candidate implementation specification binds R1 `71522f58f73c4bb5632d27f6ad2382c6be4eddb4`, R2 `e280ae709962a1c4a85d69ce531d63e268d21ecf`, DESIGN `b3797cd01b943d5c6741e83ee21175176fec2054`, current P4 and P6. Prior closures were reopened by ALIGN-A01-F03, ALIGN-A07-F01, ALIGN-A09-F02, REV-F10 and the consolidated authority/REV-F11 return; campaign §17A/§18 own gate state and authorization. No gate advance or sign-off is inferred.
+This root is the single deterministic P7 artifact for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. Its modular directory is the maintainable authoring decomposition, not independent executable authority. This revalidation-candidate implementation specification binds R1 `71522f58f73c4bb5632d27f6ad2382c6be4eddb4`, R2 `0254f827a8660332a7f19297881450fb035ad289`, DESIGN `555ba62459dab5c35108b5ccadcd18e7bd66d247`, current P4 and P6. Prior closures were reopened by ALIGN-A01-F03, ALIGN-A07-F01, ALIGN-A09-F02, REV-F10 and the consolidated authority/REV-F11 return; campaign §17A/§18 own gate state and authorization. No gate advance or sign-off is inferred.
 
 **Revalidation candidate for native final QA/QC.** The compiled PLAN now includes QA1–QA6, IA35–IA39 and expanded candidate scope. This is not executable authorization: the exact consumer/forecast, protected architecture sensor and derived reference corpus have been revised for review. Actual exact-head fitness execution, current R1–R3 and campaign gate revalidation remain mandatory; static reconciliation does not establish PASS. External campaign final human acceptance remains distinct from native Acceptance.
 
@@ -16,7 +16,7 @@ Retain evidenced closed F6B semantic APIs and responsibilities; correct rejected
 
 | Source component | Git blob |
 |---|---|
-| `implementation-plan/00-governance.md` | `1e9da7e5d1767f60e5d8d50cfd14c82b3080d180` |
+| `implementation-plan/00-governance.md` | `8b7b0b71a6765174134e8f4dc4e517af14d37f72` |
 | `implementation-plan/01-a01-lifecycle-product.md` | `ee48b6a5393ab1a8ed3577d5c447498cff1e7cd3` |
 | `implementation-plan/02-a02-governance-intake.md` | `555b3517cd5134dbbfb15097250c80fb73df4226` |
 | `implementation-plan/03-a03-queue-source.md` | `8c690a886609a7a9a85506b43e3b6d055120ae1f` |
@@ -28,8 +28,8 @@ Retain evidenced closed F6B semantic APIs and responsibilities; correct rejected
 | `implementation-plan/09-a09-provider-settings.md` | `1c897157eb48bcb7e107b4c2401d7290865dab25` |
 | `implementation-plan/10-a10-recovery-accessibility.md` | `41d6cd0f833180d0c750c5943ed0b1ee6d5d4fd5` |
 | `implementation-plan/11-a11-component-certification.md` | `84cb71df374f69619af5c795dd0f26b7f0a232f9` |
-| `implementation-plan/12-action-catalog.md` | `644ccd69f0f4c76e3af76da3771ebbc99c231dd7` |
-| `implementation-plan/13-verification-closeout.md` | `9e25e2a00f08f641c17f775218050d982e9cd059` |
+| `implementation-plan/12-action-catalog.md` | `f1af6524cee7f7b913464f10b676101275703893` |
+| `implementation-plan/13-verification-closeout.md` | `b6d52162c54354bd610e7004cdc5feb2f58349f3` |
 
 A source hash mismatch makes PLAN non-current until recompiled. Directory files have no independent order-tasks block or lifecycle state.
 
@@ -39,7 +39,7 @@ A01–A11 retain requirement/atom-specific consequences; IA01–IA39 are the sin
 
 ## Candidate execution scope
 
-One T1 candidate, exact 60 paths for scope and changeSurface; explicit exclusions protect retained/absent owners and authorizing material. No production authority before normal sign-off.
+One T1 candidate, exact 61 paths for scope and changeSurface; explicit exclusions protect retained/absent owners and authorizing material. No production authority before normal sign-off.
 
 ```order-tasks
 {
@@ -97,6 +97,7 @@ One T1 candidate, exact 60 paths for scope and changeSurface; explicit exclusion
         "docs/references/workbench-ui/README.md",
         ".github/workflows/ci.yml",
         "CHANGELOG.md",
+        "src/shell/runtime.ts",
         "src/core/execution.ts",
         "src/daemon/execution.ts",
         "src/daemon/validation.ts",
@@ -117,7 +118,6 @@ One T1 candidate, exact 60 paths for scope and changeSurface; explicit exclusion
         "src/shell/opencode.ts",
         "src/shell/process.ts",
         "src/shell/project-config.ts",
-        "src/shell/runtime.ts",
         "src/shell/work-item-source.ts",
         "tests/architecture.test.ts",
         "ui/src/ActivityComposer.tsx",
@@ -295,6 +295,7 @@ One T1 candidate, exact 60 paths for scope and changeSurface; explicit exclusion
         "docs/references/workbench-ui/README.md",
         ".github/workflows/ci.yml",
         "CHANGELOG.md",
+        "src/shell/runtime.ts",
         "src/core/execution.ts",
         "src/daemon/execution.ts",
         "src/daemon/validation.ts",
@@ -352,7 +353,7 @@ Existing closed component owners, atomic adapters and specialist/infrastructure 
 
 ## Exact candidate implementation surface
 
-Exact 60 paths; DESIGN owns the obligation-specific reasons.
+Exact 61 paths; DESIGN owns the obligation-specific reasons.
 
 ### Authority and lifecycle
 - `README.md`
@@ -408,6 +409,7 @@ Exact 60 paths; DESIGN owns the obligation-specific reasons.
 - `CHANGELOG.md`
 
 ### Native Acceptance additional bounded paths
+- `src/shell/runtime.ts`
 - `src/core/execution.ts`
 - `src/daemon/execution.ts`
 - `src/daemon/validation.ts`
@@ -424,7 +426,7 @@ Exact 60 paths; DESIGN owns the obligation-specific reasons.
 ## Exhaustive traceability invariants
 
 - one T1 and one IA01-IA39 definition owner, 112 stable requirements and 27 package atoms mapped to DESIGN/IA and proof;
-- exact 60-path scope/changeSurface, protected exclusions, no mutation for retained/required-absent owners;
+- exact 61-path scope/changeSurface, protected exclusions, no mutation for retained/required-absent owners;
 - 38 SURF and 47 scenarios, exact HUX and physical SoC proof, no compatibility or shadow representation;
 - G4/G5/G5A/independent R3 and normal sign-off remain separate gates.
 
@@ -441,15 +443,15 @@ This decomposition is revalidated under C19-F09/C20-F11 after the prior G4-G6 cl
 ##### Exact upstream package
 
 - R1 `research.md`: `71522f58f73c4bb5632d27f6ad2382c6be4eddb4`.
-- R2 `requirements.md`: `e280ae709962a1c4a85d69ce531d63e268d21ecf`.
-- DESIGN `solution-design.md`: `b3797cd01b943d5c6741e83ee21175176fec2054` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and QA1–QA6 expanded forecast.
+- R2 `requirements.md`: `0254f827a8660332a7f19297881450fb035ad289`.
+- DESIGN `solution-design.md`: `555ba62459dab5c35108b5ccadcd18e7bd66d247` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and QA1–QA6 expanded forecast.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `ee8acad4e39f4641476eb46d99ca168afab3db3d`.
 - P3 `GW-DOC-WORKBENCH-UX-V2`: `d4491745b1540639ed57be11c69428415d5860af` — §11.4A/§12/§13/§14 (including §14.8A.1–2) own semantic information classes, state-is-not-interface behavior, direct primary interaction composition, no generic workflow-material selector, continuous Dialogue semantics, Terminal-result primacy, singular technical inspection, task anatomy and composition invariants.
 - P3 `GW-DOC-MARKDOWN-WORKBENCH-V1`: `1668746eae4ac8a0fc766e9e09150527cd07c347` — §17.4 owns one compact Markdown editor-control region, overflow-before-wrap formatting and control→canvas adjacency.
 - P4 `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`: `3ac940966906e4377bc762482a68c756b2ff66bc` — sole permanent owner of structural + semantic Workbench component responsibilities/APIs, consumer boundaries, composition laws and remediation disposition semantics.
 - P4 `GW-DOC-WORKBENCH-THEME-V1`: `03dfc6be3600a1128b5639d011f4c0159d3497dd` — owns the corrected semantic-disclosure, technical-inspection and task-panel visual roles.
 - P4 `GW-DOC-TECHNICAL-ARCHITECTURE-V2`: `4e92c9cef9b1ca1cb411ea6998d497f86d76e45c` — canonical installer/readiness and technical ownership.
-- P6 `GW-DOC-CANONICAL-CONTRACTS-V2`: `b62236c0d44e595ed8612382a1f56aca565cf8b0`.
+- P6 `GW-DOC-CANONICAL-CONTRACTS-V2`: `9ce45a24a903ea40d870d7d2e7c3376a0adbd36d`.
 - SD13 checkpoint and SD10 scope/forecast/V4-V6 realization are consumed only because current DESIGN positively proves those canonical capabilities; T1 does not reimplement them.
 
 ##### Traceability law
@@ -477,7 +479,7 @@ Retain proven closed P4/F6B APIs and semantic owner responsibilities only; corre
 
 ##### Signed scope and forecast law
 
-One cumulative T1 candidate uses the exact same **60 repository paths** for scope and changeSurface, with obligation-specific reasons in DESIGN. Explicit exclusions protect retained/required-absent owners and authorizing manifest/instructions/architecture sensor. No directory-wide envelope. Unexpected out-of-scope change returns upstream; existing V4/V5/V6 variance rules remain unchanged. No gate state or signed authority is conferred.
+One cumulative T1 candidate uses the exact same **61 repository paths** for scope and changeSurface, with obligation-specific reasons in DESIGN. Explicit exclusions protect retained/required-absent owners and authorizing manifest/instructions/architecture sensor. No directory-wide envelope. Unexpected out-of-scope change returns upstream; existing V4/V5/V6 variance rules remain unchanged. No gate state or signed authority is conferred.
 
 ##### Architecture constraints
 
@@ -513,11 +515,11 @@ Presence-only browser assertions are nonconforming when they force technical/dia
 
 Return to DESIGN/PLAN before editing when execution requires a new semantic owner, public contract, state meaning, persistence/transport/effect boundary, dependency direction or external dependency, validation contract, provider capability, verification authority, authorized behavior, or any path outside signed scope/exclusions.
 
-Because scope equals the revised 60-path candidate forecast, a newly required out-of-scope path returns to DESIGN/PLAN. REV-F10 added the two IA25 regression-fixture paths; REV-F11 admits only the existing installer-created manifest effect owner `src/shell/project.ts`, removing precisely that path from the former exclusions (48/67). The P4 §2 maintenance boundary and F7 exact custody realization govern IA25. Previously authorized partial implementation is retained solely as unaccepted evidence; the prior authorization is terminated, and implementation resumes only after affected G4/G5/G5A/R3 revalidation and a separate exact-package operator decision. Do not repeat conforming work merely because the scope returns upstream; reprove retained work against authority.
+Because scope equals the revised 61-path candidate forecast, a newly required out-of-scope path returns to DESIGN/PLAN. REV-F10 added the two IA25 regression-fixture paths; REV-F11 admits only the existing installer-created manifest effect owner `src/shell/project.ts`, removing precisely that path from the former exclusions (48/67). The P4 §2 maintenance boundary and F7 exact custody realization govern IA25. Previously authorized partial implementation is retained solely as unaccepted evidence; the prior authorization is terminated, and implementation resumes only after affected G4/G5/G5A/R3 revalidation and a separate exact-package operator decision. Do not repeat conforming work merely because the scope returns upstream; reprove retained work against authority.
 
 ##### Native Acceptance integration
 
-**Native Acceptance scope binding:** DESIGN QA1–QA6 and P6 §38 are now explicit signed-task input; candidate forecast is the current exact 60-path DESIGN forecast (48 previous bounded paths plus 12 QA6 paths). The scope and changeSurface are identical. The exact 60 exclusions are the prior 67 minus seven newly admitted paths; no directory grants. Protected architecture sensor changes required to register AcceptanceWorkspace and validate the new package happen before normal sign-off, not in T1. R1 now records exact native Acceptance source observations; the reference corpus is regenerated and bound to the current DESIGN. Independent actual CI/visual, consumer, migration and package fitness review remain required. The stage/event/renderer schema cutover is one atomic implementation wave IA35–IA38: no gate may require a partially extended union or use a compatibility path. Independent QA after the atomic cutover controls continuation; no intermediate human approval. No old scope, authorization or evidence is inherited.
+**Native Acceptance scope binding:** DESIGN QA1–QA6 and P6 §38 are now explicit signed-task input; candidate forecast is the current exact 61-path DESIGN forecast (48 previous bounded paths plus 13 QA6 paths). The scope and changeSurface are identical. The exact 59 exclusions are the prior 67 minus eight newly admitted paths; no directory grants. Protected architecture sensor changes required to register AcceptanceWorkspace and validate the new package happen before normal sign-off, not in T1. R1 now records exact native Acceptance source observations; the reference corpus is regenerated and bound to the current DESIGN. Independent actual CI/visual, consumer, migration and package fitness review remain required. The stage/event/renderer schema cutover is one atomic implementation wave IA35–IA38: no gate may require a partially extended union or use a compatibility path. Independent QA after the atomic cutover controls continuation; no intermediate human approval. No old scope, authorization or evidence is inherited. The additional shell runtime path is justified solely by P6 §§3/38 distinct typed review-event identity and the existing private UUID generator; retain the canonical hash adapter and every unrelated runtime responsibility unchanged.
 
 ### Compiled component: `implementation-plan/01-a01-lifecycle-product.md`
 
@@ -1250,7 +1252,7 @@ This is a trace/readability view of the one canonical `order-tasks` block in the
 
 | Task | DESIGN / IA ownership | Depends on | Primary implementation owner | Mandatory removal/replacement evidence | Closure evidence |
 |---|---|---|---|---|---|
-| T1 | SD01-SD30 + QA1–QA6; IA01-IA39 | — | one cumulative 60-path 0.6.0 candidate; internal waves below own ordered mutation/proof responsibilities | F6B retained closed APIs and required absence; exact residuals and complete consumer proof; proven semantic foundation retained within scope; rejected physical realization is not a preservation target | final V0-V7 + SD16-SD18/SD29 certification + IA26/SD30 exact-candidate 38-SURF and component-architecture acceptance |
+| T1 | SD01-SD30 + QA1–QA6; IA01-IA39 | — | one cumulative 61-path 0.6.0 candidate; internal waves below own ordered mutation/proof responsibilities | F6B retained closed APIs and required absence; exact residuals and complete consumer proof; proven semantic foundation retained within scope; rejected physical realization is not a preservation target | final V0-V7 + SD16-SD18/SD29 certification + IA26/SD30 exact-candidate 38-SURF and component-architecture acceptance |
 
 **Audit rule:** T1 is the only P6 ExecutionTask. Wave/IA ordering below is internal implementation sequencing and never relies on candidate-byte promotion between tasks. A later phase discovering a foundation defect returns to IA27/DESIGN rather than patching around it; T1 cannot close until every owned phase obligation and final candidate proof is satisfied.
 
@@ -1759,7 +1761,7 @@ Any `FAIL` creates a blocking remediation item owned by the defective implementa
 
 **Authority:** QA1, QA2, QA6; P6 §38; P3 Work Lifecycle and Workbench closed state model (including §14.8A.2); P4 §4.8 AcceptanceDecision and per-action predicates. IA35–IA38 form one atomic wave; proof of the extended stage/event/renderer unions is required only after the complete consumer cutover, never an incomplete intermediate contract.
 
-**Mutation:** `src/core/contracts.ts` defines the strict canonical CandidateReviewEvent schema, QA assessment fields and ten-stage WorkStage; `src/core/lifecycle.ts` owns stage transitions, exact signed membership/hash, event folding, finding admissibility and current attention/recovery/reach/rail; `src/core/execution.ts` owns existing task aggregate and provider admission. Replace former direct candidate completion, preserve valid R1/no-op and historical COMPLETE. Derive queued, retest, stale, missing proof, disposition and acceptance without new persisted state. Reconstruct every historical round by P6 §38.1 initial member and ordered REVIEW_COMPLETED replacement, verifying each hash without timestamp guessing. Exact original report identity survives successor; failed retest leaves unresolved; no-op challenge and rechecked proof-unavailable reanalysis return PLAN (proof-unavailable binds Approval/sequence with null expected candidate hash); pre-submit erroneous withdrawal uses rationale/typed attestation; no known binding defect waived. Add tests/core.test.ts and tests/workbench-presentation.test.ts positive and adversarial tuples, mixed sets, invalid evidence, duplicate/foreign IDs and current/historical selection. Do not implement new effect or renderer here.
+**Mutation:** `src/core/contracts.ts` defines the strict canonical CandidateReviewEvent schema including exact `review_<uuid>` CandidateReviewEventId, QA assessment fields and ten-stage WorkStage; `src/shell/runtime.ts` adds only `newCandidateReviewEventId()` through its existing private generator; `src/core/lifecycle.ts` owns stage transitions, exact signed membership/canonical hash input and comparison, event folding, finding admissibility and current attention/recovery/reach/rail; `src/core/execution.ts` owns existing task aggregate and provider admission. Replace former direct candidate completion, preserve valid R1/no-op and historical COMPLETE. Derive queued, retest, stale, missing proof, disposition and acceptance without new persisted state. Reconstruct every historical round by P6 §38.1 initial member and ordered REVIEW_COMPLETED replacement, verifying each hash without timestamp guessing. Exact original report identity survives successor; failed retest leaves unresolved; no-op challenge and rechecked proof-unavailable reanalysis return PLAN (proof-unavailable binds Approval/sequence with null expected candidate hash); pre-submit erroneous withdrawal uses rationale/typed attestation; no known binding defect waived. Add tests/core.test.ts and tests/workbench-presentation.test.ts positive and adversarial tuples, mixed sets, invalid evidence, duplicate/foreign IDs and current/historical selection. Do not implement new effect or renderer here.
 
 ##### IA36 — SQLite v4 and installer migration
 
@@ -1771,7 +1773,7 @@ Any `FAIL` creates a blocking remediation item owned by the defective implementa
 
 **Authority:** QA1–QA3/QA6; P6 §38. **Depends:** IA35/IA36 plus IA17 canonical Approval/currentness observation.
 
-**Mutation:** `src/daemon/authority.ts`, `src/daemon/coordinator.ts`, `src/daemon/server.ts` extend current Approval/observation and exact event GET, report/submit/retest-failed/disposition/reanalysis/accept/prepare-test-copy commands, existing stale-owner reconciliation. All mutations lock/recheck current signed authority/hash/sequence and exact member; stale/foreign rejected no writes; queued stale or unavailable proof exposes explicit reconciliation or proof-unavailable PLAN return, preserving history without admitting a Run. Source reconciliation binds current Approval/sequence and returns R1; ordinary signed editing remains forbidden. `src/daemon/execution.ts`, `src/daemon/validation.ts`, `src/daemon/run.ts` admit queued exact reviewer under current Approval and single task exclusion, bind submitted evidence, actual typed V4 assessment, existing bounded remediator, exact continuation/restart/cancel; atomically transition with review event. Normal signed scheduler advances all eligible tasks automatically, no extra approval. `src/shell/repository.ts` replays isolated test copy using existing ownership, never mutates retained evidence. `src/daemon/work-item-source.ts`, `src/daemon/work-item-documentation.ts`, `src/daemon/settings.ts` apply signed-stage mutation guards for source/title/Git, archive and repository/root changes. Prove in tests/daemon.test.ts, tests/shell.test.ts, tests/opencode.test.ts, tests/core.test.ts. No new role, scheduler, synthetic failure or provider-owned acceptance.
+**Mutation:** `src/daemon/authority.ts`, `src/daemon/coordinator.ts`, `src/daemon/server.ts` extend current Approval/observation and exact event GET, report/submit/retest-failed/disposition/reanalysis/accept/prepare-test-copy commands, existing stale-owner reconciliation. All mutations lock/recheck current signed authority/hash/sequence and exact member; stale/foreign rejected no writes; queued stale or unavailable proof exposes explicit reconciliation or proof-unavailable PLAN return, preserving history without admitting a Run. Source reconciliation binds current Approval/sequence and returns R1; ordinary signed editing remains forbidden. `src/daemon/execution.ts`, `src/daemon/validation.ts`, `src/daemon/run.ts` admit queued exact reviewer under current Approval and single task exclusion, bind submitted evidence, actual typed V4 assessment, existing bounded remediator, exact continuation/restart/cancel; atomically transition with review event. Normal signed scheduler advances all eligible tasks automatically, no extra approval. `src/shell/repository.ts` replays isolated test copy using existing ownership, never mutates retained evidence. `src/daemon/work-item-source.ts`, `src/daemon/work-item-documentation.ts`, `src/daemon/settings.ts` apply signed-stage mutation guards for source/title/Git, archive and repository/root changes. Compose the pure core membership/canonical JSON inputs with the existing shell sha256Text adapter for each current or historical hash; supply verified typed hashes and shell-generated review event IDs/time to the pure admission/fold and transaction. No core crypto/shell import, browser hashing or new generator. Prove in tests/daemon.test.ts, tests/shell.test.ts, tests/opencode.test.ts, tests/core.test.ts, including distinct ID prefix, cross-type denial, exact hash vectors and historical replacement comparison. No new role, scheduler, synthetic failure or provider-owned acceptance.
 
 ##### IA38 — Acceptance and affected Workbench consumers
 
@@ -1813,7 +1815,7 @@ T1 carries the same six logical gate IDs through final validation. SD13's native
 | IA30 | P0.4 HUX-09 / IA20+IA26 targeted fidelity proof | exact PLAN/current attention and direct productive composition; IA26 authority-derived current-marker/attempt-ordinal comparison correction precedes capture review |
 | P0.4 HUX-09 / IA20+IA26 targeted fidelity proof | IA32 | exact same-scope comparison and independent QA PASS of every applicable Priority-0 HUX proposition per action catalog; global HUX-08 and outstanding HUX-10/11 consumer propositions stay open for their owning phases/final IA26 |
 | IA32 | IA35–IA38 atomic cutover | current blocker, exact legacy execution validation and shared Review proof |
-| IA35 → IA36 → IA37 → IA38 (atomic cutover) | IA33 | exact lifecycle and event schema, v4 migration, reviewer/recovery, signed guards, all stage/event/renderer consumers typecheck, IA38 scoped exact-candidate capture and affected shared invariant independent QA PASS; Acceptance Review and terminal provenance, without requiring later IA33/IA34 body acceptance |
+| IA35 → IA36 → IA37 → IA38 (atomic cutover) | IA33 | exact lifecycle and event schema, typed review-event identity and pure-input/shell-hash boundary, v4 migration, reviewer/recovery, signed guards, all stage/event/renderer consumers typecheck, IA38 scoped exact-candidate capture and affected shared invariant independent QA PASS; Acceptance Review and terminal provenance, without requiring later IA33/IA34 body acceptance |
 | IA33 | IA34 | reached Complete, exact candidate chain, non-delivery/Evidence |
 | IA34 | IA39 | Settings/diagnostic negative-state matrix |
 | IA39 | IA20-IA23 integrated certification | IA39 scoped exact-candidate capture plus independent QA PASS of Acceptance and affected cross-feature proof |
@@ -1908,7 +1910,7 @@ SD20 exact-pin OpenCode proof is a mandatory IA23 precondition to IA26 and IA24:
 
 ###### Pre-Approval structural-sensor correction
 
-The permanent package sensor is protected pre-signoff material. Its prior 48-path/67-exclusion/37-SURF/46-scenario checks are historical and must be updated to the exact revised 60-path scope/forecast, 60 exclusions, 38 SURF, 47 scenarios, new renderer registration, unchanged closed API/required absence, authority/Approval integration, single catalog and compiled blob identity. REV-F10 requires the two IA25 fixture owners; REV-F11 adds only the existing project-manifest effect owner, removes its exact exclusion, and binds the sole-writer maintenance boundary. No directory-wide scope and no production mutation until renewed exact-package authorization. The old signed candidate, scope proof and implementation evidence remain historical; a fresh reviewed input snapshot may be established only in this upstream revalidation, never during authorized mutation.
+The permanent package sensor is protected pre-signoff material. Its prior 48-path/67-exclusion/37-SURF/46-scenario checks are historical and must be updated to the exact revised 61-path scope/forecast, 59 exclusions, 38 SURF, 47 scenarios, new renderer registration, unchanged closed API/required absence, authority/Approval integration, single catalog and compiled blob identity. REV-F10 requires the two IA25 fixture owners; REV-F11 adds only the existing project-manifest effect owner, removes its exact exclusion, and binds the sole-writer maintenance boundary. No directory-wide scope and no production mutation until renewed exact-package authorization. The old signed candidate, scope proof and implementation evidence remain historical; a fresh reviewed input snapshot may be established only in this upstream revalidation, never during authorized mutation.
 
 This sensor correction is campaign/package fitness only: `tests/architecture.test.ts` remains outside signed implementation tasks. Re-run architecture and root/modular compilation checks on the corrected package before G5 may return to PASS.
 
@@ -2025,7 +2027,7 @@ V4/V5/V6 explicitly verify:
 - all 112 stable rows retain their exact current R1 evidence and DESIGN disposition;
 - all 27 package-local atoms, including `PL-C12-02`, are satisfied by the single T1 owner and the exact catalog-defined mutation/proof responsibilities, without duplicate semantic implementations;
 - every `POSITIVE_NO_CHANGE` and DESIGN-positive-reuse obligation remains true;
-- T1 uses revised exact 60-path candidate forecast and protected exclusions; no obsolete component recreation;
+- T1 uses revised exact 61-path candidate forecast and protected exclusions; no obsolete component recreation;
 - every actual changed path is inside signed `scope`, outside exclusions/protected material, and either forecast or positively proven as minimum same-layer responsibility-preserving variance;
 - forecast variance changes no semantic owner, public contract, state meaning, effect boundary, dependency direction/external dependency, validation contract or authorized behavior;
 - current-v2 task non-vacuity is enforced without changing published v1 task semantics or creating a second task schema/parser/review owner;

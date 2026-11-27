@@ -24,7 +24,7 @@ T1 carries the same six logical gate IDs through final validation. SD13's native
 | IA30 | P0.4 HUX-09 / IA20+IA26 targeted fidelity proof | exact PLAN/current attention and direct productive composition; IA26 authority-derived current-marker/attempt-ordinal comparison correction precedes capture review |
 | P0.4 HUX-09 / IA20+IA26 targeted fidelity proof | IA32 | exact same-scope comparison and independent QA PASS of every applicable Priority-0 HUX proposition per action catalog; global HUX-08 and outstanding HUX-10/11 consumer propositions stay open for their owning phases/final IA26 |
 | IA32 | IA35–IA38 atomic cutover | current blocker, exact legacy execution validation and shared Review proof |
-| IA35 → IA36 → IA37 → IA38 (atomic cutover) | IA33 | exact lifecycle and event schema, v4 migration, reviewer/recovery, signed guards, all stage/event/renderer consumers typecheck, IA38 scoped exact-candidate capture and affected shared invariant independent QA PASS; Acceptance Review and terminal provenance, without requiring later IA33/IA34 body acceptance |
+| IA35 → IA36 → IA37 → IA38 (atomic cutover) | IA33 | exact lifecycle and event schema, typed review-event identity and pure-input/shell-hash boundary, v4 migration, reviewer/recovery, signed guards, all stage/event/renderer consumers typecheck, IA38 scoped exact-candidate capture and affected shared invariant independent QA PASS; Acceptance Review and terminal provenance, without requiring later IA33/IA34 body acceptance |
 | IA33 | IA34 | reached Complete, exact candidate chain, non-delivery/Evidence |
 | IA34 | IA39 | Settings/diagnostic negative-state matrix |
 | IA39 | IA20-IA23 integrated certification | IA39 scoped exact-candidate capture plus independent QA PASS of Acceptance and affected cross-feature proof |
@@ -119,7 +119,7 @@ SD20 exact-pin OpenCode proof is a mandatory IA23 precondition to IA26 and IA24:
 
 ### Pre-Approval structural-sensor correction
 
-The permanent package sensor is protected pre-signoff material. Its prior 48-path/67-exclusion/37-SURF/46-scenario checks are historical and must be updated to the exact revised 60-path scope/forecast, 60 exclusions, 38 SURF, 47 scenarios, new renderer registration, unchanged closed API/required absence, authority/Approval integration, single catalog and compiled blob identity. REV-F10 requires the two IA25 fixture owners; REV-F11 adds only the existing project-manifest effect owner, removes its exact exclusion, and binds the sole-writer maintenance boundary. No directory-wide scope and no production mutation until renewed exact-package authorization. The old signed candidate, scope proof and implementation evidence remain historical; a fresh reviewed input snapshot may be established only in this upstream revalidation, never during authorized mutation.
+The permanent package sensor is protected pre-signoff material. Its prior 48-path/67-exclusion/37-SURF/46-scenario checks are historical and must be updated to the exact revised 61-path scope/forecast, 59 exclusions, 38 SURF, 47 scenarios, new renderer registration, unchanged closed API/required absence, authority/Approval integration, single catalog and compiled blob identity. REV-F10 requires the two IA25 fixture owners; REV-F11 adds only the existing project-manifest effect owner, removes its exact exclusion, and binds the sole-writer maintenance boundary. No directory-wide scope and no production mutation until renewed exact-package authorization. The old signed candidate, scope proof and implementation evidence remain historical; a fresh reviewed input snapshot may be established only in this upstream revalidation, never during authorized mutation.
 
 This sensor correction is campaign/package fitness only: `tests/architecture.test.ts` remains outside signed implementation tasks. Re-run architecture and root/modular compilation checks on the corrected package before G5 may return to PASS.
 
@@ -236,7 +236,7 @@ V4/V5/V6 explicitly verify:
 - all 112 stable rows retain their exact current R1 evidence and DESIGN disposition;
 - all 27 package-local atoms, including `PL-C12-02`, are satisfied by the single T1 owner and the exact catalog-defined mutation/proof responsibilities, without duplicate semantic implementations;
 - every `POSITIVE_NO_CHANGE` and DESIGN-positive-reuse obligation remains true;
-- T1 uses revised exact 60-path candidate forecast and protected exclusions; no obsolete component recreation;
+- T1 uses revised exact 61-path candidate forecast and protected exclusions; no obsolete component recreation;
 - every actual changed path is inside signed `scope`, outside exclusions/protected material, and either forecast or positively proven as minimum same-layer responsibility-preserving variance;
 - forecast variance changes no semantic owner, public contract, state meaning, effect boundary, dependency direction/external dependency, validation contract or authorized behavior;
 - current-v2 task non-vacuity is enforced without changing published v1 task semantics or creating a second task schema/parser/review owner;

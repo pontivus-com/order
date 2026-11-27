@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Reconcile native Acceptance identity generation and candidate hash ownership with the existing canonical UUID/crypto boundary; admit only the proven existing shell runtime path into the revised 61-path design candidate and rebind the protected scope sensor and derived reference authority.
+
 - Reconcile the 60-path PLAN governance, native Acceptance recovery exceptions and exact phase-local IA38/IA39 evidence dispatch and independent QA checkpoints before renewed 0.6.0 readiness; no scope or execution authorization change.
 
 - Resolve native Acceptance at the existing P3/P4/P6 and R2/DESIGN owners: exact selection, state/action precedence, individual datum and form contracts, dependent surfaces and existing component API realization; bind the expanded comparison states and IA35–IA39 proof to the compiled PLAN without granting execution authority.

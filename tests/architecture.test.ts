@@ -3244,9 +3244,9 @@ describe("architecture fitness", () => {
     const designSurface = [...designSurfaceSection.matchAll(/^- `([^\`]+)`(?:\s+—.*)?$/gm)].map(
       (match) => match[1],
     );
-    if (designSurface.length !== 60 || duplicates(designSurface).length > 0) {
+    if (designSurface.length !== 61 || duplicates(designSurface).length > 0) {
       violations.push(
-        "DESIGN implementation forecast must contain 60 unique paths; found " +
+        "DESIGN implementation forecast must contain 61 unique paths; found " +
           designSurface.length,
       );
     }
@@ -3417,9 +3417,9 @@ describe("architecture fitness", () => {
             task.gateIds ?? [],
             ["architecture", "browser", "build", "dependency-lock", "test", "typecheck"],
           );
-          if ((task.scope ?? []).length !== 60 || duplicates(task.scope ?? []).length > 0) {
+          if ((task.scope ?? []).length !== 61 || duplicates(task.scope ?? []).length > 0) {
             violations.push(
-              "T1 hard scope must contain the exact 60 unique forecast paths; found " +
+              "T1 hard scope must contain the exact 61 unique forecast paths; found " +
                 (task.scope ?? []).length,
             );
           }
@@ -3449,9 +3449,9 @@ describe("architecture fitness", () => {
         for (const excluded of task?.exclusions ?? []) {
           if ((task?.scope ?? []).includes(excluded)) violations.push("T1 scope overlaps exclusion: " + excluded);
         }
-        if (signedSurface.length !== 60 || duplicates(signedSurface).length > 0) {
+        if (signedSurface.length !== 61 || duplicates(signedSurface).length > 0) {
           violations.push(
-            "PLAN signed T1 changeSurface must contain 60 unique paths; found " +
+            "PLAN signed T1 changeSurface must contain 61 unique paths; found " +
               signedSurface.length,
           );
         }
@@ -3464,9 +3464,9 @@ describe("architecture fitness", () => {
         const documentedSurface = [...surfaceSection.matchAll(/^- \`([^\`]+)\`$/gm)].map(
           (match) => match[1],
         );
-        if (documentedSurface.length !== 60 || duplicates(documentedSurface).length > 0) {
+        if (documentedSurface.length !== 61 || duplicates(documentedSurface).length > 0) {
           violations.push(
-            "PLAN documented candidate surface must contain 60 unique paths; found " +
+            "PLAN documented candidate surface must contain 61 unique paths; found " +
               documentedSurface.length,
           );
         }
@@ -3487,7 +3487,6 @@ describe("architecture fitness", () => {
           "src/shell/opencode.ts",
           "src/shell/process.ts",
           "src/shell/project-config.ts",
-          "src/shell/runtime.ts",
           "src/shell/work-item-source.ts",
           "tests/architecture.test.ts",
           "ui/src/ActivityComposer.tsx",
@@ -3549,6 +3548,7 @@ describe("architecture fitness", () => {
           }
         }
         exactSet("DESIGN corrected residual/proof forecast", designSurface, [
+          "src/shell/runtime.ts",
           "src/core/execution.ts",
           "src/daemon/execution.ts",
           "src/daemon/validation.ts",
