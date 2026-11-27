@@ -215,7 +215,7 @@ const verifyCampaignReviewedInputs = (
     }
     const scope = new Set(task.scope);
     const exclusions = new Set(task.exclusions);
-    if (scope.size !== 48 || exclusions.size !== 67 || task.scope.length !== scope.size || task.exclusions.length !== exclusions.size || [...scope].some((path) => exclusions.has(path))) {
+    if (scope.size !== 60 || exclusions.size !== 60 || task.scope.length !== scope.size || task.exclusions.length !== exclusions.size || [...scope].some((path) => exclusions.has(path))) {
       throw new Error("invalid exact T1 scope/exclusions");
     }
     const allowed = normal ? scope : new Set(exactField("bounded paths", "([^\\r\\n]+)").split(", "));
@@ -383,8 +383,8 @@ describe("architecture fitness", () => {
       mkdirSync(join(root, "item"));
       const plan = "\x60\x60\x60order-tasks\n" + JSON.stringify({ tasks: [{
         id: "T1",
-        scope: ["a.ts", "CHANGELOG.md", ...Array.from({ length: 46 }, (_, i) => "scope-" + i)],
-        exclusions: ["protected.md", ...Array.from({ length: 66 }, (_, i) => "excluded-" + i)],
+        scope: ["a.ts", "CHANGELOG.md", ...Array.from({ length: 58 }, (_, i) => "scope-" + i)],
+        exclusions: ["protected.md", ...Array.from({ length: 59 }, (_, i) => "excluded-" + i)],
       }] }) + "\n\x60\x60\x60\n";
       const baselineInputs = new Map([
         ["a.ts", "100644\t" + blob("old\n")],
@@ -1094,6 +1094,16 @@ describe("architecture fitness", () => {
       }
     }
 
+    // Acceptance is a prospective authorized renderer in DESIGN, not part of the
+    // pre-cutover runtime. Once either stage or renderer is materialized, require
+    // both and the shell consumer together; partial cutover is an architecture defect.
+    const acceptanceStageDeclared = /export const WorkStageSchema = z\.enum\(\[[\s\S]*?"AWAITING_ACCEPTANCE"[\s\S]*?\]\);/.test(sourceText("src/core/contracts.ts").split("export const WorkStatusSchema")[0]);
+    const acceptanceRendererExists = files.has("ui/src/AcceptanceWorkspace.tsx");
+    if (acceptanceStageDeclared !== acceptanceRendererExists ||
+        (acceptanceStageDeclared && !workItemWorkspace.includes("AcceptanceWorkspace"))) {
+      violations.push("Acceptance requires one atomic stage/renderer/WorkItemWorkspace cutover");
+    }
+
     for (const sourcePath of requiredUiOwners) {
       if (!files.has(sourcePath)) {
         violations.push(sourcePath + ": required workbench UI owner is missing");
@@ -1146,6 +1156,7 @@ describe("architecture fitness", () => {
     const uiFileSet = new Set(uiFiles);
 
     const substantiveOwners = new Set([
+      "ui/src/AcceptanceWorkspace.tsx",
       "ui/src/CreateWorkItem.tsx",
       "ui/src/DocumentWorkspace.tsx",
       "ui/src/EvidenceViewer.tsx",
@@ -1165,6 +1176,7 @@ describe("architecture fitness", () => {
     ]);
 
     const allowedSubstantiveDependencies: Readonly<Record<string, readonly string[]>> = {
+      "ui/src/AcceptanceWorkspace.tsx": ["ui/src/DocumentWorkspace.tsx", "ui/src/EvidenceViewer.tsx"],
       "ui/src/DocumentWorkspace.tsx": ["ui/src/MarkdownEditor.tsx"],
       "ui/src/MarkdownEditor.tsx": ["ui/src/MarkdownSourceEditor.tsx"],
       "ui/src/ActivityWorkspace.tsx": ["ui/src/RunEventTimeline.tsx"],
@@ -2254,6 +2266,10 @@ describe("architecture fitness", () => {
     };
     const hashBlob = (bytes: Buffer): string =>
       createHash("sha1").update("blob " + bytes.length + "\0").update(bytes).digest("hex");
+    const hasCurrentAuthorization = /^\*\*Current (?:normal authorization: T1 only|bounded authorization: IA27\/IA28 only)\.\*\*$/m.test(source);
+    if (reuseSection === "" && (hasCurrentAuthorization || gates.get("G6")?.status === "PASS")) {
+      violations.push("current readiness/authorization requires exact reviewed input and audit binding");
+    }
     if (reuseSection !== "") {
       const bindingErrors: string[] = [];
       if (pairSection.split(reuseHeading).length !== 2) bindingErrors.push("one current delta reuse binding required");
@@ -2755,7 +2771,10 @@ describe("architecture fitness", () => {
       'PONTIVUS_ORDER_RENDERED_EVIDENCE_KIND: "diagnostic_current_state"',
       'rendered-diagnostic-current-state-${{ steps.diagnostic_candidate.outputs.sha }}',
       "Validate current-state diagnostic completeness",
-      "diagnostic surface coverage must be 37",
+      // The diagnostic mode proves the actual current runtime, never target fixtures.
+      // IA39 updates the capture dispatch/count atomically with the native stage.
+      sourceText("src/core/contracts.ts").split("export const WorkStatusSchema")[0].includes('"AWAITING_ACCEPTANCE"')
+        ? "diagnostic surface coverage must be 38" : "diagnostic surface coverage must be 37",
       "Resolve bounded evidence authorization",
       "Current bounded authorization:",
       "steps.bounded_authorization.outputs.active == 'true'",
@@ -2897,15 +2916,18 @@ describe("architecture fitness", () => {
       }
       if (
         row.disposition !== "POSITIVE_NO_CHANGE" &&
-        !/`SD\d{2}`/.test(row.solutions)
+        !/`SD\d{2}`/.test(row.solutions) && !/\bQA[1-6]\b/.test(row.solutions)
       ) {
         violations.push(
-          "DESIGN delta must identify at least one SD solution: " +
+          "DESIGN delta must identify at least one SD or canonical QA solution: " +
             row.requirement,
         );
       }
     }
 
+    for (const qa of ["QA1","QA2","QA3","QA4","QA5","QA6"]) {
+      if (!design.includes("### " + qa + " —")) violations.push("missing exact Acceptance solution " + qa);
+    }
     const designAtoms = [...design.matchAll(/^\| `(PL-C[^\`]+)` \|/gm)].map(
       (match) => match[1],
     );
@@ -2932,11 +2954,11 @@ describe("architecture fitness", () => {
       /^#{5,6} (SURF-[A-Z0-9-]+)(?:\s|$)/gm,
     )].map((match) => match[1]);
     if (
-      detailedSurfaceIds.length !== 37 ||
+      detailedSurfaceIds.length !== 38 ||
       duplicates(detailedSurfaceIds).length > 0
     ) {
       violations.push(
-        "DESIGN detailed information contract must contain 37 unique SURF sections; found " +
+        "DESIGN detailed information contract must contain 38 unique SURF sections; found " +
           detailedSurfaceIds.length,
       );
     }
@@ -3101,7 +3123,7 @@ describe("architecture fitness", () => {
       (match) => match[1],
     );
     const expectedActions = Array.from(
-      { length: 34 },
+      { length: 39 },
       (_, index) => "IA" + String(index + 1).padStart(2, "0"),
     );
     exactSet("PLAN action catalog", actionIds, expectedActions);
@@ -3222,9 +3244,9 @@ describe("architecture fitness", () => {
     const designSurface = [...designSurfaceSection.matchAll(/^- `([^\`]+)`(?:\s+—.*)?$/gm)].map(
       (match) => match[1],
     );
-    if (designSurface.length !== 48 || duplicates(designSurface).length > 0) {
+    if (designSurface.length !== 60 || duplicates(designSurface).length > 0) {
       violations.push(
-        "DESIGN implementation forecast must contain 48 unique paths; found " +
+        "DESIGN implementation forecast must contain 60 unique paths; found " +
           designSurface.length,
       );
     }
@@ -3327,7 +3349,7 @@ describe("architecture fitness", () => {
         "Present legacy config with external-root ENOENT",
         "in `tests/shell.test.ts` pass the explicit established decision",
         "In `tests/order-migration.test.ts` replace the unconditional-success systemctl stub",
-        "`tests/sqlite.test.ts` is outside T1",
+        "`tests/sqlite.test.ts` is not an IA25 mutation owner",
         "partial write/fsync/observation failure before successful return",
         "no deletion of replaced or unproven objects",
         "not universal external-writer detection",
@@ -3395,9 +3417,9 @@ describe("architecture fitness", () => {
             task.gateIds ?? [],
             ["architecture", "browser", "build", "dependency-lock", "test", "typecheck"],
           );
-          if ((task.scope ?? []).length !== 48 || duplicates(task.scope ?? []).length > 0) {
+          if ((task.scope ?? []).length !== 60 || duplicates(task.scope ?? []).length > 0) {
             violations.push(
-              "T1 hard scope must contain the exact 48 unique forecast paths; found " +
+              "T1 hard scope must contain the exact 60 unique forecast paths; found " +
                 (task.scope ?? []).length,
             );
           }
@@ -3427,9 +3449,9 @@ describe("architecture fitness", () => {
         for (const excluded of task?.exclusions ?? []) {
           if ((task?.scope ?? []).includes(excluded)) violations.push("T1 scope overlaps exclusion: " + excluded);
         }
-        if (signedSurface.length !== 48 || duplicates(signedSurface).length > 0) {
+        if (signedSurface.length !== 60 || duplicates(signedSurface).length > 0) {
           violations.push(
-            "PLAN signed T1 changeSurface must contain 48 unique paths; found " +
+            "PLAN signed T1 changeSurface must contain 60 unique paths; found " +
               signedSurface.length,
           );
         }
@@ -3442,9 +3464,9 @@ describe("architecture fitness", () => {
         const documentedSurface = [...surfaceSection.matchAll(/^- \`([^\`]+)\`$/gm)].map(
           (match) => match[1],
         );
-        if (documentedSurface.length !== 48 || duplicates(documentedSurface).length > 0) {
+        if (documentedSurface.length !== 60 || duplicates(documentedSurface).length > 0) {
           violations.push(
-            "PLAN documented candidate surface must contain 48 unique paths; found " +
+            "PLAN documented candidate surface must contain 60 unique paths; found " +
               documentedSurface.length,
           );
         }
@@ -3461,10 +3483,6 @@ describe("architecture fitness", () => {
         const retainedUiPaths = new Set([
           "AGENTS.md",
           "pontivus-order.toml",
-          "src/core/execution.ts",
-          "src/daemon/execution.ts",
-          "src/daemon/validation.ts",
-          "src/daemon/work-item-source.ts",
           "src/shell/file-write.ts",
           "src/shell/opencode.ts",
           "src/shell/process.ts",
@@ -3482,10 +3500,7 @@ describe("architecture fitness", () => {
           "ui/src/ProposalReview.tsx",
           "ui/src/RunEventTimeline.tsx",
           "ui/src/SettingsWorkspace.tsx",
-          "ui/src/WorkItemIdentityRow.tsx",
-          "ui/src/WorkItemQueue.tsx",
           "ui/src/WorkflowMaterialSelector.tsx",
-          "ui/src/WorkflowRail.tsx",
           "ui/src/WorkflowStepFrame.tsx",
           "ui/src/main.tsx",
           "ui/src/markdown-source-formatting.ts",
@@ -3534,6 +3549,18 @@ describe("architecture fitness", () => {
           }
         }
         exactSet("DESIGN corrected residual/proof forecast", designSurface, [
+          "src/core/execution.ts",
+          "src/daemon/execution.ts",
+          "src/daemon/validation.ts",
+          "src/daemon/run.ts",
+          "src/daemon/work-item-source.ts",
+          "src/daemon/work-item-documentation.ts",
+          "src/daemon/settings.ts",
+          "ui/src/WorkflowRail.tsx",
+          "ui/src/WorkItemIdentityRow.tsx",
+          "ui/src/WorkItemQueue.tsx",
+          "tests/sqlite.test.ts",
+          "ui/src/AcceptanceWorkspace.tsx",
           "src/installer.ts",
           "src/shell/setup.ts",
           "src/shell/project.ts",
@@ -3591,7 +3618,7 @@ describe("architecture fitness", () => {
         ]) {
           if (existsSync(join(repositoryRoot, absent))) violations.push("Required-absent owner exists: " + absent);
         }
-        for (const required of ["exact authority declarations/dependency closure", "exact signed document membership", "exact current/historical Approval", "all 37 governed surfaces", "46 P3 scenarios", "outstanding HUX", "Out-of-scope discoveries return upstream"]) {
+        for (const required of ["exact authority declarations/dependency closure", "exact signed document membership", "exact current/historical Approval", "all 38 governed surfaces", "47 P3 scenarios", "outstanding HUX", "Out-of-scope discoveries return upstream"]) {
           if (!(task?.objective ?? "").includes(required)) violations.push("T1 residual objective missing " + required);
         }
 
@@ -3610,9 +3637,9 @@ describe("architecture fitness", () => {
         const designSurfaceIds = [
           ...design.matchAll(/^#{5,6} (SURF-[A-Z0-9-]+)\b/gm),
         ].map((match) => match[1] ?? "");
-        if (designSurfaceIds.length !== 37 || duplicates(designSurfaceIds).length > 0) {
+        if (designSurfaceIds.length !== 38 || duplicates(designSurfaceIds).length > 0) {
           violations.push(
-            "DESIGN must contain 37 unique detailed SURF contracts; found " +
+            "DESIGN must contain 38 unique detailed SURF contracts; found " +
               designSurfaceIds.length,
           );
         }
@@ -3664,11 +3691,11 @@ describe("architecture fitness", () => {
 
         const faceLedgerSection =
           actionCatalog.match(
-            /### Exact IA27-IA34 rendered face ownership\r?\n([\s\S]*?)(?=\r?\n## IA28)/,
+            /### Exact IA27-IA34 and IA38 rendered face ownership\r?\n([\s\S]*?)(?=\r?\n## IA28)/,
           )?.[1] ?? "";
         const faceLedgerRows = faceLedgerSection
           .split(/\r?\n/)
-          .filter((line) => /^\| IA(?:27|28|29|30|31|32|33|34) \|/.test(line))
+          .filter((line) => /^\| IA(?:27|28|29|30|31|32|33|34|38) \|/.test(line))
           .map((line) => {
             const cells = line.trim().slice(1, -1).split("|").map((cell) => cell.trim());
             const phaseId = cells[0] ?? "";
@@ -3676,13 +3703,13 @@ describe("architecture fitness", () => {
               .map((match) => match[1] ?? "");
             return { phaseId, surfaceIds };
           });
-        if (faceLedgerRows.length !== 8) {
-          violations.push("PLAN must allocate rendered faces across exactly IA27-IA34");
+        if (faceLedgerRows.length !== 9) {
+          violations.push("PLAN must allocate rendered faces across exactly IA27-IA34 and IA38");
         }
         exactSet(
           "PLAN rendered face phase owners",
           faceLedgerRows.map((row) => row.phaseId),
-          ["IA27", "IA28", "IA29", "IA30", "IA31", "IA32", "IA33", "IA34"],
+          ["IA27", "IA28", "IA29", "IA30", "IA31", "IA32", "IA33", "IA34", "IA38"],
         );
         const faceSurfaceUnion = faceLedgerRows.flatMap((row) => row.surfaceIds);
         const duplicateFaceSurfaces = duplicates(faceSurfaceUnion);
@@ -3693,6 +3720,18 @@ describe("architecture fitness", () => {
           );
         }
         exactSet("PLAN rendered face allocation", faceSurfaceUnion, designSurfaceIds);
+        exactSet("IA38 Acceptance rendered ownership", faceLedgerRows.find((row) => row.phaseId === "IA38")?.surfaceIds ?? [], ["SURF-STEP-ACCEPTANCE-001"]);
+        const acceptanceRef = referenceManifest.surfaces?.find((row) => row.id === "SURF-STEP-ACCEPTANCE-001");
+        if (!acceptanceRef || acceptanceRef.selector !== '[data-surf="SURF-STEP-ACCEPTANCE-001"]') violations.push("Acceptance reference lacks exact surface binding");
+        const acceptanceSpec = referenceAtlas.match(/"SURF-STEP-ACCEPTANCE-001":\{"states":\[([^\]]+)\]/)?.[1] ?? "";
+        for (const state of ["awaiting-review","findings-open","correction-queued","retest-required","retest-failed","stale-authority","proof-unavailable","no-op-challenge","report-form","retest-form","historical-correction","historical-accepted"]) {
+          if (!acceptanceSpec.includes('"' + state + '"')) violations.push("Acceptance atlas missing state " + state);
+        }
+        if (!referenceAtlas.includes("repeat(10,") || referenceAtlas.includes("repeat(9,")) violations.push("reference rail must project ten stages");
+        for (const row of designRows.filter((row) => /\bQA[1-6]\b/.test(row.solutions))) {
+          if (!(task?.acceptanceRefs ?? []).includes(row.requirement)) violations.push("QA requirement missing signed acceptance ref " + row.requirement);
+          if (designDispositionByRequirement.get(row.requirement) !== phaseRequirementRows.find((phase) => phase.requirement === row.requirement)?.disposition) violations.push("QA requirement disposition differs from PLAN " + row.requirement);
+        }
 
         const ia30Faces = faceLedgerRows.find((row) => row.phaseId === "IA30")?.surfaceIds ?? [];
         const ia31Faces = faceLedgerRows.find((row) => row.phaseId === "IA31")?.surfaceIds ?? [];
@@ -3725,7 +3764,7 @@ describe("architecture fitness", () => {
         }
 
         for (const required of [
-          "### Exact IA27-IA34 rendered face ownership",
+          "### Exact IA27-IA34 and IA38 rendered face ownership",
           "No prior phase PASS is inherited",
           "IA27 does not derive either",
           "Do not add compatibility props or temporary old/new paths",
@@ -3842,7 +3881,7 @@ describe("architecture fitness", () => {
           "**Semantic authority:** none",
           "exact current authority versions",
           "must never fabricate",
-          "37-SURF universe is derived from current DESIGN",
+          "38-SURF universe is derived from current DESIGN",
         ]) {
           if (!referenceReadme.includes(required)) {
             violations.push("Workbench reference corpus contract missing " + required);
@@ -3876,7 +3915,7 @@ describe("architecture fitness", () => {
           ["core", "daemon", "foundation", "shell", "ui", "verification"],
         );
 
-        if (g5Status === "PASS" && !actionCatalog.includes("| T1 | SD01-SD30; IA01-IA34 |")) {
+        if (g5Status === "PASS" && !actionCatalog.includes("| T1 | SD01-SD30 + QA1–QA6; IA01-IA39 |")) {
           violations.push("PLAN audit ledger missing the one signed task T1");
         }
       } catch {

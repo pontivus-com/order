@@ -6,12 +6,12 @@
     "p3": {
       "id": "GW-DOC-WORKBENCH-UX-V2",
       "path": "docs/requirements/workbench.md",
-      "blob": "64184232833b59a9e6db5e1a28b841f48b3217cd"
+      "blob": "417cfc41ed54054e033d80ccbe04dfd51ce3a6c1"
     },
     "p4": {
       "id": "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
       "path": "docs/architecture/workbench.md",
-      "blob": "8fccbe031436a9eb54da8ae493b614e94cc957b1"
+      "blob": "dcc835c3b44f0ea9498b91fb8a1814c0bf1ecfc9"
     },
     "theme": {
       "id": "GW-DOC-WORKBENCH-THEME-V1",
@@ -21,7 +21,7 @@
     "design": {
       "id": "work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21/DESIGN",
       "path": "docs/order/work-items/work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21/solution-design.md",
-      "blob": "229b98f30463e79352871e32f6adc06a762a7e3d"
+      "blob": "83e2ebf41abcad9a43c0caf49b5cbe654dddda30"
     }
   },
   "fixturePolicy": {
@@ -625,13 +625,52 @@
       ]
     },
     {
+      "id": "SURF-STEP-ACCEPTANCE-001",
+      "interactionClass": "review",
+      "source": "reference-atlas.html",
+      "selector": "[data-surf=\"SURF-STEP-ACCEPTANCE-001\"]",
+      "captureScope": "full-workbench",
+      "states": [
+        "awaiting-review",
+        "findings-open",
+        "correction-queued",
+        "retest-required",
+        "retest-failed",
+        "stale-authority",
+        "proof-unavailable",
+        "no-op-challenge",
+        "report-form",
+        "retest-form",
+        "historical-correction",
+        "historical-accepted"
+      ],
+      "viewports": [
+        "wide",
+        "medium",
+        "narrow"
+      ],
+      "themes": [
+        "light",
+        "dark",
+        "system"
+      ],
+      "authority": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "current DESIGN"
+      ]
+    },
+    {
       "id": "SURF-STEP-COMPLETE-001",
       "interactionClass": "result",
       "source": "reference-atlas.html",
       "selector": "[data-surf=\"SURF-STEP-COMPLETE-001\"]",
       "captureScope": "full-workbench",
       "states": [
+        "accepted-candidate",
         "verified-candidate",
+        "all-no-op",
         "verified-result",
         "linked-remediation"
       ],

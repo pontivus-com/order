@@ -2,7 +2,7 @@
 
 **Status:** active derived comparison evidence  
 **Semantic authority:** none  
-**Surface owner:** current 0.6.0 DESIGN declares the 37 governed `SURF-*` contracts.
+**Surface owner:** current 0.6.0 DESIGN declares the 38 governed `SURF-*` contracts.
 
 This directory is a deterministic visual projection of the current Workbench authority. It is not a product requirement, component specification, design decision, lifecycle record, or implementation baseline.
 
@@ -10,16 +10,16 @@ This directory is a deterministic visual projection of the current Workbench aut
 
 The active corpus is valid only for these exact inputs:
 
-- `GW-DOC-WORKBENCH-UX-V2` — blob `64184232833b59a9e6db5e1a28b841f48b3217cd`;
-- `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2` — blob `8fccbe031436a9eb54da8ae493b614e94cc957b1`;
+- `GW-DOC-WORKBENCH-UX-V2` — blob `417cfc41ed54054e033d80ccbe04dfd51ce3a6c1`;
+- `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2` — blob `dcc835c3b44f0ea9498b91fb8a1814c0bf1ecfc9`;
 - `GW-DOC-WORKBENCH-THEME-V1` — blob `03dfc6be3600a1128b5639d011f4c0159d3497dd`;
-- current 0.6.0 DESIGN — blob `229b98f30463e79352871e32f6adc06a762a7e3d`.
+- current 0.6.0 DESIGN — blob `83e2ebf41abcad9a43c0caf49b5cbe654dddda30`.
 
 These are the exact current authority versions projected by this corpus. If any bound owner changes, this corpus is stale until regenerated and reviewed. The owner wins on every conflict.
 
 ## Files
 
-- `reference-manifest.json` is the machine-readable 37-SURF mapping, state/view/theme coverage and exact authority binding.
+- `reference-manifest.json` is the machine-readable 38-SURF mapping, state/view/theme coverage and exact authority binding.
 - `reference-atlas.html` is the deterministic render source. Open one surface with `?surf=SURF-...&state=...&theme=light|dark|system`.
 - Git history is the only retained provenance for the superseded 0.5.0 SVG pack. Those SVGs are not live comparison material.
 
@@ -37,4 +37,9 @@ The runtime capture and reference must identify the same SURF, state, governed s
 
 A reference mismatch never authorizes implementation to change product behavior. The reviewer resolves the discrepancy against the exact bound authority first.
 
-The 37-SURF universe is derived from current DESIGN, never from this directory.
+The 38-SURF universe is derived from current DESIGN, never from this directory.
+
+
+## Native Acceptance reference delta
+
+The ten-stage rail is projected across every WorkItem fixture; current/selected/reached remain independently supplied facts, including legacy and non-delivery bypass. Acceptance reference states include current review, open finding, queued correction, retest, failed retest, stale authority, unavailable proof, no-op challenge, report/retest forms and read-only historical correction/acceptance. Complete distinguishes accepted candidate, legacy technical completion without recorded acceptance, all-no-op and non-delivery. These are static authority-derived comparison fixtures, not runtime state or approved screenshot evidence. IA39/IA26 must independently prove equivalent states, exact same-scope captures and actual interactions; this reference change is not rendered acceptance.

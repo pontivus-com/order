@@ -4759,7 +4759,10 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
 
   expect(referenceManifest.semanticAuthority).toBe(false);
   expect(referenceManifest.source).toBe(referenceAtlasPath);
-  expect(referenceManifest.surfaces).toHaveLength(37);
+  // The authority-derived comparison target has 38 surfaces. This existing
+  // pre-cutover runtime corpus still proves the exact 37 current surfaces;
+  // IA39 must extend actual runtime/phase/final coverage, not fabricate a capture.
+  expect(referenceManifest.surfaces).toHaveLength(38);
   expect([...new Set(allEntries.map((entry) => entry.reference.surface))].sort())
     .toEqual(requiredSurfaces);
   for (const entry of allEntries) {

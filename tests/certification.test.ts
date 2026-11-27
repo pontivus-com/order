@@ -694,7 +694,12 @@ describe("Order cross-boundary certification", () => {
     )].sort();
     const productionRenderers = renderers.filter((name) => name !== "main.tsx");
     expect(canonicalRendererNames).toContain("ActivityComposer.tsx");
-    expect(canonicalRendererNames).toEqual(productionRenderers);
+    // Target renderer authority includes the one signed prospective Acceptance owner.
+    // Current runtime may omit that owner only before the atomic stage cutover.
+    const nativeAcceptanceStage = read("src/core/contracts.ts").split("export const WorkStatusSchema")[0].includes('"AWAITING_ACCEPTANCE"');
+    expect(canonicalRendererNames).toContain("AcceptanceWorkspace.tsx");
+    expect(canonicalRendererNames.filter((name) => nativeAcceptanceStage || name !== "AcceptanceWorkspace.tsx")).toEqual(productionRenderers);
+    expect(productionRenderers.includes("AcceptanceWorkspace.tsx")).toBe(nativeAcceptanceStage);
 
     const unclassified = (
       names: readonly string[],
@@ -2041,8 +2046,9 @@ describe("Order cross-boundary certification", () => {
     };
     expect(referenceManifest.semanticAuthority).toBe(false);
     const surfaceIds = (referenceManifest.surfaces ?? []).map((row) => row.id ?? "");
-    expect(surfaceIds).toHaveLength(37);
-    expect(new Set(surfaceIds).size).toBe(37);
+    expect(surfaceIds).toHaveLength(38);
+    expect(new Set(surfaceIds).size).toBe(38);
+    expect(surfaceIds).toContain("SURF-STEP-ACCEPTANCE-001");
 
     const referenceAtlas = read("docs/references/workbench-ui/reference-atlas.html");
     for (const surfaceId of surfaceIds) {
