@@ -26,7 +26,7 @@ Stable rows in phase: **7**.
 | `PL-C19-02` | C19-F02/C19-F03/C19-F04/C19-F05/C19-F06/C19-F07/C19-F08/C19-F09 | `SD21`-`SD29` | `IA27`-`IA34` | — | Consume the SD21/F6B semantic component architecture through the one IA27-IA34 catalog. Existing conforming/required-absent owners are retained, with exact bounded residuals; every affected renderer is revalidated and unauthorized substitute grammar is rejected. Current bytes never become preservation authority. |
 | `PL-C20-01` | C20-F02 | `SD17` | `IA21` | — | Permanent browser certification proves complete four-kind Research/downstream scenario 41. |
 | `PL-C20-02` | C20-F03 | `SD18` | `IA22` | — | Permanent certification proves representative cross-application System/Light/Dark component/semantic-role parity. |
-| `PL-C20-03` | C20-F05/C20-F06/C20-F07/C20-F08/C20-F09/C20-F10/C20-F11 | `SD30` | `IA26` | — | IA26 proves the 37-SURF rendered union plus semantic-component API/consumer/physical-SoC closure. Evidence rows retain explicit governed scope and separate schema_information/ux_interaction/visual_ui verdicts; a green capture job alone is not acceptance. |
+| `PL-C20-03` | C20-F05/C20-F06/C20-F07/C20-F08/C20-F09/C20-F10/C20-F11 | `SD30` | `IA26` | — | IA26 proves the 38-SURF rendered union plus semantic-component API/consumer/physical-SoC closure. Evidence rows retain explicit governed scope and separate schema_information/ux_interaction/visual_ui verdicts; a green capture job alone is not acceptance. |
 
 Package atoms in phase: **5**.
 
@@ -56,7 +56,7 @@ Action mutation/disposition semantics are owned only by `12-action-catalog.md`; 
 
 ## Realization trace consequence
 
-IA20/21/22/23/26 consume complete P3 §23 allocation in closeout and 37 DESIGN datum/action contracts. Phase-local and final proof are independent. Fixture/reference maintenance is SD30 verification only.
+IA20/21/22/23/26 consume complete P3 §23 allocation in closeout and 38 DESIGN datum/action contracts. Phase-local and final proof are independent. Fixture/reference maintenance is SD30 verification only.
 
 ### A09/A10 installation certification dependency
 

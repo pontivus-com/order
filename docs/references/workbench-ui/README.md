@@ -10,10 +10,10 @@ This directory is a deterministic visual projection of the current Workbench aut
 
 The active corpus is valid only for these exact inputs:
 
-- `GW-DOC-WORKBENCH-UX-V2` — blob `417cfc41ed54054e033d80ccbe04dfd51ce3a6c1`;
-- `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2` — blob `dcc835c3b44f0ea9498b91fb8a1814c0bf1ecfc9`;
+- `GW-DOC-WORKBENCH-UX-V2` — blob `58fa47c158830e3f471249d3faa40560eb6d2a02`;
+- `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2` — blob `ebe6c47ed6f60bc6afed87784f26065ec6d0a53b`;
 - `GW-DOC-WORKBENCH-THEME-V1` — blob `03dfc6be3600a1128b5639d011f4c0159d3497dd`;
-- current 0.6.0 DESIGN — blob `83e2ebf41abcad9a43c0caf49b5cbe654dddda30`.
+- current 0.6.0 DESIGN — blob `7e1dff8996d2043b8270fb6e3b2a705e7156f42e`.
 
 These are the exact current authority versions projected by this corpus. If any bound owner changes, this corpus is stale until regenerated and reviewed. The owner wins on every conflict.
 
@@ -43,3 +43,5 @@ The 38-SURF universe is derived from current DESIGN, never from this directory.
 ## Native Acceptance reference delta
 
 The ten-stage rail is projected across every WorkItem fixture; current/selected/reached remain independently supplied facts, including legacy and non-delivery bypass. Acceptance reference states include current review, open finding, queued correction, retest, failed retest, stale authority, unavailable proof, no-op challenge, report/retest forms and read-only historical correction/acceptance. Complete distinguishes accepted candidate, legacy technical completion without recorded acceptance, all-no-op and non-delivery. These are static authority-derived comparison fixtures, not runtime state or approved screenshot evidence. IA39/IA26 must independently prove equivalent states, exact same-scope captures and actual interactions; this reference change is not rendered acceptance.
+
+The Acceptance reference includes 27 exact comparison states (ordinary, historical, unavailable/conflict, detail and human input/result variants) and explicit dependent Queue, shell/Context, Approval, Implementation, Evidence, signed Document and repository-guard states. The manifest and atlas must match exactly. The fixtures use the existing semantic component anatomy, including a single modal TaskPanel interaction and inert underlying Review; all data/paths are placeholders, not evidence. IA39 and IA26 require actual candidate proof of all affected propositions, including both retest branches and the dirty-navigation confirmations. The reference changes do not themselves establish visual acceptance.

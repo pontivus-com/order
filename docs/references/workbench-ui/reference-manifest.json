@@ -6,12 +6,12 @@
     "p3": {
       "id": "GW-DOC-WORKBENCH-UX-V2",
       "path": "docs/requirements/workbench.md",
-      "blob": "417cfc41ed54054e033d80ccbe04dfd51ce3a6c1"
+      "blob": "58fa47c158830e3f471249d3faa40560eb6d2a02"
     },
     "p4": {
       "id": "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
       "path": "docs/architecture/workbench.md",
-      "blob": "dcc835c3b44f0ea9498b91fb8a1814c0bf1ecfc9"
+      "blob": "ebe6c47ed6f60bc6afed87784f26065ec6d0a53b"
     },
     "theme": {
       "id": "GW-DOC-WORKBENCH-THEME-V1",
@@ -21,7 +21,7 @@
     "design": {
       "id": "work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21/DESIGN",
       "path": "docs/order/work-items/work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21/solution-design.md",
-      "blob": "83e2ebf41abcad9a43c0caf49b5cbe654dddda30"
+      "blob": "7e1dff8996d2043b8270fb6e3b2a705e7156f42e"
     }
   },
   "fixturePolicy": {
@@ -72,7 +72,8 @@
         "populated",
         "empty",
         "no-match",
-        "source-diagnostic"
+        "source-diagnostic",
+        "acceptance-pending"
       ],
       "viewports": [
         "wide",
@@ -149,7 +150,8 @@
       "selector": "[data-surf=\"SURF-SET-REPO-001\"]",
       "captureScope": "full-workbench",
       "states": [
-        "default"
+        "default",
+        "acceptance-guard"
       ],
       "viewports": [
         "wide",
@@ -201,7 +203,8 @@
       "captureScope": "full-workbench",
       "states": [
         "default",
-        "conflict"
+        "conflict",
+        "acceptance-guard"
       ],
       "viewports": [
         "wide",
@@ -356,7 +359,8 @@
       "states": [
         "default",
         "current-action",
-        "blocked"
+        "blocked",
+        "acceptance-current"
       ],
       "viewports": [
         "wide",
@@ -385,7 +389,8 @@
         "run",
         "proposal",
         "approval",
-        "task"
+        "task",
+        "acceptance"
       ],
       "viewports": [
         "wide",
@@ -577,7 +582,8 @@
       "states": [
         "current",
         "stale",
-        "signoff"
+        "signoff",
+        "signed-acceptance"
       ],
       "viewports": [
         "wide",
@@ -606,7 +612,9 @@
         "running",
         "blocked",
         "validation-recorded",
-        "historical-selection"
+        "historical-selection",
+        "qa-review",
+        "qa-blocked"
       ],
       "viewports": [
         "wide",
@@ -642,7 +650,22 @@
         "report-form",
         "retest-form",
         "historical-correction",
-        "historical-accepted"
+        "historical-accepted",
+        "finding-detail",
+        "round-detail",
+        "submit-form",
+        "withdraw-form",
+        "accept-form",
+        "reanalysis-form",
+        "proof-reanalysis-form",
+        "reconcile-confirmation",
+        "test-copy-form",
+        "test-copy-result",
+        "test-copy-error",
+        "form-error",
+        "loading",
+        "mutation-conflict",
+        "historical-return"
       ],
       "viewports": [
         "wide",
@@ -754,7 +777,8 @@
       "captureScope": "full-workbench",
       "states": [
         "current",
-        "historical"
+        "historical",
+        "signed-acceptance"
       ],
       "viewports": [
         "wide",
@@ -839,7 +863,9 @@
       "states": [
         "text",
         "code",
-        "error"
+        "error",
+        "qa-original",
+        "qa-successor"
       ],
       "viewports": [
         "wide",
@@ -893,7 +919,9 @@
         "current",
         "historical",
         "blocked",
-        "validation-recorded"
+        "validation-recorded",
+        "qa-review",
+        "qa-blocked"
       ],
       "viewports": [
         "wide",
