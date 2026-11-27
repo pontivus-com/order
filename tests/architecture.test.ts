@@ -2647,9 +2647,14 @@ describe("architecture fitness", () => {
       } else {
         let campaignIntegratedOnDefaultBranch = false;
         try {
+          const sharedDefaultAncestor = execFileSync(
+            "git",
+            ["merge-base", "refs/remotes/origin/master", "HEAD"],
+            { cwd: repositoryRoot, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] },
+          ).trim();
           execFileSync(
             "git",
-            ["cat-file", "-e", `refs/remotes/origin/master:${campaignPlanPath}`],
+            ["cat-file", "-e", `${sharedDefaultAncestor}:${campaignPlanPath}`],
             { cwd: repositoryRoot, stdio: "pipe" },
           );
           campaignIntegratedOnDefaultBranch = true;

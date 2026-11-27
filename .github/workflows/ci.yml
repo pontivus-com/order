@@ -32,6 +32,12 @@ jobs:
           git fetch --no-tags origin \
             "+refs/heads/${{ github.event.pull_request.base.ref }}:refs/remotes/origin/${{ github.event.pull_request.base.ref }}" \
             "+refs/pull/${{ github.event.pull_request.number }}/merge:refs/remotes/origin/pr-merge"
+          # Stacked PR bases are not master; the existing campaign sensor
+          # also needs the actual shared default-branch history for its
+          # historical squash-integration proof. This ref is evidence only.
+          if [[ "${{ github.event.pull_request.base.ref }}" != "master" ]]; then
+            git fetch --no-tags origin "+refs/heads/master:refs/remotes/origin/master"
+          fi
           git checkout --detach refs/remotes/origin/pr-merge
           test "$(git rev-parse HEAD^1)" = "${{ github.event.pull_request.base.sha }}"
           test "$(git rev-parse HEAD^2)" = "${{ github.event.pull_request.head.sha }}"
