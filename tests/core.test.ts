@@ -1773,6 +1773,7 @@ describe("source-backed WorkItem core", () => {
 
   it("enforces v2 stage structure without reinterpreting v1 pins", () => {
     const valid = [
+      stageTemplateForSchema("defect-v2", "R2")!.split("\n")[0]!,
       "# Requirements",
       "",
       "## Proven defect/root cause",
