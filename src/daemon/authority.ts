@@ -28,7 +28,7 @@ import {
   normalizeRepositoryPath,
 } from "../core/canonical.ts";
 import {
-  admittedStageCompletion,
+  admittedTerminalR1Artifact,
   artifactReturnOwner,
   routeApprovalStale,
   transitionWorkItem,
@@ -181,18 +181,15 @@ export const observeCurrentApproval = async (
   const workItem = getWorkItem(runtime, workItemId);
   if (workItem.stage !== "EXECUTION" && workItem.stage !== "COMPLETE") return null;
   if (workItem.stage === "COMPLETE") {
-    const terminalR1 = listRuns(runtime, workItemId).flatMap((run) => {
-      const completion = admittedStageCompletion(workItemId, run, listRunEvents(runtime, run.id));
-      if (completion?.completion.stage !== "R1" || completion.completion.outcome === "CONFIRMED") return [];
-      return [completion.completion.outcome];
-    });
-    if (terminalR1.length > 0) {
-      if (!terminalR1.every((outcome) => outcome === workItem.outcome &&
-          allowedR1CompletionsForSchema(workItem.schemaId).includes(outcome))) {
-        throw new TypeError("inconsistent terminal R1 completion evidence");
-      }
-      return null;
-    }
+    const runs = listRuns(runtime, workItemId);
+    const terminalR1 = admittedTerminalR1Artifact(
+      workItem,
+      runs,
+      runs.flatMap((run) => listRunEvents(runtime, run.id)),
+      listArtifacts(runtime, workItemId),
+      allowedR1CompletionsForSchema(workItem.schemaId),
+    );
+    if (terminalR1 !== null) return null;
   }
   const approval = currentApprovalForWorkItem(runtime, workItemId);
   if (approval === null) throw new TypeError("required current or final Approval is missing");

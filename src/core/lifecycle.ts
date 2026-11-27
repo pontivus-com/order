@@ -858,6 +858,37 @@ export const admittedStageCompletion = (
   return completion.event;
 };
 
+// Terminal R1 is absorbing. A historical Approval is not evidence against
+// a later admitted terminal R1, but two admitted terminal origins are inconsistent.
+export const admittedTerminalR1Artifact = (
+  workItem: WorkItem,
+  runs: readonly Run[],
+  events: readonly RunEvent[],
+  artifacts: readonly ArtifactRef[],
+  allowedR1Completions: readonly StageCompletion["outcome"][],
+): ArtifactRef | null => {
+  if (workItem.stage !== "COMPLETE") return null;
+  const terminal = runs.flatMap((run) => {
+    const completion = admittedStageCompletion(workItem.id, run, events);
+    return completion?.completion.stage === "R1" && completion.completion.outcome !== "CONFIRMED"
+      ? [completion] : [];
+  });
+  if (terminal.length === 0) return null;
+  const completion = terminal[0]!;
+  if (terminal.length !== 1 ||
+      !allowedR1Completions.includes(completion.completion.outcome) ||
+      completion.completion.outcome !== workItem.outcome) {
+    throw new TypeError("ambiguous or inconsistent terminal R1 completion evidence");
+  }
+  const matches = artifacts.filter((artifact) =>
+    artifact.id === completion.artifactRefIds[0] &&
+    artifact.workItemId === workItem.id && artifact.role === "R1");
+  if (matches.length !== 1) {
+    throw new TypeError("terminal R1 completion lacks its exact output ArtifactRef");
+  }
+  return matches[0]!;
+};
+
 export const deriveReachedStages = (
   workItem: WorkItem,
   runs: readonly Run[],

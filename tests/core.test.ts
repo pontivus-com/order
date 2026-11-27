@@ -53,6 +53,7 @@ import {
   resolveAuthorityRefClosure,
 } from "../src/core/governance.ts";
 import {
+  admittedTerminalR1Artifact,
   artifactReturnOwner,
   deriveCurrentAttention,
   deriveExecutionOwner,
@@ -2747,6 +2748,34 @@ describe("closed Workbench workflow-state kernel", () => {
     expect(
       reachStateForStage(plan, returnedUpstream, "AWAITING_SIGNOFF"),
     ).toBe("REACHED_HISTORICAL");
+  });
+
+  it("selects exactly one schema-admitted terminal R1 artifact and rejects contradictory provenance", () => {
+    const complete = WorkItemSchema.parse({
+      ...baseWorkItem(), stage: "COMPLETE", status: "COMPLETE", outcome: "ALREADY_SATISFIED",
+    });
+    const run = stageRun("COMPLETED", "R1");
+    const output = artifact(uuidA, "docs/r1.md", "R1", "P1", hashA);
+    const completion = RunEventSchema.parse({
+      id: `event_${uuidA}`, runId: run.id, sequence: 1,
+      occurredAt: "2026-11-11T03:30:00.000Z",
+      event: { tag: "STAGE_COMPLETED", completion: { stage: "R1", outcome: "ALREADY_SATISFIED" }, artifactRefIds: [output.id] },
+    });
+    const conformance = RunEventSchema.parse({
+      ...completion, id: `event_${uuidB}`, sequence: 2,
+      event: { tag: "CONFORMANCE_PASSED", stage: "R1", contextHash: run.contextHash, outputArtifactRefIds: [output.id], evidence: [] },
+    });
+    const events = [completion, conformance];
+    const allowed = allowedR1CompletionsForSchema(complete.schemaId);
+    expect(admittedTerminalR1Artifact(complete, [run], events, [output], allowed)).toEqual(output);
+    expect(admittedTerminalR1Artifact(complete, [run], [completion], [output], allowed)).toBeNull();
+    expect(() => admittedTerminalR1Artifact(complete, [run], events, [], allowed)).toThrow("exact output");
+    expect(() => admittedTerminalR1Artifact(complete, [run], events, [{ ...output, role: "R2" }], allowed)).toThrow("exact output");
+    expect(() => admittedTerminalR1Artifact(complete, [run], events, [output], ["DISPROVEN"])).toThrow("inconsistent");
+    expect(() => admittedTerminalR1Artifact({ ...complete, outcome: "DUPLICATE" }, [run], events, [output], allowed)).toThrow("inconsistent");
+    const other = RunSchema.parse({ ...run, id: `run_${uuidD}`, attempt: 2 });
+    const otherEvents = events.map((event) => RunEventSchema.parse({ ...event, runId: other.id }));
+    expect(() => admittedTerminalR1Artifact(complete, [run, other], [...events, ...otherEvents], [output], allowed)).toThrow("ambiguous");
   });
 
   it("derives execution owner and current-candidate validation boundary independently of selection", () => {

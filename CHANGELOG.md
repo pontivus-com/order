@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Share exact schema-admitted terminal R1 artifact selection and reject ambiguous terminal provenance in the observational Approval boundary (IA17).
+
 - Keep installer archive regression proof within the signed installer test owner. Defer guided-admission API changes pending resolution of the existing out-of-scope shell test contract; do not introduce implicit established-installation admission.
 
 - Record exact original SQLite archive membership and perform path-specific reverse compensation without deleting a candidate whose required original is unproven (IA25 archive slice).

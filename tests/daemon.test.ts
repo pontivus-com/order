@@ -937,20 +937,46 @@ describe("daemon control plane", () => {
       try { await coord.observeCurrentApproval(runtime, work); } catch { missing = true; }
       database.query("UPDATE executionTasks SET state = 'ALREADY_SATISFIED' WHERE approvalId = ?1").run(approval.id);
       const final = await coord.observeCurrentApproval(runtime, work);
+      const terminalRun = () => {
+        const run = runStore.insertRun(runtime, {
+          id: rt.newRunId(), workItemId: work, executionTaskId: null,
+          stage: "R1", role: "STAGE", mode: "INTERACTIVE", triggerEventId: null,
+          status: "COMPLETED", attempt: runStore.nextAttempt(runtime, work, "R1", null),
+          baselineCommit: baseline, contextHash: rt.sha256Text("terminal-r1"),
+          providerSessionId: null, terminalClassification: null, startedAt: timestamp, endedAt: timestamp,
+        });
+        runStore.appendRunEvent(runtime, run.id, {
+          tag: "STAGE_COMPLETED", completion: { stage: "R1", outcome: "ALREADY_SATISFIED" },
+          artifactRefIds: [outputs.R1.id],
+        });
+        runStore.appendRunEvent(runtime, run.id, {
+          tag: "CONFORMANCE_PASSED", stage: "R1", outputArtifactRefIds: [outputs.R1.id],
+          contextHash: run.contextHash, evidence: [],
+        });
+      };
+      terminalRun();
+      const terminal = await coord.observeCurrentApproval(runtime, work);
+      const retainedHistory = coord.observeApprovalHistory(runtime, work).map((value) => value.id);
+      terminalRun();
+      let ambiguous = false;
+      try { await coord.observeCurrentApproval(runtime, work); } catch { ambiguous = true; }
       console.log(JSON.stringify({
         current: current?.id, approval: approval.id, history: history.map((value) => value.id),
         roots: members.some((value) => value.id === approval.planArtifactRefId) &&
           members.some((value) => value.id === approval.r3ArtifactRefId),
-        returned, missing, final: final?.id,
+        returned, missing, final: final?.id, terminal, retainedHistory, ambiguous,
       }));
       database.close();
-    `) as { current: string; approval: string; history: string[]; roots: boolean; returned: null; missing: boolean; final: string };
+    `) as { current: string; approval: string; history: string[]; roots: boolean; returned: null; missing: boolean; final: string; terminal: null; retainedHistory: string[]; ambiguous: boolean };
     expect(output.current).toBe(output.approval);
     expect(output.history).toEqual([output.approval]);
     expect(output.roots).toBe(true);
     expect(output.returned).toBeNull();
     expect(output.missing).toBe(true);
     expect(output.final).toBe(output.approval);
+    expect(output.terminal).toBeNull();
+    expect(output.retainedHistory).toEqual([output.approval]);
+    expect(output.ambiguous).toBe(true);
   }, 30_000);
 
   it("labels configured STAGE reference roots as read-only non-authoritative context", async () => {
