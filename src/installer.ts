@@ -22,7 +22,7 @@ import {
 import { basename, dirname, isAbsolute, join } from "node:path";
 import { pathToFileURL } from "node:url";
 
-import type { InstallerConfigPublication, InstallerConfigSnapshot } from "./shell/setup.ts";
+import type { InstallerConfigPublication, InstallerConfigSnapshot, InstallerManifestCustody, InstallerManifestEffects } from "./shell/setup.ts";
 import type { LegacyDatabaseArchive } from "./shell/sqlite.ts";
 
 const bunVersion = "1.4.4";
@@ -490,9 +490,10 @@ const configureOrder = async (
   locations: InstallerLocations,
   established: boolean,
   publication: InstallerConfigPublication,
-  projectManifestCreated: (path: string) => void,
+  projectManifestCreated: (custody: InstallerManifestCustody) => void,
   question: typeof terminalQuestion,
   onIncompleteDatabaseInspection: () => void,
+  manifestEffects?: InstallerManifestEffects,
 ) => {
   const setupUrl = pathToFileURL(
     join(locations.installRoot, "app", "src", "shell", "setup.ts"),
@@ -510,6 +511,7 @@ const configureOrder = async (
     publication,
     projectManifestCreated,
     onIncompleteDatabaseInspection,
+    manifestEffects,
   );
   if (code !== 0) fail("Order guided configuration did not complete");
   return { setupModule, legacyV2Config } as const;
@@ -534,22 +536,6 @@ const captureInstallerFile = (path: string) => {
     }
     return { device: before.dev, inode: before.ino, mode: before.mode, uid: before.uid, bytes };
   } finally { closeSync(descriptor); }
-};
-
-const restoreCreatedManifest = (
-  path: string,
-  expected: ReturnType<typeof captureInstallerFile> | null,
-): void => {
-  if (expected === null) throw new TypeError("installer-created manifest ownership could not be established: " + path);
-  if (!footprintEntryExists(path)) return;
-  const observed = captureInstallerFile(path);
-  if (observed.device !== expected.device || observed.inode !== expected.inode ||
-      observed.mode !== expected.mode || observed.uid !== expected.uid ||
-      !observed.bytes.equals(expected.bytes)) {
-    fail("unexpected manifest identity or bytes retained: " + path);
-  }
-  rmSync(path);
-  if (footprintEntryExists(path)) fail("installer-created manifest remains at " + path);
 };
 
 type InstallerFileIdentity = ReturnType<typeof captureInstallerFile>;
@@ -1032,6 +1018,7 @@ export const runInstaller = async (
   databaseEffects?: Parameters<typeof import("./shell/sqlite.ts").prepareOrderDatabaseForInstall>[2],
   configEffects?: InstallerConfigPublication["effects"],
   writeMarker: (descriptor: number, bytes: string) => void = (descriptor, bytes) => writeFileSync(descriptor, bytes, "utf8"),
+  manifestEffects?: InstallerManifestEffects,
 ): Promise<void> => {
   if (process.platform !== "linux") fail("Order v1 productive installation requires Linux");
   if (Bun.version !== bunVersion) fail("installer must run on exact Bun " + bunVersion);
@@ -1062,6 +1049,7 @@ export const runInstaller = async (
   }
   step(established ? "updating existing installation" : "starting fresh/unproven installation");
 
+  process.stdout.write("Order installation maintenance: stop other Order instances and external database clients; do not concurrently edit installer-created integration files until installation finishes.\n");
   const prior = captureServiceState(locations, environment);
   let legacyMigration: LegacyGateweftMigration | null = null;
   let staging: string | null = null;
@@ -1088,7 +1076,7 @@ export const runInstaller = async (
   let databaseRestoreIncomplete = false;
   let sqliteUpgradeModule: typeof import("./shell/sqlite.ts") | null = null;
   let configuredSetup: Awaited<ReturnType<typeof configureOrder>> | null = null;
-  const createdProjectManifests = new Map<string, ReturnType<typeof captureInstallerFile> | null>();
+  const createdProjectManifests = new Map<string, InstallerManifestCustody>();
 
   try {
     if (prior.activity === "active") {
@@ -1155,10 +1143,9 @@ export const runInstaller = async (
     step("configuring provider, model and repository access");
     configuredSetup = await configureOrder(locations, established, {
       snapshot: configSnapshot, onPublished: identity => { published = identity; }, effects: configEffects,
-    }, path => {
-      createdProjectManifests.set(path, null);
-      createdProjectManifests.set(path, captureInstallerFile(path));
-    }, question, () => { databaseRestoreIncomplete = true; });
+    }, custody => {
+      createdProjectManifests.set(custody.path, custody);
+    }, question, () => { databaseRestoreIncomplete = true; }, manifestEffects);
 
     sqliteUpgradeModule = await import(pathToFileURL(join(locations.installRoot, "app", "src", "shell", "sqlite.ts")).href) as typeof import("./shell/sqlite.ts");
     databaseArchive = sqliteUpgradeModule.prepareOrderDatabaseForInstall(locations.stateRoot,
@@ -1207,6 +1194,7 @@ export const runInstaller = async (
     requireInstallerFile(launcher, launcherIdentity);
     requireInstallerFile(prior.unitPath, unitPublished);
     setupModule.requireInstallerConfigPublication(configSnapshot, published);
+    for (const custody of createdProjectManifests.values()) setupModule.requireInstallerManifest(custody);
 
     // Installation commit: all reversible admission conditions have passed.
     const marker = join(locations.installRoot, "SOURCE_COMMIT");
@@ -1260,8 +1248,11 @@ export const runInstaller = async (
       compensate("configuration restoration incomplete: " + (snapshot.recoveryPath ?? snapshot.target),
         () => module.restoreInstallerConfig(snapshot, published, configEffects));
     }
-    for (const [path, identity] of [...createdProjectManifests].reverse()) {
-      compensate("manifest restoration incomplete: " + path, () => restoreCreatedManifest(path, identity));
+    for (const custody of [...createdProjectManifests.values()].reverse()) {
+      compensate("manifest restoration incomplete: " + custody.path, () => {
+        if (setupModule === null) throw new TypeError("installed project effect owner unavailable");
+        setupModule.restoreInstallerManifest(custody, manifestEffects);
+      });
     }
     if (launcherActivated) compensate("new launcher removal incomplete: " + launcher, () => {
       if (launcherIdentity === null) throw new TypeError("launcher custody unavailable");

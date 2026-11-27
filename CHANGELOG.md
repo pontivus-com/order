@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Establish installer-created project manifest custody at exclusive descriptor creation, verify exact file/root identity and bytes before validation and commit, and compensate through the existing project owner; state the supported maintenance boundary before installation effects. Add actual transaction fault cases for early write/fsync failure, replacement and failed removal (IA25/REV-F11 proposal).
+
 - Harden the process-group cancellation/timeout fixture by publishing the descendant PID atomically, rejecting invalid PIDs and proving the descendant exists before explicit cancellation; preserve the existing mandatory termination assertions (G-F39). Exact-candidate verification remains required.
 
 - Specify installer-created manifest custody at the existing project shell owner and the supported sole-writer maintenance boundary; revise the exact 0.6.0 forecast and proof package for REV-F11 without changing production source. Preserve actual shared default-branch campaign ancestry proof when verifying stacked candidates.

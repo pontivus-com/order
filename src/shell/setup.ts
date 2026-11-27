@@ -32,6 +32,8 @@ import {
 import {
   loadConfiguredProjects,
   prepareProjectRootForInstall,
+  type InstallerManifestCustody,
+  type InstallerManifestEffects,
 } from "./project.ts";
 import {
   createWorkingTreeFileExclusive,
@@ -51,6 +53,8 @@ import {
 // The installed setup boundary exposes the existing config owner’s rollback effects.
 export { captureInstallerConfigSnapshot, releaseInstallerConfigSnapshot, restoreInstallerConfig, requireInstallerConfigPublication } from "./config.ts";
 export type { InstallerConfigPublication, InstallerConfigSnapshot } from "./config.ts";
+export { requireInstallerManifest, restoreInstallerManifest } from "./project.ts";
+export type { InstallerManifestCustody, InstallerManifestEffects } from "./project.ts";
 
 export type SetupQuestion = (prompt: string) => Promise<string>;
 
@@ -301,13 +305,13 @@ const pathIsWithin = (parent: string, candidate: string): boolean => {
 const exactProjectRootForUpgrade = async (
   candidate: string,
   writeStdout: (value: string) => void,
-  projectManifestCreated: (path: string) => void,
+  projectManifestCreated: (custody: InstallerManifestCustody) => void,
+  manifestEffects?: InstallerManifestEffects,
 ): Promise<string | null> => {
-  const prepared = await prepareProjectRootForInstall(candidate);
+  const prepared = await prepareProjectRootForInstall(candidate, projectManifestCreated, manifestEffects);
   if (prepared === null) return null;
   const [repositoryRoot, createdManifestPath] = prepared;
   if (createdManifestPath !== null) {
-    projectManifestCreated(createdManifestPath);
     writeStdout(
       "Order installer — created missing project manifest at " +
         createdManifestPath +
@@ -323,8 +327,9 @@ const legacyTargetRootsForUpgrade = async (
   stateRoot: string,
   configuredRoots: readonly string[],
   writeStdout: (value: string) => void,
-  projectManifestCreated: (path: string) => void,
+  projectManifestCreated: (custody: InstallerManifestCustody) => void,
   onIncompleteDatabaseInspection: () => void,
+  manifestEffects?: InstallerManifestEffects,
 ): Promise<readonly string[]> => {
   const observedRoots = readLegacyWorkItemRepositoryRootsForInstall(stateRoot, onIncompleteDatabaseInspection);
   for (const observed of observedRoots) {
@@ -341,6 +346,7 @@ const legacyTargetRootsForUpgrade = async (
       configured,
       writeStdout,
       projectManifestCreated,
+      manifestEffects,
     );
     if (exact !== null) migrated.add(exact);
   }
@@ -349,6 +355,7 @@ const legacyTargetRootsForUpgrade = async (
       observed,
       writeStdout,
       projectManifestCreated,
+      manifestEffects,
     );
     if (exact === null) return [];
     migrated.add(exact);
@@ -364,10 +371,11 @@ const runGuidedSetupInternal = async (
   environment: NodeJS.ProcessEnv,
   writeStdout: (value: string) => void,
   question: SetupQuestion,
-  projectManifestCreated: (path: string) => void,
+  projectManifestCreated: (custody: InstallerManifestCustody) => void,
   publication?: InstallerConfigPublication,
   established = false,
   onIncompleteDatabaseInspection: () => void = () => {},
+  manifestEffects?: InstallerManifestEffects,
 ): Promise<number> => {
   const allowLegacyUpdate = publication !== undefined;
   const stateRoot = resolveStateRoot(environment);
@@ -386,6 +394,7 @@ const runGuidedSetupInternal = async (
       writeStdout,
       projectManifestCreated,
       onIncompleteDatabaseInspection,
+      manifestEffects,
     );
 
     if (repositoryRoots.length === 0) {
@@ -676,8 +685,9 @@ export const runInstallerGuidedSetup = async (
   question: SetupQuestion,
   established: boolean,
   publication: InstallerConfigPublication,
-  projectManifestCreated: (path: string) => void = () => {},
+  projectManifestCreated: (custody: InstallerManifestCustody) => void,
   onIncompleteDatabaseInspection: () => void = () => {},
+  manifestEffects?: InstallerManifestEffects,
 ): Promise<number> =>
   runGuidedSetupInternal(
     false,
@@ -688,6 +698,7 @@ export const runInstallerGuidedSetup = async (
     publication,
     established,
     onIncompleteDatabaseInspection,
+    manifestEffects,
   );
 
 const observeInstalledReadiness = async (
