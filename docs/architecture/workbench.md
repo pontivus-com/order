@@ -241,7 +241,7 @@ The daemon is authoritative for mutation admission. The browser uses the same pu
 | Report | current coherent Acceptance; exact current member/hash/sequence; no queued work | REPORT, same stage |
 | Submit | open/retest-failed reports of one current candidate-producing task, exact current identity | SUBMIT, same stage until scheduler admission |
 | Retest/disposition | exact current member/finding, no queued work | RETEST_FAILED or DISPOSITION, same stage |
-| Reanalysis | exact no-op challenge or irrecoverable proof, current identity and owner | durable REANALYSIS_REQUESTED, return exact upstream owner |
+| Reanalysis | current Acceptance, exact Approval/sequence; current no-op challenge with matching set hash or rechecked unavailable proof with null expected hash; no active correction | durable REANALYSIS_REQUESTED, return PLAN; queued submission becomes historical |
 | Accept | exact verified current set, no unresolved reports/queued work, current authority | ACCEPT and COMPLETE atomically |
 | Prepare test copy | current candidate-producing member, no queued work | isolated replay copy, no state change |
 
@@ -377,7 +377,7 @@ Existing specialized transition helpers may remain where they are the minimum cl
 
 `RECONCILE_AUTHORITY(owner)` is the explicit stale-authority return used from `AWAITING_SIGNOFF / ACTIVE` or `AWAITING_ACCEPTANCE / ACTIVE` after observational package inspection has produced that exact owner. It changes only the canonical lifecycle tuple to `owner / ACTIVE / null`; it does not rewrite repository bytes, fabricate conformance or replace source reconciliation. Source-boundary conflicts continue to use the existing source reconciliation path.
 
-`EXECUTION_COMPLETED(CANDIDATE_DONE)` derives AWAITING_ACCEPTANCE/ACTIVE/null with atomic OPENED or REVIEW_COMPLETED; ALREADY_SATISFIED derives COMPLETE only for all-no-op. `QA_REVIEW_STARTED` derives EXECUTION/ACTIVE/null only with admitted queued submission and exact task Run. `CANDIDATE_ACCEPTED` derives COMPLETE/COMPLETE/CANDIDATE_DONE only with admitted ACCEPT from Acceptance. `EXECUTION_RETURN` also admits explicit no-op PLAN challenge or irrecoverable proof reanalysis from Acceptance; actual stale authority uses RECONCILE_AUTHORITY. Reject unlisted stage/status combinations.
+`EXECUTION_COMPLETED(CANDIDATE_DONE)` derives AWAITING_ACCEPTANCE/ACTIVE/null with atomic OPENED or REVIEW_COMPLETED; ALREADY_SATISFIED derives COMPLETE only for all-no-op. `QA_REVIEW_STARTED` derives EXECUTION/ACTIVE/null only with admitted queued submission and exact task Run. `CANDIDATE_ACCEPTED` derives COMPLETE/COMPLETE/CANDIDATE_DONE only with admitted ACCEPT from Acceptance. `EXECUTION_RETURN` also admits explicit no-op PLAN challenge or irrecoverable proof reanalysis from Acceptance; actual stale authority uses RECONCILE_AUTHORITY, changed source uses explicit source reconciliation. Recheck exact diagnostic even when candidate identity is unavailable; queued admission cannot progress through stale/missing proof, and recovery remains reachable. Reject unlisted stage/status combinations.
 
 ### 4.10 Proposal, recovery and execution derivation
 
