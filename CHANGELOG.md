@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Reconcile the 0.6.0 research reach-history facts and ten-stage rail requirement with the inherited canonical completion-admission implementation; retain native Acceptance and consumer verification obligations.
+
 - Reconcile IA26 final rendered proof with the ten-stage, 38-surface Acceptance cutover and record targeted campaign impact evidence for inherited reach, Approval and installer capabilities.
 
 - Revalidate the 0.6.0 campaign foundation and concern inventory against the successful exact-candidate CI, recording G0/G1 closure and native Acceptance coverage in the canonical registers.
