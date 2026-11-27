@@ -558,7 +558,8 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
     const faultPath = databasePath + (fixture.databaseFaultSuffix ?? (fixture.databaseFault === "unlink" ? "-wal" : ""));
     const readDatabaseNamespace = () => databaseSuffixes.map(suffix => readBytes(databasePath + suffix));
     const { spawnSync: spawnFixtureProcess } = await import("node:child_process");
-    const leaveWal = (statement, expectedValue, expectedVersion) => {
+    let walFixtureFailure = null;
+    const populateWal = (statement, expectedValue, expectedVersion) => {
       // The fixture process proves the committed data and live sidecars while
       // SQLite is open, then terminates by SIGKILL, bypassing graceful close
       // and its checkpoint. spawnSync joins the process before installer work.
@@ -600,6 +601,10 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
         throw new Error("WAL fixture has no valid WAL header and frames");
       }
     };
+    const leaveWal = (...args) => {
+      try { populateWal(...args); }
+      catch (error) { walFixtureFailure = String(error); throw error; }
+    };
     if (fixture.legacyDatabaseVersion !== undefined) {
       const db = new Database(databasePath, { create: true, strict: true });
       db.exec("CREATE TABLE sentinel(value TEXT NOT NULL) STRICT; INSERT INTO sentinel VALUES (\'original\'); PRAGMA user_version = " + fixture.legacyDatabaseVersion + ";");
@@ -621,6 +626,9 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
       exitCode, success: exitCode === 0,
     });
     Bun.spawnSync = (argv, options = {}) => {
+      // Node-compatible child_process delegates to Bun's object-form spawn.
+      // Fixture processes are real external effects, never host-command stubs.
+      if (!Array.isArray(argv)) return originalSpawn(argv);
       if (argv[0] === "systemctl") {
         events.push({ command: argv.slice(2), marker: fs.existsSync(marker) });
         const verb = argv[2];
@@ -869,6 +877,7 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
       };
       await installer.runInstaller({ sourceRoot, sourceCommit }, process.env, question, rename, remove, databaseEffects, configEffects);
     } catch (error) { failure = String(error); }
+    if (walFixtureFailure !== null) throw new Error("SQLite fixture infrastructure failure: " + walFixtureFailure);
     console.log("ORDER_TRANSACTION_RESULT " + JSON.stringify({
       failure, prompts, events, restartObservations, activity, enablement, legacyActivity, sourceCommit,
       marker: fs.existsSync(marker) ? fs.readFileSync(marker, "utf8") : null,
@@ -1344,7 +1353,9 @@ describe("actual IA25 installer transaction", () => {
       failRestart: true, readiness: { ready: true, blockers: [] } });
     const index = ["", "-wal", "-shm"].indexOf(databaseFaultSuffix);
     const archive = outcome.stateEntries.find((name: string) => name.startsWith("order.sqlite3" + databaseFaultSuffix + ".legacy-v1."));
+    expect(outcome.failure).toContain("injected host failure");
     expect(outcome.failure).toContain("injected archive restoration");
+    expect(outcome.failure.indexOf("injected host failure")).toBeLessThan(outcome.failure.indexOf("injected archive restoration"));
     expect(readFileSync(join(fixture.stateRoot, archive)).toString("base64") === outcome.originalNamespace[index]).toBe(true);
     expect(outcome.databaseNamespace.map((value: string | null, j: number) =>
       j === index || value === outcome.originalNamespace[j])).toEqual([true, true, true]);
