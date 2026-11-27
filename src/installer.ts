@@ -958,6 +958,7 @@ export const runInstaller = async (
   let configCaptureIncomplete: string | null = null;
   let published: Parameters<InstallerConfigPublication["onPublished"]>[0] | null = null;
   let databaseArchive: LegacyDatabaseArchive | null = null;
+  let databaseCandidateEffectsStarted = false;
   let databaseRestoreIncomplete = false;
   let sqliteUpgradeModule: typeof import("./shell/sqlite.ts") | null = null;
   let configuredSetup: Awaited<ReturnType<typeof configureOrder>> | null = null;
@@ -1024,13 +1025,17 @@ export const runInstaller = async (
       process.stdout.write("Order installer — retained rollback database archive at " + databaseArchive.archiveDatabase + "\n");
     }
     if (configuredSetup.legacyV2Config !== null) {
+      databaseCandidateEffectsStarted = true;
       await configuredSetup.setupModule.migrateRepositoryNativeV2StateForInstall(locations.stateRoot, configuredSetup.legacyV2Config);
       process.stdout.write("Order installer — migrated WorkItem documentation into target repositories; retained legacy source root as backup: " +
         configuredSetup.legacyV2Config.workItemRoot + "\n");
     }
     step("installing and starting user service");
     activateService(locations, launcher, prior.unitPath, environment,
-      () => { unitPublished = true; }, () => { restartAttempted = true; }, rename);
+      () => { unitPublished = true; }, () => {
+        restartAttempted = true;
+        databaseCandidateEffectsStarted = true;
+      }, rename);
     await waitForHealthyDaemon(locations, launcher);
     if (!established) await configuredSetup.setupModule.requireFreshInstallerReadiness(runtimeEnvironment(locations));
 
@@ -1044,6 +1049,9 @@ export const runInstaller = async (
     const compensate = (label: string, operation: () => void): void => {
       try { operation(); } catch (failure) { failures.push(new Error(label + ": " + String(failure), { cause: failure })); }
     };
+    const databaseCandidates = databaseArchive !== null && sqliteUpgradeModule !== null
+      ? sqliteUpgradeModule.observeInstallerDatabaseCandidates(databaseArchive, databaseCandidateEffectsStarted)
+      : undefined;
     if (restartAttempted) {
       compensate("cannot prove new service stopped; live deployment and recovery material retained",
         () => requireServiceQuiescence("pontivus-order.service", locations.home, environment));
@@ -1057,7 +1065,10 @@ export const runInstaller = async (
       const archive = databaseArchive;
       const module = sqliteUpgradeModule;
       compensate("database restoration incomplete: " + archive.archiveDatabase, () => {
-        try { module.restoreOrderDatabaseAfterFailedInstall(archive, databaseEffects); }
+        try {
+          if (databaseCandidates === undefined) fail("database candidate custody is unavailable");
+          module.restoreOrderDatabaseAfterFailedInstall(archive, databaseEffects, databaseCandidates);
+        }
         catch (failure) { databaseRestoreIncomplete = true; throw failure; }
       });
     }

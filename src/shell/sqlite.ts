@@ -311,6 +311,7 @@ export type LegacyDatabaseArchive = Readonly<{
   suffix: string;
   archiveDatabase: string;
   originals: readonly Readonly<{ path: string; identity: InstallerDatabaseFileIdentity | null; digest: string | null }>[];
+  preparedCandidates: ReadonlyMap<string, InstallerDatabaseFileIdentity>;
 }>;
 
 const inspectInstallerDatabaseFile = (path: string): InstallerDatabaseFileIdentity | null => {
@@ -467,9 +468,11 @@ export const prepareOrderDatabaseForInstall = (
     const identity = inspectInstallerDatabaseFile(candidate);
     return { path: candidate, identity, digest: installerDatabaseDigest(candidate, identity) };
   });
-  const archive: LegacyDatabaseArchive = { stateRoot, suffix, archiveDatabase: path + suffix, originals };
   const moved: typeof originals = [];
   const copies = new Map<string, InstallerDatabaseFileIdentity>();
+  const archive: LegacyDatabaseArchive = {
+    stateRoot, suffix, archiveDatabase: path + suffix, originals, preparedCandidates: copies,
+  };
   try {
     for (const original of originals) {
       requireArchivedDatabaseOriginal(original.path, original);
@@ -485,7 +488,8 @@ export const prepareOrderDatabaseForInstall = (
         const source = openSync(archived, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
         try {
           const opened = fstatSync(source, { bigint: true });
-          if (!opened.isFile() || opened.dev !== original.identity?.device || opened.ino !== original.identity.inode) {
+          if (original.identity === null || !opened.isFile() ||
+              opened.dev !== original.identity.device || opened.ino !== original.identity.inode) {
             throw new TypeError("installer database archive changed before copy: " + archived);
           }
           // Keep the exclusive target descriptor open through the copy.
@@ -532,9 +536,38 @@ export const prepareOrderDatabaseForInstall = (
   return archive;
 };
 
+// Observe the invocation's candidate namespace before stopping its service.
+// A missing map entry is intentionally unproven, distinct from proven absence.
+export const observeInstallerDatabaseCandidates = (
+  archive: LegacyDatabaseArchive,
+  candidateEffectsStarted: boolean,
+): ReadonlyMap<string, InstallerDatabaseFileIdentity | null> => {
+  const observed = new Map<string, InstallerDatabaseFileIdentity | null>();
+  for (const original of archive.originals) {
+    const prepared = archive.preparedCandidates.get(original.path) ?? null;
+    if (!candidateEffectsStarted) {
+      observed.set(original.path, prepared);
+      continue;
+    }
+    try {
+      const candidate = inspectInstallerDatabaseFile(original.path);
+      // The v2 primary file is an exclusive copy, not a replaceable sidecar.
+      // WAL/SHM may legitimately be recreated by SQLite during admitted effects.
+      if (original.path === statePaths(archive.stateRoot).database && prepared !== null &&
+          candidate !== null && !sameInstallerDatabaseFile(candidate, prepared)) continue;
+      if (candidate !== null && archive.originals.some(entry =>
+          entry.identity !== null && sameInstallerDatabaseFile(candidate, entry.identity))) continue;
+      observed.set(original.path, candidate);
+    } catch { /* An unprovable pathname must not prevent independent compensation. */ }
+  }
+  return observed;
+};
+
 export const restoreOrderDatabaseAfterFailedInstall = (
   archive: LegacyDatabaseArchive,
   effects: InstallerDatabaseEffects = installerDatabaseEffects,
+  // Existing direct callers own the entire quiesced prepare/use/restore sequence.
+  candidates = observeInstallerDatabaseCandidates(archive, true),
 ): void => {
   const expectedPaths = orderDatabaseFiles(statePaths(archive.stateRoot).database);
   if (archive.originals.length !== expectedPaths.length ||
@@ -547,9 +580,13 @@ export const restoreOrderDatabaseAfterFailedInstall = (
     try {
       requireArchivedDatabaseOriginal(archived, original);
       const candidate = inspectInstallerDatabaseFile(original.path);
+      const observed = candidates.get(original.path);
+      if (!candidates.has(original.path) ||
+          (candidate !== null && (observed === undefined || !sameInstallerDatabaseFile(candidate, observed)))) {
+        throw new TypeError("ambiguous installer database candidate retained: " + original.path);
+      }
+      // A previously observed WAL/SHM may disappear on verified service stop.
       if (original.identity === null) {
-        // The caller owns the quiesced installation invocation and this
-        // namespace was positively absent before its database effect.
         if (candidate !== null) effects.unlink(original.path);
         requireInstallerDatabaseFile(original.path, null);
       } else {

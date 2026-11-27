@@ -495,7 +495,11 @@ type InstallerTransactionFixture = Readonly<{
   failCleanup?: "config" | "application" | "launcher";
   legacyDatabaseVersion?: 1 | 2 | 3;
   loseDatabaseArchive?: boolean;
-  databaseFault?: "archive" | "copy" | "partial-copy" | "restore" | "copy-and-restore" | "unlink";
+  databaseFault?: "archive" | "copy" | "partial-copy" | "restore" | "copy-and-restore" | "unlink" |
+    "archive-drift" | "archive-symlink" | "candidate-drift" | "copy-replaced";
+  databaseFaultSuffix?: "" | "-wal" | "-shm";
+  databaseSidecars?: boolean;
+  candidateSidecars?: boolean;
   driftConfig?: boolean;
   configFault?: "snapshot-sync" | "publication" | "publication-sync" | "restore" | "restore-sync" | "retire";
 }>;
@@ -548,11 +552,29 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
     const restartObservations = [];
     const databasePath = path.join(fixture.stateRoot, "order.sqlite3");
     const { Database } = await import("bun:sqlite");
+    const databaseSuffixes = ["", "-wal", "-shm"];
+    const faultPath = databasePath + (fixture.databaseFaultSuffix ?? (fixture.databaseFault === "unlink" ? "-wal" : ""));
+    const readDatabaseNamespace = () => databaseSuffixes.map(suffix => readBytes(databasePath + suffix));
+    const leaveWal = statement => {
+      // A separate SQLite process exits without closing its connection, leaving
+      // actual WAL frames and a real WAL index in the isolated fixture.
+      const source = "import { Database } from 'bun:sqlite'; const db = new Database(" +
+        JSON.stringify(databasePath) + ", { create: true, strict: true }); db.exec(" +
+        JSON.stringify("PRAGMA journal_mode=WAL; PRAGMA wal_autocheckpoint=0; " + statement) +
+        "); process.exit(0);";
+      const child = originalSpawn([process.execPath, "--eval", source], { stdout: "pipe", stderr: "pipe" });
+      if (!child.success) throw new Error("WAL fixture failed: " + child.stderr.toString());
+      for (const suffix of ["-wal", "-shm"]) {
+        if (!fs.existsSync(databasePath + suffix)) throw new Error("WAL fixture missing " + suffix);
+      }
+    };
     if (fixture.legacyDatabaseVersion !== undefined) {
       const db = new Database(databasePath, { create: true, strict: true });
       db.exec("CREATE TABLE sentinel(value TEXT NOT NULL) STRICT; INSERT INTO sentinel VALUES (\'original\'); PRAGMA user_version = " + fixture.legacyDatabaseVersion + ";");
       db.close();
+      if (fixture.databaseSidecars) leaveWal("UPDATE sentinel SET value='original WAL';");
     }
+    const originalNamespace = readDatabaseNamespace();
     const originalDatabase = readBytes(databasePath);
     const originalConfig = readBytes(configPath);
     let retainedArchive = null;
@@ -589,6 +611,10 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
           if (fixture.stopMode === "stuck") return result("", 1);
           if (fixture.stopMode === "unknown") { activity = "unknown"; return result("", 1); }
           activity = "inactive";
+          if (candidateStarted && fixture.databaseFault === "candidate-drift") {
+            fs.renameSync(faultPath, faultPath + ".retained-candidate");
+            fs.writeFileSync(faultPath, "unexpected replacement");
+          }
           return fixture.stopMode === "failed-inactive" ? result("", 1) : result();
         }
         if (verb === "enable") { enablement = "enabled"; return result(); }
@@ -616,9 +642,24 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
           if (!candidateStarted) {
             candidateStarted = true;
             if (fixture.legacyDatabaseVersion === 1 || fixture.legacyDatabaseVersion === 2) {
-              const db = new Database(databasePath, { create: true, strict: true });
-              db.exec("CREATE TABLE IF NOT EXISTS sentinel(value TEXT NOT NULL) STRICT; DELETE FROM sentinel; INSERT INTO sentinel VALUES ('candidate'); PRAGMA user_version = 3;");
-              db.close();
+              const statement = "CREATE TABLE IF NOT EXISTS sentinel(value TEXT NOT NULL) STRICT; DELETE FROM sentinel; INSERT INTO sentinel VALUES ('candidate'); PRAGMA user_version = 3;";
+              if (fixture.candidateSidecars) leaveWal(statement);
+              else {
+                const db = new Database(databasePath, { create: true, strict: true });
+                db.exec(statement);
+                db.close();
+              }
+              if (fixture.databaseFault === "archive-drift" || fixture.databaseFault === "archive-symlink") {
+                const name = fs.readdirSync(fixture.stateRoot).find(name => name.startsWith(path.basename(faultPath) + ".legacy-v"));
+                if (!name) throw new Error("expected archive for " + faultPath);
+                const archived = path.join(fixture.stateRoot, name);
+                if (fixture.databaseFault === "archive-drift") fs.appendFileSync(archived, "unexpected archive bytes");
+                else {
+                  retainedArchive = archived + ".retained";
+                  fs.renameSync(archived, retainedArchive);
+                  fs.symlinkSync(retainedArchive, archived);
+                }
+              }
               if (fixture.loseDatabaseArchive) {
                 const name = fs.readdirSync(fixture.stateRoot).find(name => /^order\\.sqlite3\\.legacy-v[12]\\./.test(name));
                 if (!name) throw new Error("expected actual database archive");
@@ -626,7 +667,7 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
                 fs.renameSync(path.join(fixture.stateRoot, name), retainedArchive);
               }
             }
-            if (fixture.databaseFault === "unlink") fs.writeFileSync(databasePath + "-wal", "invocation-created sidecar");
+            if (fixture.databaseFault === "unlink" && !fixture.candidateSidecars) fs.writeFileSync(faultPath, "invocation-created sidecar");
             if (fixture.driftConfig) fs.appendFileSync(configPath, " ");
           }
           if (fixture.failRestart && !restartFailed) { restartFailed = true; return result("", 1); }
@@ -733,14 +774,18 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
       };
       const databaseEffects = {
         rename: (from, to) => {
-          if (fixture.databaseFault === "archive" && from === databasePath) throw new Error("injected archive rename");
+          if (fixture.databaseFault === "archive" && from === faultPath) throw new Error("injected archive rename");
           if ((fixture.databaseFault === "restore" || fixture.databaseFault === "copy-and-restore") &&
-              String(from).includes(".legacy-v") && to === databasePath) throw new Error("injected archive restoration");
+              String(from).includes(".legacy-v") && to === faultPath) throw new Error("injected archive restoration");
           fs.renameSync(from, to);
         },
         copy: (source, target, from, to) => {
-          if (fixture.databaseFault === "copy" && to === databasePath) throw new Error("injected database copy");
-          if ((fixture.databaseFault === "partial-copy" || fixture.databaseFault === "copy-and-restore") && to === databasePath) {
+          if (fixture.databaseFault === "copy" && to === faultPath) throw new Error("injected database copy");
+          if (fixture.databaseFault === "copy-replaced" && to === faultPath) {
+            fs.renameSync(to, to + ".retained-candidate");
+            fs.writeFileSync(to, "unexpected replacement");
+          }
+          if ((fixture.databaseFault === "partial-copy" || fixture.databaseFault === "copy-and-restore") && to === faultPath) {
             fs.writeFileSync(target, "partial candidate");
             throw new Error("injected partial database copy");
           }
@@ -748,7 +793,7 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
           fs.fsyncSync(target);
         },
         unlink: target => {
-          if (fixture.databaseFault === "unlink" && target === databasePath + "-wal") throw new Error("injected candidate unlink");
+          if (fixture.databaseFault === "unlink" && target === faultPath) throw new Error("injected candidate unlink");
           fs.unlinkSync(target);
         },
       };
@@ -787,7 +832,8 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
       marker: fs.existsSync(marker) ? fs.readFileSync(marker, "utf8") : null,
       config: fs.existsSync(configPath) ? JSON.parse(fs.readFileSync(configPath, "utf8")) : null,
       app: fs.existsSync(installRoot), launcher: fs.existsSync(launcher), unit: fs.existsSync(unitPath),
-      originalDatabase, originalConfig, retainedArchive,
+      originalDatabase, originalConfig, retainedArchive, originalNamespace,
+      databaseNamespace: readDatabaseNamespace(),
       database: fs.existsSync(databasePath) ? fs.readFileSync(databasePath).toString("base64") : null,
       configBytes: fs.existsSync(configPath) ? fs.readFileSync(configPath).toString("base64") : null,
       stateEntries: fs.existsSync(fixture.stateRoot) ? fs.readdirSync(fixture.stateRoot) : [],
@@ -1134,6 +1180,93 @@ describe("actual IA25 installer transaction", () => {
       { deployment: "prior", databaseMatchesOriginal: true, configMatchesOriginal: true },
     ]);
   }, 120_000);
+
+  it.each([
+    ...([1, 2] as const).flatMap(legacyDatabaseVersion => (["", "-wal", "-shm"] as const)
+      .map(databaseFaultSuffix => ({ legacyDatabaseVersion, databaseFaultSuffix, databaseFault: "archive" as const }))),
+    ...(["copy", "partial-copy"] as const).flatMap(databaseFault => (["", "-wal", "-shm"] as const)
+      .map(databaseFaultSuffix => ({ legacyDatabaseVersion: 2 as const, databaseFaultSuffix, databaseFault }))),
+  ])("restores real SQLite namespace after v$legacyDatabaseVersion $databaseFault fault on '$databaseFaultSuffix'", row => {
+    const fixture = transactionFixture();
+    createPriorDeployment(fixture);
+    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes",
+      readiness: { ready: true, blockers: [] }, databaseSidecars: true, ...row });
+    expect(outcome.failure).toContain(row.databaseFault === "archive" ? "injected archive rename" :
+      row.databaseFault === "copy" ? "injected database copy" : "injected partial database copy");
+    expect(outcome.originalNamespace.every((value: string | null) => value !== null)).toBe(true);
+    expect(outcome.databaseNamespace.map((value: string | null, index: number) =>
+      value === outcome.originalNamespace[index])).toEqual([true, true, true]);
+    expect(outcome.restartObservations).toEqual([
+      { deployment: "prior", databaseMatchesOriginal: true, configMatchesOriginal: true },
+    ]);
+    expect(outcome.stateEntries.some((name: string) => name.includes(".legacy-v"))).toBe(false);
+  }, 120_000);
+
+  it.each([1, 2] as const)("restores all original v%i DB/WAL/SHM bytes after candidate restart fails", legacyDatabaseVersion => {
+    const fixture = transactionFixture();
+    createPriorDeployment(fixture);
+    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes", legacyDatabaseVersion,
+      databaseSidecars: true, candidateSidecars: true, failRestart: true, readiness: { ready: true, blockers: [] } });
+    expect(outcome.failure).toContain("injected host failure");
+    expect(outcome.databaseNamespace.map((value: string | null, index: number) =>
+      value === outcome.originalNamespace[index])).toEqual([true, true, true]);
+    expect(outcome.restartObservations.map((entry: { deployment: string }) => entry.deployment)).toEqual(["candidate", "prior"]);
+    expect(outcome.activity).toBe("active");
+  }, 120_000);
+
+  it.each(["", "-wal", "-shm"] as const)("restores independent original files after late archive restore fails at '%s'", databaseFaultSuffix => {
+    const fixture = transactionFixture();
+    createPriorDeployment(fixture);
+    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes", legacyDatabaseVersion: 1,
+      databaseSidecars: true, candidateSidecars: true, databaseFault: "restore", databaseFaultSuffix,
+      failRestart: true, readiness: { ready: true, blockers: [] } });
+    const index = ["", "-wal", "-shm"].indexOf(databaseFaultSuffix);
+    const archive = outcome.stateEntries.find((name: string) => name.startsWith("order.sqlite3" + databaseFaultSuffix + ".legacy-v1."));
+    expect(outcome.failure).toContain("injected archive restoration");
+    expect(readFileSync(join(fixture.stateRoot, archive)).toString("base64") === outcome.originalNamespace[index]).toBe(true);
+    expect(outcome.databaseNamespace.map((value: string | null, j: number) =>
+      j === index || value === outcome.originalNamespace[j])).toEqual([true, true, true]);
+    expect(outcome.activity).toBe("inactive");
+    expect(outcome.restartObservations.map((entry: { deployment: string }) => entry.deployment)).toEqual(["candidate"]);
+  }, 120_000);
+
+  it.each(["-wal", "-shm"] as const)("retains a newly created sidecar on unlink failure at %s", databaseFaultSuffix => {
+    const fixture = transactionFixture();
+    createPriorDeployment(fixture);
+    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes", legacyDatabaseVersion: 1,
+      candidateSidecars: true, databaseFault: "unlink", databaseFaultSuffix,
+      failRestart: true, readiness: { ready: true, blockers: [] } });
+    const index = ["", "-wal", "-shm"].indexOf(databaseFaultSuffix);
+    expect(outcome.failure).toContain("injected candidate unlink");
+    expect(outcome.originalNamespace.slice(1)).toEqual([null, null]);
+    expect(outcome.databaseNamespace[index]).not.toBeNull();
+    expect(outcome.databaseNamespace[0]).toBe(outcome.originalDatabase);
+    expect(outcome.databaseNamespace[index === 1 ? 2 : 1]).toBeNull();
+    expect(outcome.activity).toBe("inactive");
+  }, 120_000);
+
+  it.each(["archive-drift", "archive-symlink", "candidate-drift", "copy-replaced"] as const)(
+    "preserves ambiguous SQLite recovery material: %s", databaseFault => {
+      const fixture = transactionFixture();
+      createPriorDeployment(fixture);
+      const databaseFaultSuffix = "-wal";
+      const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes",
+        legacyDatabaseVersion: databaseFault === "copy-replaced" ? 2 : 1,
+        databaseSidecars: true, candidateSidecars: true, databaseFault, databaseFaultSuffix,
+        failRestart: true, readiness: { ready: true, blockers: [] } });
+      expect(outcome.failure).toContain("rollback incomplete");
+      expect(outcome.failure).toContain(join(fixture.stateRoot, "order.sqlite3-wal"));
+      expect(outcome.databaseNamespace[0] === outcome.originalNamespace[0]).toBe(true);
+      expect(outcome.databaseNamespace[2] === outcome.originalNamespace[2]).toBe(true);
+      expect(outcome.databaseNamespace[1]).not.toBeNull();
+      if (databaseFault === "copy-replaced" || databaseFault === "candidate-drift") {
+        expect(readFileSync(join(fixture.stateRoot, "order.sqlite3-wal"), "utf8")).toBe("unexpected replacement");
+        expect(existsSync(join(fixture.stateRoot, "order.sqlite3-wal.retained-candidate"))).toBe(true);
+      }
+      expect(outcome.stateEntries.some((name: string) => name.startsWith("order.sqlite3-wal.legacy-v"))).toBe(true);
+      expect(outcome.activity).toBe("inactive");
+      expect(outcome.restartObservations.every((entry: { deployment: string }) => entry.deployment === "candidate")).toBe(true);
+    }, 120_000);
 
   it("retains the exact archive and blocks restart after primary copy and secondary compensation failure", () => {
     const fixture = transactionFixture();
