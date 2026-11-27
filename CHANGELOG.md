@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Reconcile inherited installer and Approval capabilities across the 0.6.0 R1–PLAN trace, remove repeated reach mutation instructions, refresh compiled source bindings and record the outstanding browser verification failure.
+
 - Reconcile the 0.6.0 research reach-history facts and ten-stage rail requirement with the inherited canonical completion-admission implementation; retain native Acceptance and consumer verification obligations.
 
 - Reconcile IA26 final rendered proof with the ten-stage, 38-surface Acceptance cutover and record targeted campaign impact evidence for inherited reach, Approval and installer capabilities.
