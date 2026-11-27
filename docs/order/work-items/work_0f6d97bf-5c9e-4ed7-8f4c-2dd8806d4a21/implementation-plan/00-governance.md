@@ -8,9 +8,9 @@ This decomposition is revalidated under C19-F09/C20-F11 after the prior G4-G6 cl
 
 - R1 `research.md`: `31043ff989e1ac68b1238ca34f91b0550e64fadc`.
 - R2 `requirements.md`: `b155e22c89df2870804a3dcab934ccf9490d7870`.
-- DESIGN `solution-design.md`: `950453a0fba9941d09685ed0545ccb89852c3124` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and QA1–QA6 expanded forecast.
+- DESIGN `solution-design.md`: `487282e80883024927ca29af6c2dfbab2e16bdbc` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and QA1–QA6 expanded forecast.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `ee8acad4e39f4641476eb46d99ca168afab3db3d`.
-- P3 `GW-DOC-WORKBENCH-UX-V2`: `041cd6670d336a3ac1924554815e100474c59cd4` — §11.4A/§12/§13/§14 (including §14.8A.1–2) own semantic information classes, state-is-not-interface behavior, direct primary interaction composition, no generic workflow-material selector, continuous Dialogue semantics, Terminal-result primacy, singular technical inspection, task anatomy and composition invariants.
+- P3 `GW-DOC-WORKBENCH-UX-V2`: `7569fc5be387c974fe7fe0c3bc123c300f147311` — §11.4A/§12/§13/§14 (including §14.8A.1–2) own semantic information classes, state-is-not-interface behavior, direct primary interaction composition, no generic workflow-material selector, continuous Dialogue semantics, Terminal-result primacy, singular technical inspection, task anatomy and composition invariants.
 - P3 `GW-DOC-MARKDOWN-WORKBENCH-V1`: `1668746eae4ac8a0fc766e9e09150527cd07c347` — §17.4 owns one compact Markdown editor-control region, overflow-before-wrap formatting and control→canvas adjacency.
 - P4 `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`: `7985991b91c5717677da6a38e057c00eb2e4e2fe` — sole permanent owner of structural + semantic Workbench component responsibilities/APIs, consumer boundaries, composition laws and remediation disposition semantics.
 - P4 `GW-DOC-WORKBENCH-THEME-V1`: `03dfc6be3600a1128b5639d011f4c0159d3497dd` — owns the corrected semantic-disclosure, technical-inspection and task-panel visual roles.

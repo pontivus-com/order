@@ -1054,7 +1054,7 @@ Apply §21.9 precedence before the following current, coherent Acceptance cases.
 
 | Current condition (ordered after coherence/conflict) | Current attention / rail | Primary decision | Other action availability |
 |---|---|---|---|
-| Actual stale signed authority/source | STALE_AUTHORITY / STALE | Reconcile authority to exact owner | inspection only; queued recovery exception |
+| Actual stale signed authority/source | STALE_AUTHORITY / STALE | Reconcile authority; pure AcceptanceDecision selects exact source return or material owner return | inspection only; queued recovery exception |
 | Exact candidate proof unavailable, authority current | BLOCKER / BLOCKED | Return to planning after explicit reanalysis decision | inspection/refresh only; queued recovery exception |
 | Outstanding queued submission | PROCESSING / PROCESSING | none | inspect only; no ordinary mutations |
 | Unresolved no-op challenge | ACTIONABLE / ACTION_REQUIRED | Return to planning | inspect/report; eligible withdrawal/retest only when P6 admits |
@@ -1519,7 +1519,7 @@ Exactly one current-attention category is selected from this ordered set:
 4. **PROPOSAL_DECISION** — one exact proposal awaits Adopt/Reject.
 5. **PROPOSAL_ADOPTION** — durable adoption intent exists and the exact proposal is being applied/reconciled.
 6. **BLOCKER** — a canonical current-stage/task blocker owns recovery.
-7. **STALE_AUTHORITY** — approval/material currentness is stale and progression is unavailable; its operator recovery route is `RECONCILE_AUTHORITY`.
+7. **STALE_AUTHORITY** — approval/material or signed source currentness is stale and progression is unavailable; the shared operator recovery presentation is `RECONCILE_AUTHORITY`. In Acceptance the pure decision in P4 §4.8 selects the source or material command; the recovery presentation does not select a command.
 8. **RECOVERY** — a retryable current failure or resumable current-owner condition owns the next action; stale-currentness reconciliation does not collapse into this category.
 9. **PROCESSING** — provider/automatic work is progressing and no higher category owns attention.
 10. **ACTIONABLE** — the current coherent owner exposes its ordinary Start/Continue/Sign-off/Resume-class action or exact Acceptance submit/retest/accept action. Acceptance ACTIONABLE projects ACTION REQUIRED; queued review projects PROCESSING, unavailable proof BLOCKER, stale authority STALE_AUTHORITY.
@@ -1534,7 +1534,7 @@ Recovery is likewise closed. A current failure/block/currentness condition resol
 - `RESUME_CURRENT_OWNER`;
 - `RECONCILE_AUTHORITY`;
 
-For Acceptance, an actual stale authority observation takes precedence over unavailable candidate proof; a proof-unavailable blocker applies only when authority is current. When material currentness is `STALE(owner)`, current attention is `STALE_AUTHORITY` and the recovery route is `RECONCILE_AUTHORITY`. The recovery route supplies the exact action; it does not reclassify stale currentness as generic `RECOVERY`.
+For Acceptance, an actual stale authority observation takes precedence over unavailable candidate proof; a proof-unavailable blocker applies only when authority is current. When material currentness is `STALE(owner)`, current attention is `STALE_AUTHORITY` and the recovery route is `RECONCILE_AUTHORITY`. Outside Acceptance the recovery route supplies the exact action. Within Acceptance both stale branches share this recovery presentation; the pure AcceptanceDecision selects the exact source or material reconciliation command under §14.8A and P6 §38.3, even when both return to R1. Neither branch reclassifies stale currentness as generic `RECOVERY`.
 
 Automatic post-signoff replacement/remediation is not a Workbench recovery route. It remains governed by the execution policy; while it is running the Workbench observes canonical processing/Run state. A classified upstream return changes the canonical lifecycle owner and therefore does not remain as a separate recovery disposition.
 

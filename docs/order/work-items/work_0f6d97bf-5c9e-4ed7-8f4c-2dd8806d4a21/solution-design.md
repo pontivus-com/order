@@ -12,7 +12,7 @@ This DESIGN is the corrected technical-design candidate for the reopened C19/C20
 - R2 `requirements.md`: blob `b155e22c89df2870804a3dcab934ccf9490d7870` — binds singular material/history ownership, explicit technical-inspection ownership, semantic-region ownership, exactly one selected primary interaction composition, terminal-result primacy without duplicate attention, Primary/Supporting information classification, no disclosure accumulation, modal anatomy and Markdown editor-control→canvas adjacency.
 - Corrected P3 Installation Readiness: blob `ee8acad4e39f4641476eb46d99ca168afab3db3d` — §§2/4.2 and `GW-FR-079` now distinguish successful fresh-install completion from post-install/update recovery without adding `precedence.p3`.
 - P4 Technical Architecture: `52f223db8d0fe245de0757f0643087def69c3569` — §35.1 now explicitly separates reachable authority selection from stage-material applicability for stable/versioned refs.
-- P3 Workbench UX: `041cd6670d336a3ac1924554815e100474c59cd4` — §11.4A/§12/§13/§14.9 own semantic classes, semantic-region ownership, exactly one primary interaction composition, document-first hierarchy with closed post-content same-task details, terminal-result primacy and product-copy boundaries.
+- P3 Workbench UX: `7569fc5be387c974fe7fe0c3bc123c300f147311` — §11.4A/§12/§13/§14.9 own semantic classes, semantic-region ownership, exactly one primary interaction composition, document-first hierarchy with closed post-content same-task details, terminal-result primacy and product-copy boundaries.
 - P3 Markdown Workbench: `1668746eae4ac8a0fc766e9e09150527cd07c347` — §17.4 owns the compact editor-control region, overflow-before-wrap behavior, control→canvas adjacency and closed post-document orientation details.
 - P4 Workbench: `7985991b91c5717677da6a38e057c00eb2e4e2fe` — §8.12-§8.16 own the optional genuine `WorkbenchSurface.attention` slot, the closed structural + mandatory intermediate semantic composition vocabulary/APIs, complete `WorkbenchDocument`, `WorkbenchReviewVerdict`/`WorkbenchReviewSection`/`WorkbenchReview`, `WorkbenchResourceList` and `WorkbenchResult` ownership, one-primary-composition routing, singular Context/Settings technical inspection, same-task-only Disclosure, Evidence replacement routing, Terminal-result attention absence and TaskPanel header/body/footer anatomy.
 - P4 Workbench Theme: `03dfc6be3600a1128b5639d011f4c0159d3497dd`.
@@ -718,7 +718,9 @@ One direct WorkbenchReview, title “Acceptance”, with its existing descriptio
 | correction-queued | Correction queued / Processing | none; inspect only |
 | retest-required | Ready for retest / Action required | Record retest |
 | retest-failed | Finding remains open / Action required | Submit findings |
-| stale-authority | Authority changed / Reconciliation required | Reconcile authority |
+| stale-authority | Authority changed / Reconciliation required | Reconcile authority to the exact material owner (example: R1) |
+| source-stale-authority / source-reconcile-confirmation | Authority changed / Reconciliation required | Reconcile authority; explicit source return to Research, invalid source not adopted |
+| retest-historical-assessment-form / retest-no-assessment-form | Ready for retest / Action required | Record retest; current member proof with historical assessment explicitly identified or no prior assessment |
 | proof-unavailable | Candidate proof unavailable / Blocked | Return to planning |
 | no-op-challenge | No-change task challenged / Action required | Return to planning |
 | historical-correction | Correction in progress / Historical review | Return to current step (Implementation) |

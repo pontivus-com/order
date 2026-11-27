@@ -10,10 +10,10 @@ This directory is a deterministic visual projection of the current Workbench aut
 
 The active corpus is valid only for these exact inputs:
 
-- `GW-DOC-WORKBENCH-UX-V2` — blob `041cd6670d336a3ac1924554815e100474c59cd4`;
+- `GW-DOC-WORKBENCH-UX-V2` — blob `7569fc5be387c974fe7fe0c3bc123c300f147311`;
 - `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2` — blob `7985991b91c5717677da6a38e057c00eb2e4e2fe`;
 - `GW-DOC-WORKBENCH-THEME-V1` — blob `03dfc6be3600a1128b5639d011f4c0159d3497dd`;
-- current 0.6.0 DESIGN — blob `950453a0fba9941d09685ed0545ccb89852c3124`.
+- current 0.6.0 DESIGN — blob `487282e80883024927ca29af6c2dfbab2e16bdbc`.
 
 These are the exact current authority versions projected by this corpus. If any bound owner changes, this corpus is stale until regenerated and reviewed. The owner wins on every conflict.
 
@@ -44,4 +44,6 @@ The 38-SURF universe is derived from current DESIGN, never from this directory.
 
 The ten-stage rail is projected across every WorkItem fixture; current/selected/reached remain independently supplied facts, including legacy and non-delivery bypass. Acceptance reference states include current review, open finding, queued correction, retest, failed retest, stale authority, unavailable proof, no-op challenge, report/retest forms and read-only historical correction/acceptance. Complete distinguishes accepted candidate, legacy technical completion without recorded acceptance, all-no-op and non-delivery. These are static authority-derived comparison fixtures, not runtime state or approved screenshot evidence. IA39/IA26 must independently prove equivalent states, exact same-scope captures and actual interactions; this reference change is not rendered acceptance.
 
-The Acceptance reference includes 30 exact comparison states (ordinary, historical, unavailable/conflict, detail and human input/result variants) and explicit dependent Queue, shell/Context, Approval, Implementation, Evidence, signed Document and repository-guard states. The manifest and atlas must match exactly. The fixtures use the existing semantic component anatomy, including a single modal TaskPanel interaction and inert underlying Review; all data/paths are placeholders, not evidence. IA39 and IA26 require actual candidate proof of all affected propositions, including both retest branches and the dirty-navigation confirmations. The reference changes do not themselves establish visual acceptance.
+The Acceptance reference includes 34 exact comparison states (ordinary, historical, unavailable/conflict, detail and human input/result variants) and explicit dependent Queue, shell/Context, Approval, Implementation, Evidence, signed Document and repository-guard states. The manifest and atlas must match exactly. The fixtures use the existing semantic component anatomy, including a single modal TaskPanel interaction and inert underlying Review; all data/paths are placeholders, not evidence. IA39 and IA26 require actual candidate proof of all affected propositions, including both retest branches and the dirty-navigation confirmations. The reference changes do not themselves establish visual acceptance.
+
+The source and material reconciliation fixtures share the same stale presentation but distinguish the exact return consequence even when both return to Research. Reopened previously disposed findings show current verified member proof with a historical assessment or no prior assessment, never a fabricated current finding assessment. These four comparison variants remain within the existing Acceptance surface and require IA38/IA39/IA26 semantic and rendered review; no rendered acceptance is implied.
