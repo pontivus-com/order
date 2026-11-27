@@ -219,12 +219,18 @@ export type InstallerManifestCustody = Readonly<{
 }>;
 
 export type InstallerManifestEffects = Readonly<{
+  open: (path: string, flags: number, mode: number) => number;
+  read: (descriptor: number, bytes: Buffer, offset: number, length: number, position: number) => number;
+  close: typeof closeSync;
   write: (descriptor: number, bytes: Buffer) => void;
   fsync: typeof fsyncSync;
   unlink: typeof unlinkSync;
 }>;
 
 const manifestEffects: InstallerManifestEffects = {
+  open: openSync,
+  read: readSync,
+  close: closeSync,
   write: (descriptor, bytes) => writeFileSync(descriptor, bytes),
   fsync: fsyncSync,
   unlink: unlinkSync,
@@ -253,7 +259,11 @@ const requireManifestRoot = (custody: InstallerManifestCustody): void => {
 
 // Positional reads retain the exclusive creation descriptor as the source
 // of partial-write evidence; never reopen the path to attribute its bytes.
-const observeManifestDescriptor = (descriptor: number, maximumBytes: number): ManifestFileIdentity => {
+const observeManifestDescriptor = (
+  descriptor: number,
+  maximumBytes: number,
+  read: InstallerManifestEffects["read"] = readSync,
+): ManifestFileIdentity => {
   const before = fstatSync(descriptor, { bigint: true });
   if (!before.isFile() || before.size > BigInt(maximumBytes)) {
     throw new TypeError("installer manifest descriptor has unexpected type or size");
@@ -261,7 +271,7 @@ const observeManifestDescriptor = (descriptor: number, maximumBytes: number): Ma
   const bytes = Buffer.alloc(Number(before.size));
   let offset = 0;
   while (offset < bytes.length) {
-    const count = readSync(descriptor, bytes, offset, bytes.length - offset, offset);
+    const count = read(descriptor, bytes, offset, bytes.length - offset, offset);
     if (count === 0) throw new TypeError("installer manifest descriptor changed during read");
     offset += count;
   }
@@ -343,7 +353,7 @@ export const prepareProjectRootForInstall = async (
   let custody: InstallerManifestCustody = {
     path: manifestPath, root: repositoryRoot, rootIdentity: manifestRootIdentity(repositoryRoot), identity: null,
   };
-  const descriptor = openSync(manifestPath,
+  const descriptor = effects.open(manifestPath,
     constants.O_RDWR | constants.O_CREAT | constants.O_EXCL | constants.O_NOFOLLOW, 0o644);
   onCustody(custody);
   const failures: unknown[] = [];
@@ -356,7 +366,7 @@ export const prepareProjectRootForInstall = async (
     effects.fsync(descriptor);
   } catch (error) { failures.push(error); }
   try {
-    const observed = observeManifestDescriptor(descriptor, bytes.length);
+    const observed = observeManifestDescriptor(descriptor, bytes.length, effects.read);
     if (opened === null || !sameManifestIdentity(observed, opened) ||
         !observed.bytes.equals(bytes.subarray(0, observed.bytes.length))) {
       throw new TypeError("installer manifest descriptor custody changed: " + manifestPath);
@@ -364,7 +374,7 @@ export const prepareProjectRootForInstall = async (
     custody = { ...custody, identity: observed };
     onCustody(custody);
   } catch (error) { failures.push(error); }
-  try { closeSync(descriptor); } catch (error) { failures.push(error); }
+  try { effects.close(descriptor); } catch (error) { failures.push(error); }
   if (failures.length === 1) throw failures[0];
   if (failures.length > 1) {
     throw new AggregateError(failures, "installer manifest creation failed: " + failures.map(String).join("; "));

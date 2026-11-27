@@ -305,6 +305,7 @@ export const verifyWalLocking = (stateRoot: string): void => {
 };
 
 type InstallerDatabaseFileIdentity = Readonly<{ device: bigint; inode: bigint }>;
+type InstallerDatabaseCandidate = InstallerDatabaseFileIdentity & Readonly<{ quiescedDigest?: string }>;
 
 type InstallerDatabaseRootIdentity = InstallerDatabaseFileIdentity & Readonly<{ canonicalPath: string }>;
 
@@ -665,32 +666,49 @@ export const prepareOrderDatabaseForInstall = (
 export const observeInstallerDatabaseCandidates = (
   archive: LegacyDatabaseArchive,
   candidateEffectsStarted: boolean,
-  priorCandidates?: ReadonlyMap<string, InstallerDatabaseFileIdentity | null>,
-): ReadonlyMap<string, InstallerDatabaseFileIdentity | null> => {
-  const observed = new Map<string, InstallerDatabaseFileIdentity | null>();
+  priorCandidates?: ReadonlyMap<string, InstallerDatabaseCandidate | null>,
+  quiesced = false,
+): ReadonlyMap<string, InstallerDatabaseCandidate | null> => {
+  const observed = new Map<string, InstallerDatabaseCandidate | null>();
   try { requireInstallerDatabaseRoot(archive); }
   catch { return observed; }
   for (const original of archive.originals) {
     const prepared = archive.preparedCandidates.get(original.path) ?? null;
     if (!candidateEffectsStarted) {
-      observed.set(original.path, prepared);
+      observed.set(original.path, prepared === null ? null : { ...prepared, quiescedDigest: original.digest ?? undefined });
       continue;
     }
     try {
+      // A failed earlier custody observation never grants a later writer
+      // permission to adopt an unknown path.
+      if (priorCandidates !== undefined && !priorCandidates.has(original.path)) continue;
       const candidate = inspectInstallerDatabaseFile(original.path);
       // The v2 copy and any primary established by a previous admitted
       // writer must remain the same object. Only the initial absent primary
       // and WAL/SHM may evolve under the admitted maintenance writer.
       if (original.path === statePaths(archive.stateRoot).database) {
-        if (priorCandidates !== undefined && !priorCandidates.has(original.path)) continue;
-        const expectedPrimary = priorCandidates?.get(original.path) ?? prepared;
+        const expectedPrimary = priorCandidates === undefined ? prepared : priorCandidates.get(original.path) ?? null;
         if (expectedPrimary !== null && !sameInstallerDatabaseFile(candidate, expectedPrimary)) continue;
       }
       if (candidate !== null && archive.originals.some(entry =>
           entry.identity !== null && sameInstallerDatabaseFile(candidate, entry.identity))) continue;
-      observed.set(original.path, candidate);
+      const digest = quiesced && candidate !== null ? installerDatabaseDigest(original.path, candidate) : null;
+      observed.set(original.path, candidate === null ? null : digest === null ? candidate : { ...candidate, quiescedDigest: digest });
     } catch { /* An unprovable pathname must not prevent independent compensation. */ }
   }
+  // One physical object cannot be attributed to two distinct DB/WAL/SHM
+  // paths. Do not compensate either member of an ambiguous alias.
+  const aliases = new Set<string>();
+  for (const [path, candidate] of observed) {
+    if (candidate === null) continue;
+    for (const [otherPath, other] of observed) {
+      if (path !== otherPath && other !== null && sameInstallerDatabaseFile(candidate, other)) {
+        aliases.add(path);
+        aliases.add(otherPath);
+      }
+    }
+  }
+  for (const path of aliases) observed.delete(path);
   return observed;
 };
 
@@ -699,7 +717,7 @@ export const observeInstallerDatabaseCandidates = (
 // custody merely because a later service observation finds them.
 export const requireInstallerDatabaseCandidates = (
   archive: LegacyDatabaseArchive,
-  expected: ReadonlyMap<string, InstallerDatabaseFileIdentity | null>,
+  expected: ReadonlyMap<string, InstallerDatabaseCandidate | null>,
   preparedOnly: boolean,
 ): void => {
   requireInstallerDatabaseRoot(archive);
@@ -710,8 +728,9 @@ export const requireInstallerDatabaseCandidates = (
       throw new TypeError("installer database candidate custody unavailable: " + original.path);
     }
     requireInstallerDatabaseFile(original.path, candidate);
-    if (preparedOnly && candidate !== null &&
-        installerDatabaseDigest(original.path, candidate) !== original.digest) {
+    const expectedDigest = candidate?.quiescedDigest ?? (preparedOnly ? original.digest : null);
+    if (candidate !== null && expectedDigest !== null &&
+        installerDatabaseDigest(original.path, candidate) !== expectedDigest) {
       throw new TypeError("installer database candidate changed before admitted effects: " + original.path);
     }
   }
@@ -722,6 +741,7 @@ export const restoreOrderDatabaseAfterFailedInstall = (
   effects: InstallerDatabaseEffects = installerDatabaseEffects,
   // Existing direct callers own the entire quiesced prepare/use/restore sequence.
   candidates = observeInstallerDatabaseCandidates(archive, true),
+  allowSidecarDisappearance = true,
 ): void => {
   requireInstallerDatabaseRoot(archive);
   const expectedPaths = orderDatabaseFiles(statePaths(archive.stateRoot).database);
@@ -739,8 +759,15 @@ export const restoreOrderDatabaseAfterFailedInstall = (
       const observed = candidates.get(original.path);
       if (!candidates.has(original.path) ||
           (candidate !== null && (observed === undefined || !sameInstallerDatabaseFile(candidate, observed))) ||
-          (original.path === expectedPaths[0] && candidate === null && observed !== null)) {
+          (candidate === null && observed !== null &&
+            (original.path === expectedPaths[0] || !allowSidecarDisappearance))) {
         throw new TypeError("ambiguous installer database candidate retained: " + original.path);
+      }
+      // A quiesced checkpoint remains immutable until another writer is
+      // admitted. Preserve same-inode edits as well as replacements.
+      if (candidate !== null && observed?.quiescedDigest !== undefined &&
+          installerDatabaseDigest(original.path, candidate) !== observed.quiescedDigest) {
+        throw new TypeError("ambiguous installer database candidate bytes retained: " + original.path);
       }
       // A previously observed WAL/SHM may disappear on verified service stop.
       if (original.identity === null) {

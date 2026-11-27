@@ -1166,7 +1166,7 @@ export const runInstaller = async (
       databaseCandidateEffectsStarted = true;
       await configuredSetup.setupModule.migrateRepositoryNativeV2StateForInstall(locations.stateRoot, configuredSetup.legacyV2Config);
       if (databaseArchive !== null) {
-        databaseCandidates = sqliteUpgradeModule.observeInstallerDatabaseCandidates(databaseArchive, true, databaseWriterBaseline);
+        databaseCandidates = sqliteUpgradeModule.observeInstallerDatabaseCandidates(databaseArchive, true, databaseWriterBaseline, true);
         sqliteUpgradeModule.requireInstallerDatabaseCandidates(databaseArchive, databaseCandidates, false);
       }
       process.stdout.write("Order installer — migrated WorkItem documentation into target repositories; retained legacy source root as backup: " +
@@ -1233,14 +1233,14 @@ export const runInstaller = async (
       try { operation(); } catch (failure) { failures.push(new Error(label + ": " + String(failure), { cause: failure })); }
     };
     if (databaseCandidates === undefined && databaseArchive !== null && sqliteUpgradeModule !== null) {
-      databaseCandidates = sqliteUpgradeModule.observeInstallerDatabaseCandidates(databaseArchive, databaseCandidateEffectsStarted, databaseWriterBaseline);
+      databaseCandidates = sqliteUpgradeModule.observeInstallerDatabaseCandidates(databaseArchive, databaseCandidateEffectsStarted, databaseWriterBaseline, !restartAttempted);
     }
     if (restartAttempted) {
       compensate("cannot prove new service stopped; live deployment and recovery material retained",
         () => requireServiceQuiescence("pontivus-order.service", locations.home, environment));
       if (failures.length > 0) throw new AggregateError([error, ...failures],
         "installation failed: " + String(error) + "; cannot safely restore active deployment; retained paths: " +
-        [locations.installRoot, locations.stateRoot, installBackup, launcherBackup, configSnapshot?.recoveryPath, (unitRecovery as ServiceRecovery | null)?.path].filter(Boolean).join(", "));
+        [locations.installRoot, locations.stateRoot, installBackup, launcherBackup, configSnapshot?.recoveryPath, (unitRecovery as ServiceRecovery | null)?.path, ...createdProjectManifests.keys()].filter(Boolean).join(", "));
     }
     if (configCaptureIncomplete !== null) failures.push(new Error("configuration snapshot incomplete; retained material: " + configCaptureIncomplete));
     if (databaseRestoreIncomplete) failures.push(new Error("database inspection or preparation custody incomplete at " + locations.stateRoot));
@@ -1250,7 +1250,7 @@ export const runInstaller = async (
       compensate("database restoration incomplete: " + archive.archiveDatabase, () => {
         try {
           if (databaseCandidates === undefined) fail("database candidate custody is unavailable");
-          module.restoreOrderDatabaseAfterFailedInstall(archive, databaseEffects, databaseCandidates);
+          module.restoreOrderDatabaseAfterFailedInstall(archive, databaseEffects, databaseCandidates, restartAttempted);
         }
         catch (failure) { databaseRestoreIncomplete = true; throw failure; }
       });

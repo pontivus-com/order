@@ -490,7 +490,7 @@ type InstallerTransactionFixture = Readonly<{
   interruptAt?: "app-activation" | "service-start" | "health";
   failMarkerWrite?: boolean;
   manifestDrift?: "bytes" | "identity" | "symlink";
-  manifestFault?: "partial-write" | "file-sync" | "replacement" | "mode-drift" | "unlink";
+  manifestFault?: "open" | "partial-write" | "file-sync" | "observation" | "close" | "replacement" | "mode-drift" | "root-drift" | "unlink" | "unlink-replacement";
   failRestart?: boolean;
   failService?: "daemon-reload" | "enable";
   priorEnablement?: "enabled" | "disabled";
@@ -511,7 +511,9 @@ type InstallerTransactionFixture = Readonly<{
   legacyRootInWal?: boolean;
   loseDatabaseArchive?: boolean;
   databaseFault?: "archive" | "copy" | "partial-copy" | "restore" | "copy-and-restore" | "unlink" |
-    "archive-drift" | "archive-symlink" | "candidate-drift" | "copy-replaced" | "candidate-drift-after-health" | "pre-start-replaced";
+    "archive-drift" | "archive-symlink" | "candidate-drift" | "copy-replaced" | "candidate-drift-after-health" | "pre-start-replaced" |
+    "pre-start-content-drift" | "pre-start-disappearance" | "marker-sidecar-replaced" | "sidecar-alias";
+  gracefulCandidateStop?: boolean;
   databaseFaultSuffix?: "" | "-wal" | "-shm";
   databaseSidecars?: boolean;
   versionInWal?: 1 | 2 | 3;
@@ -702,6 +704,10 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
               else fs.symlinkSync(unitPath + ".external", unitPath);
             }
           }
+          if (candidateStarted && fixture.gracefulCandidateStop) {
+            const db = new Database(databasePath, { create: false, strict: true });
+            try { db.exec("PRAGMA wal_checkpoint(TRUNCATE);"); } finally { db.close(); }
+          }
           if (candidateStarted && fixture.databaseFault === "candidate-drift") {
             fs.renameSync(faultPath, faultPath + ".retained-candidate");
             fs.writeFileSync(faultPath, "unexpected replacement");
@@ -760,6 +766,10 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
                 retainedArchive = path.join(fixture.stateRoot, name + ".retained");
                 fs.renameSync(path.join(fixture.stateRoot, name), retainedArchive);
               }
+            }
+            if (fixture.databaseFault === "sidecar-alias") {
+              fs.unlinkSync(databasePath + "-shm");
+              fs.linkSync(databasePath + "-wal", databasePath + "-shm");
             }
             if (fixture.databaseFault === "unlink" && !fixture.candidateSidecars) fs.writeFileSync(faultPath, "invocation-created sidecar");
             if (fixture.driftConfig) fs.appendFileSync(configPath, " ");
@@ -889,6 +899,8 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
           if (fs.existsSync(faultPath)) fs.renameSync(faultPath, faultPath + ".retained-candidate");
           fs.writeFileSync(faultPath, "unexpected pre-start file");
         }
+        if (kind === "unit-publication" && fixture.databaseFault === "pre-start-content-drift") fs.appendFileSync(faultPath, "unexpected same-inode bytes");
+        if (kind === "unit-publication" && fixture.databaseFault === "pre-start-disappearance") fs.renameSync(faultPath, faultPath + ".retained-candidate");
         if (kind === "marker-publication" && fixture.failCleanup === "config") {
           const name = fs.readdirSync(fixture.stateRoot).find(name => name.startsWith("config.json.installer-recovery."));
           if (!name) throw new Error("expected configuration recovery copy");
@@ -992,8 +1004,24 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
             throw new Error("injected partial marker temporary write");
           }
           fs.writeFileSync(descriptor, bytes, "utf8");
+          if (fixture.databaseFault === "marker-sidecar-replaced") {
+            fs.renameSync(faultPath, faultPath + ".retained-candidate");
+            fs.writeFileSync(faultPath, "unexpected replacement");
+          }
         };
         const manifestEffects = {
+          open: (target, flags, mode) => {
+            if (fixture.manifestFault === "open") throw new Error("injected manifest open");
+            return fs.openSync(target, flags, mode);
+          },
+          read: (descriptor, bytes, offset, length, position) => {
+            if (fixture.manifestFault === "observation") throw new Error("injected manifest observation");
+            return fs.readSync(descriptor, bytes, offset, length, position);
+          },
+          close: descriptor => {
+            fs.closeSync(descriptor);
+            if (fixture.manifestFault === "close") throw new Error("injected manifest close");
+          },
           write: (descriptor, bytes) => {
             if (fixture.manifestFault === "partial-write") {
               fs.writeFileSync(descriptor, bytes.subarray(0, 8));
@@ -1001,6 +1029,11 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
             }
             fs.writeFileSync(descriptor, bytes);
             if (fixture.manifestFault === "mode-drift") fs.fchmodSync(descriptor, 0o600);
+            if (fixture.manifestFault === "root-drift") {
+              fs.renameSync(fixture.project, fixture.project + ".retained-root");
+              fs.mkdirSync(fixture.project);
+              fs.writeFileSync(path.join(fixture.project, "pontivus-order.toml"), "unexpected new root");
+            }
             if (fixture.manifestFault === "replacement") {
               const manifest = path.join(fixture.project, "pontivus-order.toml");
               fs.renameSync(manifest, manifest + ".retained");
@@ -1014,6 +1047,7 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
           unlink: target => {
             if (fixture.manifestFault === "unlink") throw new Error("injected manifest unlink");
             fs.unlinkSync(target);
+            if (fixture.manifestFault === "unlink-replacement") fs.writeFileSync(target, "unexpected replacement after unlink");
           },
         };
         await installer.runInstaller({ sourceRoot, sourceCommit }, process.env, question, rename, remove, databaseEffects, configEffects, writeMarker, manifestEffects);
@@ -1496,7 +1530,7 @@ describe("actual IA25 installer transaction", () => {
       }
     }, 120_000);
 
-  it.each(["partial-write", "file-sync", "replacement", "mode-drift", "unlink"] as const)(
+  it.each(["open", "partial-write", "file-sync", "observation", "close", "replacement", "mode-drift", "root-drift", "unlink", "unlink-replacement"] as const)(
     "retains early manifest custody across installer failure: %s", manifestFault => {
       const fixture = transactionFixture();
       createPriorDeployment(fixture);
@@ -1508,12 +1542,13 @@ describe("actual IA25 installer transaction", () => {
       }));
       const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes",
         readiness: { ready: true, blockers: [] }, manifestFault,
-        failRestart: manifestFault === "unlink" });
+        failRestart: manifestFault === "unlink" || manifestFault === "unlink-replacement" });
       expect(outcome.failure).not.toBeNull();
       expect(outcome.marker).toBe("b".repeat(40) + "\n");
       expect(outcome.configBytes).toBe(outcome.originalConfig);
-      if (manifestFault === "partial-write" || manifestFault === "file-sync") {
-        expect(outcome.failure).toContain(manifestFault === "partial-write" ? "injected manifest partial write" : "injected manifest fsync");
+      if (manifestFault === "open" || manifestFault === "partial-write" || manifestFault === "file-sync" || manifestFault === "close") {
+        const message = manifestFault === "partial-write" ? "partial write" : manifestFault === "file-sync" ? "fsync" : manifestFault;
+        expect(outcome.failure).toContain("injected manifest " + message);
         expect(existsSync(manifest)).toBe(false);
         expect(outcome.activity).toBe("active");
       } else {
@@ -1526,6 +1561,16 @@ describe("actual IA25 installer transaction", () => {
         } else if (manifestFault === "mode-drift") {
           expect(outcome.failure).toContain("installer manifest descriptor custody changed");
           expect(lstatSync(manifest).mode & 0o777).toBe(0o600);
+        } else if (manifestFault === "observation") {
+          expect(outcome.failure).toContain("injected manifest observation");
+          expect(outcome.failure).toContain("custody is unproven");
+        } else if (manifestFault === "root-drift") {
+          expect(readFileSync(manifest, "utf8")).toBe("unexpected new root");
+          expect(readFileSync(join(fixture.project + ".retained-root", "pontivus-order.toml"), "utf8")).toContain("Generated by Order");
+        } else if (manifestFault === "unlink-replacement") {
+          expect(outcome.failure).toContain("installer manifest remains");
+          expect(outcome.failure).toContain("injected host failure");
+          expect(readFileSync(manifest, "utf8")).toBe("unexpected replacement after unlink");
         } else {
           expect(outcome.failure).toContain("injected manifest unlink");
           expect(outcome.failure).toContain("injected host failure");
@@ -1737,6 +1782,72 @@ describe("actual IA25 installer transaction", () => {
     expect(outcome.databaseNamespace[1] === outcome.originalNamespace[1]).toBe(true);
     expect(outcome.restartObservations.map((entry: { deployment: string }) => entry.deployment)).toEqual(["candidate"]);
     expect(outcome.activity).toBe("inactive");
+  }, 120_000);
+
+  it.each(["pre-start-content-drift", "pre-start-disappearance"] as const)(
+    "preserves v2 sidecar and original archive after quiesced custody violation: %s", databaseFault => {
+      const fixture = transactionFixture();
+      createPriorDeployment(fixture);
+      const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes", legacyDatabaseVersion: 2,
+        databaseSidecars: true, databaseFault, databaseFaultSuffix: "-wal",
+        readiness: { ready: true, blockers: [] } });
+      expect(outcome.failure).toContain("database restoration incomplete");
+      expect(outcome.restartObservations).toEqual([]);
+      expect(outcome.activity).toBe("inactive");
+      const archive = outcome.stateEntries.find((name: string) => name.startsWith("order.sqlite3-wal.legacy-v2."));
+      expect(readFileSync(join(fixture.stateRoot, archive)).toString("base64")).toBe(outcome.originalNamespace[1]);
+      const candidate = join(fixture.stateRoot, "order.sqlite3-wal");
+      if (databaseFault === "pre-start-content-drift") {
+        expect(readFileSync(candidate).subarray(-"unexpected same-inode bytes".length).toString()).toBe("unexpected same-inode bytes");
+      } else {
+        expect(existsSync(candidate)).toBe(false);
+        expect(readFileSync(candidate + ".retained-candidate").toString("base64")).toBe(outcome.originalNamespace[1]);
+      }
+    }, 120_000);
+
+  it.each([1, 2] as const)("restores v%i archive after legitimate WAL/SHM evolution on service stop", legacyDatabaseVersion => {
+    const fixture = transactionFixture();
+    createPriorDeployment(fixture);
+    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes", legacyDatabaseVersion,
+      databaseSidecars: true, candidateSidecars: true, gracefulCandidateStop: true, failRestart: true,
+      readiness: { ready: true, blockers: [] } });
+    expect(outcome.failure).toContain("injected host failure");
+    expect(outcome.failure).not.toContain("rollback incomplete");
+    expect(outcome.databaseNamespace).toEqual(outcome.originalNamespace);
+    expect(outcome.restartObservations.map((entry: { deployment: string }) => entry.deployment)).toEqual(["candidate", "prior"]);
+    expect(outcome.activity).toBe("active");
+    expect(outcome.stdout.indexOf("Order installation maintenance:")).toBeGreaterThanOrEqual(0);
+    expect(outcome.stdout.indexOf("Order installation maintenance:")).toBeLessThan(outcome.stdout.indexOf("installing pinned runtimes"));
+  }, 120_000);
+
+  it("refuses a healthy candidate with aliased WAL/SHM paths without deleting either", () => {
+    const fixture = transactionFixture();
+    createPriorDeployment(fixture);
+    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes", legacyDatabaseVersion: 1,
+      databaseSidecars: true, candidateSidecars: true, databaseFault: "sidecar-alias",
+      readiness: { ready: true, blockers: [] } });
+    expect(outcome.failure).toContain("database candidate custody unavailable");
+    expect(outcome.failure).toContain("database restoration incomplete");
+    expect(outcome.activity).toBe("inactive");
+    const wal = lstatSync(join(fixture.stateRoot, "order.sqlite3-wal"));
+    const shm = lstatSync(join(fixture.stateRoot, "order.sqlite3-shm"));
+    expect(wal.ino).toBe(shm.ino);
+    for (const suffix of ["-wal", "-shm"]) {
+      expect(outcome.stateEntries.some((name: string) => name.startsWith("order.sqlite3" + suffix + ".legacy-v1."))).toBe(true);
+    }
+  }, 120_000);
+
+  it("rejects sidecar replacement during marker preparation before publication", () => {
+    const fixture = transactionFixture();
+    createPriorDeployment(fixture);
+    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes", legacyDatabaseVersion: 1,
+      databaseSidecars: true, candidateSidecars: true, databaseFault: "marker-sidecar-replaced", databaseFaultSuffix: "-shm",
+      readiness: { ready: true, blockers: [] } });
+    expect(outcome.failure).toContain("installer database identity changed or missing");
+    expect(outcome.failure).toContain("database restoration incomplete");
+    expect(outcome.marker).toBe("b".repeat(40) + "\n");
+    expect(outcome.activity).toBe("inactive");
+    expect(readFileSync(join(fixture.stateRoot, "order.sqlite3-shm"), "utf8")).toBe("unexpected replacement");
   }, 120_000);
 
   it("does not mutate or archive a current v3 database with WAL/SHM present", () => {
