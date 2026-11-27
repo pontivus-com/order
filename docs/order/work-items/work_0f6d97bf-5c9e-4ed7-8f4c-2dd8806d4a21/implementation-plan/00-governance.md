@@ -35,15 +35,15 @@ A positive no-change or baseline-reuse disposition is an implementation instruct
 
 ## Execution ownership
 
-`12-action-catalog.md` is the **single definition owner** for every IA01-IA34 implementation/proof action. Semantic phase files may map requirements/atoms to an IA and state their local consequence or completion evidence, but they must not restate that IA's mutation procedure, disposition table or API design. `13-verification-closeout.md` owns checkpoints/proof only and likewise references the catalog.
+`12-action-catalog.md` is the **single definition owner** for every IA01–IA39 implementation/proof action. Semantic phase files may map requirements/atoms to an IA and state their local consequence or completion evidence, but they must not restate that IA's mutation procedure, disposition table or API design. `13-verification-closeout.md` owns checkpoints/proof only and likewise references the catalog.
 
 This PLAN carries no implementation authority by itself. Current campaign gate state, bounded authorization and sign-off are owned only by campaign §17A/§18. These bytes define the executable P7 specification only once G5 and G5A/R3 are closed; production execution still requires explicit sign-off. The registers alone establish the required gates and explicit authorization; any bounded pre-sign-off grant must bind the exact current P4/DESIGN/PLAN package.
 
-Retain proven closed P4/F6B APIs and semantic owner responsibilities only; correct rejected physical shell realization within scope. IA27/IA28 own revalidation, IA29/IA31/IA30 exact residuals, IA32/IA33/IA34 remaining semantic/proof obligations. The catalog alone owns mutation definitions.
+Retain proven closed P4/F6B APIs and semantic owner responsibilities only; correct rejected physical shell realization within scope. IA27/IA28 own revalidation, IA29/IA31/IA30 exact residuals, IA32/IA33/IA34 remaining semantic/proof obligations, with IA35–IA38 the atomic native Acceptance cutover between IA32 and IA33 and IA39 its integrated certification after IA34. The catalog alone owns mutation definitions.
 
 ## Signed scope and forecast law
 
-One cumulative T1 candidate uses the exact same **48 repository paths** for scope and changeSurface, with obligation-specific reasons in DESIGN. Explicit exclusions protect retained/required-absent owners and authorizing manifest/instructions/architecture sensor. No directory-wide envelope. Unexpected out-of-scope change returns upstream; existing V4/V5/V6 variance rules remain unchanged. No gate state or signed authority is conferred.
+One cumulative T1 candidate uses the exact same **60 repository paths** for scope and changeSurface, with obligation-specific reasons in DESIGN. Explicit exclusions protect retained/required-absent owners and authorizing manifest/instructions/architecture sensor. No directory-wide envelope. Unexpected out-of-scope change returns upstream; existing V4/V5/V6 variance rules remain unchanged. No gate state or signed authority is conferred.
 
 ## Architecture constraints
 
@@ -55,13 +55,13 @@ Published change-v1/defect-v1 semantics remain unchanged. SD10 reuses existing v
 
 ## Workbench presentation realization law
 
-Current authority and SD21/F6B define the target. Retain existing closed APIs and required absence within proved scope; the foundation milestone establishes only evidenced semantic responsibility, not acceptance of rejected physical Toolbar/Identity realization. IA27/IA28 correct the latter via the catalog and scoped owners; excluded owners return upstream. All prior 37 SURF and 46 scenarios remain; Acceptance adds SURF-STEP-ACCEPTANCE-001 and scenario 47. IA27–IA34 consume the catalog and correct only forecast residuals; a disproven retained owner returns upstream. No new component or compatibility path is authorized. Optional bounded evidence is separate after current R3 and exact grant; ordinary signed execution follows sign-off.
+Current authority and SD21/F6B define the target. Retain existing closed APIs and required absence within proved scope; the foundation milestone establishes only evidenced semantic responsibility, not acceptance of rejected physical Toolbar/Identity realization. IA27/IA28 correct the latter via the catalog and scoped owners; excluded owners return upstream. All prior 37 SURF and 46 scenarios remain; Acceptance adds SURF-STEP-ACCEPTANCE-001 and scenario 47. IA27–IA34 and IA35–IA39 consume the catalog and correct only forecast residuals; a disproven retained owner returns upstream. IA38 authorizes exactly one new domain renderer, `ui/src/AcceptanceWorkspace.tsx`; no new structural primitive or compatibility path is authorized. Optional bounded evidence is separate after current R3 and exact grant; ordinary signed execution follows sign-off.
 
 ## Information visibility / disclosure execution law
 
 Every UI phase consumes the canonical P3 §11.4A classification and P4 §8.12A technical ownership. The implementation may not infer visibility from whichever fields are available in a query or from historical UI/SVG layout.
 
-For every rendered datum/action in IA27-IA34, DESIGN already records semantic datum/action, P3 class, semantic component owner, exact section/collection position, default visibility, authorized inspection owner, responsive order and negative rendering rules. Implementation records only authority-conformance evidence. Physical-owner dispositions are owned once by `12-action-catalog.md`; they are not reclassified in phase files or verification prose.
+For every rendered datum/action in IA27–IA34 and IA38, DESIGN already records semantic datum/action, P3 class, semantic component owner, exact section/collection position, default visibility, authorized inspection owner, responsive order and negative rendering rules. Implementation records only authority-conformance evidence. Physical-owner dispositions are owned once by `12-action-catalog.md`; they are not reclassified in phase files or verification prose.
 
 The implementation rule is exact:
 
