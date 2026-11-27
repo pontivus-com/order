@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Specify installer-created manifest custody at the existing project shell owner and the supported sole-writer maintenance boundary; revise the exact 0.6.0 forecast and proof package for REV-F11 without changing production source.
+
 - Rebind derived Workbench reference evidence to the corrected DESIGN and synchronize the exact IA25 trace assertion during REV-F10 revalidation.
 
 - Return IA25 upstream for the exact two omitted installer regression-fixture owners; synchronize the 47-path DESIGN/PLAN forecast and protected pre-signoff scope sensor, preserve 68 exclusions, and require renewed exact-package review and authorization (REV-F10).
