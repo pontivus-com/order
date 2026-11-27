@@ -490,7 +490,7 @@ type InstallerTransactionFixture = Readonly<{
   interruptAt?: "app-activation" | "service-start" | "health";
   failMarkerWrite?: boolean;
   manifestDrift?: "bytes" | "identity" | "symlink";
-  manifestFault?: "open" | "partial-write" | "file-sync" | "observation" | "close" | "replacement" | "mode-drift" | "root-drift" | "unlink" | "unlink-replacement";
+  manifestFault?: "open" | "partial-write" | "file-sync" | "observation" | "close" | "validation-scan" | "replacement" | "mode-drift" | "root-drift" | "unlink" | "unlink-replacement";
   failRestart?: boolean;
   failService?: "daemon-reload" | "enable";
   priorEnablement?: "enabled" | "disabled";
@@ -1021,6 +1021,15 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
           close: descriptor => {
             fs.closeSync(descriptor);
             if (fixture.manifestFault === "close") throw new Error("injected manifest close");
+            if (fixture.manifestFault === "validation-scan") {
+              // Inject a failure at the authority-directory enumeration effect,
+              // not at the canonical validation or installer transaction owner.
+              const scan = Bun.Glob.prototype.scan;
+              Bun.Glob.prototype.scan = function(options) {
+                if (options?.cwd === fixture.project) throw new Error("injected manifest authority scan");
+                return scan.call(this, options);
+              };
+            }
           },
           write: (descriptor, bytes) => {
             if (fixture.manifestFault === "partial-write") {
@@ -1530,12 +1539,13 @@ describe("actual IA25 installer transaction", () => {
       }
     }, 120_000);
 
-  it.each(["open", "partial-write", "file-sync", "observation", "close", "replacement", "mode-drift", "root-drift", "unlink", "unlink-replacement"] as const)(
+  it.each(["open", "partial-write", "file-sync", "observation", "close", "validation-scan", "replacement", "mode-drift", "root-drift", "unlink", "unlink-replacement"] as const)(
     "retains early manifest custody across installer failure: %s", manifestFault => {
       const fixture = transactionFixture();
       createPriorDeployment(fixture);
       const manifest = join(fixture.project, "pontivus-order.toml");
       rmSync(manifest);
+      if (manifestFault === "root-drift") temporary.push(fixture.project + ".retained-root");
       writeFileSync(join(fixture.stateRoot, "config.json"), JSON.stringify({
         version: 1, model: { providerID: "opencode", id: "glm-5.3-flash-free" },
         repositoryRoots: [fixture.project], referenceRoots: [],
@@ -1546,8 +1556,10 @@ describe("actual IA25 installer transaction", () => {
       expect(outcome.failure).not.toBeNull();
       expect(outcome.marker).toBe("b".repeat(40) + "\n");
       expect(outcome.configBytes).toBe(outcome.originalConfig);
-      if (manifestFault === "open" || manifestFault === "partial-write" || manifestFault === "file-sync" || manifestFault === "close") {
-        const message = manifestFault === "partial-write" ? "partial write" : manifestFault === "file-sync" ? "fsync" : manifestFault;
+      if (manifestFault === "open" || manifestFault === "partial-write" || manifestFault === "file-sync" ||
+          manifestFault === "close" || manifestFault === "validation-scan") {
+        const message = manifestFault === "partial-write" ? "partial write" : manifestFault === "file-sync" ? "fsync" :
+          manifestFault === "validation-scan" ? "authority scan" : manifestFault;
         expect(outcome.failure).toContain("injected manifest " + message);
         expect(existsSync(manifest)).toBe(false);
         expect(outcome.activity).toBe("active");
@@ -1576,6 +1588,34 @@ describe("actual IA25 installer transaction", () => {
           expect(outcome.failure).toContain("injected host failure");
         }
       }
+    }, 120_000);
+
+  it.each(["existing-invalid", "legacy"] as const)(
+    "refuses an existing incompatible project manifest without adopting or deleting it: %s", kind => {
+      const fixture = transactionFixture();
+      createPriorDeployment(fixture);
+      const manifest = join(fixture.project, "pontivus-order.toml");
+      rmSync(manifest);
+      const retained = kind === "legacy" ? join(fixture.project, "gateweft.toml") : manifest;
+      const bytes = Buffer.from("version = 999\n");
+      writeFileSync(retained, bytes);
+      const original = lstatSync(retained);
+      writeFileSync(join(fixture.stateRoot, "config.json"), JSON.stringify({
+        version: 1, model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+        repositoryRoots: [fixture.project], referenceRoots: [],
+      }));
+      const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes",
+        readiness: { ready: true, blockers: [] } });
+      expect(outcome.failure).not.toBeNull();
+      if (kind === "legacy") {
+        expect(outcome.failure).toContain("legacy gateweft.toml");
+        expect(existsSync(manifest)).toBe(false);
+      }
+      expect(readFileSync(retained)).toEqual(bytes);
+      expect(lstatSync(retained).ino).toBe(original.ino);
+      expect(outcome.marker).toBe("b".repeat(40) + "\n");
+      expect(outcome.restartObservations.map((entry: { deployment: string }) => entry.deployment)).toEqual(["prior"]);
+      expect(outcome.configBytes).toBe(outcome.originalConfig);
     }, 120_000);
 
   it("blocks commit of an otherwise healthy deployment when created manifest custody drifts", () => {

@@ -562,6 +562,12 @@ const captureInstallerDatabaseOriginals = (
     if (originals[0]!.identity === null && originals.some(original => original.identity !== null)) {
       throw new TypeError("installer database sidecars exist without the primary database: " + path);
     }
+    for (const [index, original] of originals.entries()) {
+      if (original.identity !== null && originals.slice(0, index).some(previous =>
+          previous.identity !== null && sameInstallerDatabaseFile(previous.identity, original.identity))) {
+        throw new TypeError("installer original database paths alias one physical object: " + original.path);
+      }
+    }
     return originals;
   } catch (error) {
     // No mutation was performed here, but the prior namespace cannot be
