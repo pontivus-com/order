@@ -215,7 +215,7 @@ const verifyCampaignReviewedInputs = (
     }
     const scope = new Set(task.scope);
     const exclusions = new Set(task.exclusions);
-    if (scope.size !== 45 || exclusions.size !== 68 || [...scope].some((path) => exclusions.has(path))) {
+    if (scope.size !== 47 || exclusions.size !== 68 || task.scope.length !== scope.size || task.exclusions.length !== exclusions.size || [...scope].some((path) => exclusions.has(path))) {
       throw new Error("invalid exact T1 scope/exclusions");
     }
     const allowed = normal ? scope : new Set(exactField("bounded paths", "([^\\r\\n]+)").split(", "));
@@ -347,7 +347,7 @@ describe("architecture fitness", () => {
       mkdirSync(join(root, "item"));
       const plan = "\x60\x60\x60order-tasks\n" + JSON.stringify({ tasks: [{
         id: "T1",
-        scope: ["a.ts", "CHANGELOG.md", ...Array.from({ length: 43 }, (_, i) => "scope-" + i)],
+        scope: ["a.ts", "CHANGELOG.md", ...Array.from({ length: 45 }, (_, i) => "scope-" + i)],
         exclusions: ["protected.md", ...Array.from({ length: 67 }, (_, i) => "excluded-" + i)],
       }] }) + "\n\x60\x60\x60\n";
       const baselineInputs = new Map([
@@ -3181,9 +3181,9 @@ describe("architecture fitness", () => {
     const designSurface = [...designSurfaceSection.matchAll(/^- `([^\`]+)`(?:\s+—.*)?$/gm)].map(
       (match) => match[1],
     );
-    if (designSurface.length !== 45 || duplicates(designSurface).length > 0) {
+    if (designSurface.length !== 47 || duplicates(designSurface).length > 0) {
       violations.push(
-        "DESIGN implementation forecast must contain 45 unique paths; found " +
+        "DESIGN implementation forecast must contain 47 unique paths; found " +
           designSurface.length,
       );
     }
@@ -3279,6 +3279,9 @@ describe("architecture fitness", () => {
         "writer failure before rename (no publication; verify original/absence, no restore mutation)",
         "failure after rename before fsync/readback (publication captured)",
         "Present legacy config with external-root ENOENT",
+        "in `tests/shell.test.ts` pass the explicit established decision",
+        "in `tests/order-migration.test.ts` replace the unconditional-success systemctl stub",
+        "`tests/sqlite.test.ts` is outside T1",
       ]],
     ] as const;
     for (const [owner, source, requiredTokens] of installerTraces) {
@@ -3343,9 +3346,9 @@ describe("architecture fitness", () => {
             task.gateIds ?? [],
             ["architecture", "browser", "build", "dependency-lock", "test", "typecheck"],
           );
-          if ((task.scope ?? []).length !== 45 || duplicates(task.scope ?? []).length > 0) {
+          if ((task.scope ?? []).length !== 47 || duplicates(task.scope ?? []).length > 0) {
             violations.push(
-              "T1 hard scope must contain the exact 45 unique forecast paths; found " +
+              "T1 hard scope must contain the exact 47 unique forecast paths; found " +
                 (task.scope ?? []).length,
             );
           }
@@ -3358,6 +3361,8 @@ describe("architecture fitness", () => {
           "src/shell/setup.ts",
           "src/shell/sqlite.ts",
           "src/shell/config.ts",
+          "tests/shell.test.ts",
+          "tests/order-migration.test.ts",
           "src/shell/repository.ts",
           "ui/src/workbench-presentation.ts",
           "tests/e2e-server.ts",
@@ -3372,9 +3377,9 @@ describe("architecture fitness", () => {
         for (const excluded of task?.exclusions ?? []) {
           if ((task?.scope ?? []).includes(excluded)) violations.push("T1 scope overlaps exclusion: " + excluded);
         }
-        if (signedSurface.length !== 45 || duplicates(signedSurface).length > 0) {
+        if (signedSurface.length !== 47 || duplicates(signedSurface).length > 0) {
           violations.push(
-            "PLAN signed T1 changeSurface must contain 45 unique paths; found " +
+            "PLAN signed T1 changeSurface must contain 47 unique paths; found " +
               signedSurface.length,
           );
         }
@@ -3387,9 +3392,9 @@ describe("architecture fitness", () => {
         const documentedSurface = [...surfaceSection.matchAll(/^- \`([^\`]+)\`$/gm)].map(
           (match) => match[1],
         );
-        if (documentedSurface.length !== 45 || duplicates(documentedSurface).length > 0) {
+        if (documentedSurface.length !== 47 || duplicates(documentedSurface).length > 0) {
           violations.push(
-            "PLAN documented candidate surface must contain 45 unique paths; found " +
+            "PLAN documented candidate surface must contain 47 unique paths; found " +
               documentedSurface.length,
           );
         }
@@ -3518,6 +3523,8 @@ describe("architecture fitness", () => {
           "tests/daemon.test.ts",
           "tests/e2e-server.ts",
           "tests/installer.test.ts",
+          "tests/shell.test.ts",
+          "tests/order-migration.test.ts",
           "tests/opencode.test.ts",
           "tests/workbench-presentation.test.ts",
           "docs/references/workbench-ui/reference-atlas.html",

@@ -4,7 +4,7 @@
 
 ## Canonical PLAN authority
 
-This root is the single deterministic P7 artifact for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. Its modular directory is the maintainable authoring decomposition, not independent executable authority. This revalidation-candidate implementation specification binds R1 `4d74d42bc817db51d06648174698b07175be193b`, R2 `75e2108d786a2b9657c8d738d22de3e31643247c`, DESIGN `91f576d5c21782034224157ef9d2b4ec2ff81fa1`, current P4 and P6. Prior closures were reopened by ALIGN-A01-F03, ALIGN-A07-F01 and ALIGN-A09-F02; campaign §17A/§18 own gate state and authorization. No gate advance or sign-off is inferred.
+This root is the single deterministic P7 artifact for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. Its modular directory is the maintainable authoring decomposition, not independent executable authority. This revalidation-candidate implementation specification binds R1 `4d74d42bc817db51d06648174698b07175be193b`, R2 `75e2108d786a2b9657c8d738d22de3e31643247c`, DESIGN `92fffd59364e825f72b6b41c59b6a4479fd85a8c`, current P4 and P6. Prior closures were reopened by ALIGN-A01-F03, ALIGN-A07-F01, ALIGN-A09-F02 and REV-F10; campaign §17A/§18 own gate state and authorization. No gate advance or sign-off is inferred.
 
 ## Current Workbench implementation plan
 
@@ -14,7 +14,7 @@ Retain evidenced closed F6B semantic APIs and responsibilities; correct rejected
 
 | Source component | Git blob |
 |---|---|
-| `implementation-plan/00-governance.md` | `2a168073ed38cb38f6a2f0e062926080598dd2a1` |
+| `implementation-plan/00-governance.md` | `b4c837ed2b6d4a87e0c63a3695a136962136943f` |
 | `implementation-plan/01-a01-lifecycle-product.md` | `b1d70c05a8175406db455fd6c75e170959258eca` |
 | `implementation-plan/02-a02-governance-intake.md` | `1f496e6221987a58b5f1aed9c783eb67a3e5492c` |
 | `implementation-plan/03-a03-queue-source.md` | `b0f9bd32f6f3bce513e9668a31f7d388fa0cecb8` |
@@ -23,11 +23,11 @@ Retain evidenced closed F6B semantic APIs and responsibilities; correct rejected
 | `implementation-plan/06-a06-plan-readiness.md` | `5793e5a64a1c576787b516374bb8704d8237b49f` |
 | `implementation-plan/07-a07-approval-execution.md` | `6186cb517f94c008354a6560db7bf036d69552c9` |
 | `implementation-plan/08-a08-complete-materials.md` | `9f414ba89efd58cc3c73555d8268b4864a732750` |
-| `implementation-plan/09-a09-provider-settings.md` | `d1d4e26ea71a1a54178076594afb8dc6040a869f` |
+| `implementation-plan/09-a09-provider-settings.md` | `2246764ccd7c833f8bbbeb21dd70acf57e3a3ffc` |
 | `implementation-plan/10-a10-recovery-accessibility.md` | `e0fada55f15bcfd70eb1380bdf257fe52b68be7b` |
 | `implementation-plan/11-a11-component-certification.md` | `b89af8fe98c14bbbd4afcfc29211fe3fab1f676e` |
-| `implementation-plan/12-action-catalog.md` | `05bccf0dd1565401761a310beddf6f2c0cc81e11` |
-| `implementation-plan/13-verification-closeout.md` | `4e98e253eae2dbad0d16a817bb68622f1fc2f717` |
+| `implementation-plan/12-action-catalog.md` | `26989ac0b4555a816fd64d70b4339844bebd1aab` |
+| `implementation-plan/13-verification-closeout.md` | `f3d5f9175475361e5441986b129769c53cdd344a` |
 
 A source hash mismatch makes PLAN non-current until recompiled. Directory files have no independent order-tasks block or lifecycle state.
 
@@ -37,7 +37,7 @@ A01–A11 retain requirement/atom-specific consequences; IA01–IA34 are the sin
 
 ## Candidate execution scope
 
-One T1 candidate, exact 45 paths for scope and changeSurface; explicit exclusions protect retained/absent owners and authorizing material. No production authority before normal sign-off.
+One T1 candidate, exact 47 paths for scope and changeSurface; explicit exclusions protect retained/absent owners and authorizing material. No production authority before normal sign-off.
 
 ```order-tasks
 {
@@ -85,6 +85,8 @@ One T1 candidate, exact 45 paths for scope and changeSurface; explicit exclusion
         "tests/daemon.test.ts",
         "tests/e2e-server.ts",
         "tests/installer.test.ts",
+        "tests/shell.test.ts",
+        "tests/order-migration.test.ts",
         "tests/opencode.test.ts",
         "tests/workbench-presentation.test.ts",
         "docs/references/workbench-ui/reference-atlas.html",
@@ -235,6 +237,8 @@ One T1 candidate, exact 45 paths for scope and changeSurface; explicit exclusion
         "tests/daemon.test.ts",
         "tests/e2e-server.ts",
         "tests/installer.test.ts",
+        "tests/shell.test.ts",
+        "tests/order-migration.test.ts",
         "tests/opencode.test.ts",
         "tests/workbench-presentation.test.ts",
         "docs/references/workbench-ui/reference-atlas.html",
@@ -287,7 +291,7 @@ Existing closed component owners, atomic adapters and specialist/infrastructure 
 
 ## Exact candidate implementation surface
 
-Exact 45 paths; DESIGN owns the obligation-specific reasons.
+Exact 47 paths; DESIGN owns the obligation-specific reasons.
 
 ### Authority and lifecycle
 - `README.md`
@@ -330,6 +334,8 @@ Exact 45 paths; DESIGN owns the obligation-specific reasons.
 - `tests/daemon.test.ts`
 - `tests/e2e-server.ts`
 - `tests/installer.test.ts`
+- `tests/shell.test.ts`
+- `tests/order-migration.test.ts`
 - `tests/opencode.test.ts`
 - `tests/workbench-presentation.test.ts`
 ### Derived evidence and delivery
@@ -342,7 +348,7 @@ Exact 45 paths; DESIGN owns the obligation-specific reasons.
 ## Exhaustive traceability invariants
 
 - one T1 and one IA01-IA34 definition owner, 112 stable requirements and 27 package atoms mapped to DESIGN/IA and proof;
-- exact 45-path scope/changeSurface, protected exclusions, no mutation for retained/required-absent owners;
+- exact 47-path scope/changeSurface, protected exclusions, no mutation for retained/required-absent owners;
 - 37 SURF and 46 scenarios, exact HUX and physical SoC proof, no compatibility or shadow representation;
 - G4/G5/G5A/independent R3 and normal sign-off remain separate gates.
 
@@ -360,7 +366,7 @@ This decomposition is revalidated under C19-F09/C20-F11 after the prior G4-G6 cl
 
 - R1 `research.md`: `4d74d42bc817db51d06648174698b07175be193b`.
 - R2 `requirements.md`: `75e2108d786a2b9657c8d738d22de3e31643247c`.
-- DESIGN `solution-design.md`: `91f576d5c21782034224157ef9d2b4ec2ff81fa1` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 45-path forecast.
+- DESIGN `solution-design.md`: `92fffd59364e825f72b6b41c59b6a4479fd85a8c` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 47-path forecast.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `ee8acad4e39f4641476eb46d99ca168afab3db3d`.
 - P3 `GW-DOC-WORKBENCH-UX-V2`: `64184232833b59a9e6db5e1a28b841f48b3217cd` — §11.4A/§12/§13/§14 own semantic information classes, state-is-not-interface behavior, direct primary interaction composition, no generic workflow-material selector, continuous Dialogue semantics, Terminal-result primacy, singular technical inspection, task anatomy and composition invariants.
 - P3 `GW-DOC-MARKDOWN-WORKBENCH-V1`: `da89bd08e4f78f353d7b3062758e9d78e21375b2` — §17.4 owns one compact Markdown editor-control region, overflow-before-wrap formatting and control→canvas adjacency.
@@ -395,7 +401,7 @@ Retain proven closed P4/F6B APIs and semantic owner responsibilities only; corre
 
 ##### Signed scope and forecast law
 
-One cumulative T1 candidate uses the exact same **45 repository paths** for scope and changeSurface, with obligation-specific reasons in DESIGN. Explicit exclusions protect retained/required-absent owners and authorizing manifest/instructions/architecture sensor. No directory-wide envelope. Unexpected out-of-scope change returns upstream; existing V4/V5/V6 variance rules remain unchanged. No gate state or signed authority is conferred.
+One cumulative T1 candidate uses the exact same **47 repository paths** for scope and changeSurface, with obligation-specific reasons in DESIGN. Explicit exclusions protect retained/required-absent owners and authorizing manifest/instructions/architecture sensor. No directory-wide envelope. Unexpected out-of-scope change returns upstream; existing V4/V5/V6 variance rules remain unchanged. No gate state or signed authority is conferred.
 
 ##### Architecture constraints
 
@@ -431,7 +437,7 @@ Presence-only browser assertions are nonconforming when they force technical/dia
 
 Return to DESIGN/PLAN before editing when execution requires a new semantic owner, public contract, state meaning, persistence/transport/effect boundary, dependency direction or external dependency, validation contract, provider capability, verification authority, authorized behavior, or any path outside signed scope/exclusions.
 
-Because scope equals the exact 45-path forecast, a newly required out-of-scope path returns to DESIGN/PLAN.
+Because scope equals the exact 47-path forecast, a newly required out-of-scope path returns to DESIGN/PLAN. REV-F10 adds only the two IA25 regression-fixture paths; all 68 explicit exclusions remain. Previously authorized partial implementation is retained solely as unaccepted evidence; the prior authorization is terminated, and implementation resumes only after affected G4/G5/G5A/R3 revalidation and a separate exact-package operator decision. Do not repeat conforming work merely because the scope returns upstream; reprove retained work against authority.
 
 
 ### Compiled component: `implementation-plan/01-a01-lifecycle-product.md`
@@ -943,9 +949,9 @@ IA13/29 own maturity/Save presentation; IA30 reply context; IA19/33 exact outcom
 | `GW-FR-075-OPENCODE-ACCOUNT-LOGIN` | `C16-O06` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C16-O06` via tests/browser.spec.ts; tests/certification.test.ts; tests/order-migration.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-076-OPENCODE-ACCOUNT-MUTATION-SAFETY` | `C16-O07` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C16-O07` via tests/browser.spec.ts; tests/certification.test.ts; tests/order-migration.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-079-PRODUCTIVE-INSTALLATION-READINESS` | `C16-O09`, `C16-O10`, `C16-F04` | `MIXED_TECHNICAL_AND_VERIFICATION_DELTA` | `SD19` | `IA25` | — | IA25 transaction matrix proves actual fresh/unproven versus established admission, explicit historical disposition, exact auth/schema/blocker behavior, guided root-first retry with retained unavailable roots, proven service quiescence and independently reversible partial effects, atomic commit, non-destructive post-commit finalization failure, migration and continuity. Existing helper/structural/browser proof is complementary. Proof: tests/installer.test.ts; tests/daemon.test.ts; tests/certification.test.ts + existing migration/browser proof + V4/V5/V6 requirement-specific semantic review |
-| `GW-FR-080-CONFIGURATION-CONTINUITY` | `DIRECT-FR080` | `MIXED_TECHNICAL_AND_VERIFICATION_DELTA` | `SD19` | `IA25` | — | IA25 INST-02/03/08/12: deterministic established v3 conversion and v4 retention with unavailable account/model/root/reference or absent config, exact field preservation, strict configuration-path presence/publication/compensation and rollback. Proof: tests/installer.test.ts; tests/daemon.test.ts; tests/certification.test.ts; existing tests/order-migration.test.ts and browser proof + V4/V5/V6 requirement-specific semantic review |
-| `GW-FR-081-OPENCODE-ACCOUNT-CONTINUITY` | `C16-O06`, `DIRECT-FR081` | `MIXED_TECHNICAL_AND_VERIFICATION_DELTA` | `SD19` | `IA25` | — | IA25 INST-02/04/08/12: preserve installation-owned private account namespace through migration, no forced login for established recovery and no ambient credential import. Proof: tests/installer.test.ts; tests/daemon.test.ts; tests/certification.test.ts; existing tests/order-migration.test.ts and browser proof + V4/V5/V6 requirement-specific semantic review |
-| `GW-FR-082-REPOSITORY-AND-DOCUMENT-CONTINUITY` | `C16-O04`, `DIRECT-FR082` | `MIXED_TECHNICAL_AND_VERIFICATION_DELTA` | `SD19` | `IA25` | — | IA25 INST-04/08/12: exact document-copy retention and database archive/restore custody, partial-failure compensation, failed-quiescence containment, original error and recovery paths. Proof: tests/installer.test.ts; tests/daemon.test.ts; tests/certification.test.ts; existing tests/order-migration.test.ts and browser proof + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-080-CONFIGURATION-CONTINUITY` | `DIRECT-FR080` | `MIXED_TECHNICAL_AND_VERIFICATION_DELTA` | `SD19` | `IA25` | — | IA25 INST-02/03/08/12: deterministic established v3 conversion and v4 retention with unavailable account/model/root/reference or absent config, exact field preservation, strict configuration-path presence/publication/compensation and rollback. Proof: tests/installer.test.ts; tests/daemon.test.ts; tests/certification.test.ts; tests/shell.test.ts; tests/order-migration.test.ts; existing SQLite and browser proof + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-081-OPENCODE-ACCOUNT-CONTINUITY` | `C16-O06`, `DIRECT-FR081` | `MIXED_TECHNICAL_AND_VERIFICATION_DELTA` | `SD19` | `IA25` | — | IA25 INST-02/04/08/12: preserve installation-owned private account namespace through migration, no forced login for established recovery and no ambient credential import. Proof: tests/installer.test.ts; tests/daemon.test.ts; tests/certification.test.ts; tests/shell.test.ts; tests/order-migration.test.ts; existing SQLite and browser proof + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-082-REPOSITORY-AND-DOCUMENT-CONTINUITY` | `C16-O04`, `DIRECT-FR082` | `MIXED_TECHNICAL_AND_VERIFICATION_DELTA` | `SD19` | `IA25` | — | IA25 INST-04/08/12: exact document-copy retention and database archive/restore custody, partial-failure compensation, failed-quiescence containment, original error and recovery paths. Proof: tests/installer.test.ts; tests/daemon.test.ts; tests/certification.test.ts; tests/shell.test.ts; tests/order-migration.test.ts; existing SQLite and browser proof + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-091-FIRST-CLASS-INSTALLATION-CONFIGURATION` | `C16-O01`, `C16-O06`, `C16-O08`, `C16-O09` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C16-O01`, `C16-O06`, `C16-O08`, `C16-O09` via tests/browser.spec.ts; tests/certification.test.ts; tests/order-migration.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-092-CONNECTED-REPOSITORY-CONFIGURATION` | `C16-O02`, `C16-O03` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C16-O02`, `C16-O03` via tests/browser.spec.ts; tests/certification.test.ts; tests/order-migration.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-093-DOCUMENT-ROOT-MIGRATION-SAFETY` | `C16-O04` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C16-O04` via tests/browser.spec.ts; tests/certification.test.ts; tests/order-migration.test.ts + V4/V5/V6 requirement-specific semantic review |
@@ -975,7 +981,7 @@ Package atoms in phase: **3**.
 
 Action mutation/disposition semantics are owned only by `12-action-catalog.md`; the bullets below are dependency/traceability references, not alternate IA definitions.
 
-- **IA25** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA25** — consume the single definition in `12-action-catalog.md`; REV-F10 adds the two exact regression owners required by SD19/F7. This phase does not redefine the action.
 - **IA18** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA28** — consume the single IA28 definition in `12-action-catalog.md`.
 - **IA34** — consume the single IA34 definition in `12-action-catalog.md`.
@@ -1132,7 +1138,7 @@ This is a trace/readability view of the one canonical `order-tasks` block in the
 
 | Task | DESIGN / IA ownership | Depends on | Primary implementation owner | Mandatory removal/replacement evidence | Closure evidence |
 |---|---|---|---|---|---|
-| T1 | SD01-SD30; IA01-IA34 | — | one cumulative 45-path 0.6.0 candidate; internal waves below own ordered mutation/proof responsibilities | F6B retained closed APIs and required absence; exact residuals and complete consumer proof; proven semantic foundation retained within scope; rejected physical realization is not a preservation target | final V0-V7 + SD16-SD18/SD29 certification + IA26/SD30 exact-candidate 37-SURF and component-architecture acceptance |
+| T1 | SD01-SD30; IA01-IA34 | — | one cumulative 47-path 0.6.0 candidate; internal waves below own ordered mutation/proof responsibilities | F6B retained closed APIs and required absence; exact residuals and complete consumer proof; proven semantic foundation retained within scope; rejected physical realization is not a preservation target | final V0-V7 + SD16-SD18/SD29 certification + IA26/SD30 exact-candidate 37-SURF and component-architecture acceptance |
 
 **Audit rule:** T1 is the only P6 ExecutionTask. Wave/IA ordering below is internal implementation sequencing and never relies on candidate-byte promotion between tasks. A later phase discovering a foundation defect returns to IA27/DESIGN rather than patching around it; T1 cannot close until every owned phase obligation and final candidate proof is satisfied.
 
@@ -1375,7 +1381,7 @@ Ownership of shared-path edits is semantic and ordered: IA01 owns manifest schem
 
 In `src/shell/setup.ts`, thread the established decision through `runInstallerGuidedSetup` without changing ordinary `runGuidedSetup` behavior; implement confirmed established v3→v4 deterministic field retention through `OrderConfigSchema.parse` and `writeOrderConfig` without the live-root builder, v4 retain/recovery and absent-config canonical incomplete v4 before live model discovery/login/root proof; fresh/unproven still uses guided correction/login/target validation. Implement `requireFreshInstallerReadiness` and the shared best-effort established-update reporting observation exactly as F7 specifies; established observation after commit never gates admission or rollback. In `src/daemon/server.ts`, narrowly admit Bearer for the existing readiness GET and reuse the unchanged daemon readiness owner. In `src/shell/sqlite.ts`, implement F7's existing typed archive input, exact pre-effect membership, per-file move/copy compensation, primary/secondary failure preservation and safe retained-path reporting; keep original archive metadata available inside prepare's compensation before it returns. On failed prepare the shell owns local compensation; use F7's `onIncompleteRestore` callback to set caller-local incomplete restoration, so the outer installer neither repeats partial-prepare compensation nor moves an affected state root/restarts an unsafe prior service. Later restore failure sets the same flag. On successful prepare return exact original membership for the existing restore helper. Do not delete a candidate without proven recoverable original/absence and invocation provenance; preserve ambiguous paths. No ordinary SQLite query/open/schema/version-policy change. P3/P4/P6 and F7 define normative policy and technical realization; no parallel rule or new owner is authorized.
 For R3-F01–F03, execute the precise F7 root-first guided correction, service-quiescence dependency and configuration snapshot/publication/restore custody using the existing setup, installer and config owners. Thread strict present/absent and publication identity through the existing installer-only adapter; ordinary CLI/setup/read/write semantics remain unchanged. No mutation outside the five owners. The config effect is the single canonical writer, including its narrowly observed rename; do not infer mutation from function return or duplicate config serialization/persistence in installer. Treat incomplete service/config restoration as a dependency blocker, preserve exact original material and report secondary failure.
-**Proof — one IA25 behavioral matrix:** Extend `tests/installer.test.ts` to invoke the actual `runInstaller` transaction (including the installed setup module), using an isolated temporary home/state/install root and controlled process/filesystem/HTTP boundary fault injection. Extract only the minimum existing-owner invocation-local transaction seam if needed so tests exercise the exact production sequence; do not create a second orchestrator or mock the transaction under test. Use current Bun/process test conventions; injected external-effect outcomes must retain real filesystem mutations and inspect actual resulting paths, unit/config/database bytes, service actions, marker, exit/output and retry. Test each relevant operation as failing before its mutation and after a prior completed mutation, plus process interruption at explicit boundaries. Existing migration helper tests remain regression evidence, not the oracle for the full transaction. In `tests/daemon.test.ts` prove browser/Bearer same canonical response, unauthorized rejected, exact GET only and no state mutation. In `tests/certification.test.ts` bind real helper/orchestrator paths, sequence, rollback and separate post-commit handling; structural proof complements behavioral cases.
+**Proof — one IA25 behavioral matrix:** Extend `tests/installer.test.ts` to invoke the actual `runInstaller` transaction (including the installed setup module), using an isolated temporary home/state/install root and controlled process/filesystem/HTTP boundary fault injection. Extract only the minimum existing-owner invocation-local transaction seam if needed so tests exercise the exact production sequence; do not create a second orchestrator or mock the transaction under test. Use current Bun/process test conventions; injected external-effect outcomes must retain real filesystem mutations and inspect actual resulting paths, unit/config/database bytes, service actions, marker, exit/output and retry. Test each relevant operation as failing before its mutation and after a prior completed mutation, plus process interruption at explicit boundaries. Existing migration helper tests remain regression evidence, not the oracle for the full transaction. REV-F10 requires bounded corrections to two existing regression owners: in `tests/shell.test.ts` pass the explicit established decision and invocation-local publication custody to the installer-only setup adapter; preserve exact incomplete-v4 field retention and zero additional setup/provider prompts after admission, with negative fresh/unproven proof in the actual installer matrix. In `tests/order-migration.test.ts` replace the unconditional-success systemctl stub with stateful activity and enablement observations, stop/restart transitions and controlled failure/unknown results; retain actual predecessor namespace move, rollback and retirement assertions and prove independent inactivity before dependent mutation, including refusal on active/unknown or failed observation and the admitted failed-stop/observed-inactive case. Do not mock the transaction or bypass the service-state proof. `tests/sqlite.test.ts` is outside T1; its existing prepare/restore calls remain regression evidence and no edit is forecast. Preserve existing ordinary CLI setup semantics and all INST-01–12 cases. In `tests/daemon.test.ts` prove browser/Bearer same canonical response, unauthorized rejected, exact GET only and no state mutation. In `tests/certification.test.ts` bind real helper/orchestrator paths, sequence, rollback and separate post-commit handling; structural proof complements behavioral cases.
 
 | Proof case | Required behavioral result |
 |---|---|
@@ -1743,7 +1749,7 @@ SD20 exact-pin OpenCode proof is a mandatory IA23 precondition to IA26 and IA24:
 
 ###### Pre-Approval structural-sensor correction
 
-The permanent package sensor is protected pre-signoff material. It validates exact 45-path DESIGN/T1 scope and forecast, exclusions, existing closed API proof and required absence, authority/Approval integration paths, 37 SURF, 46 scenarios, single catalog and compiled blob identity.
+The permanent package sensor is protected pre-signoff material. It validates exact 47-path DESIGN/T1 scope and forecast, 68 unchanged explicit exclusions, existing closed API proof and required absence, authority/Approval integration paths, 37 SURF, 46 scenarios, single catalog and compiled blob identity. REV-F10 requires the two IA25 fixture owners, no directory-wide scope and no production mutation until renewed exact-package authorization. The old signed candidate, scope proof and implementation evidence remain historical; a fresh reviewed input snapshot may be established only in this upstream revalidation, never during authorized mutation.
 
 This sensor correction is campaign/package fitness only: `tests/architecture.test.ts` remains outside signed implementation tasks. Re-run architecture and root/modular compilation checks on the corrected package before G5 may return to PASS.
 
@@ -1852,7 +1858,7 @@ V4/V5/V6 explicitly verify:
 - all 112 stable rows retain their exact current R1 evidence and DESIGN disposition;
 - all 27 package-local atoms, including `PL-C12-02`, are satisfied by the single T1 owner and the exact catalog-defined mutation/proof responsibilities, without duplicate semantic implementations;
 - every `POSITIVE_NO_CHANGE` and DESIGN-positive-reuse obligation remains true;
-- T1 retains exact 45-path forecast and protected exclusions; no obsolete component recreation;
+- T1 retains exact 47-path forecast and protected exclusions; no obsolete component recreation;
 - every actual changed path is inside signed `scope`, outside exclusions/protected material, and either forecast or positively proven as minimum same-layer responsibility-preserving variance;
 - forecast variance changes no semantic owner, public contract, state meaning, effect boundary, dependency direction/external dependency, validation contract or authorized behavior;
 - current-v2 task non-vacuity is enforced without changing published v1 task semantics or creating a second task schema/parser/review owner;

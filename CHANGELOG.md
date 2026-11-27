@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Return IA25 upstream for the exact two omitted installer regression-fixture owners; synchronize the 47-path DESIGN/PLAN forecast and protected pre-signoff scope sensor, preserve 68 exclusions, and require renewed exact-package review and authorization (REV-F10).
+
 - Reopen the real Create dialog after theme changes in phase-local proof rather than interacting through its modal boundary.
 
 - Dispatch seven independent signed rendered phase scenarios before ordinary browser verification, publish their exact candidate and phase evidence even on failure, and retain full diagnostics and exhaustive IA26 (IA20/IA26 verification preparation).
