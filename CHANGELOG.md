@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Refresh the derived Workbench reference DESIGN binding after the inherited-source reconciliation; the 38 surface contracts and atlas remain unchanged.
+
 - Reconcile inherited installer and Approval capabilities across the 0.6.0 R1–PLAN trace, remove repeated reach mutation instructions, refresh compiled source bindings and record the outstanding browser verification failure.
 
 - Reconcile the 0.6.0 research reach-history facts and ten-stage rail requirement with the inherited canonical completion-admission implementation; retain native Acceptance and consumer verification obligations.
