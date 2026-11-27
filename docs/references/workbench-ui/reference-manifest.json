@@ -6,12 +6,12 @@
     "p3": {
       "id": "GW-DOC-WORKBENCH-UX-V2",
       "path": "docs/requirements/workbench.md",
-      "blob": "58fa47c158830e3f471249d3faa40560eb6d2a02"
+      "blob": "d4491745b1540639ed57be11c69428415d5860af"
     },
     "p4": {
       "id": "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
       "path": "docs/architecture/workbench.md",
-      "blob": "ebe6c47ed6f60bc6afed87784f26065ec6d0a53b"
+      "blob": "3ac940966906e4377bc762482a68c756b2ff66bc"
     },
     "theme": {
       "id": "GW-DOC-WORKBENCH-THEME-V1",
@@ -21,7 +21,7 @@
     "design": {
       "id": "work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21/DESIGN",
       "path": "docs/order/work-items/work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21/solution-design.md",
-      "blob": "7e1dff8996d2043b8270fb6e3b2a705e7156f42e"
+      "blob": "b3797cd01b943d5c6741e83ee21175176fec2054"
     }
   },
   "fixturePolicy": {
@@ -665,7 +665,10 @@
         "form-error",
         "loading",
         "mutation-conflict",
-        "historical-return"
+        "historical-return",
+        "retest-confirmed-form",
+        "report-unclassified-form",
+        "mixed-candidate"
       ],
       "viewports": [
         "wide",
