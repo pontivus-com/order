@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Align 0.6.0 R2/DESIGN/PLAN and campaign progression with one exact-package sign-off, autonomous independent QA and bounded remediation through verified candidate closeout, followed by consolidated final operator acceptance; retain all existing evidence and scope obligations.
+
 - Resolve exact Workbench package/document/task selection, R3 verdict, current-owner navigation and required-input composition at the existing P6/DESIGN/PLAN owners; preserve the 48-path forecast and rebind derived comparison evidence.
 
 - Require the shared exact STAGE completion/conformance admission at downstream authority and R3 sign-off reads; validate Approval root ownership, render exact current decision-coverage material, and reject dangling proposal target symlinks. Extend the exact paired admission to browser document conformance and historical candidate selection; keep unpromoted browser document fixtures as drafts and correct lifecycle regression fixtures (Wave 1 proposal).
