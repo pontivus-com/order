@@ -537,7 +537,7 @@ const restoreCreatedManifest = (
   path: string,
   expected: ReturnType<typeof captureCreatedManifest> | null,
 ): void => {
-  if (expected === null) fail("installer-created manifest ownership could not be established: " + path);
+  if (expected === null) throw new TypeError("installer-created manifest ownership could not be established: " + path);
   if (!footprintEntryExists(path)) return;
   const observed = captureCreatedManifest(path);
   if (observed.device !== expected.device || observed.inode !== expected.inode ||
@@ -1084,7 +1084,7 @@ export const runInstaller = async (
     activateService(locations, launcher, prior.unitPath, environment,
       () => { unitPublished = true; }, () => {
         if (databaseArchive !== null && sqliteUpgradeModule !== null) {
-          if (databaseCandidates === undefined) fail("database candidate custody is unavailable before service activation");
+          if (databaseCandidates === undefined) throw new TypeError("database candidate custody is unavailable before service activation");
           sqliteUpgradeModule.requireInstallerDatabaseCandidates(
             databaseArchive, databaseCandidates, !databaseCandidateEffectsStarted);
         }
