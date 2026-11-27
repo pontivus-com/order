@@ -13,7 +13,7 @@ The active corpus is valid only for these exact inputs:
 - `GW-DOC-WORKBENCH-UX-V2` — blob `7569fc5be387c974fe7fe0c3bc123c300f147311`;
 - `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2` — blob `7985991b91c5717677da6a38e057c00eb2e4e2fe`;
 - `GW-DOC-WORKBENCH-THEME-V1` — blob `03dfc6be3600a1128b5639d011f4c0159d3497dd`;
-- current 0.6.0 DESIGN — blob `54d634e2f56b2708810de1064fd698d69f5cd541`.
+- current 0.6.0 DESIGN — blob `1d2de00ef0a4ba06972180f04773fa2cea174007`.
 
 These are the exact current authority versions projected by this corpus. If any bound owner changes, this corpus is stale until regenerated and reviewed. The owner wins on every conflict.
 
@@ -53,3 +53,5 @@ The scheduler admission clarification changes no SURF datum, interaction, or vis
 The existing Acceptance comparison states now show an actual mixed set for the no-op challenge and planning-return variants, both signed members in the final decision, signed criterion inspection in the report form, and explicitly historical or noncurrent proof on stale, historical and conflict variants. These are corrections to the derived fixtures under the unchanged DESIGN; no new surface, state, primitive, runtime behavior or acceptance verdict.
 
 The dependent QA correction references preserve successful unrelated members, show the actual processing/blocked rail and attempt state, and do not claim an independent assessment exists before completion. Context uses the direct existing Review; signed-document and evidence inspections show explicit return to Acceptance. Repository guard examples show the existing command-rejection feedback, not a new preflight API or speculative disabled state. No scope, surface, state or authority change.
+
+The failed-retest context correction changes no surface or comparison state. The exact DESIGN identity is rebound; the existing failed-retest and resubmission cases require the original report and current/historical retest evidence to reach the reviewer.
