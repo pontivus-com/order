@@ -260,6 +260,12 @@ export const stagePrompt = async (
     workItem.id,
     stage,
   );
+  // Current output material can be unchanged from an earlier adoption.
+  // Render exact bound bytes as well as changed drafts; IDs alone cannot
+  // support the owning-stage decision-coverage question.
+  const reviewArtifacts = [...new Map(
+    [...currentStageDrafts, ...completionArtifacts].map((artifact) => [artifact.id, artifact] as const),
+  ).values()];
   const completionBindings = completionArtifacts.map((artifact) => ({
     id: artifact.id,
     repositoryPath: artifact.repositoryPath,
@@ -298,16 +304,18 @@ export const stagePrompt = async (
         "- If a newly declared governing input was absent from the producing Run's context, do not claim conformance until a fresh productive turn resolves that input.",
       ] : []),
     ].join("\n"),
-    currentStageDrafts.length === 0
+    reviewArtifacts.length === 0
       ? [
           "Completion is not yet admissible: no current stage output ArtifactRef exists.",
           "Create/propose and have the canonical stage artifact adopted before emitting STAGE_COMPLETED.",
         ].join("\n")
       : [
           "Current stage draft for review (own-stage output, not higher authority):",
-          await renderArtifacts(workItem, currentStageDrafts),
+          await renderArtifacts(workItem, reviewArtifacts),
           "Coordinator-owned completion bindings: " + canonicalJson(completionBindings),
-          "If and only if the stage is conformant, STAGE_COMPLETED.artifactRefIds must contain exactly one id from the binding above for the canonical output path.",
+          completionBindings.length === 0
+            ? "Completion is not yet admissible: no exact current completion binding exists."
+            : "If and only if the stage is conformant, STAGE_COMPLETED.artifactRefIds must contain exactly one id from the binding above for the canonical output path.",
         ].join("\n"),
     decisionEvidence.length === 0 ? "" : [
       "Owning-stage durable decision evidence across attempts (evidence only, never authority):",
@@ -316,7 +324,9 @@ export const stagePrompt = async (
       "Exact historical adopted ArtifactRefs:",
       canonicalJson(adoptedDecisionArtifacts),
       "Current canonical material identities for coverage:",
-      canonicalJson([...context.artifacts, ...currentStageDrafts]),
+      canonicalJson([...context.artifacts, ...reviewArtifacts]),
+      stage === "R1" || stage === "R2" ? "" :
+        "Current canonical WorkItem source for decision coverage (evidence only, not additional stage authority):\n" + context.source.markdown,
       "Use the current source and artifact bytes below/above to evaluate coverage, including explicit canonical Save followed by a fresh Run. INFORMATION/EVIDENCE replies are not durable decisions.",
     ].join("\n"),
     userInput === undefined ? "" : `Human input: ${userInput}`,

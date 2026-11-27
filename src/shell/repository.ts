@@ -232,11 +232,12 @@ const ensureInsideRoot = (
   for (let index = 0; index < segments.length; index += 1) {
     current = join(current, segments[index]!);
     const isLeaf = index === segments.length - 1;
-    if (!existsSync(current)) {
+    // A dangling symlink is an existing object, not an absent leaf.
+    const stat = lstatSync(current, { throwIfNoEntry: false });
+    if (stat === undefined) {
       if (isLeaf && allowMissingLeaf) break;
       throw new TypeError(`repository path component does not exist: ${segments[index]}`);
     }
-    const stat = lstatSync(current);
     if (stat.isSymbolicLink()) throw new TypeError("repository target may not traverse a symlink");
     if (!isLeaf && !stat.isDirectory()) {
       throw new TypeError("repository target parent must be a directory");

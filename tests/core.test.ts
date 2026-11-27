@@ -2733,6 +2733,11 @@ describe("closed Workbench workflow-state kernel", () => {
         contextHash: hashB, evidence: [],
       } }],
       [readinessCompleted, readinessConformed, { ...readinessCompleted, sequence: 3 }],
+      [readinessCompleted, readinessConformed, { ...readinessConformed, sequence: 3 }],
+      [readinessCompleted, { ...readinessConformed, event: {
+        tag: "CONFORMANCE_PASSED", stage: "R3",
+        outputArtifactRefIds: [`artifact_${uuidD}`], contextHash: readinessRun.contextHash, evidence: [],
+      } }],
     ]) {
       expect(deriveReachedStages(plan, [readinessRun], invalid as RunEvent[], [], []).has("AWAITING_SIGNOFF")).toBe(false);
     }

@@ -842,6 +842,11 @@ const seedSignoffScript = (
         }
       }
       runStore.appendRunEvent(runtime, run.id, {
+        tag: "STAGE_COMPLETED",
+        completion: { stage, outcome: stage === "R1" ? "CONFIRMED" : stage === "R3" ? "READY_FOR_SIGNOFF" : "ACCEPTED" },
+        artifactRefIds: [output.id],
+      });
+      runStore.appendRunEvent(runtime, run.id, {
         tag: "CONFORMANCE_PASSED",
         stage,
         outputArtifactRefIds: [output.id],
@@ -978,6 +983,43 @@ describe("daemon control plane", () => {
     expect(output.retainedHistory).toEqual([output.approval]);
     expect(output.ambiguous).toBe(true);
   }, 30_000);
+
+  it.each(["bare", "reversed", "wrong-context", "duplicate", "return"] as const)(
+    "does not admit sign-off from defective R3 completion evidence: %s", fault => {
+      const repository = createRepository();
+      const state = tempDir("order-daemon-exact-r3-");
+      const output = bunEval(seedSignoffScript(repository, state, `
+        const r3 = outputs.R3;
+        const context = await authority.resolveStageContextState(runtime, seedWorkItem, "R3", true, r3);
+        const run = runStore.insertRun(runtime, {
+          id: rt.newRunId(), workItemId: work, executionTaskId: null,
+          stage: "R3", role: "STAGE", mode: "INTERACTIVE", triggerEventId: null,
+          status: "COMPLETED", attempt: runStore.nextAttempt(runtime, work, "R3", null),
+          baselineCommit: baseline, contextHash: context.context.contextHash,
+          providerSessionId: null, terminalClassification: null, startedAt: timestamp, endedAt: timestamp,
+        });
+        const fault = ${JSON.stringify(fault)};
+        const completion = () => runStore.appendRunEvent(runtime, run.id, {
+          tag: "STAGE_COMPLETED", completion: { stage: "R3", outcome: fault === "return" ? "RETURN_TO_PLAN" : "READY_FOR_SIGNOFF" },
+          artifactRefIds: [r3.id],
+        });
+        if (fault !== "bare" && fault !== "reversed") completion();
+        runStore.appendRunEvent(runtime, run.id, {
+          tag: "CONFORMANCE_PASSED", stage: "R3", outputArtifactRefIds: [r3.id],
+          contextHash: fault === "wrong-context" ? rt.sha256Text("wrong context") : run.contextHash, evidence: [],
+        });
+        if (fault === "reversed" || fault === "duplicate") completion();
+        let error = null;
+        try { await coord.computeSignoffPackage(runtime, work); } catch (failure) { error = String(failure); }
+        console.log(JSON.stringify({ error, stage: coord.getWorkItem(runtime, work).stage,
+          history: coord.observeApprovalHistory(runtime, work).length }));
+        database.close();
+        process.exit(0);
+      `)) as { error: string | null; stage: string; history: number };
+      expect(output.error).toMatch(/conformance is missing or stale|no conformed R3 root/);
+      expect(output.stage).toBe("AWAITING_SIGNOFF");
+      expect(output.history).toBe(0);
+    }, 30_000);
 
   it("labels configured STAGE reference roots as read-only non-authoritative context", async () => {
     const repository = createRepository();
@@ -3326,6 +3368,11 @@ describe("daemon control plane", () => {
             }
           }
           runStore.appendRunEvent(runtime, row.id, {
+            tag: "STAGE_COMPLETED",
+            completion: { stage, outcome: stage === "R1" ? "CONFIRMED" : stage === "R3" ? "READY_FOR_SIGNOFF" : "ACCEPTED" },
+            artifactRefIds: [artifact.id],
+          });
+          runStore.appendRunEvent(runtime, row.id, {
             tag: "CONFORMANCE_PASSED",
             stage,
             outputArtifactRefIds: [artifact.id],
@@ -3468,6 +3515,11 @@ describe("daemon control plane", () => {
               sql.storeArtifactDependency(database, artifact.id, dependency.id);
             }
           }
+          runStore.appendRunEvent(runtime, row.id, {
+            tag: "STAGE_COMPLETED",
+            completion: { stage, outcome: stage === "R1" ? "CONFIRMED" : stage === "R3" ? "READY_FOR_SIGNOFF" : "ACCEPTED" },
+            artifactRefIds: [artifact.id],
+          });
           runStore.appendRunEvent(runtime, row.id, {
             tag: "CONFORMANCE_PASSED",
             stage,
@@ -6021,6 +6073,15 @@ describe("daemon control plane", () => {
         driftError = error instanceof Error ? error.message : String(error);
       }
       const driftPreserved = fs.readFileSync(repositoryRoot + "/" + driftPath, "utf8") === observed;
+      const danglingPath = "docs/dangling.md";
+      const danglingTarget = repositoryRoot + "/docs/nonexistent.md";
+      fs.symlinkSync(danglingTarget, repositoryRoot + "/" + danglingPath);
+      const newPatch = "diff --git a/docs/dangling.md b/docs/dangling.md\\nnew file mode 100644\\n--- /dev/null\\n+++ b/docs/dangling.md\\n@@ -0,0 +1 @@\\n+new\\n";
+      let danglingRejected = false;
+      try { await repo.adoptProposalPatch(repositoryRoot, danglingPath, null, newPatch, true); }
+      catch (error) { danglingRejected = String(error).includes("symlink"); }
+      const danglingPreserved = fs.lstatSync(repositoryRoot + "/" + danglingPath).isSymbolicLink() &&
+        fs.readlinkSync(repositoryRoot + "/" + danglingPath) === danglingTarget && !fs.existsSync(danglingTarget);
 
       runStore.appendRunEvent(runtime, run.id, {
         tag: "AGENT_MESSAGE_FINAL",
@@ -6071,7 +6132,7 @@ describe("daemon control plane", () => {
         staleReadError,
         staleError,
         driftError,
-        driftPreserved,
+        driftPreserved, danglingRejected, danglingPreserved,
         adoptionRequests: events.filter((event) =>
           event.event.tag === "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED"
         ).length,
@@ -6085,6 +6146,8 @@ describe("daemon control plane", () => {
       staleError: string | null;
       driftError: string | null;
       driftPreserved: boolean;
+      danglingRejected: boolean;
+      danglingPreserved: boolean;
       adoptionRequests: number;
       stage: string;
     };
@@ -6101,6 +6164,8 @@ describe("daemon control plane", () => {
     expect(output.stage).toBe(ownerStage);
     expect(output.driftError).toContain("reconstructed base");
     expect(output.driftPreserved).toBe(true);
+    expect(output.danglingRejected).toBe(true);
+    expect(output.danglingPreserved).toBe(true);
   }, 30_000);
 
   it("rejects STAGE completion after durable decision input without later adoption", () => {

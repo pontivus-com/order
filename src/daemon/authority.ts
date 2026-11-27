@@ -28,6 +28,7 @@ import {
   normalizeRepositoryPath,
 } from "../core/canonical.ts";
 import {
+  admittedStageCompletion,
   admittedTerminalR1Artifact,
   artifactReturnOwner,
   routeApprovalStale,
@@ -909,14 +910,13 @@ export const resolveStageConformanceState = async (
   const latestRun = [...listRuns(runtime, workItem.id)]
     .reverse()
     .find((run) => run.role === "STAGE" && run.stage === stage);
-  const conformance = latestRun === undefined
-    ? undefined
-    : listRunEvents(runtime, latestRun.id).findLast((event) =>
-        event.event.tag === "CONFORMANCE_PASSED" && event.event.stage === stage
-      );
-  const outputs = conformance?.event.tag === "CONFORMANCE_PASSED"
-    ? conformance.event.outputArtifactRefIds.map((id) => getArtifact(runtime, id))
-    : [];
+  const completion = latestRun === undefined
+    ? null
+    : admittedStageCompletion(workItem.id, latestRun, listRunEvents(runtime, latestRun.id));
+  // A bare CONFORMANCE_PASSED event is not admitted lifecycle authority.
+  const outputs = completion === null
+    ? []
+    : completion.artifactRefIds.map((id) => getArtifact(runtime, id));
   const currentV2 = workItem.schemaId.endsWith("-v2");
   const outputBytesCurrent = outputs.every((artifact) =>
     artifact.workItemId === workItem.id &&
@@ -944,8 +944,10 @@ export const resolveStageConformanceState = async (
     return { context: state.context, outputs: [], staleStage: state.staleStage };
   }
   if (
-    conformance?.event.tag !== "CONFORMANCE_PASSED" ||
-    conformance.event.contextHash !== state.context.contextHash ||
+    completion === null || latestRun === undefined ||
+    latestRun.contextHash !== state.context.contextHash ||
+    (stage === "R1" && completion.completion.stage === "R1" &&
+      !allowedR1CompletionsForSchema(workItem.schemaId).includes(completion.completion.outcome)) ||
     !outputBytesCurrent || (currentV2 && exactOutput === null)
   ) {
     return { context: state.context, outputs: [], staleStage: stage };
@@ -1021,6 +1023,10 @@ export const approvalClosure = (
 }> => {
   const plan = getArtifact(runtime, approval.planArtifactRefId);
   const r3 = getArtifact(runtime, approval.r3ArtifactRefId);
+  if (plan.workItemId !== approval.workItemId || r3.workItemId !== approval.workItemId ||
+      plan.role !== "PLAN" || r3.role !== "R3" || plan.id === r3.id) {
+    throw new TypeError("Approval roots do not match their exact WorkItem and roles");
+  }
   const ids = dependencyClosure(runtime, r3.id);
   if (!ids.includes(plan.id)) {
     throw new TypeError("R3 dependency closure does not contain the signed PLAN");
@@ -1304,31 +1310,19 @@ export const latestR3Root = (
   runtime: CoordinatorRuntime,
   workItemId: WorkItemId,
 ): ArtifactRef => {
-  const runs = listRuns(runtime, workItemId)
-    .filter((run) => run.stage === "R3" && run.role === "STAGE")
-    .reverse();
-  for (const run of runs) {
-    const conformance = listRunEvents(runtime, run.id)
-      .findLast((event) =>
-        event.event.tag === "CONFORMANCE_PASSED" &&
-        event.event.stage === "R3"
-      );
-    if (
-      conformance !== undefined &&
-      conformance.event.tag === "CONFORMANCE_PASSED"
-    ) {
-      const roots = conformance.event.outputArtifactRefIds
-        .map((id) => getArtifact(runtime, id))
-        .filter((artifact) => artifact.role === "R3");
-      if (roots.length !== 1) {
-        throw new TypeError("R3 conformance must own exactly one R3 root ArtifactRef");
-      }
-      const root = roots[0];
-      if (root === undefined) throw new TypeError("R3 conformance root is missing");
-      return root;
-    }
+  const run = [...listRuns(runtime, workItemId)].reverse()
+    .find((candidate) => candidate.stage === "R3" && candidate.role === "STAGE");
+  const completion = run === undefined ? null :
+    admittedStageCompletion(workItemId, run, listRunEvents(runtime, run.id));
+  if (completion?.completion.stage !== "R3" ||
+      completion.completion.outcome !== "READY_FOR_SIGNOFF") {
+    throw new TypeError("no conformed R3 root exists for sign-off");
   }
-  throw new TypeError("no conformed R3 root exists for sign-off");
+  const root = getArtifact(runtime, completion.artifactRefIds[0]!);
+  if (root.workItemId !== workItemId || root.role !== "R3") {
+    throw new TypeError("R3 conformance must own exactly one R3 root ArtifactRef");
+  }
+  return root;
 };
 
 export const rematerializeCommittedApprovalClosure = async (
@@ -1434,6 +1428,10 @@ export const computeSignoffPackage = async (
   }
   const r3Root = currentR3.outputs[0];
   if (r3Root === undefined) throw new TypeError("current R3 root is missing");
+  // A conformed Return verdict must not become sign-off authority.
+  if (latestR3Root(runtime, workItem.id).id !== r3Root.id) {
+    throw new TypeError("current R3 sign-off root identity is inconsistent");
+  }
   const conformedClosure = deduplicateArtifacts([
     r3Root,
     ...dependencyClosure(runtime, r3Root.id).map((id) => getArtifact(runtime, id)),
