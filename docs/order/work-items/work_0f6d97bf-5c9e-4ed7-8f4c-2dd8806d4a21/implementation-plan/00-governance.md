@@ -6,7 +6,7 @@ This decomposition is revalidated under C19-F09/C20-F11 after the prior G4-G6 cl
 
 ## Exact upstream package
 
-- R1 `research.md`: `71522f58f73c4bb5632d27f6ad2382c6be4eddb4`.
+- R1 `research.md`: `c681e55ed067f495e1a81d774992bd3e29074bb9`.
 - R2 `requirements.md`: `0254f827a8660332a7f19297881450fb035ad289`.
 - DESIGN `solution-design.md`: `555ba62459dab5c35108b5ccadcd18e7bd66d247` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and QA1–QA6 expanded forecast.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `ee8acad4e39f4641476eb46d99ca168afab3db3d`.
