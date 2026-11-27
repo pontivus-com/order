@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Reconcile direct QA replay candidate lineage, mixed-set last-no-op completion, signed source freshness and repository disconnect/document-root admission with native Acceptance authority; correct FR092/093 evidence and task/proof allocation. Existing 61-path T1, 59 exclusions and protected sensors are unchanged; no production mutation or authorization.
+
 - Reconcile inherited exact authority context, durable-decision and proposal-adoption mechanisms with the Acceptance specification; require current-Approval automatic task admission and negative signed documentation-Git proof. No new production scope or authorization.
 
 - Reconcile inherited installer custody evidence and specify exact stopped SQLite v3-to-v4 migration rollback through existing archive/compensation ownership; no new scope or implementation authorization.
