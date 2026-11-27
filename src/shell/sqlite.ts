@@ -1,5 +1,5 @@
 import { Database } from "bun:sqlite";
-import { copyFileSync, existsSync, renameSync, unlinkSync } from "node:fs";
+import { closeSync, constants, copyFileSync, existsSync, fstatSync, lstatSync, openSync, renameSync, unlinkSync } from "node:fs";
 import { join } from "node:path";
 
 import {
@@ -304,11 +304,40 @@ export const verifyWalLocking = (stateRoot: string): void => {
   }
 };
 
+type InstallerDatabaseFileIdentity = Readonly<{ device: bigint; inode: bigint }>;
+
 export type LegacyDatabaseArchive = Readonly<{
   stateRoot: string;
   suffix: string;
   archiveDatabase: string;
+  originals: readonly Readonly<{ path: string; identity: InstallerDatabaseFileIdentity | null }>[];
 }>;
+
+const inspectInstallerDatabaseFile = (path: string): InstallerDatabaseFileIdentity | null => {
+  const entry = lstatSync(path, { bigint: true, throwIfNoEntry: false });
+  if (entry === undefined) return null;
+  if (!entry.isFile()) throw new TypeError("installer database path is not a regular file: " + path);
+  const descriptor = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
+  try {
+    const stat = fstatSync(descriptor, { bigint: true });
+    if (!stat.isFile() || stat.dev !== entry.dev || stat.ino !== entry.ino) {
+      throw new TypeError("installer database path changed during inspection: " + path);
+    }
+    return { device: stat.dev, inode: stat.ino };
+  } finally { closeSync(descriptor); }
+};
+
+const sameInstallerDatabaseFile = (
+  observed: InstallerDatabaseFileIdentity | null,
+  expected: InstallerDatabaseFileIdentity | null,
+): boolean => observed === null || expected === null ? observed === expected :
+  observed.device === expected.device && observed.inode === expected.inode;
+
+const requireInstallerDatabaseFile = (path: string, expected: InstallerDatabaseFileIdentity | null): void => {
+  if (!sameInstallerDatabaseFile(inspectInstallerDatabaseFile(path), expected)) {
+    throw new TypeError("installer database identity changed or missing: " + path);
+  }
+};
 
 const orderDatabaseFiles = (path: string): readonly string[] =>
   [path, `${path}-wal`, `${path}-shm`];
@@ -349,9 +378,10 @@ export const readLegacyWorkItemRepositoryRootsForInstall = (
 
 export const prepareOrderDatabaseForInstall = (
   stateRoot: string,
+  onIncompleteRestore: () => void = () => {},
 ): LegacyDatabaseArchive | null => {
   const path = statePaths(stateRoot).database;
-  if (!existsSync(path)) return null;
+  if (inspectInstallerDatabaseFile(path) === null) return null;
 
   const database = new Database(path, {
     readonly: true,
@@ -371,42 +401,94 @@ export const prepareOrderDatabaseForInstall = (
   }
 
   const suffix = `.legacy-v${version}.${crypto.randomUUID()}`;
-  const moved: string[] = [];
+  const originals = orderDatabaseFiles(path).map((candidate) =>
+    ({ path: candidate, identity: inspectInstallerDatabaseFile(candidate) }));
+  const archive: LegacyDatabaseArchive = { stateRoot, suffix, archiveDatabase: path + suffix, originals };
+  const moved: typeof originals = [];
+  const copies = new Map<string, InstallerDatabaseFileIdentity>();
   try {
-    for (const candidate of orderDatabaseFiles(path)) {
-      if (!existsSync(candidate)) continue;
-      renameSync(candidate, candidate + suffix);
-      moved.push(candidate);
+    for (const original of originals) {
+      requireInstallerDatabaseFile(original.path, original.identity);
+      requireInstallerDatabaseFile(original.path + suffix, null);
+      if (original.identity === null) continue;
+      renameSync(original.path, original.path + suffix);
+      moved.push(original);
     }
     if (version === 2) {
-      for (const candidate of moved) {
-        copyFileSync(candidate + suffix, candidate);
+      for (const original of moved) {
+        requireInstallerDatabaseFile(original.path + suffix, original.identity);
+        // Exclusively establish ownership before a possibly partial copy.
+        const descriptor = openSync(original.path,
+          constants.O_WRONLY | constants.O_CREAT | constants.O_EXCL | constants.O_NOFOLLOW, 0o600);
+        try {
+          const stat = fstatSync(descriptor, { bigint: true });
+          copies.set(original.path, { device: stat.dev, inode: stat.ino });
+        } finally { closeSync(descriptor); }
+        requireInstallerDatabaseFile(original.path, copies.get(original.path)!);
+        copyFileSync(original.path + suffix, original.path);
       }
     }
   } catch (error) {
-    for (const candidate of moved) {
-      if (existsSync(candidate)) unlinkSync(candidate);
+    const failures: unknown[] = [];
+    for (const original of [...moved].reverse()) {
+      try {
+        // Never destroy a candidate unless the exact archived original survives.
+        requireInstallerDatabaseFile(original.path + suffix, original.identity);
+        const candidate = inspectInstallerDatabaseFile(original.path);
+        if (candidate !== null) {
+          const owned = copies.get(original.path);
+          if (owned === undefined || !sameInstallerDatabaseFile(candidate, owned)) {
+            throw new TypeError("ambiguous installer database candidate retained: " + original.path);
+          }
+        }
+        renameSync(original.path + suffix, original.path);
+        requireInstallerDatabaseFile(original.path, original.identity);
+      } catch (failure) {
+        failures.push(new Error("database compensation incomplete at " + original.path +
+          "; retained archive: " + original.path + suffix, { cause: failure }));
+      }
     }
-    for (const candidate of moved.reverse()) {
-      const archived = candidate + suffix;
-      if (existsSync(archived)) renameSync(archived, candidate);
+    if (failures.length > 0) {
+      onIncompleteRestore();
+      throw new AggregateError([error, ...failures], "installer database prepare failed; incomplete restoration at " + failures.map(String).join("; "));
     }
     throw error;
   }
-
-  return { stateRoot, suffix, archiveDatabase: path + suffix };
+  return archive;
 };
 
 export const restoreOrderDatabaseAfterFailedInstall = (
   archive: LegacyDatabaseArchive,
 ): void => {
-  const path = statePaths(archive.stateRoot).database;
-  for (const candidate of orderDatabaseFiles(path)) {
-    if (existsSync(candidate)) unlinkSync(candidate);
+  const expectedPaths = orderDatabaseFiles(statePaths(archive.stateRoot).database);
+  if (archive.originals.length !== expectedPaths.length ||
+      expectedPaths.some((path, index) => archive.originals[index]?.path !== path)) {
+    throw new TypeError("installer database archive membership is inconsistent");
   }
-  for (const candidate of orderDatabaseFiles(path)) {
-    const archived = candidate + archive.suffix;
-    if (existsSync(archived)) renameSync(archived, candidate);
+  const failures: unknown[] = [];
+  for (const original of [...archive.originals].reverse()) {
+    const archived = original.path + archive.suffix;
+    try {
+      requireInstallerDatabaseFile(archived, original.identity);
+      const candidate = inspectInstallerDatabaseFile(original.path);
+      if (original.identity === null) {
+        // The caller owns the quiesced installation invocation and this
+        // namespace was positively absent before its database effect.
+        if (candidate !== null) unlinkSync(original.path);
+        requireInstallerDatabaseFile(original.path, null);
+      } else {
+        // Atomic replacement keeps the archived original available until
+        // the restore succeeds; a missing archive never deletes a candidate.
+        renameSync(archived, original.path);
+        requireInstallerDatabaseFile(original.path, original.identity);
+      }
+    } catch (error) {
+      failures.push(new Error("database restoration incomplete at " + original.path +
+        "; retained archive path: " + archived, { cause: error }));
+    }
+  }
+  if (failures.length > 0) {
+    throw new AggregateError(failures, "installer database restoration incomplete: " + failures.map(String).join("; "));
   }
 };
 
