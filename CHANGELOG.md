@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Reconcile the canonical automatic task-admission contract with native Acceptance correction: one existing ordered scan, direct QA reviewer admission and exact negative proof, without runtime changes or task-scope expansion.
+
 - Clarify shared stale-authority presentation versus pure Acceptance command dispatch; extend the existing Acceptance reference surface with source-return and reopened-finding proof variants without changing task scope or protected verification.
 
 - Reconcile the full Acceptance source-return, pure recovery dispatch, immutable QA context, ordinary V4 failure and finding-retest evidence chains against their existing canonical owners; bind the functional/design/PLAN and exact proof obligations without changing T1 scope or protected sensors.

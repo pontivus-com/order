@@ -1012,7 +1012,8 @@ These are one SQLite transaction:
 - append RunEvent plus Run-state update when one reaction requires both;
 - successful STAGE provider-turn finalization: after the complete provider-result array, evidence and current context have been validated outside the transaction, reload the Run/WorkItem, prove the turn is still current/not cancelled, append the entire provider-result batch plus any coordinator-owned conformance/reaction events, and update Run/WorkItem state in one transaction; no partial provider-result batch is externally visible;
 - accepted STAGE human input: reload Run/events, prove OPEN free-form or exact REQUIRED_INPUT admission, append one `HUMAN_INPUT_RECEIVED`, and perform any `WAITING_FOR_INPUT -> RUNNING` update in one transaction before the next provider turn is scheduled asynchronously;
-- post-signoff task start: prove no other task is `RUNNING`, select one eligible `TODO`, set it to `RUNNING`, and create its `BUILDER` Run;
+- ordinary post-signoff task start: prove no other task is `RUNNING`, select one eligible `TODO`, set it to `RUNNING`, and create its `BUILDER` Run;
+- queued Acceptance correction start: under §23 and §38.3 recheck exact current Approval, queued SUBMIT, member, sequence, authority/proof and global exclusion; atomically change the exact candidate-producing task from `CANDIDATE_DONE` to `RUNNING`, create its direct `REVIEWER` Run, append REVIEW_STARTED and return the WorkItem to EXECUTION / ACTIVE. No intermediate TODO or BUILDER;
 - post-signoff continuation Run start: while exactly one ExecutionTask remains `RUNNING` and no Run for it is active, load the last durable controlling event, validate the unique required continuation role/trigger/lineage/semantic-or-operational budget, and create exactly one `REVIEWER`, `REMEDIATOR`, or permitted replacement Run; no second task may start;
 - create Approval plus all materialized ExecutionTasks;
 - persist `ARTIFACT_PROPOSAL_ADOPTION_REQUESTED` before the corresponding repository patch effect; for lifecycle proposals the post-effect ArtifactRef/disposition/conformance invalidation keeps the WorkItem at the same current owning stage and is a later SQLite transaction reconciled from repository facts if persistence fails;
@@ -1087,7 +1088,7 @@ body {}
 
 `POST /api/tick` is the global scheduler/operational command. It is admitted only through daemon/CLI Bearer authentication; the Workbench browser does not use it as a task-local action.
 
-`NO_WORK` requires both ids null. `STARTED` requires both ids non-null. One tick starts at most one eligible task; subsequent eligible tasks are started by later ticks.
+`NO_WORK` requires both ids null. `STARTED` requires both ids non-null. One tick admits at most one eligible ordinary task or queued Acceptance correction, or continues the existing RUNNING task under §§17/23; subsequent admissions occur on later ticks.
 
 If any coordinator tick is already active, the command returns HTTP 409 with error code `TICK_ALREADY_ACTIVE`. It does not queue another tick.
 
@@ -1374,11 +1375,12 @@ v1 has one fixed schedule:
 - after that tick settles, arm one `setTimeout` for exactly 3600 seconds;
 - after every timer-originated tick settles, arm the next 3600-second `setTimeout`;
 - at most one coordinator tick and one future timer are active at a time;
-- each coordinator pass reconciles an existing `RUNNING` ExecutionTask first: if its durable state requires a continuation Run and no Run is active, create that continuation under §17 before selecting any `TODO` task;
+- each coordinator pass reconciles an existing `RUNNING` ExecutionTask first: if its durable state requires a continuation Run and no Run is active, create that continuation under §17 before admitting any new ordinary task or queued Acceptance correction;
 - a timer callback never queues a second timer-originated tick while a coordinator tick is active; the next timer is armed only after the active tick settles;
 - manual daemon/CLI `POST /api/tick` is rejected with a stable conflict response while a tick is already active; the Workbench browser never uses this global command as its task-local Start action;
 - the browser task-scoped Start current task command creates only the exact canonical current task/BUILDER Run, then enters the same coordinator execution loop asynchronously; it does not alter global eligible-task ordering for automatic ticks;
-- timer firing itself never creates an OpenCode Run; only an eligible task atomically moved from `TODO` to `RUNNING` may do so.
+- with no globally RUNNING task, use the one existing global scan of current Approvals for admitted repository roots, ordered by approvedAt then Approval id. For EXECUTION / ACTIVE, select the first eligible ordinary task in canonical planTaskId then task id order; for AWAITING_ACCEPTANCE / ACTIVE, the sole outstanding queued SUBMIT identifies the exact candidate-producing task. These are alternative eligibility branches of that scan, not separate queues or priorities. Skip historical Approvals and ineligible work; a queued submission with proven stale authority/source or unavailable proof remains queued for explicit recovery under §38.3 and cannot block unrelated eligible Approvals. Operational and coherence failures retain existing typed failure handling; never infer proof loss or admit a Run from them. Recheck the selected identity and eligibility under the existing admission guard/transaction; a rejected final admission creates no Run and does not switch to a different task in that attempt;
+- timer firing itself never creates an OpenCode Run. Only the admitted ordinary TODO-to-RUNNING BUILDER, admitted queued CANDIDATE_DONE-to-RUNNING REVIEWER under §38.3, or exact RUNNING-task continuation under §17 may do so. No eligible work produces NO_WORK.
 
 Scheduler state is not another durable domain concept. Durable execution/task/Run state remains sufficient to recover after daemon restart.
 
