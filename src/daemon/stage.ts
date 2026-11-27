@@ -31,6 +31,7 @@ import {
 import {
   artifactReturnOwner,
   deriveProposalDecision,
+  isDurableDecisionRequest,
   stageInputIsAdmitted,
   stageProviderBatchRejectionCode,
   stageRunInteraction,
@@ -206,6 +207,42 @@ const stageConformanceQuestions: Record<PreSignoffStage, readonly string[]> = {
   ],
 };
 
+const stageDecisionEvidence = (
+  runtime: CoordinatorRuntime,
+  workItem: WorkItem,
+  stage: PreSignoffStage,
+): readonly RunEvent[] => {
+  const attempts = listRuns(runtime, workItem.id)
+    .filter((run) => run.role === "STAGE" && run.stage === stage)
+    .sort((left, right) => left.attempt - right.attempt || left.id.localeCompare(right.id));
+  const evidence: RunEvent[] = [];
+  let hasAnsweredDecision = false;
+  for (const attempt of attempts) {
+    const events = listRunEvents(runtime, attempt.id);
+    const requests = events.filter((event) => isDurableDecisionRequest(event.event));
+    const answers = events.filter((event) => {
+      const payload = event.event;
+      return payload.tag === "HUMAN_INPUT_RECEIVED" && requests.some(
+        (request) => request.id === payload.requestEventId && request.sequence < event.sequence,
+      );
+    });
+    const answeredIds = new Set(answers.flatMap((event) =>
+      event.event.tag === "HUMAN_INPUT_RECEIVED" && event.event.requestEventId !== null
+        ? [event.event.requestEventId] : [],
+    ));
+    if (answers.length > 0) hasAnsweredDecision = true;
+    const answerIds = new Set(answers.map((event) => event.id));
+    evidence.push(...events.filter((event) =>
+      answeredIds.has(event.id) ||
+      answerIds.has(event.id) ||
+      event.event.tag === "ARTIFACT_PROPOSAL_CREATED" ||
+      event.event.tag === "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED" ||
+      event.event.tag === "ARTIFACT_PROPOSAL_DISPOSITIONED",
+    ));
+  }
+  return hasAnsweredDecision ? evidence : [];
+};
+
 export const stagePrompt = async (
   workItem: WorkItem,
   stage: PreSignoffStage,
@@ -214,6 +251,8 @@ export const stagePrompt = async (
   referenceRoots: readonly string[],
   userInput?: string,
   completionArtifacts: readonly ArtifactRef[] = currentStageDrafts,
+  decisionEvidence: readonly RunEvent[] = [],
+  adoptedDecisionArtifacts: readonly ArtifactRef[] = [],
 ): Promise<string> => {
   const manifest = await loadValidatedProjectManifest(workItem.repositoryRoot);
   const expectedOutputPath = workItemDocumentPath(
@@ -253,6 +292,7 @@ export const stagePrompt = async (
     [
       "Stage conformance questions:",
       ...stageConformanceQuestions[stage].map((question) => "- " + question),
+      "- For every applicable answered durable decision in the owning-stage history, is its material intent represented in the exact current canonical source or adopted authority? Identify the current path/hash that covers it and explain any superseded decision using current durable authority. A new attempt, unrelated adoption or prior chat answer alone is not coverage. Do not complete while material coverage is absent; seek governed correction or clarification.",
       ...(workItem.schemaId.endsWith("-v2") ? [
         "- Does the exact pinned first-line authority declaration include every materially governing ref, encoded canonically, plus all required refs? Structured R2/PLAN references are also governing inputs. Never rely on prose mentions.",
         "- If a newly declared governing input was absent from the producing Run's context, do not claim conformance until a fresh productive turn resolves that input.",
@@ -269,6 +309,16 @@ export const stagePrompt = async (
           "Coordinator-owned completion bindings: " + canonicalJson(completionBindings),
           "If and only if the stage is conformant, STAGE_COMPLETED.artifactRefIds must contain exactly one id from the binding above for the canonical output path.",
         ].join("\n"),
+    decisionEvidence.length === 0 ? "" : [
+      "Owning-stage durable decision evidence across attempts (evidence only, never authority):",
+      "Request/reply and proposal intent/disposition chronology is retained; historical adoption identities do not prove current bytes or semantic coverage.",
+      canonicalJson(decisionEvidence),
+      "Exact historical adopted ArtifactRefs:",
+      canonicalJson(adoptedDecisionArtifacts),
+      "Current canonical material identities for coverage:",
+      canonicalJson([...context.artifacts, ...currentStageDrafts]),
+      "Use the current source and artifact bytes below/above to evaluate coverage, including explicit canonical Save followed by a fresh Run. INFORMATION/EVIDENCE replies are not durable decisions.",
+    ].join("\n"),
     userInput === undefined ? "" : `Human input: ${userInput}`,
     referenceRoots.length === 0
       ? ""
@@ -754,6 +804,12 @@ export const runStageTurn = async (
       }
     }
 
+    const decisionEvidence = stageDecisionEvidence(runtime, workItem, run.stage);
+    const adoptedDecisionArtifacts = decisionEvidence.flatMap((event) => {
+      const payload = event.event;
+      return payload.tag === "ARTIFACT_PROPOSAL_DISPOSITIONED" && payload.adoptedArtifactRefId !== null
+        ? [getArtifact(runtime, payload.adoptedArtifactRefId)] : [];
+    });
     const events = await runOpenCodeTurn(
       active.server,
       active.sessionId,
@@ -770,6 +826,8 @@ export const runStageTurn = async (
         runtime.config.referenceRoots,
         userInput,
         currentStageCompletionArtifacts(runtime, workItem, run.stage),
+        decisionEvidence,
+        adoptedDecisionArtifacts,
       ),
       (record, stderr) => {
         diagnosticEvidence = recordProviderDiagnostics(

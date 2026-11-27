@@ -584,7 +584,12 @@ const server = Bun.serve({
       } else if (mode === "stage-durable-complete") {
         output = text.includes("Human input:")
           ? '[{"tag":"STAGE_COMPLETED","completion":{"stage":"R1","outcome":"CONFIRMED"},"artifactRefIds":[]}]'
-          : '[{"tag":"HUMAN_INPUT_REQUESTED","category":"AUTHORITY_DECISION","question":"Which authority governs?"}]';
+          : text.includes("Owning-stage durable decision evidence across attempts") &&
+            text.includes("Use the canonical authority.") &&
+            text.includes("Which authority governs?") &&
+            text.includes("A new attempt, unrelated adoption or prior chat answer alone is not coverage")
+            ? '[{"tag":"AGENT_MESSAGE_FINAL","text":"prior durable decision requires current coverage","evidence":[]}]'
+            : '[{"tag":"HUMAN_INPUT_REQUESTED","category":"AUTHORITY_DECISION","question":"Which authority governs?"}]';
       } else if (mode === "stage-invalid-batch") {
         output = '[{"tag":"AGENT_MESSAGE_FINAL","text":"one","evidence":[]},{"tag":"AGENT_MESSAGE_FINAL","text":"two","evidence":[]}]';
       } else if (mode === "stage-invalid-r1" || mode === "stage-bound-r1") {
@@ -6004,8 +6009,15 @@ describe("daemon control plane", () => {
       );
       const finalRun = coord.getRun(runtime, run.id);
       const events = coord.listRunEvents(runtime, run.id);
+      const retry = await coord.startStageRun(runtime, created.id, "INTERACTIVE");
+      await Promise.all([...runtime.stageTurnTasks.values()]);
+      const retryEvents = coord.listRunEvents(runtime, retry.id);
       console.log(JSON.stringify({
         status: finalRun.status,
+        retryEvidence: retryEvents.some((event) =>
+          event.event.tag === "AGENT_MESSAGE_FINAL" &&
+          event.event.text === "prior durable decision requires current coverage"
+        ),
         terminalClassification: finalRun.terminalClassification,
         completions: events.filter((event) =>
           event.event.tag === "STAGE_COMPLETED"
@@ -6018,6 +6030,7 @@ describe("daemon control plane", () => {
       database.close();
     `, providerEnvironment(binary, state), 30_000) as {
       status: string;
+      retryEvidence: boolean;
       terminalClassification: string | null;
       completions: number;
       providerFailure: { tag: string; detail: string } | null;
@@ -6027,6 +6040,7 @@ describe("daemon control plane", () => {
     expect(output.status).toBe("FAILED");
     expect(output.terminalClassification).toBe("PROVIDER_FAILURE");
     expect(output.completions).toBe(0);
+    expect(output.retryEvidence).toBe(true);
     expect(output.providerFailure?.detail).toContain(
       "later adopted canonical authority proposal",
     );

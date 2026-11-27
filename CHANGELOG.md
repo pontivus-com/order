@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Supply exact owning-stage durable decision and adoption history across attempts to stage conformance, requiring coverage in current canonical material rather than treating prior answers or unrelated adoption as authority (IA04).
+
 - Require exact reverse reconstruction and forward replay before interrupted proposal adoption is reconciled; enforce its canonical target and recorded durable intent (IA03).
 
 - Bind current-v2 lifecycle context and conformance to exact upstream and producing-output authority declarations, including structured R2/PLAN refs, and require a fresh productive turn when newly declared material changes the context (IA02).

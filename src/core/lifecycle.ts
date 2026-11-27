@@ -716,6 +716,14 @@ const stageProviderBatchRejectionMessage = (
   }
 };
 
+export const isDurableDecisionRequest = (
+  event: RunEventPayload,
+): event is Extract<RunEventPayload, { tag: "HUMAN_INPUT_REQUESTED" }> =>
+  event.tag === "HUMAN_INPUT_REQUESTED" &&
+  (event.category === "STAGE_CHOICE" ||
+    event.category === "AUTHORITY_DECISION" ||
+    event.category === "AUTHORITY_CONFLICT");
+
 export const durableDecisionCompletionIsAdmitted = (
   run: Run,
   events: readonly RunEvent[],
@@ -724,14 +732,7 @@ export const durableDecisionCompletionIsAdmitted = (
   const durableRequests = new Set<RunEventId>();
   let latestAnsweredDurableSequence: number | null = null;
   for (const event of history) {
-    if (
-      event.event.tag === "HUMAN_INPUT_REQUESTED" &&
-      (
-        event.event.category === "STAGE_CHOICE" ||
-        event.event.category === "AUTHORITY_DECISION" ||
-        event.event.category === "AUTHORITY_CONFLICT"
-      )
-    ) {
+    if (isDurableDecisionRequest(event.event)) {
       durableRequests.add(event.id);
       continue;
     }
