@@ -7,8 +7,8 @@ This decomposition is revalidated under C19-F09/C20-F11 after the prior G4-G6 cl
 ## Exact upstream package
 
 - R1 `research.md`: `4d74d42bc817db51d06648174698b07175be193b`.
-- R2 `requirements.md`: `75e2108d786a2b9657c8d738d22de3e31643247c`.
-- DESIGN `solution-design.md`: `01c208e75252ce2b0556fe42518600f3205849a3` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 48-path forecast.
+- R2 `requirements.md`: `506c23794a89ef783c262e12397708cacb45e45c`.
+- DESIGN `solution-design.md`: `3e02974a16ea15864cca6b161d648e4c13dadfb5` — owns the closed 0.6.0 datum→semantic-component→composition mapping, F6B physical component realization and 48-path forecast.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `ee8acad4e39f4641476eb46d99ca168afab3db3d`.
 - P3 `GW-DOC-WORKBENCH-UX-V2`: `64184232833b59a9e6db5e1a28b841f48b3217cd` — §11.4A/§12/§13/§14 own semantic information classes, state-is-not-interface behavior, direct primary interaction composition, no generic workflow-material selector, continuous Dialogue semantics, Terminal-result primacy, singular technical inspection, task anatomy and composition invariants.
 - P3 `GW-DOC-MARKDOWN-WORKBENCH-V1`: `da89bd08e4f78f353d7b3062758e9d78e21375b2` — §17.4 owns one compact Markdown editor-control region, overflow-before-wrap formatting and control→canvas adjacency.
@@ -43,7 +43,7 @@ Retain proven closed P4/F6B APIs and semantic owner responsibilities only; corre
 
 ## Signed scope and forecast law
 
-One cumulative T1 candidate uses the exact same **47 repository paths** for scope and changeSurface, with obligation-specific reasons in DESIGN. Explicit exclusions protect retained/required-absent owners and authorizing manifest/instructions/architecture sensor. No directory-wide envelope. Unexpected out-of-scope change returns upstream; existing V4/V5/V6 variance rules remain unchanged. No gate state or signed authority is conferred.
+One cumulative T1 candidate uses the exact same **48 repository paths** for scope and changeSurface, with obligation-specific reasons in DESIGN. Explicit exclusions protect retained/required-absent owners and authorizing manifest/instructions/architecture sensor. No directory-wide envelope. Unexpected out-of-scope change returns upstream; existing V4/V5/V6 variance rules remain unchanged. No gate state or signed authority is conferred.
 
 ## Architecture constraints
 
