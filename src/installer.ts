@@ -4,6 +4,7 @@ import {
   closeSync,
   constants,
   fstatSync,
+  fsyncSync,
   openSync,
   realpathSync,
   copyFileSync,
@@ -511,6 +512,43 @@ const configureOrder = async (
   return { setupModule, legacyV2Config } as const;
 };
 
+// Invocation-local proof for files reported by the existing manifest creation owner.
+const captureCreatedManifest = (path: string) => {
+  if (realpathSync(path) !== path) fail("installer-created manifest path is not canonical: " + path);
+  const entry = lstatSync(path, { bigint: true });
+  if (!entry.isFile()) fail("installer-created manifest is not a regular file: " + path);
+  const descriptor = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
+  try {
+    const before = fstatSync(descriptor, { bigint: true });
+    if (!before.isFile() || before.dev !== entry.dev || before.ino !== entry.ino ||
+        before.mode !== entry.mode || before.uid !== entry.uid) fail("installer-created manifest identity changed: " + path);
+    const bytes = readFileSync(descriptor);
+    const after = lstatSync(path, { bigint: true });
+    if (before.dev !== after.dev || before.ino !== after.ino || before.mode !== after.mode ||
+        before.uid !== after.uid || before.size !== after.size ||
+        before.mtimeNs !== after.mtimeNs || before.ctimeNs !== after.ctimeNs) {
+      fail("installer-created manifest changed during observation: " + path);
+    }
+    return { device: before.dev, inode: before.ino, mode: before.mode, uid: before.uid, bytes };
+  } finally { closeSync(descriptor); }
+};
+
+const restoreCreatedManifest = (
+  path: string,
+  expected: ReturnType<typeof captureCreatedManifest> | null,
+): void => {
+  if (expected === null) fail("installer-created manifest ownership could not be established: " + path);
+  if (!footprintEntryExists(path)) return;
+  const observed = captureCreatedManifest(path);
+  if (observed.device !== expected.device || observed.inode !== expected.inode ||
+      observed.mode !== expected.mode || observed.uid !== expected.uid ||
+      !observed.bytes.equals(expected.bytes)) {
+    fail("unexpected manifest identity or bytes retained: " + path);
+  }
+  rmSync(path);
+  if (footprintEntryExists(path)) fail("installer-created manifest remains at " + path);
+};
+
 const captureServiceState = (
   locations: InstallerLocations,
   environment: NodeJS.ProcessEnv,
@@ -912,6 +950,7 @@ export const runInstaller = async (
   remove: typeof rmSync = rmSync,
   databaseEffects?: Parameters<typeof import("./shell/sqlite.ts").prepareOrderDatabaseForInstall>[2],
   configEffects?: InstallerConfigPublication["effects"],
+  writeMarker: (descriptor: number, bytes: string) => void = (descriptor, bytes) => writeFileSync(descriptor, bytes, "utf8"),
 ): Promise<void> => {
   if (process.platform !== "linux") fail("Order v1 productive installation requires Linux");
   if (Bun.version !== bunVersion) fail("installer must run on exact Bun " + bunVersion);
@@ -963,7 +1002,7 @@ export const runInstaller = async (
   let databaseRestoreIncomplete = false;
   let sqliteUpgradeModule: typeof import("./shell/sqlite.ts") | null = null;
   let configuredSetup: Awaited<ReturnType<typeof configureOrder>> | null = null;
-  const createdProjectManifests: string[] = [];
+  const createdProjectManifests = new Map<string, ReturnType<typeof captureCreatedManifest> | null>();
 
   try {
     if (prior.activity === "active") {
@@ -1017,7 +1056,10 @@ export const runInstaller = async (
     step("configuring provider, model and repository access");
     configuredSetup = await configureOrder(locations, established, {
       snapshot: configSnapshot, onPublished: identity => { published = identity; }, effects: configEffects,
-    }, path => createdProjectManifests.push(path), question);
+    }, path => {
+      createdProjectManifests.set(path, null);
+      createdProjectManifests.set(path, captureCreatedManifest(path));
+    }, question);
 
     sqliteUpgradeModule = await import(pathToFileURL(join(locations.installRoot, "app", "src", "shell", "sqlite.ts")).href) as typeof import("./shell/sqlite.ts");
     databaseArchive = sqliteUpgradeModule.prepareOrderDatabaseForInstall(locations.stateRoot,
@@ -1046,7 +1088,19 @@ export const runInstaller = async (
     // Installation commit: all reversible admission conditions have passed.
     const marker = join(locations.installRoot, "SOURCE_COMMIT");
     const temporaryMarker = marker + ".tmp." + crypto.randomUUID();
-    writeFileSync(temporaryMarker, args.sourceCommit + "\n", { encoding: "utf8", flag: "wx" });
+    const markerDescriptor = openSync(temporaryMarker,
+      constants.O_WRONLY | constants.O_CREAT | constants.O_EXCL | constants.O_NOFOLLOW, 0o644);
+    try {
+      writeMarker(markerDescriptor, args.sourceCommit + "\n");
+      fsyncSync(markerDescriptor);
+      const opened = fstatSync(markerDescriptor);
+      const observed = lstatSync(temporaryMarker);
+      if (!observed.isFile() || observed.dev !== opened.dev || observed.ino !== opened.ino ||
+          readFileSync(temporaryMarker, "utf8") !== args.sourceCommit + "\n") {
+        fail("installation commit marker temporary changed: " + temporaryMarker);
+      }
+    } finally { closeSync(markerDescriptor); }
+    if (footprintEntryExists(marker)) fail("unexpected installation commit marker: " + marker);
     rename(temporaryMarker, marker);
   } catch (error) {
     const failures: unknown[] = [];
@@ -1082,7 +1136,9 @@ export const runInstaller = async (
       compensate("configuration restoration incomplete: " + (snapshot.recoveryPath ?? snapshot.target),
         () => module.restoreInstallerConfig(snapshot, published, configEffects));
     }
-    for (const path of createdProjectManifests.reverse()) compensate("manifest restoration incomplete: " + path, () => rmSync(path));
+    for (const [path, identity] of [...createdProjectManifests].reverse()) {
+      compensate("manifest restoration incomplete: " + path, () => restoreCreatedManifest(path, identity));
+    }
     if (launcherActivated) compensate("new launcher removal incomplete: " + launcher, () => rmSync(launcher));
     if (launcherBackup !== null) {
       const backup = launcherBackup;
