@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Reject contradictory historical candidate proof that claims V6 PASS despite independent CHANGE_BLOAT evidence, for both original and replacement Acceptance rounds (IA35).
+
 - Prepare native Acceptance review event contracts, immutable candidate-round membership and exact finding/assessment policy (IA35; activation requires the complete IA35–IA38 cutover).
 
 - Keep Implementation validation progress exact to the current reviewer Run, retain causal remediation failure, and display the current task's matching terminal reason independently of historical inspection (IA32).

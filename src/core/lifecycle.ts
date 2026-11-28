@@ -1446,6 +1446,9 @@ export const admittedCandidateMember = (
   }
   const reviewPass = requireUnique(ownEvents.filter(value => value.event.tag === "REVIEW_PASSED"), "candidate lacks exact independent review");
   if (reviewPass.sequence >= validation[4]!.sequence) throw new TypeError("V4 requires preceding independent review");
+  if (reviewPass.event.tag !== "REVIEW_PASSED" || reviewPass.event.minimumChange !== "MINIMUM_SUFFICIENT") {
+    throw new TypeError("V6 requires independently reviewed minimum-sufficient change");
+  }
   return [task.id, event.id];
 };
 

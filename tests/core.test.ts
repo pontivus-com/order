@@ -3518,6 +3518,27 @@ describe("native Acceptance preparation", () => {
     expect(candidateMembershipCanonicalJson(approval.id,members)).toBe(JSON.stringify([approval.id,members]));
     expect(CandidateMembersSchema.safeParse([...members].reverse()).success).toBe(false);
   });
+  it("rejects contradictory V6 pass in original and replacement candidate proof", () => {
+    const bloatReview = (entry: RunEvent): RunEvent => entry.event.tag === "REVIEW_PASSED"
+      ? RunEventSchema.parse({ ...entry, event: { ...entry.event, minimumChange: "CHANGE_BLOAT", minimumChangeSummary: "Remove unnecessary change" } })
+      : entry;
+    expect(reconstructCandidateRounds(approval, tasks, baseRuns, baseEvents, [opened]).get(opened.id))
+      .toEqual([[tasks[0]!.id, prior.result.id], [tasks[1]!.id, noOp.id]]);
+    expect(() => reconstructCandidateRounds(approval, tasks, baseRuns, baseEvents.map(bloatReview), [opened]))
+      .toThrow(/V6 requires independently reviewed minimum-sufficient change/);
+    const finding = report(2, 0, prior.result.id);
+    const submit = reviewEvent(3, { tag: "SUBMIT", candidateHash: hashA, findingIds: [finding.id] });
+    const correction = run(4, tasks[0]!.id, "REVIEWER", 3, prior.result.id, "CANDIDATE_DONE");
+    const result = reviewed(correction, 40, [{ findingId: finding.id, verdict: "SATISFIED", rationale: "Verified correction", evidence: [] }]);
+    const started = reviewEvent(4, { tag: "REVIEW_STARTED", submissionId: submit.id, runId: correction.id });
+    const completed = reviewEvent(5, { tag: "REVIEW_COMPLETED", submissionId: submit.id, candidateHash: hashB, candidateEventId: result.result.id });
+    const history = [opened, finding, submit, started, completed];
+    const runs = [...baseRuns, correction];
+    expect(reconstructCandidateRounds(approval, tasks, runs, [...baseEvents, ...result.events], history).get(completed.id))
+      .toEqual([[tasks[0]!.id, result.result.id], [tasks[1]!.id, noOp.id]]);
+    expect(() => reconstructCandidateRounds(approval, tasks, runs, [...baseEvents, ...result.events.map(bloatReview)], history))
+      .toThrow(/V6 requires independently reviewed minimum-sufficient change/);
+  });
   it("reconstructs exact historical replacement and reopens disposed reports without absorbing other open reports", () => {
     const first = report(2,0,prior.result.id);
     const withdrawal = reviewEvent(3,{tag:"DISPOSITION",findingId:first.id,candidateHash:hashA,outcome:"WITHDRAWN",rationale:"mistaken report",followupWorkItemId:null,withdrawalAttestation:"NOT_A_KNOWN_UNMET_OBLIGATION"});
