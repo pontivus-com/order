@@ -4910,6 +4910,23 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   if (runRenderedPhase("IA38")) {
     // Exercise the real signed native Acceptance fixture, using the existing Review
     // and document inspection routes. Never synthesize a runtime state from the atlas.
+    const integratedAcceptance=signedRenderedPhase==="IA39"||(!diagnosticCurrentState&&signedRenderedPhase===null);
+    const captureDependent=async(surface:string,state:string,step:RenderedAcceptanceInput["workflowStep"],fixture:string,target?:Locator)=>{
+      const entry:RenderedAcceptanceInput={id:"ia39-"+surface.toLowerCase()+"-"+state,workItemKind:step===null?"QUEUE":"CHANGE",
+        workflowStep:step,surface,state,fixture,viewport:light,theme:"Light",route:routeValue(),
+        authorityRefs:["GW-DOC-WORKBENCH-UX-V2","GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2","GW-DOC-CANONICAL-CONTRACTS-V2"]};
+      await capture(entry,target);
+      // Exact state-specific medium evidence; this is not a different state alias.
+      try{
+        await page.setViewportSize({width:1000,height:800});
+        if(surface==="SURF-WI-CONTEXT-001")await expect(page.getByTestId("work-item-context-drawer")).toBeVisible();
+        await capture({...entry,id:entry.id+"-medium",viewport:{width:1000,height:800}},target);
+      }finally{await page.setViewportSize(light);}
+    };
+    if(integratedAcceptance){
+      await expect(rowFor(page,"Native Acceptance review")).toContainText("Acceptance");
+      await captureDependent("SURF-QUEUE-001","acceptance-pending",null,"Native Acceptance pending Queue");
+    }
     await openWorkItem(page, "Native Acceptance review");
     const acceptanceRail = page.getByTestId("workflow-rail");
     const review = page.getByTestId("workflow-step-workspace");
@@ -4924,6 +4941,22 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
         authorityRefs:["GW-DOC-WORKBENCH-UX-V2","GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2","GW-DOC-CANONICAL-CONTRACTS-V2"]});
     };
     await captureAcceptance("awaiting-review","wide-light");
+    if(integratedAcceptance){
+      await captureDependent("SURF-WI-001","acceptance-current","Acceptance","Native Acceptance review");
+      await page.getByRole("button",{name:"Context",exact:true}).click();
+      const context=page.getByTestId("work-item-context");
+      await expect(context.getByRole("heading",{name:"Selected Acceptance identity",exact:true})).toBeVisible();
+      await expect(context.getByText("Candidate hash",{exact:true})).toBeVisible();
+      await expect(context.getByText("Candidate member",{exact:true})).toBeVisible();
+      await captureDependent("SURF-WI-CONTEXT-001","acceptance","Acceptance","Native Acceptance exact Context");
+      await page.getByRole("button",{name:"Close context",exact:true}).click();
+      await selectWorkflowStep(page,"Approval");
+      await expect(page.getByTestId("review-workspace")).toContainText("Approved");
+      await expect(page.getByRole("button",{name:"Sign off exact package"})).toHaveCount(0);
+      await captureDependent("SURF-STEP-APPROVAL-001","signed-acceptance","Approval","Native Acceptance signed Approval");
+      await selectWorkflowStep(page,"Acceptance");
+      await expect(review.getByTestId("review-verdict")).toContainText("Verified candidate");
+    }
     await captureAcceptance("awaiting-review","narrow-light",narrow);
     await page.setViewportSize(light);
     await page.getByRole("radio",{name:"Dark"}).click();
@@ -4935,8 +4968,16 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     const criterion=review.getByRole("button",{name:"Open criterion",exact:true});
     await criterion.click();
     await expect(review.getByText("Browser fixture lifecycle/specification authority",{exact:false})).toBeVisible();
+    if(integratedAcceptance)await captureDependent("SURF-MAT-DOC-RO-001","signed-acceptance","Acceptance","Native Acceptance exact signed criterion");
     await review.getByRole("button",{name:"Back to Acceptance",exact:true}).click();
     await expect(criterion).toBeFocused();
+    if(integratedAcceptance){
+      await review.getByRole("button",{name:"View evidence",exact:true}).first().click();
+      await expect(page.getByTestId("evidence-workspace")).toBeVisible();
+      await captureDependent("SURF-MAT-EVIDENCE-001","qa-original","Acceptance","Native Acceptance original candidate patch");
+      await page.getByRole("button",{name:"Back to workflow context",exact:true}).click();
+      await expect(review.getByTestId("review-verdict")).toContainText("Verified candidate");
+    }
     await review.getByRole("button",{name:"Report finding for task",exact:true}).click();
     const report=page.getByRole("dialog",{name:"Report finding",exact:true});
     await expect(report).toBeVisible();
@@ -5009,12 +5050,24 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
       await accept.getByRole("button",{name:"Accept candidate",exact:true}).click();
       await expect(acceptanceRail.getByRole("button",{name:"Complete",exact:true})).toHaveAttribute("aria-current","step");
       await expect(page.getByTestId("candidate-result-material")).toContainText("Accepted by Rendered QA fixture");
+      if(integratedAcceptance)await captureDependent("SURF-STEP-COMPLETE-001","accepted-candidate","Complete","Native Acceptance final human decision");
       await selectWorkflowStep(page,"Acceptance");
       await expect(review.getByTestId("review-verdict")).toContainText("Accepted candidate");
       await expect(review.getByRole("button",{name:"Accept candidate",exact:true})).toHaveCount(0);
       await captureAcceptance("historical-accepted","wide-light");
     }
     await backToQueue(page);
+    if(integratedAcceptance){
+      await openWorkItem(page,"Verified candidate");
+      await expect(page.getByTestId("candidate-result-material")).toContainText("Legacy completion");
+      await captureDependent("SURF-STEP-COMPLETE-001","verified-candidate","Complete","Historical verified candidate without human Acceptance");
+      await backToQueue(page);
+      await openWorkItem(page,"Already satisfied implementation");
+      await expect(page.getByTestId("result-workspace")).toContainText("Already satisfied");
+      await expect(page.getByTestId("candidate-result-material")).toHaveCount(0);
+      await captureDependent("SURF-STEP-COMPLETE-001","all-no-op","Complete","Signed all-no-op execution");
+      await backToQueue(page);
+    }
     if(!diagnosticCurrentState){
       for(const [fault,title,state,confirmation] of [
         ["SOURCE_AUTHORITY_STALE","Native Acceptance source drift","source-stale-authority","source-reconcile-confirmation"],

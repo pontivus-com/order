@@ -173,6 +173,28 @@ export type WorkflowMaterial =
   | Readonly<{ kind: "STEP_STATE" }>
   | Readonly<{ kind: "UNREACHED" }>;
 
+// Review and explicit technical Context consume the same selected signed round.
+export const acceptanceRoundEntries = (events: readonly CandidateReviewEvent[]) => events.flatMap(entry =>
+  entry.event.tag === "OPENED" || entry.event.tag === "REVIEW_COMPLETED" ? [{...entry,event:entry.event}] : []);
+
+export const resolveAcceptanceSelection = (
+  material: Extract<WorkflowMaterial,{kind:"ACCEPTANCE_REVIEW"}>,
+  approvals: readonly Approval[], histories: readonly CandidateReviewEvent[],
+  currentApproval: Approval | null,
+) => {
+  const approval = material.approvalId === undefined
+    ? (currentApproval !== null && histories.some(entry=>entry.approvalId===currentApproval.id) ? currentApproval :
+      approvals.findLast(value=>histories.some(entry=>entry.approvalId===value.id)) ?? null)
+    : approvals.find(value=>value.id===material.approvalId) ?? null;
+  const history=histories.filter(entry=>entry.approvalId===approval?.id);
+  const roundHistory=acceptanceRoundEntries(history);
+  const latest=roundHistory.at(-1);
+  const round=material.roundId===undefined?latest:roundHistory.find(entry=>entry.id===material.roundId);
+  const nextRound=round===undefined?undefined:roundHistory.find(entry=>entry.sequence>round.sequence);
+  const visibleHistory=round===undefined?[]:nextRound===undefined?history:history.filter(entry=>entry.sequence<nextRound.sequence);
+  return {approval,history,round,latest,visibleHistory};
+};
+
 // Keep an explicitly inspected prospective package pinned until the operator
 // deliberately selects another package. An unbound overview may bind once.
 export const bindProspectiveApprovalSelection = (

@@ -9,7 +9,7 @@ import { candidateFindingActionIsAdmitted, candidateFindingDispositions, candida
   candidateSubmitIsAdmitted, deriveAcceptanceDecision, reconstructCandidateRounds } from "../../src/core/lifecycle.ts";
 import * as api from "./http.ts";
 import { invalidateWorkbenchMutation, workbenchQueryKeys } from "./query-keys.ts";
-import { eventEvidence, lifecycleArtifactLabel, type EvidenceSelection, type WorkflowMaterial } from "./workbench-presentation.ts";
+import { acceptanceRoundEntries as roundEntries, resolveAcceptanceSelection, eventEvidence, lifecycleArtifactLabel, type EvidenceSelection, type WorkflowMaterial } from "./workbench-presentation.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchConfirmation } from "./primitives/WorkbenchConfirmation.tsx";
 import { WorkbenchFacts } from "./primitives/WorkbenchFacts.tsx";
@@ -23,8 +23,6 @@ type Material = Extract<WorkflowMaterial, {kind:"ACCEPTANCE_REVIEW"}>;
 type FormAction = "REPORT"|"SUBMIT"|"RETEST"|"WITHDRAW"|"RETURN"|"ACCEPT"|"COPY";
 const reportEntries = (events: readonly CandidateReviewEvent[]) => events.flatMap(entry =>
   entry.event.tag === "REPORT" ? [{...entry, event:entry.event}] : []);
-const roundEntries = (events: readonly CandidateReviewEvent[]) => events.flatMap(entry =>
-  entry.event.tag === "OPENED" || entry.event.tag === "REVIEW_COMPLETED" ? [{...entry,event:entry.event}] : []);
 const formTitles: Record<FormAction,string> = {
   REPORT:"Report finding",SUBMIT:"Submit findings",RETEST:"Record retest",WITHDRAW:"Withdraw finding",
   RETURN:"Return to planning",ACCEPT:"Accept candidate",COPY:"Prepare test copy",
@@ -40,17 +38,8 @@ export const AcceptanceWorkspace = ({workItem,material,approvals,histories,histo
   onOpenDocument:(artifactId:ArtifactRef["id"],focusId?:string)=>void; onOpenCorrection:(taskId:string,runId:string)=>void; onMutationError:(error:unknown)=>void;
 }>) => {
   const queryClient=useQueryClient();
-  const approval = material.approvalId === undefined
-    ? (input.approval !== null && histories.some(entry=>entry.approvalId===input.approval?.id) ? input.approval :
-      approvals.findLast(value=>histories.some(entry=>entry.approvalId===value.id)) ?? null)
-    : approvals.find(value=>value.id===material.approvalId) ?? null;
-  const history=histories.filter(entry=>entry.approvalId===approval?.id);
-  const roundHistory=roundEntries(history);
-  const latest=roundHistory.at(-1);
-  const round=material.roundId===undefined?latest:roundHistory.find(entry=>entry.id===material.roundId);
+  const {approval,history,round,latest,visibleHistory}=resolveAcceptanceSelection(material,approvals,histories,input.approval);
   const current=input.current && approval!==null && approval.id===input.approval?.id && round!==undefined && round.id===latest?.id && material.roundId===undefined;
-  const nextRound=round===undefined?undefined:roundHistory.find(entry=>entry.sequence>round.sequence);
-  const visibleHistory=round===undefined?[]:nextRound===undefined?history:history.filter(entry=>entry.sequence<nextRound.sequence);
   const selectedFinding=material.findingId??null;
   const setSelectedFinding=(id:string|null)=>onSelectMaterial({...material,findingId:id??undefined});
   const [form,setForm]=useState<Readonly<{action:FormAction;approvalId:string;roundId:string;sequence:number;hash:string;decision:typeof decision}>|null>(null);

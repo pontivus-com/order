@@ -1,5 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
 import type { WorkItem } from "../../src/core/contracts.ts";
+import { reconstructCandidateRounds, candidateFindingDispositions } from "../../src/core/lifecycle.ts";
 import * as api from "./http.ts";
 import { workbenchQueryKeys } from "./query-keys.ts";
 import {
@@ -10,6 +11,7 @@ import {
   workflowPresentation,
   selectedContextArtifactId,
   resolveContextArtifact,
+  resolveAcceptanceSelection,
   type ContextDocumentIdentity,
   type WorkflowMaterial,
 } from "./workbench-presentation.ts";
@@ -25,10 +27,11 @@ export const WorkItemContext=({workItem,selectedStep,selectedMaterial,selectedDo
 }>)=>{
   const step=selectedStep??workItem.stage;
   const material:WorkflowMaterial=selectedMaterial??{kind:"STEP_STATE"};
+  const acceptanceSelected=material.kind==="ACCEPTANCE_REVIEW";
   const selectedRunId=workflowMaterialRunId(material);
   const artifactId=selectedContextArtifactId(material,selectedDocument);
   const schemasQuery=useQuery({queryKey:workbenchQueryKeys.workItemSchemas,queryFn:api.listWorkItemSchemas});
-  const runsQuery=useQuery({queryKey:workbenchQueryKeys.runs(workItem.id),queryFn:()=>api.listRuns(workItem.id),enabled:selectedRunId!==null});
+  const runsQuery=useQuery({queryKey:workbenchQueryKeys.runs(workItem.id),queryFn:()=>api.listRuns(workItem.id),enabled:selectedRunId!==null||acceptanceSelected});
   const artifactsQuery=useQuery({
     queryKey:workbenchQueryKeys.artifacts(workItem.id),
     queryFn:()=>api.listArtifacts(workItem.id),
@@ -49,7 +52,7 @@ export const WorkItemContext=({workItem,selectedStep,selectedMaterial,selectedDo
   const tasksQuery=useQuery({
     queryKey:workbenchQueryKeys.tasks(workItem.id),
     queryFn:()=>api.listExecutionTasks(workItem.id),
-    enabled:material.kind==="EXECUTION_TASK"||(material.kind==="APPROVAL_PACKAGE"&&material.approvalId!==undefined&&material.taskId!==undefined),
+    enabled:acceptanceSelected||material.kind==="EXECUTION_TASK"||(material.kind==="APPROVAL_PACKAGE"&&material.approvalId!==undefined&&material.taskId!==undefined),
   });
   const diagnosticsQuery=useQuery({queryKey:workbenchQueryKeys.workItemSourceDiagnostics,queryFn:api.listWorkItemSourceDiagnostics});
   const diagnostics=(diagnosticsQuery.data??[]).filter((item)=>item.workItemId===workItem.id||item.path===workItem.sourcePath);
@@ -80,12 +83,12 @@ export const WorkItemContext=({workItem,selectedStep,selectedMaterial,selectedDo
   const approvalsQuery=useQuery({
     queryKey:workbenchQueryKeys.approvals(workItem.id),
     queryFn:()=>api.listApprovals(workItem.id),
-    enabled:selectedTask!==null||(material.kind==="APPROVAL_PACKAGE"&&material.approvalId!==undefined),
+    enabled:acceptanceSelected||selectedTask!==null||(material.kind==="APPROVAL_PACKAGE"&&material.approvalId!==undefined),
   });
   const finalApprovalQuery=useQuery({
     queryKey:workbenchQueryKeys.currentApproval(workItem.id),
     queryFn:()=>api.getCurrentApproval(workItem.id),
-    enabled:material.kind==="APPROVAL_PACKAGE"&&(workItem.stage==="EXECUTION"||workItem.stage==="AWAITING_ACCEPTANCE"||workItem.stage==="COMPLETE"),
+    enabled:(acceptanceSelected||material.kind==="APPROVAL_PACKAGE")&&(workItem.stage==="EXECUTION"||workItem.stage==="AWAITING_ACCEPTANCE"||workItem.stage==="COMPLETE"),
     retry:false,
   });
   const selectedApproval=selectedTask!==null
@@ -95,6 +98,39 @@ export const WorkItemContext=({workItem,selectedStep,selectedMaterial,selectedDo
       :material.kind==="APPROVAL_PACKAGE"&&material.packageHash===undefined&&
       (workItem.stage==="EXECUTION"||workItem.stage==="AWAITING_ACCEPTANCE"||workItem.stage==="COMPLETE")?finalApprovalQuery.data??null:null;
   const selectedDocumentIsRelevant=sourceSelected||artifactId!==null;
+  const reviewApprovals=acceptanceSelected?(approvalsQuery.data??[]):[];
+  const histories=useQueries({queries:reviewApprovals.map(approval=>({
+    queryKey:workbenchQueryKeys.qaHistory(workItem.id,approval.id),
+    queryFn:()=>api.listCandidateReviewEvents(workItem.id,approval.id),retry:false,
+  }))});
+  const reviewRuns=acceptanceSelected?(runsQuery.data??[]).filter(run=>run.executionTaskId!==null):[];
+  const reviewEvents=useQueries({queries:reviewRuns.map(run=>({
+    queryKey:workbenchQueryKeys.runEvents(run.id),queryFn:()=>api.listRunEvents(run.id,0),
+  }))});
+  const reviewPending=acceptanceSelected&&(approvalsQuery.isPending||runsQuery.isPending||tasksQuery.isPending||
+    histories.some(query=>query.isPending)||reviewEvents.some(query=>query.isPending));
+  const reviewError=acceptanceSelected&&(approvalsQuery.isError||runsQuery.isError||tasksQuery.isError||
+    histories.some(query=>query.isError)||reviewEvents.some(query=>query.isError));
+  const reviewSelection=material.kind==="ACCEPTANCE_REVIEW"&&!reviewPending&&!reviewError
+    ?resolveAcceptanceSelection(material,reviewApprovals,histories.flatMap(query=>query.data??[]),
+      finalApprovalQuery.data??null):null;
+  const selectedReviewFacts=(()=>{
+    if(material.kind!=="ACCEPTANCE_REVIEW"||reviewSelection?.approval==null||reviewSelection.round===undefined)return null;
+    const {approval,round,history,visibleHistory}=reviewSelection;
+    const events=reviewEvents.flatMap(query=>query.data??[]);
+    try{
+      const rounds=reconstructCandidateRounds(approval,tasksQuery.data??[],reviewRuns,events,history);
+      candidateFindingDispositions(history,rounds,tasksQuery.data??[],reviewRuns,events);
+      const members=rounds.get(round.id);
+      if(members===undefined)return null;
+      const report=material.findingId===undefined?undefined:visibleHistory.find(entry=>entry.id===material.findingId&&entry.event.tag==="REPORT");
+      if(material.findingId!==undefined&&report===undefined)return null;
+      const selected=report===undefined?visibleHistory.at(-1):visibleHistory.findLast(entry=>
+        entry.id===report.id||("findingId" in entry.event&&entry.event.findingId===report.id)||
+        (entry.event.tag==="SUBMIT"&&entry.event.findingIds.includes(report.id)));
+      return {approval,round,members,selected,report};
+    }catch{return null;}
+  })();
 
   const sections = [
     <WorkbenchSection
@@ -179,6 +215,27 @@ export const WorkItemContext=({workItem,selectedStep,selectedMaterial,selectedDo
         />
       }
     />,
+    ...(acceptanceSelected?[
+      <WorkbenchSection key="acceptance-identity" title="Selected Acceptance identity" content={
+        selectedReviewFacts===null?<WorkbenchNotice tone={reviewPending?"info":"warning"}
+          title={reviewPending?"Resolving selected Acceptance":"Selected Acceptance identity unavailable"}/>:
+        <WorkbenchFacts label="Selected Acceptance identity" items={[
+          {id:"acceptance-approval",label:"Approval id",value:<code>{selectedReviewFacts.approval.id}</code>},
+          {id:"acceptance-round",label:"Review round id",value:<code>{selectedReviewFacts.round.id}</code>},
+          {id:"acceptance-hash",label:"Candidate hash",value:<code>{selectedReviewFacts.round.event.candidateHash}</code>},
+          ...selectedReviewFacts.members.map(([taskId,eventId])=>({
+            id:taskId,label:"Candidate member",value:<code>{taskId} · {eventId}</code>,
+          })),
+          ...(selectedReviewFacts.report===undefined?[]:[{id:"acceptance-finding",label:"Finding id",value:<code>{selectedReviewFacts.report.id}</code>}]),
+          ...(selectedReviewFacts.selected===undefined?[]:[
+            {id:"acceptance-event",label:"Selected event id",value:<code>{selectedReviewFacts.selected.id}</code>},
+            {id:"acceptance-sequence",label:"Sequence",value:selectedReviewFacts.selected.sequence},
+            {id:"acceptance-actor",label:"Actor",value:selectedReviewFacts.selected.actor??"—"},
+            {id:"acceptance-time",label:"Recorded at",value:new Date(selectedReviewFacts.selected.occurredAt).toLocaleString()},
+          ]),
+        ]}/>
+      }/>
+    ]:[]),
     ...(material.kind==="PROPOSAL"?[
       <WorkbenchSection
         key="proposal-identity"

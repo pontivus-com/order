@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Add the exact selected Acceptance identity group to the existing Context owner, sharing Review round selection. Extend integrated captures for Queue, identity, Context, signed Approval/document, original evidence and terminal provenance.
+
 - Prove Settings draft, destructive confirmation and pending OpenCode login focus/identity continuity through wide, medium and narrow recomposition without a second login command.
 
 - Bind Complete result material to the exact admitted terminal Research output and final signed candidate membership, rejecting partial or cross-Run proof and avoiding duplicate Result actions. Distinguish admitted no-change intent without implying approval.
