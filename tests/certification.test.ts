@@ -1383,7 +1383,9 @@ describe("Order cross-boundary certification", () => {
     expect(lifecycle).toContain("predecessor.attempt >= run.attempt");
     expect(lifecycle).toContain('run.role === "REVIEWER"');
     expect(lifecycle).toContain("REVIEWER trigger must identify CANDIDATE_STATE_RECORDED");
-    expect(lifecycle).toContain("REVIEWER candidate must belong to the current ExecutionTask");
+    expect(lifecycle).toContain("REVIEWER trigger must identify CANDIDATE_STATE_RECORDED from the current task builder or remediator");
+    expect(lifecycle).toContain("QA reviewer requires exact REVIEW_STARTED admission");
+    expect(lifecycle).toContain("candidateFindingDispositions(priorHistory,rounds,tasks,runs,events)");
     expect(lifecycle).not.toContain("candidateRun.triggerEventId === run.triggerEventId");
     expect(lifecycle).toContain("causalRun(candidateEvent)");
     expect(lifecycle).toContain("return validationBoundaryFromEvents(runEvents)");

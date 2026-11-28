@@ -1013,6 +1013,11 @@ const openWorkflowResource = async (
     return;
   }
   const masterItem = page.getByTestId("workbench-master-detail-master").getByText(label, { exact: true });
+  if (/ · Attempt \d+$/.test(label)) {
+    await expect(masterItem).toBeVisible();
+    await masterItem.click();
+    return;
+  }
   if (await masterItem.isVisible().catch(() => false)) {
     await masterItem.click();
     return;
@@ -5154,7 +5159,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
       await captureAcceptance("retest-required","wide-light",light,"Light","Native Acceptance retest history");
       if(integratedAcceptance){
         const successor=review.getByText("successor-review.txt",{exact:true}).first();
-        await successor.locator("..").getByRole("button",{name:"View evidence",exact:true}).click();
+        await successor.locator("xpath=ancestor::*[@role='listitem' or self::li][1]").getByRole("button",{name:"View evidence",exact:true}).click();
         await expect(page.getByTestId("evidence-workspace")).toBeVisible();
         await expect(page.getByTestId("raw-content-view")).toContainText("Independent assessment");
         await captureDependent("SURF-MAT-EVIDENCE-001","qa-successor","Acceptance","Native Acceptance successor evidence");
@@ -5163,9 +5168,9 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
       const retest=page.getByRole("dialog",{name:"Record retest",exact:true});
       const inspectFinding=async(label:string)=>{
         const resource=review.getByText(label,{exact:true});
-        await resource.locator("..").getByRole("button",{name:"Inspect finding",exact:true}).click();
+        await resource.locator("xpath=ancestor::*[@role='listitem' or self::li][1]").getByRole("button",{name:"Inspect finding",exact:true}).click();
         await expect(review.getByText(label,{exact:true})).toBeVisible();
-        await review.getByRole("button",{name:"Record retest",exact:true}).last().click();
+        await review.locator('[data-review-section="findings"]').getByRole("button",{name:"Record retest",exact:true}).click();
         await expect(retest).toBeVisible();
       };
       await inspectFinding("Previously assessed finding");
@@ -5203,7 +5208,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
       await expect(review.getByTestId("review-verdict")).toContainText("Verified candidate");
       await expect(review.getByText("No change required",{exact:true})).toBeVisible();
       await captureAcceptance("mixed-candidate","wide-light",light,"Light","Native Acceptance mixed candidate");
-      await review.getByRole("button",{name:"Report finding for task",exact:true}).last().click();
+      await review.getByText("No change required",{exact:true}).locator("xpath=ancestor::*[@role='listitem' or self::li][1]").getByRole("button",{name:"Report finding for task",exact:true}).click();
       await expect(report).toContainText("Verify existing behavior needs no change");
       await report.getByLabel("Expected behavior").fill("Existing behavior satisfies the signed obligation.");
       await report.getByLabel("Observed behavior").fill("The no-change conclusion is challenged.");
