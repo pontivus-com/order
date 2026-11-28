@@ -497,6 +497,7 @@ type InstallerTransactionFixture = Readonly<{
   unitDrift?: "before-publication" | "bytes" | "identity" | "symlink";
   deploymentDrift?: "application" | "launcher" | "application-backup" | "launcher-backup";
   readinessDrift?: "application" | "launcher" | "unit" | "config";
+  markerDrift?: "launcher" | "unit" | "config";
   failRestoreService?: "disable" | "daemon-reload" | "enable";
   failPredecessorRetirement?: boolean;
   failStaging?: boolean;
@@ -852,6 +853,17 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
       }
       return originalSpawn(argv, options);
     };
+    const replaceDeploymentMember = (member, suffix) => {
+      const target = member === "application" ? installRoot :
+        member === "launcher" ? launcher : member === "unit" ? unitPath : configPath;
+      const bytes = member === "application" ? null : fs.readFileSync(target);
+      fs.renameSync(target, target + suffix);
+      if (bytes === null) {
+        fs.mkdirSync(target);
+        fs.writeFileSync(path.join(target, "external"), "unexpected application");
+      } else fs.writeFileSync(target, bytes, { mode: member === "config" ? 0o600 :
+        member === "launcher" ? 0o755 : 0o644 });
+    };
     globalThis.fetch = async (input, init) => {
       const url = new URL(input instanceof Request ? input.url : input.toString());
       if (url.hostname === "nodejs.org") {
@@ -866,18 +878,7 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
         events.push({ command: ["readiness"], marker: fs.existsSync(marker),
           auth: new Headers(init?.headers).get("Authorization") === "Bearer " + token });
         if (fixture.interruptAtReadiness) process.exit(77);
-        if (fixture.readinessDrift) {
-          const target = fixture.readinessDrift === "application" ? installRoot :
-            fixture.readinessDrift === "launcher" ? launcher :
-            fixture.readinessDrift === "unit" ? unitPath : configPath;
-          const bytes = fixture.readinessDrift === "application" ? null : fs.readFileSync(target);
-          fs.renameSync(target, target + ".readiness-external");
-          if (bytes === null) {
-            fs.mkdirSync(target);
-            fs.writeFileSync(path.join(target, "external"), "unexpected application");
-          } else fs.writeFileSync(target, bytes, { mode: fixture.readinessDrift === "config" ? 0o600 :
-            fixture.readinessDrift === "launcher" ? 0o755 : 0o644 });
-        }
+        if (fixture.readinessDrift) replaceDeploymentMember(fixture.readinessDrift, ".readiness-external");
         if (fixture.failMarker) fs.mkdirSync(marker);
         if (fixture.readinessError) throw new TypeError("injected " + fixture.readinessError);
         return new Response(JSON.stringify(fixture.readiness), { status: fixture.readinessStatus ?? 200, headers: { "content-type": "application/json" } });
@@ -1036,6 +1037,7 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
             throw new Error("injected partial marker temporary write");
           }
           fs.writeFileSync(descriptor, bytes, "utf8");
+          if (fixture.markerDrift) replaceDeploymentMember(fixture.markerDrift, ".marker-external");
           if (fixture.databaseFault === "marker-sidecar-replaced") {
             fs.renameSync(faultPath, faultPath + ".retained-candidate");
             fs.writeFileSync(faultPath, "unexpected replacement");
@@ -1488,6 +1490,25 @@ describe("actual IA25 installer transaction", () => {
       expect(existsSync(target + ".readiness-external")).toBe(true);
       if (readinessDrift === "application") expect(readFileSync(join(target, "external"), "utf8")).toBe("unexpected application");
       else expect(readFileSync(target)).toEqual(readFileSync(target + ".readiness-external"));
+    }, 120_000);
+
+  it.each(["launcher", "unit", "config"] as const)(
+    "refuses commit after marker preparation replaces the %s", markerDrift => {
+      const fixture = transactionFixture();
+      const outcome = runInstallerTransaction({ ...fixture,
+        readiness: { ready: true, blockers: [] }, markerDrift });
+      expect(outcome.events.some((event: { command: string[] }) => event.command[0] === "readiness")).toBe(true);
+      expect(outcome.failure).toContain("identity");
+      expect(outcome.failure).toContain("rollback incomplete");
+      expect(outcome.marker).toBeNull();
+      expect(outcome.activity).toBe("inactive");
+      expect(outcome.stdout).not.toContain("Order installed successfully.");
+      const target = markerDrift === "launcher" ? join(fixture.home, ".local/bin/order") :
+        markerDrift === "unit" ? join(fixture.home, ".config/systemd/user/pontivus-order.service") :
+        join(fixture.stateRoot, "config.json");
+      expect(existsSync(target + ".marker-external")).toBe(true);
+      expect(readFileSync(target)).toEqual(readFileSync(target + ".marker-external"));
+      expect(lstatSync(target).ino).not.toBe(lstatSync(target + ".marker-external").ino);
     }, 120_000);
 
   it.each([false, true])("compensates partial marker temporary write (established=%s)", established => {

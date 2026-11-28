@@ -1197,14 +1197,20 @@ export const runInstaller = async (
 
     // Readiness is an observation of the admitted deployment, not permission
     // to publish a marker into a replacement directory or changed unit/config.
-    if (stagingIdentity === null || launcherIdentity === null || unitPublished === null) {
-      throw new TypeError("installation commit custody unavailable");
-    }
-    requireInstallerDirectory(locations.installRoot, stagingIdentity);
-    requireInstallerFile(launcher, launcherIdentity);
-    requireInstallerFile(prior.unitPath, unitPublished);
-    setupModule.requireInstallerConfigPublication(configSnapshot, published);
-    for (const custody of createdProjectManifests.values()) setupModule.requireInstallerManifest(custody);
+    const requireCommitCustody = (): void => {
+      if (stagingIdentity === null || launcherIdentity === null || unitPublished === null ||
+          setupModule === null || configSnapshot === null || sqliteUpgradeModule === null ||
+          databaseCustody === null || databaseCandidates === undefined) {
+        throw new TypeError("installation commit custody unavailable");
+      }
+      requireInstallerDirectory(locations.installRoot, stagingIdentity);
+      requireInstallerFile(launcher, launcherIdentity);
+      requireInstallerFile(prior.unitPath, unitPublished);
+      setupModule.requireInstallerConfigPublication(configSnapshot, published);
+      for (const custody of createdProjectManifests.values()) setupModule.requireInstallerManifest(custody);
+      sqliteUpgradeModule.requireInstallerDatabaseCandidates(databaseCustody, databaseCandidates, false);
+    };
+    requireCommitCustody();
 
     // Installation commit: all reversible admission conditions have passed.
     const marker = join(locations.installRoot, "SOURCE_COMMIT");
@@ -1221,10 +1227,9 @@ export const runInstaller = async (
         fail("installation commit marker temporary changed: " + temporaryMarker);
       }
     } finally { closeSync(markerDescriptor); }
-    requireInstallerDirectory(locations.installRoot, stagingIdentity);
-    for (const custody of createdProjectManifests.values()) setupModule.requireInstallerManifest(custody);
-    if (databaseCandidates === undefined) throw new TypeError("database candidate custody unavailable before commit");
-    sqliteUpgradeModule.requireInstallerDatabaseCandidates(databaseCustody, databaseCandidates, false);
+    // Marker preparation is itself an effect. Re-establish the entire
+    // admitted deployment's custody before the irreversible publication.
+    requireCommitCustody();
     if (footprintEntryExists(marker)) fail("unexpected installation commit marker: " + marker);
     rename(temporaryMarker, marker);
   } catch (error) {
