@@ -68,6 +68,61 @@ describe("SQLite shell", () => {
     expect(parsed.first.workItemColumns).toContain("archived");
   });
 
+  it("persists exact Acceptance events per Approval and rolls back the owning transaction", () => {
+    const root = tempDir();
+    const result = bun(`
+      const s = await import("./src/shell/sqlite.ts");
+      const root = ${JSON.stringify(root)};
+      const id = (prefix, n) => prefix + "_00000000-0000-4000-8000-" + String(n).padStart(12, "0");
+      const time = "2026-11-28T00:00:00.000Z";
+      const hash = "sha256:" + "a".repeat(64);
+      const db = s.openOrderDatabase(root);
+      const work = id("work", 1), first = id("approval", 1), second = id("approval", 2);
+      db.query("INSERT INTO workItems VALUES (?1,'fixture','/repo','title','origin','EXECUTION','ACTIVE',NULL,'[]',0,?2)").run(work,time);
+      for (const [n, role] of [[1, "PLAN"], [2, "R3"]]) {
+        db.query("INSERT INTO artifactRefs VALUES (?1,?2,?3,?4,NULL,?5,?6)").run(id("artifact",n),work,role+".md",role,hash,"b".repeat(40));
+      }
+      for (const [approval, digit] of [[first,"a"], [second,"c"]]) {
+        db.query("INSERT INTO approvals VALUES (?1,?2,?3,?4,?5,?6,?7,'operator',?8)").run(approval,work,"b".repeat(40),"sha256:"+digit.repeat(64),id("artifact",1),id("artifact",2),hash,time);
+      }
+      const opened = (approvalId,n,sequence=1) => ({id:id("review",n),approvalId,sequence,occurredAt:time,actor:null,event:{tag:"OPENED",candidateHash:hash}});
+      const report = (approvalId,n,sequence=2) => ({id:id("review",n),approvalId,sequence,occurredAt:time,actor:"operator",event:{
+        tag:"REPORT",candidateHash:hash,taskId:id("task",1),candidateEventId:id("event",1),acceptanceRefs:[],expected:"expected",observed:"observed",reproduction:"steps",impact:"impact",evidence:[]
+      }});
+      const rejects = (fn) => { try { fn(); return false; } catch { return true; } };
+      s.withTransaction(db, () => s.storeCandidateReviewEvent(db, opened(first,1)));
+      s.withTransaction(db, () => s.storeCandidateReviewEvent(db, opened(second,2)));
+      const gap = rejects(() => s.withTransaction(db, () => s.storeCandidateReviewEvent(db, report(first,3,3))));
+      const wrongFirst = rejects(() => s.withTransaction(db, () => s.storeCandidateReviewEvent(db, report(id("approval",3),3,1))));
+      const duplicateOpening = rejects(() => s.withTransaction(db, () => s.storeCandidateReviewEvent(db, opened(first,3,2))));
+      const foreignApproval = rejects(() => s.withTransaction(db, () => s.storeCandidateReviewEvent(db, opened(id("approval",3),3))));
+      const duplicateId = rejects(() => s.withTransaction(db, () => s.storeCandidateReviewEvent(db, report(second,1))));
+      const wrongActor = rejects(() => s.withTransaction(db, () => s.storeCandidateReviewEvent(db, {...report(first,3),actor:null})));
+      const rollback = rejects(() => s.withTransaction(db, () => {
+        s.storeCandidateReviewEvent(db, report(first,3));
+        db.query("UPDATE workItems SET title='uncommitted' WHERE id=?1").run(work);
+        throw Error("abort owning transaction");
+      }));
+      const unchangedTitle = db.query("SELECT title FROM workItems WHERE id=?1").get(work).title;
+      const afterRollback = s.loadCandidateReviewEvents(db,first).map(e=>e.id);
+      s.withTransaction(db, () => s.storeCandidateReviewEvent(db,report(first,3)));
+      db.close();
+      const reopened = s.openOrderDatabase(root);
+      const history = s.loadCandidateReviewEvents(reopened,first);
+      const other = s.loadCandidateReviewEvents(reopened,second);
+      reopened.query("UPDATE candidateReviewEvents SET eventJson=?1 WHERE id=?2").run(JSON.stringify({tag:"OPENED",candidateHash:hash}),id("review",3));
+      const corruptRejected = rejects(() => s.loadCandidateReviewEvents(reopened,first));
+      reopened.close();
+      console.log(JSON.stringify({gap,wrongFirst,duplicateOpening,foreignApproval,duplicateId,wrongActor,rollback,unchangedTitle,afterRollback,history:history.map(e=>e.id),other:other.map(e=>e.id),corruptRejected}));
+    `);
+    expect(JSON.parse(result.stdout.trim())).toEqual({
+      gap:true, wrongFirst:true, duplicateOpening:true, foreignApproval:true, duplicateId:true, wrongActor:true, rollback:true,
+      unchangedTitle:"title", afterRollback:["review_00000000-0000-4000-8000-000000000001"],
+      history:["review_00000000-0000-4000-8000-000000000001","review_00000000-0000-4000-8000-000000000003"],
+      other:["review_00000000-0000-4000-8000-000000000002"], corruptRejected:true,
+    });
+  });
+
   it("reads distinct v1 WorkItem repository roots as installer migration evidence", () => {
     const root = tempDir();
     const result = bun(`
