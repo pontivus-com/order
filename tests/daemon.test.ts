@@ -581,6 +581,9 @@ const server = Bun.serve({
             ? '[{"tag":"REVIEW_PASSED","minimumChange":"MINIMUM_SUFFICIENT","minimumChangeSummary":null,"evidence":[]}]'
             : '[{"tag":"REVIEW_FAILED","classification":"REVIEW_FAILURE","summary":"target still needs repair or V4 inputs are incomplete","evidence":[]}]';
         }
+      } else if (mode === "stage-durable-history") {
+        writeFileSync(join(own, "durable-history-prompt"), text);
+        output = '[{"tag":"AGENT_MESSAGE_FINAL","text":"history captured for inspection","evidence":[]}]';
       } else if (mode === "stage-durable-complete") {
         output = text.includes("Human input:")
           ? '[{"tag":"STAGE_COMPLETED","completion":{"stage":"R1","outcome":"CONFIRMED"},"artifactRefIds":[]}]'
@@ -6306,6 +6309,119 @@ describe("daemon control plane", () => {
     );
     expect(output.workItem).toMatchObject({ stage: "R1", status: "ACTIVE" });
   }, 30_000);
+
+  it("carries exact owning-stage decisions and adoption chronology into a fresh Run after explicit source Save", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-decision-history-");
+    const binary = createFakeOpenCode("stage-durable-history");
+    const output = bunEval(`
+      const fs = await import("node:fs");
+      const path = await import("node:path");
+      const sql = await import("./src/shell/sqlite.ts");
+      const rt = await import("./src/shell/runtime.ts");
+      const repo = await import("./src/shell/repository.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const runStore = await import("./src/daemon/run.ts");
+      const authority = await import("./src/daemon/authority.ts");
+      const sourceCore = await import("./src/core/work-item-source.ts");
+      const repositoryRoot = ${JSON.stringify(repository)};
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const runtime = coord.createCoordinatorRuntime(database, ${JSON.stringify(state)}, process.env, {
+        version: 4, model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+        repositoryRoots: [repositoryRoot], referenceRoots: [],
+      });
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture", schemaId: "change-v1", title: "decision history", concernIds: [],
+      });
+      sql.promoteIdeaToR1(database, created.id);
+      const work = coord.getWorkItem(runtime, created.id);
+      const baseline = await repo.resolveHeadCommit(repositoryRoot);
+      const append = (run, payload) => runStore.appendRunEvent(runtime, run.id, payload);
+      const prior = (id, stage, status) => {
+        const stamp = rt.nowIsoDateTime();
+        const run = runStore.insertRun(runtime, {
+          id: rt.newRunId(), workItemId: id, executionTaskId: null,
+          stage, mode: "INTERACTIVE", role: "STAGE", triggerEventId: null,
+          status: "RUNNING", attempt: runStore.nextAttempt(runtime, id, stage, null),
+          baselineCommit: baseline, contextHash: rt.sha256Text("prior decision context"),
+          providerSessionId: null, terminalClassification: null, startedAt: stamp, endedAt: null,
+        });
+        append(run, { tag: "STAGE_STARTED", stage, mode: "INTERACTIVE", contextHash: run.contextHash });
+        return { run, finish: () => runStore.updateRun(runtime, run.id, {
+          status, terminalClassification: status === "FAILED" ? "PROVIDER_FAILURE" : null, endedAt: rt.nowIsoDateTime(),
+        }) };
+      };
+      const answer = (run, category, question, text) => {
+        const request = append(run, { tag: "HUMAN_INPUT_REQUESTED", category, question });
+        return append(run, { tag: "HUMAN_INPUT_RECEIVED", requestEventId: request.id, text });
+      };
+      const first = prior(work.id, "R1", "CANCELLED");
+      const firstAnswer = answer(first.run, "AUTHORITY_DECISION", "original decision question", "historical decision alpha");
+      answer(first.run, "STAGE_CHOICE", "second decision question", "historical decision beta");
+      answer(first.run, "INFORMATION", "ordinary information question", "ordinary information only");
+      answer(first.run, "EVIDENCE", "ordinary evidence question", "ordinary evidence only");
+      append(first.run, { tag: "HUMAN_INPUT_REQUESTED", category: "AUTHORITY_DECISION", question: "unanswered question excluded" });
+      const artifactPath = sourceCore.workItemDocumentPath("docs/order/work-items", work.id, "R1");
+      fs.writeFileSync(path.join(repositoryRoot, artifactPath), "unrelated adopted material\\n");
+      const artifact = await authority.currentFileArtifact(runtime, work, artifactPath, "R1", "P1");
+      const proposed = append(first.run, { tag: "ARTIFACT_PROPOSAL_CREATED",
+        targetPath: artifactPath, baseSha256: null, role: "R1", authorityLayer: "P1",
+        unifiedDiff: "--- /dev/null\\n+++ b/" + artifactPath + "\\n@@ -0,0 +1 @@\\n+unrelated adopted material\\n",
+        rationale: "unrelated adoption rationale" });
+      append(first.run, { tag: "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED", proposalEventId: proposed.id });
+      append(first.run, { tag: "ARTIFACT_PROPOSAL_DISPOSITIONED", proposalEventId: proposed.id,
+        disposition: "ADOPTED", adoptedArtifactRefId: artifact.id });
+      first.finish();
+      const failed = prior(work.id, "R1", "FAILED");
+      answer(failed.run, "AUTHORITY_CONFLICT", "superseding decision question", "superseding decision gamma");
+      failed.finish();
+      const otherStage = prior(work.id, "R2", "CANCELLED");
+      answer(otherStage.run, "AUTHORITY_DECISION", "foreign-stage question", "foreign-stage decision");
+      otherStage.finish();
+      const other = await coord.createWorkItem(runtime, {
+        projectId: "fixture", schemaId: "change-v1", title: "other item", concernIds: [],
+      });
+      const otherItem = prior(other.id, "R1", "CANCELLED");
+      answer(otherItem.run, "AUTHORITY_DECISION", "foreign-item question", "foreign-item decision");
+      otherItem.finish();
+      const original = fs.readFileSync(path.join(repositoryRoot, work.sourcePath), "utf8");
+      const saved = await coord.saveSource(runtime, work.id, {
+        expectedSha256: work.sourceSha256,
+        markdown: original + "\\nDurable authority: superseding decision gamma. Retain historical decision beta.\\n",
+      });
+      const current = coord.getWorkItem(runtime, work.id);
+      const fresh = await coord.startStageRun(runtime, work.id, "INTERACTIVE");
+      await Promise.all([...runtime.stageTurnTasks.values()]);
+      const prompt = fs.readFileSync(path.join(path.dirname(process.env.PONTIVUS_ORDER_OPENCODE_BIN), "durable-history-prompt"), "utf8");
+      const events = coord.listRunEvents(runtime, fresh.id);
+      await coord.cancelRun(runtime, fresh.id);
+      console.log(JSON.stringify({ prompt, saved, sourceHash: current.sourceSha256, artifactId: artifact.id,
+        artifactHash: artifact.sha256, firstAnswerId: firstAnswer.id,
+        providerObserved: events.some(event => event.event.tag === "AGENT_MESSAGE_FINAL" &&
+          event.event.text === "history captured for inspection"),
+        completed: events.some(event => event.event.tag === "STAGE_COMPLETED") }));
+      database.close();
+    `, providerEnvironment(binary, state), 60_000) as {
+      prompt: string; saved: { tag: string; sha256: string }; sourceHash: string; artifactId: string;
+      artifactHash: string; firstAnswerId: string; providerObserved: boolean; completed: boolean;
+    };
+    expect(output.saved.tag).toBe("UPDATED");
+    expect(output.saved.sha256).toBe(output.sourceHash);
+    expect(output.providerObserved).toBe(true);
+    expect(output.completed).toBe(false);
+    for (const evidence of [
+      "historical decision alpha", "historical decision beta", "superseding decision gamma",
+      "original decision question", "second decision question", "superseding decision question",
+      output.firstAnswerId, output.artifactId, output.artifactHash, output.sourceHash,
+      "unrelated adoption rationale", "Durable authority: superseding decision gamma.",
+      "A new attempt, unrelated adoption or prior chat answer alone is not coverage",
+      "explain any superseded decision using current durable authority",
+    ]) expect(output.prompt).toContain(evidence);
+    for (const excluded of [
+      "ordinary information only", "ordinary evidence only", "unanswered question excluded",
+      "foreign-stage decision", "foreign-item decision",
+    ]) expect(output.prompt).not.toContain(excluded);
+  }, 60_000);
 
   it("rejects sign-off when material authority changes after R3", () => {
     const repository = createRepository();

@@ -1749,6 +1749,38 @@ describe("actual IA25 installer transaction", () => {
     }
   }, 120_000);
 
+  it.each(["absent", "config-only", "database-only", "partial", "malformed-marker", "symlink-marker"] as const)(
+    "does not infer established admission from an incomplete or unproven footprint: %s", kind => {
+      const fixture = transactionFixture();
+      const root = join(fixture.home, ".local/share/pontivus-order");
+      if (kind === "config-only") {
+        writeFileSync(join(fixture.stateRoot, "config.json"), JSON.stringify({
+          version: 4, model: null, repositoryRoots: [], referenceRoots: [],
+        }) + "\n", { mode: 0o600 });
+      } else if (kind === "partial" || kind === "malformed-marker" || kind === "symlink-marker") {
+        createPriorDeployment(fixture);
+        if (kind === "partial") rmSync(join(root, "app/dist/index.html"));
+        if (kind === "malformed-marker") writeFileSync(join(root, "SOURCE_COMMIT"), "not a source commit\n");
+        if (kind === "symlink-marker") {
+          renameSync(join(root, "SOURCE_COMMIT"), join(root, "old-source"));
+          symlinkSync(join(root, "old-source"), join(root, "SOURCE_COMMIT"));
+        }
+      }
+      const outcome = runInstallerTransaction({ ...fixture,
+        ...(kind === "database-only" ? { legacyDatabaseVersion: 3 as const } : {}),
+        establishedHistory: "yes", readiness: { ready: false, blockers: ["MODEL_INVALID"] },
+      });
+      expect(outcome.failure).toContain("MODEL_INVALID");
+      expect(outcome.prompts.some((prompt: string) => prompt.startsWith("Did installation"))).toBe(false);
+      expect(outcome.events.some((event: { command: string[] }) => event.command[0] === "readiness")).toBe(true);
+      expect(outcome.stdout).not.toContain("Order installed successfully.");
+      expect(outcome.stdout).not.toContain("Order updated successfully.");
+      if (kind === "symlink-marker") {
+        expect(lstatSync(join(root, "SOURCE_COMMIT")).isSymbolicLink()).toBe(true);
+        expect(readFileSync(join(root, "old-source"), "utf8")).toBe("b".repeat(40) + "\n");
+      }
+    }, 120_000);
+
   it("complete-looking deployment still needs affirmative history; cancellation is non-mutating", () => {
     const fixture = transactionFixture();
     const fresh = runInstallerTransaction({ ...fixture, readiness: { ready: true, blockers: [] } });
