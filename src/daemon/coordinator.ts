@@ -124,6 +124,7 @@ import {
   createWorkItemFromSource,
   currentWorkItemSource,
   reconcileWorkItemSources,
+  reconcileAcceptanceSource,
   revalidateWorkItemSource,
   saveWorkItemSource,
   saveWorkItemSourceBody,
@@ -167,6 +168,7 @@ export const listCurrentLifecycleArtifacts = async (
 export const getWorkItemSource = currentWorkItemSource;
 export const getWorkItemSourceDiagnostics = workItemSourceDiagnostics;
 export const reconcileSources = reconcileWorkItemSources;
+export { reconcileAcceptanceSource };
 export const saveSource = saveWorkItemSource;
 export const saveSourceBody = saveWorkItemSourceBody;
 export const updateTitle = updateWorkItemTitle;

@@ -99,6 +99,7 @@ import {
 } from "../shell/runtime.ts";
 import {
   findArtifactSnapshot,
+  blockExecutionTasksForApproval,
   loadApproval,
   loadApprovalsForWorkItem,
   loadCandidateReviewEvents,
@@ -1905,12 +1906,25 @@ export const reconcileWorkItemAuthority = (
   runtime: CoordinatorRuntime,
   workItemId: WorkItemId,
   expectedOwner: UpstreamReturnStage,
+  acceptance?: Readonly<{expectedApprovalId:Approval["id"];expectedReviewSequence:number}>,
 ): Promise<WorkItem> =>
-  withWorkItemOperatorMutation(
-    runtime,
-    workItemId,
-    () => reconcileWorkItemAuthorityUnlocked(runtime, workItemId, expectedOwner),
-  );
+  withWorkItemOperatorMutation(runtime,workItemId,async()=>{
+    if(acceptance===undefined) return reconcileWorkItemAuthorityUnlocked(runtime,workItemId,expectedOwner);
+    const {expectedApprovalId,expectedReviewSequence}=acceptance;
+    const before=requireCurrentAcceptanceIdentity(runtime,workItemId,expectedApprovalId,expectedReviewSequence);
+    for(let i=0;i<2;i++){
+      try { await observeCurrentCandidateReview(runtime,workItemId,expectedApprovalId,expectedReviewSequence); }
+      catch(error) { if(staleAuthorityOwnerForFailure(error)===expectedOwner) continue; throw error; }
+      throw new TypeError("signed material authority is current");
+    }
+    return withTransaction(runtime.database,()=>{
+      const current=requireCurrentAcceptanceIdentity(runtime,workItemId,expectedApprovalId,expectedReviewSequence);
+      if(canonicalJson(current)!==canonicalJson(before)) throw new TypeError("Acceptance authority return identity changed");
+      blockExecutionTasksForApproval(runtime.database,expectedApprovalId);
+      updateWorkItemLifecycle(runtime.database,workItemId,transitionWorkItem(current.workItem,{tag:"RECONCILE_AUTHORITY",owner:expectedOwner}));
+      return getWorkItem(runtime,workItemId);
+    });
+  });
 
 const signOffWorkItemUnlocked = async (
   runtime: CoordinatorRuntime,

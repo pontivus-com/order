@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Stage exact Acceptance source/material recovery, bulk/startup reconciliation exclusion and signed source/title/archive/repository guards.
+
 - Activate the canonical candidate/no-op aggregate, atomic review opening/return and exact queued correction admission on the isolated cutover branch.
 
 - Stage native QA human commands and isolated manual-test-copy admission using exact current proof and existing transaction/lifecycle owners.

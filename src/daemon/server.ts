@@ -32,6 +32,7 @@ import {
   OpenCodeAccountLoginAttemptIdSchema,
   OrderHttpErrorSchema,
   ReconcileWorkItemAuthoritySchema,
+  ReconcileWorkItemSourcesCommandSchema,
   RemoveOpenCodeAccountSchema,
   RenameOpenCodeAccountSchema,
   StartOpenCodeAccountLoginSchema,
@@ -86,6 +87,7 @@ import {
   readArtifactProposalTarget,
   readReferencedEvidence,
   reconcileSources,
+  reconcileAcceptanceSource,
   reconcileWorkItemAuthority,
   rejectArtifactProposal,
   resumeWorkItem,
@@ -776,12 +778,10 @@ const routeApi = async (
   }
 
   if (request.method === "POST" && url.pathname === "/api/work-item-sources/reconcile") {
-    const body = await readJsonBody(request);
-    requireKeys(body, []);
-    return jsonResponse(await reconcileSources(
-      runtime,
-      await readyRepositoryRoots(runtime.config),
-    ));
+    const body=await parseRequest(async()=>ReconcileWorkItemSourcesCommandSchema.parse(await readJsonBody(request)));
+    return jsonResponse("workItemId" in body
+      ? await reconcileAcceptanceSource(runtime,body.workItemId,body.expectedApprovalId,body.expectedReviewSequence)
+      : await reconcileSources(runtime,await readyRepositoryRoots(runtime.config),true));
   }
 
   if (
@@ -989,6 +989,7 @@ const routeApi = async (
         runtime,
         workItemId,
         body.expectedOwner,
+        "expectedApprovalId" in body ? body : undefined,
       ));
     }
     if (parts[3] === "signoff" && parts.length === 4 && request.method === "POST") {
