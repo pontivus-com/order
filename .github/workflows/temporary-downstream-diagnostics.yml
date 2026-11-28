@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        lane: [integration, rendered]
+        lane: [mechanical, browser]
     env:
       CI: "1"
       PONTIVUS_ORDER_TEST_STATE_ROOT: /tmp/pontivus-order-browser-state
@@ -79,33 +79,18 @@ jobs:
         run: bun ci
       - name: typecheck
         run: bun run tsc --noEmit
-      - name: Exact dependency ownership checks
-        run: node node_modules/vitest/vitest.mjs run tests/architecture.test.ts -t 'enforces the P4 dependency direction|enforces the canonical core and daemon module ownership/dependency graph'
+      - name: Complete mechanical suite (retain all failures)
+        if: matrix.lane == 'mechanical'
+        run: node node_modules/vitest/vitest.mjs run
       - name: Build
+        if: matrix.lane == 'browser'
         run: node node_modules/vite/bin/vite.js build
       - name: Install Playwright
+        if: matrix.lane == 'browser'
         run: node node_modules/@playwright/test/cli.js install --with-deps chromium
-      - name: Terminal outcome browser proof
-        if: matrix.lane == 'integration'
-        run: node node_modules/@playwright/test/cli.js test --grep 'terminal investigation and audit results|all schema-admitted terminal|all non-delivery|Approval retains the inspected package'
-      - name: Exhaustive diagnostic (not signed acceptance)
-        if: matrix.lane == 'rendered'
-        env:
-          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR: ${{ runner.temp }}/order-rendered-integration
-          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA: '3e5771a7ee9f53da00131718888c8beba484ddde'
-          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_LABEL: 'Proposed protected integration diagnostic'
-          PONTIVUS_ORDER_RENDERED_EVIDENCE_KIND: 'ia26_acceptance'
-        run: |
-          mkdir -p "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR"
-          node node_modules/@playwright/test/cli.js test --grep 'rendered acceptance'
-      - name: Publish exhaustive diagnostic
-        if: ${{ !cancelled() && matrix.lane == 'rendered' }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: proposed-integration-diagnostic-3e5771a7ee9f53da00131718888c8beba484ddde
-          path: ${{ runner.temp }}/order-rendered-integration
-          if-no-files-found: ignore
-          retention-days: 14
+      - name: Full ordinary browser suite
+        if: matrix.lane == 'browser'
+        run: node node_modules/@playwright/test/cli.js test
       - name: Print browser failure
         if: failure()
-        run: find test-results -name error-context.md -exec sh -c 'head -200 "$1"' _ {} \;
+        run: find test-results -name error-context.md -exec sh -c 'head -200 "$1"' _ {} \; || true
