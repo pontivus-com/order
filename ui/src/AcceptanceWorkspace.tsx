@@ -223,7 +223,7 @@ export const AcceptanceWorkspace = ({workItem,material,approvals,histories,histo
         {id:"reproduction",label:"Reproduction",value:entry.event.reproduction},
         {id:"impact",label:"Impact",value:entry.event.impact},
         {id:"criteria",label:"Linked criteria",value:entry.event.acceptanceRefs.join(", ")||"Not classified"},
-        {id:"assessment",label:completedMember!==undefined&&completedMember.id===memberFor(entry.event.taskId)?.id?"Independent assessment":"Historical assessment",
+        {id:"assessment",label:assessment===undefined||completedMember?.id===memberFor(entry.event.taskId)?.id?"Independent assessment":"Historical assessment",
           value:assessment===undefined?"No finding-specific assessment recorded.":assessment.verdict==="SATISFIED"?"Satisfied":assessment.verdict==="NOT_REPRODUCED"?"Not reproduced":assessment.verdict==="UPSTREAM"?"Upstream authority":"Repair required"},
         ...(assessment===undefined?[]:[{id:"assessment-rationale",label:"Assessment rationale",value:assessment.rationale}]),
         ...(retest?.event.tag==="RETEST_FAILED"?[{id:"retest-observed",label:"Retest observation",value:retest.event.observed},{id:"retest-rationale",label:"Retest rationale",value:retest.event.rationale}]:[]),

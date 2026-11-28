@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Exercise native Acceptance queued/correction/retest, mixed no-change challenge, historical return, real isolated-copy, loading and error interactions; require exact medium comparison evidence for every Acceptance and dependent state. Use signed-work terminology for root relocation guards.
+
 - Add signed deterministic correction, mixed-task, retest and isolated-copy fixture histories for native Acceptance coverage.
 
 - Add the exact selected Acceptance identity group to the existing Context owner, sharing Review round selection. Extend integrated captures for Queue, identity, Context, signed Approval/document, original evidence and terminal provenance.
