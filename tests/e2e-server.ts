@@ -1754,7 +1754,7 @@ for(const {fault,item} of nativeFaultItems) nativeFaultFixtures.set(item.id,{...
 
 // Canonical persisted histories: use the real signed package and exact
 // builder/reviewer/event lineage, not mocked view models or atlas states.
-let liveCorrection:Readonly<{run:ReturnType<typeof RunSchema.parse>;approvalId:ReturnType<typeof newApprovalId>;submissionId:ReturnType<typeof newCandidateReviewEventId>;sequence:number}>|null=null;
+const liveCorrections:Readonly<{run:ReturnType<typeof RunSchema.parse>;approvalId:ReturnType<typeof newApprovalId>;submissionId:ReturnType<typeof newCandidateReviewEventId>;sequence:number}>[]=[];
 for(const [kind,item] of nativeHistoryItems){
   const fixture=await seedNativeCandidate(item);
   if(kind==="copy"||kind==="loading"||kind==="mixed")continue;
@@ -1784,7 +1784,7 @@ for(const [kind,item] of nativeHistoryItems){
     if(mode==="RUNNING"){
       // Active attempts must be inserted after daemon restart recovery, just
       // like the existing live STAGE fixtures below.
-      liveCorrection={run,approvalId:fixture.approval.id,submissionId:submission.id,sequence:sequence+1};
+      liveCorrections.push({run,approvalId:fixture.approval.id,submissionId:submission.id,sequence:sequence+1});
       return;
     }
     storeRun(database,run);
@@ -2383,8 +2383,7 @@ const environment: NodeJS.ProcessEnv = {
   PONTIVUS_ORDER_BIND: "127.0.0.1:17347",
 };
 const daemon = await startOrderDaemon(environment);
-if(liveCorrection!==null){
-  const {run,approvalId,submissionId,sequence}=liveCorrection;
+for(const {run,approvalId,submissionId,sequence} of liveCorrections){
   withTransaction(daemon.coordinator.database,()=>{
     storeRun(daemon.coordinator.database,run);
     storeCandidateReviewEvent(daemon.coordinator.database,{id:newCandidateReviewEventId(),approvalId,sequence,
