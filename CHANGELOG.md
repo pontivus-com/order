@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Clarify minimum-change verification: test the actual change, material producer/carrier/consumer dependencies and side effects; retain unaffected evidence, and do not turn non-blocking findings or identity-only changes into repeated semantic review. Preserve mandatory signed admission and final certification.
+
 - Amend the existing signed Approval artifact observation for exact task/criterion document selection, and reconcile the one excluded SettingsLayout continuity path through the upstream 62-path/58-exclusion forecast, compiled PLAN and protected scope sensor before renewed sign-off.
 
 - Suspend the exact 0.6.0 T1 authorization and reopen package evidence binding after signed criterion consumption and excluded Settings-path defects were identified; preserve the isolated Acceptance implementation and prior evidence pending governed upstream reconciliation.
