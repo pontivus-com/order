@@ -258,6 +258,7 @@ export const SignoffReview = ({
             tone="ghost"
             onClick={() => selectDetail()}
           />
+          {reviewAction}
         </div>
         {selectedArtifact === null ? (
           <WorkbenchState kind="empty" title="Governed document is no longer available" />

@@ -1137,8 +1137,9 @@ export const WorkItemWorkspace = ({
             ? {
                 status: "error" as const,
                 title: workflow.label + " is blocked",
-                description:
-                  "Resolve the current canonical blocker before continuing.",
+                description: currentStageEvents.findLast(event => event.event.tag === "STAGE_BLOCKED")?.event.tag === "STAGE_BLOCKED"
+                  ? currentStageEvents.flatMap(event => event.event.tag === "STAGE_BLOCKED" ? [event.event.reason] : []).at(-1) ?? "Resolve the current canonical blocker before continuing."
+                  : "Resolve the current canonical blocker before continuing.",
               }
             : currentAttention === "RECOVERY"
               ? {
@@ -1346,6 +1347,7 @@ export const WorkItemWorkspace = ({
     >
       {material.kind === "EVIDENCE" && selectedStep !== "EXECUTION" ? (
         <Suspense fallback={<WorkbenchState kind="loading" title="Loading evidence…" />}>
+          {historicalReturn === undefined ? null : <div className="order-inline-actions">{historicalReturn}</div>}
           <EvidenceViewer
             selection={material.selection}
             onBack={returnFromTransient}
@@ -1445,7 +1447,7 @@ export const WorkItemWorkspace = ({
               : packageHash !== null && (prospectiveArtifactsQuery.isPending || prospectiveArtifactsQuery.isFetching))}
             artifactsError={approvalsQuery.error ?? (currentApprovalRequired ? currentApprovalQuery.error : null) ?? (selectedApprovalUnresolved
               ? new TypeError("Selected Approval is unavailable")
-              : selectedApproval !== null ? selectedApprovalArtifactsQuery.error : prospectiveArtifactsQuery.error)}
+              : selectedApproval !== null ? selectedApprovalArtifactsQuery.error : packageStaleOwner !== null ? null : prospectiveArtifactsQuery.error)}
             tasks={selectedApproval === null ? [] : tasks.filter(task => task.approvalId === selectedApproval.id)}
             tasksPending={tasksQuery.isPending}
             tasksError={tasksQuery.error}

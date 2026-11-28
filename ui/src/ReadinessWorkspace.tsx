@@ -342,6 +342,7 @@ export const ReadinessWorkspace = ({
       <div className={material.kind === "SUPPORTING_DOCUMENT" ? "order-document-inspection" : "order-readiness-dialogue"} data-testid="review-workspace">
         {requiredInputOwnsAttention ? null : (
           <div className="order-inline-actions">
+            {reviewAction}
             <WorkbenchAction
               label="Back to Readiness review"
               tone="ghost"

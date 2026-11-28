@@ -4125,7 +4125,13 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   await documentDetails.click();
   await expect(planMaterial.getByLabel("Document location")).toContainText("Repository path");
   await expect(planMaterial.getByLabel("Document location")).toContainText("WorkItem documents");
+  const taskInspection = planMaterial.getByTestId("plan-task-inspection");
+  await expect(taskInspection).toContainText("Prove the browser candidate surface");
+  for (const label of ["Dependencies", "Scope", "Exclusions", "Expected change surface (forecast)", "Acceptance", "Gates", "Authority", "Concerns"]) {
+    await expect(taskInspection).toContainText(label);
+  }
   await documentDetails.click();
+  await expect(taskInspection).not.toBeVisible();
   const planEditor = await openMarkdownEditor(page, "Implementation plan document Markdown source");
   await capture({
     id: "ia26-lifecycle-document-editor-wide-light",
@@ -4498,6 +4504,8 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   const readinessReview = page.getByTestId("review-workspace");
   await expect(readinessReview.getByTestId("review-verdict")).toContainText("Ready for sign-off");
   await expect(readinessReview.getByText("Loading readiness findings…", { exact: true })).toHaveCount(0);
+  await expect(readinessReview).toContainText("The review assessed contradictory authority and missing verification evidence.");
+  await expect(readinessReview).toContainText("The exact conformed artifact identifies the reviewed package.");
   await expect(readinessReview.getByRole("button", { name: "Return to Approval", exact: true })).toBeVisible();
   await capture({
     id: "ia26-readiness-review-wide-light",
@@ -6815,6 +6823,23 @@ test("proposal decisions are primary, mutation-safe, and Approval keeps sign-off
   const packageHash = page.getByTestId("context-signoff-package-hash");
   await expect(packageHash).toHaveText(/^sha256:[0-9a-f]{64}$/);
   await expect(packageHash).toBeVisible();
+  const approvalItem = await workItemForTitle(page, "Awaiting sign-off");
+  const observedHash = await packageHash.textContent();
+  const closurePath = "/api/work-items/" + approvalItem.id + "/signoff-package/artifacts";
+  const exactPath = closurePath + "?expectedPackageHash=" + encodeURIComponent(observedHash!);
+  const exactResponse = await page.context().request.get(exactPath);
+  expect(exactResponse.status()).toBe(200);
+  const exactMembers = ArtifactRefSchema.array().parse(await exactResponse.json());
+  expect(exactMembers.every(member => member.workItemId === approvalItem.id)).toBe(true);
+  expect(exactMembers.filter(member => member.role === "PLAN")).toHaveLength(1);
+  expect(exactMembers.filter(member => member.role === "R3")).toHaveLength(1);
+  expect(new Set(exactMembers.map(member => member.id)).size).toBe(exactMembers.length);
+  const repeated = await page.context().request.get(exactPath);
+  expect(await repeated.json()).toEqual(exactMembers);
+  expect((await page.context().request.get(closurePath)).status()).toBe(400);
+  expect((await page.context().request.get(closurePath + "?expectedPackageHash=bad")).status()).toBe(400);
+  expect((await page.context().request.get(exactPath + "&expectedPackageHash=" + encodeURIComponent(observedHash!))).status()).toBe(400);
+  expect((await page.context().request.get(closurePath + "?expectedPackageHash=sha256:" + "0".repeat(64))).status()).toBe(409);
   await expect(page.getByTestId("workflow-step-index")).toHaveCount(0);
   await page.getByRole("button", { name: "Close context", exact: true }).click();
 

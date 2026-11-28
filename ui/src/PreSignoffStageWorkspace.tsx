@@ -209,7 +209,10 @@ export const PreSignoffStageWorkspace = ({
     }
   })();
 
-  if (material.kind === "PROPOSAL") return primary;
+  if (material.kind === "PROPOSAL") return <>
+    {historicalReturn === undefined ? null : <div className="order-inline-actions">{historicalReturn}</div>}
+    {primary}
+  </>;
 
   const inspectingSupportingDocument =
     material.kind === "SOURCE_DOCUMENT" || material.kind === "SUPPORTING_DOCUMENT";

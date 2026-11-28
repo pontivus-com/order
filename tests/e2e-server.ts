@@ -452,6 +452,14 @@ No unresolved defect blocks the exact governed package.
 ## Package judgment
 
 The current package is coherent and ready for Approval.
+
+## Adversarial findings
+
+The review assessed contradictory authority and missing verification evidence.
+
+## Evidence
+
+The exact conformed artifact identifies the reviewed package.
 `;
 const manifestText = `version = 1
 projectId = "order-e2e"
@@ -1222,6 +1230,11 @@ const seedBlockedReadinessItem = async (
     stage: "R3",
     mode: "INTERACTIVE",
     contextHash,
+  });
+  appendRunEvent(seedRuntime, run.id, {
+    tag: "STAGE_COMPLETED",
+    completion: { stage: "R3", outcome: "READY_FOR_SIGNOFF" },
+    artifactRefIds: [output.id],
   });
   appendRunEvent(seedRuntime, run.id, {
     tag: "STAGE_BLOCKED",

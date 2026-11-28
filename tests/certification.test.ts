@@ -988,7 +988,8 @@ describe("Order cross-boundary certification", () => {
       .toBeLessThan(documentChangeView.indexOf('label="View exact diff"'));
 
     const proposal = read("ui/src/PreSignoffStageWorkspace.tsx");
-    expect(proposal).toContain('if (material.kind === "PROPOSAL") return primary;');
+    expect(proposal).toContain('if (material.kind === "PROPOSAL") return <>');
+    expect(proposal).toContain('{primary}');
     expect(proposal).toContain("documentAttention?: ReactNode");
     expect(proposal).toContain("historicalReturn?: ReactNode");
     expect(proposal).toContain("stateNotice?: ReactNode");
