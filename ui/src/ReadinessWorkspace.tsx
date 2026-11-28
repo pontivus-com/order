@@ -211,7 +211,7 @@ export const ReadinessWorkspace = ({
     enabled: readinessArtifact !== null && workItem.stage === "AWAITING_SIGNOFF",
   });
   const prospectiveHash = workItem.stage === "AWAITING_SIGNOFF" &&
-    prospectivePackageQuery.isSuccess ? prospectivePackageQuery.data.packageHash : null;
+    prospectivePackageQuery.isSuccess && !prospectivePackageQuery.isFetching ? prospectivePackageQuery.data.packageHash : null;
   const prospectiveClosureQuery = useQuery({
     queryKey: workbenchQueryKeys.signoffPackageArtifacts(workItem.id, prospectiveHash),
     queryFn: () => {

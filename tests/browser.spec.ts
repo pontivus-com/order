@@ -7316,6 +7316,41 @@ test("Approval retains the inspected package when a different prospective hash i
   await review.getByRole("button", { name: "Return to Approval", exact: true }).click();
   await expect(review.getByTestId("review-verdict")).toContainText("Ready for sign-off");
   await expect(page.getByLabel("Approved by")).toHaveValue("");
+
+  // A new navigation must bind the fresh package, not the stale cached identity.
+  // Delay only the current observation and let the real exact-closure route
+  // reject any request for the old (replacement) hash. Never issue that request.
+  await backToQueue(page);
+  await page.unroute("**" + packagePath);
+  await page.unroute("**" + packagePath + "/artifacts?**");
+  let releaseCurrent=():void=>{};
+  let currentRequested=():void=>{};
+  const currentBarrier=new Promise<void>(resolve=>{releaseCurrent=resolve;});
+  const currentStarted=new Promise<void>(resolve=>{currentRequested=resolve;});
+  const requestedClosureHashes:string[]=[];
+  await page.route("**"+packagePath,async route=>{
+    currentRequested();
+    await currentBarrier;
+    await route.continue();
+  });
+  await page.route("**"+packagePath+"/artifacts?**",async route=>{
+    requestedClosureHashes.push(new URL(route.request().url()).searchParams.get("expectedPackageHash")??"missing");
+    await route.continue();
+  });
+  try{
+    await openWorkItem(page,"Awaiting sign-off");
+    await currentStarted;
+    await expect(review).toContainText("Resolving approval package");
+    await expect(review.getByRole("button",{name:"Sign off exact package"})).toHaveCount(0);
+    expect(requestedClosureHashes).toEqual([]);
+  }finally{releaseCurrent();}
+  await expect(review.getByTestId("review-verdict")).toContainText("Ready for sign-off");
+  await expect(review.getByRole("button",{name:"Sign off exact package"})).toBeVisible();
+  expect(requestedClosureHashes.length).toBeGreaterThan(0);
+  expect([...new Set(requestedClosureHashes)]).toEqual([originalHash]);
+  await page.getByRole("button",{name:"Context",exact:true}).click();
+  await expect(hash).toHaveText(originalHash);
+  await page.getByRole("button",{name:"Close context",exact:true}).click();
 });
 
 test("proposal decisions are primary, mutation-safe, and Approval keeps sign-off attached to selected material", async ({
