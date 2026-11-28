@@ -71,6 +71,7 @@ import {
   listExecutionTasks,
   reconcileWorkItemAuthority,
   signoffPackageForWorkItem,
+  observeSignoffPackageArtifacts,
   signOffWorkItem,
   staleAuthorityOwnerForFailure,
 } from "./authority.ts";
@@ -614,6 +615,7 @@ export {
   observeApprovalArtifacts,
   reconcileWorkItemAuthority,
   signoffPackageForWorkItem,
+  observeSignoffPackageArtifacts,
   signOffWorkItem,
 } from "./authority.ts";
 export {

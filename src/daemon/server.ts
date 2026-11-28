@@ -70,6 +70,7 @@ import {
   listRuns,
   listWorkItems,
   signoffPackageForWorkItem,
+  observeSignoffPackageArtifacts,
   readArtifactContent,
   readArtifactProposalTarget,
   readReferencedEvidence,
@@ -879,6 +880,14 @@ const routeApi = async (
         await startCurrentExecutionTask(runtime, workItemId, executionTaskId),
         201,
       );
+    }
+    if (parts[3] === "signoff-package" && parts.length === 5 &&
+        parts[4] === "artifacts" && request.method === "GET") {
+      const expected = await parseRequest(() => {
+        const values = url.searchParams.getAll("expectedPackageHash");
+        return Sha256Schema.parse(values.length === 1 ? values[0] : undefined);
+      });
+      return jsonResponse(await observeSignoffPackageArtifacts(runtime, workItemId, expected));
     }
     if (parts[3] === "signoff-package" && parts.length === 4 && request.method === "GET") {
       return jsonResponse(await signoffPackageForWorkItem(runtime, workItemId));

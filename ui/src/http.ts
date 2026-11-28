@@ -281,6 +281,14 @@ export const listExecutionTasks = async (
     `/api/work-items/${encodeURIComponent(workItemId)}/tasks`,
   ));
 
+export const listSignoffPackageArtifacts = async (
+  workItemId: WorkItemId,
+  expectedPackageHash: Sha256,
+): Promise<readonly ArtifactRef[]> =>
+  ArtifactRefSchema.array().parse(await json(
+    `/api/work-items/${encodeURIComponent(workItemId)}/signoff-package/artifacts?expectedPackageHash=${encodeURIComponent(expectedPackageHash)}`,
+  ));
+
 export const getSignoffPackage = async (
   workItemId: WorkItemId,
 ): Promise<SignoffPackage> =>

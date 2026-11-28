@@ -40,6 +40,8 @@ export const workbenchQueryKeys = {
     ["lifecycleArtifacts", workItemId] as const,
   signoffPackage: (workItemId: WorkItemId) =>
     ["signoffPackage", workItemId] as const,
+  signoffPackageArtifacts: (workItemId: WorkItemId, packageHash: string | null) =>
+    ["signoffPackage", workItemId, packageHash, "artifacts"] as const,
   currentApproval: (workItemId: WorkItemId) =>
     ["currentApproval", workItemId] as const,
   approvals: (workItemId: WorkItemId) =>

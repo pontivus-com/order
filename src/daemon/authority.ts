@@ -1614,6 +1614,27 @@ const persistCommittedApprovalClosure = (
   }
 };
 
+export const observeSignoffPackageArtifacts = async (
+  runtime: CoordinatorRuntime,
+  workItemId: WorkItemId,
+  expectedPackageHash: Sha256,
+): Promise<readonly ArtifactRef[]> => {
+  const prepared = await computeSignoffPackage(runtime, workItemId);
+  if (prepared.packageHash !== expectedPackageHash) {
+    throw new TypeError("sign-off package identity changed");
+  }
+  const persisted = [...new Set([prepared.conformedR3.id,
+    ...dependencyClosure(runtime, prepared.conformedR3.id)])]
+    .sort().map(id => getArtifact(runtime, id));
+  const committed = [prepared.plan, prepared.r3, ...prepared.material];
+  if (persisted.some(artifact => artifact.workItemId !== workItemId) ||
+      persisted.length !== committed.length ||
+      !approvalMaterialIsFresh(persisted, committed)) {
+    throw new TypeError("prospective sign-off closure identity is inconsistent");
+  }
+  return persisted;
+};
+
 export const signoffPackageForWorkItem = async (
   runtime: CoordinatorRuntime,
   workItemId: WorkItemId,

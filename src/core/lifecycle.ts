@@ -954,8 +954,8 @@ export const deriveMaterialPresentationState = (
   signedLocked: boolean,
 ): MaterialPresentationState => {
   if (signedLocked) {
-    if (!isCurrentSemanticSnapshot || reach === "UNREACHED") {
-      throw new TypeError("signed material must be the current reached semantic snapshot");
+    if (reach === "UNREACHED") {
+      throw new TypeError("signed material must be reached");
     }
     return { tag: "SIGNED_LOCKED" };
   }
