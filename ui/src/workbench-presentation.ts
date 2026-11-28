@@ -163,6 +163,7 @@ export type WorkflowMaterial =
       runId: Run["id"] | null;
     }>
   | Readonly<{ kind: "EVIDENCE"; selection: EvidenceSelection }>
+  | Readonly<{ kind: "ACCEPTANCE_REVIEW"; approvalId?: Approval["id"]; roundId?: string }>
   | Readonly<{ kind: "TERMINAL_RESULT" }>
   | Readonly<{ kind: "STEP_STATE" }>
   | Readonly<{ kind: "UNREACHED" }>;
@@ -251,6 +252,7 @@ export const workflowMaterialLabel = (
     case "APPROVAL_PACKAGE": return "Approval package";
     case "EXECUTION_TASK": return "Implementation task";
     case "EVIDENCE": return "Evidence";
+    case "ACCEPTANCE_REVIEW": return "Acceptance review";
     case "TERMINAL_RESULT": return "Final outcome";
     case "STEP_STATE": return "Workflow step";
     case "UNREACHED": return "Not yet reached";
@@ -285,6 +287,8 @@ export const workflowMaterialIdentity = (
     case "STEP_STATE":
     case "UNREACHED":
       return material.kind;
+    case "ACCEPTANCE_REVIEW":
+      return [material.kind, material.approvalId ?? "current", material.roundId ?? "latest"].join(":");
     case "APPROVAL_PACKAGE":
       return [material.kind,material.approvalId??material.packageHash??"unresolved",material.artifactId??"",material.taskId??""].join(":");
     case "STAGE_RUN":
@@ -426,6 +430,7 @@ const selectedMaterialIsAvailable = (
         );
     case "EVIDENCE":
       return true;
+    case "ACCEPTANCE_REVIEW": return input.selectedStep === "AWAITING_ACCEPTANCE";
     case "TERMINAL_RESULT":
       return input.selectedStep === "COMPLETE" &&
         input.workItem.stage === "COMPLETE";
@@ -627,6 +632,10 @@ export const resolveWorkflowMaterial = (
     return { kind: "APPROVAL_PACKAGE" };
   }
 
+  if (input.selectedStep === "AWAITING_ACCEPTANCE") {
+    if (explicitIsAvailable && explicit !== null) return explicit;
+    return { kind: "ACCEPTANCE_REVIEW" };
+  }
   if (input.selectedStep === "EXECUTION") {
     if (
       explicitIsAvailable &&

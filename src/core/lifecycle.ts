@@ -913,6 +913,7 @@ export const deriveReachedStages = (
   events: readonly RunEvent[],
   _artifacts: readonly ArtifactRef[],
   tasks: readonly ExecutionTask[],
+  reviewEvents: readonly CandidateReviewEvent[] = [],
 ): ReadonlySet<WorkStage> => {
   const reached = new Set<WorkStage>(["IDEA", workItem.stage]);
   for (const run of runs) {
@@ -931,6 +932,7 @@ export const deriveReachedStages = (
     reached.add("AWAITING_SIGNOFF");
     reached.add("EXECUTION");
   }
+  if (reviewEvents.some(entry => entry.event.tag === "OPENED" && tasks.some(task => task.approvalId === entry.approvalId))) reached.add("AWAITING_ACCEPTANCE");
   if (workItem.stage === "COMPLETE") reached.add("COMPLETE");
   return reached;
 };
@@ -1327,9 +1329,19 @@ export const deriveCurrentAttention = (input: Readonly<{
   executionOwner: ExecutionOwner;
   automaticWorkActive: boolean;
   ordinaryActionAvailable: boolean;
+  acceptanceDecision?: AcceptanceDecision;
 }>): CurrentAttentionTag => {
   if (input.coherence === "CONVERGING") return "CONVERGING";
   if (input.mutationConflict) return "MUTATION_CONFLICT";
+  if (input.workItem.stage === "AWAITING_ACCEPTANCE") {
+    switch (input.acceptanceDecision?.tag) {
+      case "RECONCILE_AUTHORITY": case "RECONCILE_SOURCE": return "STALE_AUTHORITY";
+      case "REANALYSE_PROOF_UNAVAILABLE": return "BLOCKER";
+      case "QUEUED": return "PROCESSING";
+      case "NONE": case undefined: return "ORDINARY";
+      default: return "ACTIONABLE";
+    }
+  }
   if (input.stageInteraction?.tag === "REQUIRED_INPUT") return "REQUIRED_INPUT";
   if (input.proposal.tag === "PENDING") return "PROPOSAL_DECISION";
   if (input.proposal.tag === "ADOPTION_IN_PROGRESS") return "PROPOSAL_ADOPTION";
@@ -1356,6 +1368,7 @@ const railMarkerForCurrent = (
   if (attention === "STALE_AUTHORITY") return "STALE";
   if (attention === "BLOCKER") return "BLOCKED";
   if (
+    (workItem.stage === "AWAITING_ACCEPTANCE" && attention === "ACTIONABLE") ||
     attention === "REQUIRED_INPUT" ||
     attention === "PROPOSAL_DECISION" ||
     attention === "MUTATION_CONFLICT" ||

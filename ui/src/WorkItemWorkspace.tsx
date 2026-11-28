@@ -7,6 +7,8 @@ import type { ArtifactRef, Run, RunEvent, Sha256, SignoffPackage, WorkItem, Work
 import {
   artifactHasCurrentStageConformance,
   deriveCurrentAttention,
+  deriveAcceptanceDecision,
+  reconstructCandidateRounds,
   deriveExecutionOwner,
   deriveObservationCoherence,
   deriveValidationBoundary,
@@ -64,6 +66,7 @@ const ExecutionWorkspace = lazy(() =>
   import("./ExecutionWorkspace.tsx").then((module) => ({ default: module.ExecutionWorkspace })));
 const EvidenceViewer = lazy(() =>
   import("./EvidenceViewer.tsx").then((module) => ({ default: module.EvidenceViewer })));
+const AcceptanceWorkspace = lazy(() => import("./AcceptanceWorkspace.tsx").then(module => ({default: module.AcceptanceWorkspace})));
 const TerminalResult = lazy(() =>
   import("./TerminalResult.tsx").then((module) => ({ default: module.TerminalResult })));
 
@@ -238,8 +241,11 @@ export const WorkItemWorkspace = ({
   const approvalsQuery = useQuery({
     queryKey: workbenchQueryKeys.approvals(workItem.id),
     queryFn: () => api.listApprovals(workItem.id),
-    enabled: selectedStep === "AWAITING_SIGNOFF",
+    enabled: selectedStep === "AWAITING_SIGNOFF" || tasksRequired,
   });
+  const qaApprovals = approvalsQuery.data ?? [];
+  const qaHistories = useQueries({queries: qaApprovals.map(approval => ({queryKey: workbenchQueryKeys.qaHistory(workItem.id,approval.id), queryFn: () => api.listCandidateReviewEvents(workItem.id,approval.id), retry:false, refetchInterval: workItem.stage === "AWAITING_ACCEPTANCE" ? 2000 : false}))});
+  const allReviewEvents = qaHistories.flatMap(query => query.data ?? []);
   const explicitApproval = explicitMaterial?.kind === "APPROVAL_PACKAGE" ? explicitMaterial : null;
   const selectedApproval = explicitApproval?.approvalId === undefined
     ? workItem.stage === "AWAITING_SIGNOFF" || explicitApproval?.packageHash !== undefined ? null : currentApproval ??
@@ -438,6 +444,7 @@ export const WorkItemWorkspace = ({
     allRunEvents,
     artifacts,
     tasks,
+    allReviewEvents,
   );
 
   const selectedStepState = workflowStepState(
@@ -576,8 +583,35 @@ export const WorkItemWorkspace = ({
         ? observedPackageError
         : null
     );
+  const currentReviewHistory = allReviewEvents.filter(entry => entry.approvalId === currentApproval?.id);
+  const currentReviewSequence = currentReviewHistory.at(-1)?.sequence ?? null;
+  const qaProofQuery = useQuery({
+    queryKey: workbenchQueryKeys.qaProof(workItem.id,currentApproval?.id ?? null,currentReviewSequence),
+    queryFn: () => {
+      if (currentApproval == null || currentReviewSequence === null) throw new TypeError("Current review identity required");
+      return api.listCandidateReviewEvents(workItem.id,currentApproval.id,currentReviewSequence);
+    },
+    enabled: workItem.stage === "AWAITING_ACCEPTANCE" && currentApproval != null && currentReviewSequence !== null,
+    retry:false, refetchInterval: 2000,
+  });
+  const acceptanceDiagnostic = api.isOrderHttpRequestFailure(qaProofQuery.error) ? qaProofQuery.error.orderError : null;
+  let currentRounds: ReturnType<typeof reconstructCandidateRounds> = new Map();
+  let acceptanceCoherent = !transportConverging && semanticCoherence === "COHERENT" && !mutationConflict && !qaProofQuery.isFetching;
+  if (currentApproval != null && currentReviewHistory.length > 0) {
+    try { currentRounds = reconstructCandidateRounds(currentApproval,tasks,runs,allRunEvents,currentReviewHistory); }
+    catch { if (acceptanceDiagnostic === null) acceptanceCoherent = false; }
+  }
+  const acceptanceInput = {
+    current:workItem.stage === "AWAITING_ACCEPTANCE", coherent:acceptanceCoherent,
+    mutationConflict, approval:currentApproval ?? null, history:currentReviewHistory,
+    currentProof:qaProofQuery.isSuccess && !qaProofQuery.isFetching ? qaProofQuery.data : null,
+    diagnostic:acceptanceDiagnostic, rounds:currentRounds,tasks,runs,runEvents:allRunEvents,
+  };
+  let acceptanceDecision: ReturnType<typeof deriveAcceptanceDecision> = {tag:"NONE"};
+  try { acceptanceDecision = deriveAcceptanceDecision(acceptanceInput); } catch { /* incoherent proof cannot admit action */ }
   const currentAttention = deriveCurrentAttention({
     workItem,
+    acceptanceDecision,
     coherence: transportConverging ? "CONVERGING" : semanticCoherence,
     mutationConflict,
     stageInteraction: currentStageInteraction,
@@ -1520,6 +1554,16 @@ export const WorkItemWorkspace = ({
             onReturnFromEvidence={returnFromTransient}
             onMutationError={reportMutationError}
           />
+        </Suspense>
+      ) : selectedStep === "AWAITING_ACCEPTANCE" && material.kind === "ACCEPTANCE_REVIEW" ? (
+        <Suspense fallback={<WorkbenchState kind="loading" title="Loading Acceptance…" />}>
+          <AcceptanceWorkspace workItem={workItem} material={material} approvals={qaApprovals}
+            histories={allReviewEvents} historyPending={approvalsQuery.isPending || qaHistories.some(query=>query.isPending)}
+            historyError={approvalsQuery.error ?? qaHistories.find(query=>query.isError)?.error ?? null}
+            input={acceptanceInput} decision={acceptanceDecision} signedArtifacts={signedArtifacts}
+            onSelectMaterial={next=>requestSelection({step:"AWAITING_ACCEPTANCE",material:next})}
+            onReturnCurrent={()=>requestSelection({step:workItem.stage,material:null})}
+            onOpenEvidence={openEvidence} />
         </Suspense>
       ) : selectedStep === "COMPLETE" && material.kind !== "EVIDENCE" ? (
         <Suspense fallback={<WorkbenchState kind="loading" title="Loading final outcome…" />}>

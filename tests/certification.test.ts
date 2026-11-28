@@ -650,6 +650,7 @@ describe("Order cross-boundary certification", () => {
       .map((entry) => entry.name)
       .sort();
     expect(renderers).toEqual([
+      "AcceptanceWorkspace.tsx",
       "ActivityComposer.tsx",
       "ActivityWorkspace.tsx",
       "CreateWorkItem.tsx",
