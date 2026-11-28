@@ -164,6 +164,27 @@ export const providerEventIsAdmitted = (
   return true;
 };
 
+// QA assessment admission is deliberately separate from ordinary provider tags.
+// Exact submitted IDs, once each, and the ordinary V4 verdict must agree.
+export const qaReviewAssessmentsAreAdmitted = (
+  payload: RunEventPayload,
+  submitted: readonly import("./contracts.ts").CandidateReviewEventId[] | null,
+): boolean => {
+  if (payload.tag !== "REVIEW_PASSED" && payload.tag !== "REVIEW_FAILED") return false;
+  if (submitted === null) return payload.qaAssessments === undefined;
+  const assessments = payload.qaAssessments;
+  if (submitted.length === 0 || new Set(submitted).size !== submitted.length ||
+      assessments === undefined || assessments.length !== submitted.length ||
+      new Set(assessments.map(value => value.findingId)).size !== assessments.length ||
+      !assessments.every(value => submitted.includes(value.findingId))) return false;
+  const upstream = assessments.some(value => value.verdict === "UPSTREAM");
+  const repairable = assessments.some(value => value.verdict === "FAIL_REPAIRABLE");
+  if (payload.tag === "REVIEW_PASSED") return !upstream && !repairable;
+  if (upstream) return payload.classification === "BLOCKED_FOR_REANALYSIS";
+  if (repairable) return payload.classification === "REVIEW_FAILURE";
+  return true; // ordinary V4 can fail a separate signed obligation
+};
+
 type BuilderCheckpointRequest = Extract<
   RunEventPayload,
   { tag: "GATE_CHECKPOINT_REQUESTED" }

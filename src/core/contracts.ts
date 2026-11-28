@@ -281,7 +281,574 @@ export const ArtifactRefIdSchema = z.string().regex(new RegExp(`^artifact_${uuid
 export const ApprovalIdSchema = z.string().regex(new RegExp(`^approval_${uuidV4}$`));
 export const ExecutionTaskIdSchema = z.string().regex(new RegExp(`^task_${uuidV4}$`));
 export const RunIdSchema = z.string().regex(new RegExp(`^run_${uuidV4}$`));
-export const RunEventIdSchema = z.string().regex(new RegExp(`^event_${uuidV4}$`));
+export const RunEventIdSchema = z.string().regex(new RegExp(`^event_${uuidV4}import { z } from "zod";
+
+const uuidV4 = "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}";
+const projectIdPattern = /^[a-z0-9][a-z0-9._-]*$/;
+const gitCommitPattern = /^[0-9a-f]{40}$/;
+const sha256Pattern = /^sha256:[0-9a-f]{64}$/;
+const isoDateTimePattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
+const envNamePattern = /^[A-Za-z_][A-Za-z0-9_]*$/;
+export const defaultRuleIds = [
+  "GW-P1-DOD",
+  "GW-P1-FCIS",
+  "GW-P1-SOC",
+  "GW-P1-DRY",
+  "GW-P1-STRICT-TYPING",
+  "GW-P1-CANONICAL-OWNERSHIP",
+  "GW-P1-EXPLICIT-FLOW",
+  "GW-P1-MINIMUM-CHANGE",
+  "GW-P1-AUTHORITY-BEFORE-INFERENCE",
+  "GW-P1-DOC-CANONICALITY",
+] as const;
+
+const hasForbiddenPathSegment = (value: string): boolean =>
+  value.split("/").some((segment) => segment === ".." || segment === "." || segment === "");
+
+const isRepositoryPath = (value: string): boolean => {
+  if (value === ".") return true;
+  if (
+    value.length === 0 ||
+    value.startsWith("/") ||
+    value.startsWith("./") ||
+    value.endsWith("/") ||
+    value.includes("\\") ||
+    value.includes("\0") ||
+    hasForbiddenPathSegment(value)
+  ) {
+    return false;
+  }
+  return !/[?*{}[\]!]/.test(value);
+};
+
+const isRepositoryPattern = (value: string): boolean => {
+  if (value === ".") return true;
+  if (
+    value.length === 0 ||
+    value.startsWith("/") ||
+    value.startsWith("./") ||
+    value.endsWith("/") ||
+    value.includes("\\") ||
+    value.includes("\0") ||
+    hasForbiddenPathSegment(value)
+  ) {
+    return false;
+  }
+  return true;
+};
+
+const isEvidencePath = (value: string): boolean =>
+  value !== "." &&
+  value.length > 0 &&
+  !value.startsWith("/") &&
+  !value.startsWith("./") &&
+  !value.endsWith("/") &&
+  !value.includes("\\") &&
+  !value.includes("\0") &&
+  !hasForbiddenPathSegment(value);
+
+const isoDateTimeIsCanonical = (value: string): boolean => {
+  if (!isoDateTimePattern.test(value) || value.length !== 24) return false;
+  const epoch = Date.parse(value);
+  return Number.isFinite(epoch) && new Date(epoch).toISOString() === value;
+};
+
+const unique = (values: readonly string[]): boolean =>
+  new Set(values).size === values.length;
+
+export const ProjectIdSchema = z.string().regex(projectIdPattern);
+export const ConcernIdSchema = z.string().regex(projectIdPattern);
+export const GateIdSchema = z.string().regex(projectIdPattern);
+export const AuthorityRefSchema = z.string();
+export const RepositoryPathSchema = z.string().refine(isRepositoryPath, "invalid RepositoryPath");
+export const repositoryPathNamesAgentInstruction = (value: string): boolean =>
+  value.split("/").at(-1) === "AGENTS.md";
+const ChangeSurfacePathSchema = RepositoryPathSchema.refine(
+  (value) => !repositoryPathNamesAgentInstruction(value),
+  "changeSurface must not name AGENTS.md",
+);
+export const RepositoryPatternSchema = z.string().refine(isRepositoryPattern, "invalid RepositoryPattern");
+export const GitCommitSchema = z.string().regex(gitCommitPattern);
+export const Sha256Schema = z.string().regex(sha256Pattern);
+export const IsoDateTimeSchema = z.string().refine(isoDateTimeIsCanonical, "invalid canonical IsoDateTime");
+export const EvidencePathSchema = z.string().refine(isEvidencePath, "invalid EvidencePath");
+const NonEmptyNoNulStringSchema = z.string().min(1).refine(
+  (value) => !value.includes("\\0"),
+  "value must not contain NUL",
+);
+export const AbsoluteDirectoryPathSchema = NonEmptyNoNulStringSchema.refine(
+  (value) => value.startsWith("/"),
+  "directory root must be absolute",
+);
+export const OpenCodeModelRefSchema = z.strictObject({
+  providerID: NonEmptyNoNulStringSchema,
+  id: NonEmptyNoNulStringSchema,
+});
+
+export const OpenCodeAccountIdSchema = z.string()
+  .min(1)
+  .refine((value) => !value.includes("\0"), "account id must not contain NUL");
+export const OpenCodeAccountLabelSchema = z.string()
+  .min(1)
+  .max(320)
+  .refine((value) => value === value.trim(), "account label must not have outer whitespace")
+  .refine((value) => !value.includes("\0"), "account label must not contain NUL")
+  .refine(
+    (value) => !value.includes("\n") && !value.includes("\r"),
+    "account label must be one line",
+  );
+export const OpenCodeAccountStatusSchema = z.discriminatedUnion("status", [
+  z.strictObject({ status: z.literal("READY") }),
+  z.strictObject({
+    status: z.literal("NEEDS_AUTH"),
+    message: z.string().min(1),
+    url: z.string().url().nullable(),
+  }),
+]);
+export const OpenCodeAccountSchema = z.strictObject({
+  id: OpenCodeAccountIdSchema,
+  label: OpenCodeAccountLabelSchema,
+  active: z.boolean(),
+  status: OpenCodeAccountStatusSchema,
+});
+export const OpenCodeAccountMutationBlockerSchema = z.enum([
+  "ACTIVE_RUN",
+  "LOGIN_ATTEMPT_ACTIVE",
+  "ACCOUNT_MUTATION_ACTIVE",
+]);
+export const OpenCodeAccountStateSchema = z.strictObject({
+  accounts: z.array(OpenCodeAccountSchema).readonly(),
+  activeAccountId: OpenCodeAccountIdSchema.nullable(),
+  mutationBlockers: z.array(OpenCodeAccountMutationBlockerSchema).readonly(),
+});
+export const ActivateOpenCodeAccountSchema = z.strictObject({
+  expectedActiveAccountId: OpenCodeAccountIdSchema.nullable(),
+});
+export const RenameOpenCodeAccountSchema = z.strictObject({
+  label: OpenCodeAccountLabelSchema,
+});
+export const RemoveOpenCodeAccountSchema = z.strictObject({
+  expectedActiveAccountId: OpenCodeAccountIdSchema.nullable(),
+});
+export const StartOpenCodeAccountLoginSchema = z.strictObject({
+  label: OpenCodeAccountLabelSchema,
+});
+export const OpenCodeAccountLoginAttemptIdSchema = z.string().uuid();
+export const OpenCodeAccountLoginAttemptSchema = z.strictObject({
+  id: OpenCodeAccountLoginAttemptIdSchema,
+  authorizationUrl: z.string().url(),
+  instructions: z.string().min(1),
+  expiresAt: IsoDateTimeSchema,
+  status: z.enum(["PENDING", "COMPLETED", "FAILED", "EXPIRED", "CANCELLED"]),
+  message: z.string().min(1).nullable(),
+});
+export const LegacyPredecessorConfigV1Schema = z.strictObject({
+  version: z.literal(1),
+  model: OpenCodeModelRefSchema,
+  repositoryRoots: z.array(AbsoluteDirectoryPathSchema)
+    .min(1)
+    .refine(unique, "repositoryRoots must be unique")
+    .readonly(),
+  referenceRoots: z.array(AbsoluteDirectoryPathSchema)
+    .refine(unique, "referenceRoots must be unique")
+    .readonly(),
+});
+
+export const LegacyOrderConfigV2Schema = z.strictObject({
+  version: z.literal(2),
+  model: OpenCodeModelRefSchema,
+  repositoryRoots: z.array(AbsoluteDirectoryPathSchema)
+    .min(1)
+    .refine(unique, "repositoryRoots must be unique")
+    .readonly(),
+  referenceRoots: z.array(AbsoluteDirectoryPathSchema)
+    .refine(unique, "referenceRoots must be unique")
+    .readonly(),
+  workItemRoot: AbsoluteDirectoryPathSchema,
+});
+
+export const LegacyOrderConfigV3Schema = z.strictObject({
+  version: z.literal(3),
+  model: OpenCodeModelRefSchema,
+  repositoryRoots: z.array(AbsoluteDirectoryPathSchema)
+    .min(1)
+    .refine(unique, "repositoryRoots must be unique")
+    .readonly(),
+  referenceRoots: z.array(AbsoluteDirectoryPathSchema)
+    .refine(unique, "referenceRoots must be unique")
+    .readonly(),
+});
+
+export const OrderConfigSchema = z.strictObject({
+  version: z.literal(4),
+  model: OpenCodeModelRefSchema.nullable(),
+  repositoryRoots: z.array(AbsoluteDirectoryPathSchema)
+    .refine(unique, "repositoryRoots must be unique")
+    .readonly(),
+  referenceRoots: z.array(AbsoluteDirectoryPathSchema)
+    .refine(unique, "referenceRoots must be unique")
+    .readonly(),
+});
+
+export const OrderConfigStateSchema = z.strictObject({
+  config: OrderConfigSchema,
+  sha256: Sha256Schema,
+});
+
+export const ConnectedRepositoryStateSchema = z.strictObject({
+  repositoryRoot: AbsoluteDirectoryPathSchema,
+  status: z.enum(["READY", "ATTENTION"]),
+  projectId: ProjectIdSchema.nullable(),
+  workItemsRoot: RepositoryPathSchema.nullable(),
+  manifestSha256: Sha256Schema.nullable(),
+  attention: z.array(z.enum([
+    "REPOSITORY_UNAVAILABLE",
+    "REPOSITORY_IDENTITY_INVALID",
+    "PROJECT_MANIFEST_MISSING",
+    "PROJECT_MANIFEST_INVALID",
+    "WORKITEM_ROOT_INVALID",
+  ])).readonly(),
+});
+
+export const InstallationReadinessBlockerSchema = z.enum([
+  "REPOSITORY_REQUIRED",
+  "REPOSITORY_CONFIGURATION_REQUIRES_ATTENTION",
+  "MODEL_INVALID",
+  "REFERENCE_ROOT_CONFIGURATION_REQUIRES_ATTENTION",
+  "OPENCODE_ACCOUNT_REQUIRED",
+]);
+
+export const InstallationReadinessSchema = z.strictObject({
+  ready: z.boolean(),
+  blockers: z.array(InstallationReadinessBlockerSchema).readonly(),
+}).superRefine((value, ctx) => {
+  if (value.ready !== (value.blockers.length === 0)) {
+    ctx.addIssue({ code: "custom", message: "ready must equal blockers.length === 0" });
+  }
+});
+
+export const ConnectRepositorySchema = z.strictObject({
+  expectedConfigSha256: Sha256Schema,
+  repositoryRoot: AbsoluteDirectoryPathSchema,
+});
+
+export const DisconnectRepositorySchema = z.strictObject({
+  expectedConfigSha256: Sha256Schema,
+  repositoryRoot: AbsoluteDirectoryPathSchema,
+});
+
+export const UpdateConfiguredModelSchema = z.strictObject({
+  expectedConfigSha256: Sha256Schema,
+  model: OpenCodeModelRefSchema,
+});
+
+export const UpdateReferenceRootsSchema = z.strictObject({
+  expectedConfigSha256: Sha256Schema,
+  referenceRoots: z.array(AbsoluteDirectoryPathSchema)
+    .refine(unique, "referenceRoots must be unique")
+    .readonly(),
+});
+
+export const MigrateWorkItemDocumentRootSchema = z.strictObject({
+  repositoryRoot: AbsoluteDirectoryPathSchema,
+  expectedManifestSha256: Sha256Schema,
+  targetWorkItemsRoot: RepositoryPathSchema,
+});
+const UnifiedDiffSchema = z.string().min(1).refine(
+  (value) => value.endsWith("\n"),
+  "unifiedDiff must end with LF",
+);
+
+export const WorkItemIdSchema = z.string().regex(new RegExp(`^work_${uuidV4}$`));
+export const ArtifactRefIdSchema = z.string().regex(new RegExp(`^artifact_${uuidV4}$`));
+export const ApprovalIdSchema = z.string().regex(new RegExp(`^approval_${uuidV4}$`));
+export const ExecutionTaskIdSchema = z.string().regex(new RegExp(`^task_${uuidV4}$`));
+export const RunIdSchema = z.string().regex(new RegExp(`^run_${uuidV4}$`));
+));
+export const CandidateReviewEventIdSchema = z.string().regex(new RegExp(`^review_${uuidV4}import { z } from "zod";
+
+const uuidV4 = "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}";
+const projectIdPattern = /^[a-z0-9][a-z0-9._-]*$/;
+const gitCommitPattern = /^[0-9a-f]{40}$/;
+const sha256Pattern = /^sha256:[0-9a-f]{64}$/;
+const isoDateTimePattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
+const envNamePattern = /^[A-Za-z_][A-Za-z0-9_]*$/;
+export const defaultRuleIds = [
+  "GW-P1-DOD",
+  "GW-P1-FCIS",
+  "GW-P1-SOC",
+  "GW-P1-DRY",
+  "GW-P1-STRICT-TYPING",
+  "GW-P1-CANONICAL-OWNERSHIP",
+  "GW-P1-EXPLICIT-FLOW",
+  "GW-P1-MINIMUM-CHANGE",
+  "GW-P1-AUTHORITY-BEFORE-INFERENCE",
+  "GW-P1-DOC-CANONICALITY",
+] as const;
+
+const hasForbiddenPathSegment = (value: string): boolean =>
+  value.split("/").some((segment) => segment === ".." || segment === "." || segment === "");
+
+const isRepositoryPath = (value: string): boolean => {
+  if (value === ".") return true;
+  if (
+    value.length === 0 ||
+    value.startsWith("/") ||
+    value.startsWith("./") ||
+    value.endsWith("/") ||
+    value.includes("\\") ||
+    value.includes("\0") ||
+    hasForbiddenPathSegment(value)
+  ) {
+    return false;
+  }
+  return !/[?*{}[\]!]/.test(value);
+};
+
+const isRepositoryPattern = (value: string): boolean => {
+  if (value === ".") return true;
+  if (
+    value.length === 0 ||
+    value.startsWith("/") ||
+    value.startsWith("./") ||
+    value.endsWith("/") ||
+    value.includes("\\") ||
+    value.includes("\0") ||
+    hasForbiddenPathSegment(value)
+  ) {
+    return false;
+  }
+  return true;
+};
+
+const isEvidencePath = (value: string): boolean =>
+  value !== "." &&
+  value.length > 0 &&
+  !value.startsWith("/") &&
+  !value.startsWith("./") &&
+  !value.endsWith("/") &&
+  !value.includes("\\") &&
+  !value.includes("\0") &&
+  !hasForbiddenPathSegment(value);
+
+const isoDateTimeIsCanonical = (value: string): boolean => {
+  if (!isoDateTimePattern.test(value) || value.length !== 24) return false;
+  const epoch = Date.parse(value);
+  return Number.isFinite(epoch) && new Date(epoch).toISOString() === value;
+};
+
+const unique = (values: readonly string[]): boolean =>
+  new Set(values).size === values.length;
+
+export const ProjectIdSchema = z.string().regex(projectIdPattern);
+export const ConcernIdSchema = z.string().regex(projectIdPattern);
+export const GateIdSchema = z.string().regex(projectIdPattern);
+export const AuthorityRefSchema = z.string();
+export const RepositoryPathSchema = z.string().refine(isRepositoryPath, "invalid RepositoryPath");
+export const repositoryPathNamesAgentInstruction = (value: string): boolean =>
+  value.split("/").at(-1) === "AGENTS.md";
+const ChangeSurfacePathSchema = RepositoryPathSchema.refine(
+  (value) => !repositoryPathNamesAgentInstruction(value),
+  "changeSurface must not name AGENTS.md",
+);
+export const RepositoryPatternSchema = z.string().refine(isRepositoryPattern, "invalid RepositoryPattern");
+export const GitCommitSchema = z.string().regex(gitCommitPattern);
+export const Sha256Schema = z.string().regex(sha256Pattern);
+export const IsoDateTimeSchema = z.string().refine(isoDateTimeIsCanonical, "invalid canonical IsoDateTime");
+export const EvidencePathSchema = z.string().refine(isEvidencePath, "invalid EvidencePath");
+const NonEmptyNoNulStringSchema = z.string().min(1).refine(
+  (value) => !value.includes("\\0"),
+  "value must not contain NUL",
+);
+export const AbsoluteDirectoryPathSchema = NonEmptyNoNulStringSchema.refine(
+  (value) => value.startsWith("/"),
+  "directory root must be absolute",
+);
+export const OpenCodeModelRefSchema = z.strictObject({
+  providerID: NonEmptyNoNulStringSchema,
+  id: NonEmptyNoNulStringSchema,
+});
+
+export const OpenCodeAccountIdSchema = z.string()
+  .min(1)
+  .refine((value) => !value.includes("\0"), "account id must not contain NUL");
+export const OpenCodeAccountLabelSchema = z.string()
+  .min(1)
+  .max(320)
+  .refine((value) => value === value.trim(), "account label must not have outer whitespace")
+  .refine((value) => !value.includes("\0"), "account label must not contain NUL")
+  .refine(
+    (value) => !value.includes("\n") && !value.includes("\r"),
+    "account label must be one line",
+  );
+export const OpenCodeAccountStatusSchema = z.discriminatedUnion("status", [
+  z.strictObject({ status: z.literal("READY") }),
+  z.strictObject({
+    status: z.literal("NEEDS_AUTH"),
+    message: z.string().min(1),
+    url: z.string().url().nullable(),
+  }),
+]);
+export const OpenCodeAccountSchema = z.strictObject({
+  id: OpenCodeAccountIdSchema,
+  label: OpenCodeAccountLabelSchema,
+  active: z.boolean(),
+  status: OpenCodeAccountStatusSchema,
+});
+export const OpenCodeAccountMutationBlockerSchema = z.enum([
+  "ACTIVE_RUN",
+  "LOGIN_ATTEMPT_ACTIVE",
+  "ACCOUNT_MUTATION_ACTIVE",
+]);
+export const OpenCodeAccountStateSchema = z.strictObject({
+  accounts: z.array(OpenCodeAccountSchema).readonly(),
+  activeAccountId: OpenCodeAccountIdSchema.nullable(),
+  mutationBlockers: z.array(OpenCodeAccountMutationBlockerSchema).readonly(),
+});
+export const ActivateOpenCodeAccountSchema = z.strictObject({
+  expectedActiveAccountId: OpenCodeAccountIdSchema.nullable(),
+});
+export const RenameOpenCodeAccountSchema = z.strictObject({
+  label: OpenCodeAccountLabelSchema,
+});
+export const RemoveOpenCodeAccountSchema = z.strictObject({
+  expectedActiveAccountId: OpenCodeAccountIdSchema.nullable(),
+});
+export const StartOpenCodeAccountLoginSchema = z.strictObject({
+  label: OpenCodeAccountLabelSchema,
+});
+export const OpenCodeAccountLoginAttemptIdSchema = z.string().uuid();
+export const OpenCodeAccountLoginAttemptSchema = z.strictObject({
+  id: OpenCodeAccountLoginAttemptIdSchema,
+  authorizationUrl: z.string().url(),
+  instructions: z.string().min(1),
+  expiresAt: IsoDateTimeSchema,
+  status: z.enum(["PENDING", "COMPLETED", "FAILED", "EXPIRED", "CANCELLED"]),
+  message: z.string().min(1).nullable(),
+});
+export const LegacyPredecessorConfigV1Schema = z.strictObject({
+  version: z.literal(1),
+  model: OpenCodeModelRefSchema,
+  repositoryRoots: z.array(AbsoluteDirectoryPathSchema)
+    .min(1)
+    .refine(unique, "repositoryRoots must be unique")
+    .readonly(),
+  referenceRoots: z.array(AbsoluteDirectoryPathSchema)
+    .refine(unique, "referenceRoots must be unique")
+    .readonly(),
+});
+
+export const LegacyOrderConfigV2Schema = z.strictObject({
+  version: z.literal(2),
+  model: OpenCodeModelRefSchema,
+  repositoryRoots: z.array(AbsoluteDirectoryPathSchema)
+    .min(1)
+    .refine(unique, "repositoryRoots must be unique")
+    .readonly(),
+  referenceRoots: z.array(AbsoluteDirectoryPathSchema)
+    .refine(unique, "referenceRoots must be unique")
+    .readonly(),
+  workItemRoot: AbsoluteDirectoryPathSchema,
+});
+
+export const LegacyOrderConfigV3Schema = z.strictObject({
+  version: z.literal(3),
+  model: OpenCodeModelRefSchema,
+  repositoryRoots: z.array(AbsoluteDirectoryPathSchema)
+    .min(1)
+    .refine(unique, "repositoryRoots must be unique")
+    .readonly(),
+  referenceRoots: z.array(AbsoluteDirectoryPathSchema)
+    .refine(unique, "referenceRoots must be unique")
+    .readonly(),
+});
+
+export const OrderConfigSchema = z.strictObject({
+  version: z.literal(4),
+  model: OpenCodeModelRefSchema.nullable(),
+  repositoryRoots: z.array(AbsoluteDirectoryPathSchema)
+    .refine(unique, "repositoryRoots must be unique")
+    .readonly(),
+  referenceRoots: z.array(AbsoluteDirectoryPathSchema)
+    .refine(unique, "referenceRoots must be unique")
+    .readonly(),
+});
+
+export const OrderConfigStateSchema = z.strictObject({
+  config: OrderConfigSchema,
+  sha256: Sha256Schema,
+});
+
+export const ConnectedRepositoryStateSchema = z.strictObject({
+  repositoryRoot: AbsoluteDirectoryPathSchema,
+  status: z.enum(["READY", "ATTENTION"]),
+  projectId: ProjectIdSchema.nullable(),
+  workItemsRoot: RepositoryPathSchema.nullable(),
+  manifestSha256: Sha256Schema.nullable(),
+  attention: z.array(z.enum([
+    "REPOSITORY_UNAVAILABLE",
+    "REPOSITORY_IDENTITY_INVALID",
+    "PROJECT_MANIFEST_MISSING",
+    "PROJECT_MANIFEST_INVALID",
+    "WORKITEM_ROOT_INVALID",
+  ])).readonly(),
+});
+
+export const InstallationReadinessBlockerSchema = z.enum([
+  "REPOSITORY_REQUIRED",
+  "REPOSITORY_CONFIGURATION_REQUIRES_ATTENTION",
+  "MODEL_INVALID",
+  "REFERENCE_ROOT_CONFIGURATION_REQUIRES_ATTENTION",
+  "OPENCODE_ACCOUNT_REQUIRED",
+]);
+
+export const InstallationReadinessSchema = z.strictObject({
+  ready: z.boolean(),
+  blockers: z.array(InstallationReadinessBlockerSchema).readonly(),
+}).superRefine((value, ctx) => {
+  if (value.ready !== (value.blockers.length === 0)) {
+    ctx.addIssue({ code: "custom", message: "ready must equal blockers.length === 0" });
+  }
+});
+
+export const ConnectRepositorySchema = z.strictObject({
+  expectedConfigSha256: Sha256Schema,
+  repositoryRoot: AbsoluteDirectoryPathSchema,
+});
+
+export const DisconnectRepositorySchema = z.strictObject({
+  expectedConfigSha256: Sha256Schema,
+  repositoryRoot: AbsoluteDirectoryPathSchema,
+});
+
+export const UpdateConfiguredModelSchema = z.strictObject({
+  expectedConfigSha256: Sha256Schema,
+  model: OpenCodeModelRefSchema,
+});
+
+export const UpdateReferenceRootsSchema = z.strictObject({
+  expectedConfigSha256: Sha256Schema,
+  referenceRoots: z.array(AbsoluteDirectoryPathSchema)
+    .refine(unique, "referenceRoots must be unique")
+    .readonly(),
+});
+
+export const MigrateWorkItemDocumentRootSchema = z.strictObject({
+  repositoryRoot: AbsoluteDirectoryPathSchema,
+  expectedManifestSha256: Sha256Schema,
+  targetWorkItemsRoot: RepositoryPathSchema,
+});
+const UnifiedDiffSchema = z.string().min(1).refine(
+  (value) => value.endsWith("\n"),
+  "unifiedDiff must end with LF",
+);
+
+export const WorkItemIdSchema = z.string().regex(new RegExp(`^work_${uuidV4}$`));
+export const ArtifactRefIdSchema = z.string().regex(new RegExp(`^artifact_${uuidV4}$`));
+export const ApprovalIdSchema = z.string().regex(new RegExp(`^approval_${uuidV4}$`));
+export const ExecutionTaskIdSchema = z.string().regex(new RegExp(`^task_${uuidV4}$`));
+export const RunIdSchema = z.string().regex(new RegExp(`^run_${uuidV4}$`));
+));
 
 export type ProjectId = z.infer<typeof ProjectIdSchema>;
 export type ConcernId = z.infer<typeof ConcernIdSchema>;
@@ -325,6 +892,7 @@ export type ApprovalId = z.infer<typeof ApprovalIdSchema>;
 export type ExecutionTaskId = z.infer<typeof ExecutionTaskIdSchema>;
 export type RunId = z.infer<typeof RunIdSchema>;
 export type RunEventId = z.infer<typeof RunEventIdSchema>;
+export type CandidateReviewEventId = z.infer<typeof CandidateReviewEventIdSchema>;
 
 
 export const WorkItemKindSchema = z.enum([
@@ -519,9 +1087,23 @@ export const UpstreamReturnStageSchema = z.enum([
   "R3",
 ]);
 
-export const ReconcileWorkItemAuthoritySchema = z.strictObject({
-  expectedOwner: UpstreamReturnStageSchema,
-});
+export const ReconcileWorkItemAuthoritySchema = z.union([
+  z.strictObject({ expectedOwner: UpstreamReturnStageSchema }),
+  z.strictObject({
+    expectedOwner: UpstreamReturnStageSchema,
+    expectedApprovalId: ApprovalIdSchema,
+    expectedReviewSequence: z.number().int().nonnegative(),
+  }),
+]);
+
+export const ReconcileWorkItemSourcesCommandSchema = z.union([
+  z.strictObject({}),
+  z.strictObject({
+    workItemId: WorkItemIdSchema,
+    expectedApprovalId: ApprovalIdSchema,
+    expectedReviewSequence: z.number().int().nonnegative(),
+  }),
+]);
 
 export const StableHttpErrorCodeSchema = z.string()
   .regex(/^[A-Z][A-Z0-9_]*$/);
@@ -811,6 +1393,92 @@ export const EvidenceRefSchema = z.strictObject({
 
 export type EvidenceRef = Readonly<z.infer<typeof EvidenceRefSchema>>;
 
+// P6 §38: one canonical append-only human/coordinator review stream.
+const qaText = z.string().refine(value => value.trim().length > 0 && !value.includes("\0"), "nonblank QA text without NUL required");
+const qaActor = z.string().trim().min(1).refine(value => !value.includes("\0"), "actor must not contain NUL");
+const qaEvidenceIds = z.array(RunEventIdSchema).refine(unique, "duplicate evidence IDs").readonly();
+const qaFindingIds = z.array(CandidateReviewEventIdSchema).min(1).refine(unique, "duplicate finding IDs").readonly();
+const qaRefs = z.array(AuthorityRefSchema).refine(unique, "duplicate criteria").readonly();
+export const CandidateMemberSchema = z.tuple([ExecutionTaskIdSchema, RunEventIdSchema]).readonly();
+export const CandidateMembersSchema = z.array(CandidateMemberSchema).min(1).refine(
+  members => members.every((member, index) => index === 0 || members[index - 1]![0] < member[0]) &&
+    unique(members.map(member => member[1])),
+  "candidate membership must be task-ID ordered, unique and exact",
+).readonly();
+export type CandidateMembers = z.infer<typeof CandidateMembersSchema>;
+
+const reportFields = {
+  taskId: ExecutionTaskIdSchema, candidateEventId: RunEventIdSchema,
+  acceptanceRefs: qaRefs, expected: qaText, observed: qaText,
+  reproduction: qaText, impact: qaText, evidence: qaEvidenceIds,
+};
+const retestFailedFields = {
+  findingId: CandidateReviewEventIdSchema, observed: qaText, rationale: qaText, evidence: qaEvidenceIds,
+};
+const dispositionFields = {
+  findingId: CandidateReviewEventIdSchema, outcome: z.enum(["RESOLVED", "WITHDRAWN"]),
+  rationale: qaText, followupWorkItemId: WorkItemIdSchema.nullable(),
+  withdrawalAttestation: z.literal("NOT_A_KNOWN_UNMET_OBLIGATION").nullable(),
+};
+const dispositionAttestationAgrees = (value: {
+  outcome: "RESOLVED" | "WITHDRAWN"; withdrawalAttestation: "NOT_A_KNOWN_UNMET_OBLIGATION" | null;
+}): boolean => (value.outcome === "WITHDRAWN") === (value.withdrawalAttestation !== null);
+const reanalysisFields = { owner: z.literal("PLAN"), rationale: qaText };
+const noOpReanalysis = { reason: z.literal("NO_OP_CHALLENGE"), findingIds: qaFindingIds, ...reanalysisFields };
+const proofReanalysis = { reason: z.literal("CANDIDATE_PROOF_UNAVAILABLE"), findingIds: z.tuple([]).readonly(), ...reanalysisFields };
+
+export const CandidateReviewEventPayloadSchema = z.union([
+  z.strictObject({ tag: z.literal("OPENED"), candidateHash: Sha256Schema }),
+  z.strictObject({ tag: z.literal("REPORT"), candidateHash: Sha256Schema, ...reportFields }),
+  z.strictObject({ tag: z.literal("SUBMIT"), candidateHash: Sha256Schema, findingIds: qaFindingIds }),
+  z.strictObject({ tag: z.literal("RETEST_FAILED"), candidateHash: Sha256Schema, ...retestFailedFields }),
+  z.strictObject({ tag: z.literal("REANALYSIS_REQUESTED"), candidateHash: Sha256Schema, ...noOpReanalysis }),
+  z.strictObject({ tag: z.literal("REANALYSIS_REQUESTED"), candidateHash: z.null(), ...proofReanalysis }),
+  z.strictObject({ tag: z.literal("REVIEW_STARTED"), submissionId: CandidateReviewEventIdSchema, runId: RunIdSchema }),
+  z.strictObject({ tag: z.literal("REVIEW_COMPLETED"), submissionId: CandidateReviewEventIdSchema,
+    candidateHash: Sha256Schema, candidateEventId: RunEventIdSchema }),
+  z.strictObject({ tag: z.literal("DISPOSITION"), candidateHash: Sha256Schema, ...dispositionFields })
+    .refine(dispositionAttestationAgrees, "disposition requires its exact attestation"),
+  z.strictObject({ tag: z.literal("ACCEPT"), candidateHash: Sha256Schema, candidateMembers: CandidateMembersSchema }),
+]);
+export type CandidateReviewEventPayload = Readonly<z.infer<typeof CandidateReviewEventPayloadSchema>>;
+
+export const CandidateReviewEventSchema = z.strictObject({
+  id: CandidateReviewEventIdSchema, approvalId: ApprovalIdSchema, sequence: z.number().int().positive(),
+  occurredAt: IsoDateTimeSchema, actor: qaActor.nullable(), event: CandidateReviewEventPayloadSchema,
+}).superRefine((value, ctx) => {
+  const coordinator = value.event.tag === "OPENED" || value.event.tag === "REVIEW_STARTED" || value.event.tag === "REVIEW_COMPLETED";
+  if (coordinator !== (value.actor === null)) {
+    ctx.addIssue({ code: "custom", message: "QA coordinator events require null actor; human decisions require actor" });
+  }
+});
+export type CandidateReviewEvent = Readonly<z.infer<typeof CandidateReviewEventSchema>>;
+
+const qaExpected = { expectedCandidateHash: Sha256Schema, expectedReviewSequence: z.number().int().nonnegative() };
+const qaHuman = { ...qaExpected, actor: qaActor };
+export const QaReportCommandSchema = z.strictObject({ ...qaHuman, ...reportFields });
+export const QaSubmitCommandSchema = z.strictObject({ ...qaHuman, findingIds: qaFindingIds });
+export const QaRetestFailedCommandSchema = z.strictObject({ ...qaHuman, ...retestFailedFields });
+export const QaDispositionCommandSchema = z.strictObject({ ...qaHuman, ...dispositionFields })
+  .refine(dispositionAttestationAgrees, "disposition requires its exact attestation");
+export const QaReanalysisCommandSchema = z.union([
+  z.strictObject({ ...qaHuman, ...noOpReanalysis }),
+  z.strictObject({ ...qaHuman, expectedCandidateHash: z.null(), ...proofReanalysis }),
+]);
+export const QaAcceptCommandSchema = z.strictObject(qaHuman);
+export const QaPrepareTestCopyCommandSchema = z.strictObject({
+  ...qaExpected, taskId: ExecutionTaskIdSchema, candidateEventId: RunEventIdSchema,
+});
+
+export const QaFindingAssessmentSchema = z.strictObject({
+  findingId: CandidateReviewEventIdSchema,
+  verdict: z.enum(["SATISFIED", "NOT_REPRODUCED", "FAIL_REPAIRABLE", "UPSTREAM"]),
+  rationale: qaText, evidence: z.array(EvidenceRefSchema).readonly(),
+});
+export type QaFindingAssessment = Readonly<z.infer<typeof QaFindingAssessmentSchema>>;
+const qaAssessments = z.array(QaFindingAssessmentSchema).min(1)
+  .refine(values => unique(values.map(value => value.findingId)), "duplicate QA finding assessments").readonly();
+
 export const ProviderTurnOutcomeSchema = z.enum([
   "SUCCEEDED",
   "FAILED",
@@ -997,6 +1665,7 @@ const RunEventPayloadBaseSchema = z.union([
     tag: z.literal("REVIEW_PASSED"),
     minimumChange: z.enum(["MINIMUM_SUFFICIENT", "CHANGE_BLOAT"]).optional(),
     minimumChangeSummary: z.string().min(1).nullable().optional(),
+    qaAssessments: qaAssessments.optional(),
     evidence: evidenceArray,
   }).superRefine((value, ctx) => {
     const historical =
@@ -1037,6 +1706,7 @@ const RunEventPayloadBaseSchema = z.union([
     tag: z.literal("REVIEW_FAILED"),
     classification: z.literal("REVIEW_FAILURE"),
     summary: z.string(),
+    qaAssessments: qaAssessments.optional(),
     evidence: evidenceArray,
   }),
   z.strictObject({
@@ -1044,6 +1714,7 @@ const RunEventPayloadBaseSchema = z.union([
     classification: z.literal("BLOCKED_FOR_REANALYSIS"),
     returnTo: z.enum(["R1", "R2", "DESIGN", "PLAN"]),
     summary: z.string(),
+    qaAssessments: qaAssessments.optional(),
     evidence: evidenceArray,
   }),
   z.strictObject({ tag: z.literal("VALIDATION_PASSED"), stage: ValidationStageSchema, evidence: evidenceArray }),

@@ -1,4 +1,12 @@
 import {
+  CandidateMembersSchema,
+  CandidateReviewEventSchema,
+  type Approval,
+  type CandidateMembers,
+  type CandidateReviewEvent,
+  type CandidateReviewEventId,
+  type OrderHttpError,
+  type Sha256,
   type ArtifactRef,
   type ExecutionTask,
   type ExecutionTaskId,
@@ -14,6 +22,7 @@ import {
   type WorkItem,
   type WorkStage,
 } from "./contracts.ts";
+import { canonicalJson } from "./canonical.ts";
 export type { UpstreamReturnStage } from "./contracts.ts";
 
 export const directlyEditableArtifactRoles = [
@@ -1371,3 +1380,314 @@ export const deriveWorkflowRail = (
         : null,
     };
   });
+
+
+// P6 §38.1 — exact successful proof and historical candidate reconstruction.
+// No shell, provider, clock or digest computation is part of these decisions.
+const requireUnique = <T>(values: readonly T[], reason: string): T => {
+  if (values.length !== 1) throw new TypeError(reason);
+  return values[0]!;
+};
+
+const candidateEventOwner = (
+  approval: Approval, tasks: readonly ExecutionTask[], runs: readonly Run[], event: RunEvent,
+): Readonly<{ task: ExecutionTask; run: Run }> => {
+  const run = requireUnique(runs.filter(value => value.id === event.runId), "candidate Run missing or ambiguous");
+  const task = requireUnique(tasks.filter(value => value.id === run.executionTaskId && value.approvalId === approval.id),
+    "candidate must belong to exact signed task");
+  if (run.workItemId !== approval.workItemId || run.baselineCommit !== approval.baselineCommit ||
+      run.stage !== "EXECUTION" || run.status !== "COMPLETED") {
+    throw new TypeError("candidate lacks completed exact signed Run");
+  }
+  return { task, run };
+};
+
+export const admittedCandidateMember = (
+  approval: Approval, tasks: readonly ExecutionTask[], runs: readonly Run[], events: readonly RunEvent[],
+  candidateEventId: RunEventId,
+): CandidateMembers[number] => {
+  const event = requireUnique(events.filter(value => value.id === candidateEventId), "candidate event missing or ambiguous");
+  const { task, run } = candidateEventOwner(approval, tasks, runs, event);
+  const ownEvents = orderedEvents(run, events.filter(value => value.runId === run.id));
+  if (event.event.tag === "TASK_ALREADY_SATISFIED") {
+    if (run.role !== "BUILDER" || run.triggerEventId !== null || run.terminalClassification !== "ALREADY_SATISFIED" ||
+        ownEvents.filter(value => value.event.tag === "TASK_ALREADY_SATISFIED").length !== 1 ||
+        ownEvents.some(value => value.event.tag === "CANDIDATE_STATE_RECORDED" || value.event.tag === "CANDIDATE_RECORDED")) {
+      throw new TypeError("no-op member lacks admitted exact builder proof");
+    }
+    return [task.id, event.id];
+  }
+  if (event.event.tag !== "CANDIDATE_RECORDED" || run.role !== "REVIEWER" ||
+      run.terminalClassification !== "CANDIDATE_DONE" ||
+      ownEvents.filter(value => value.event.tag === "CANDIDATE_RECORDED").length !== 1) {
+    throw new TypeError("candidate member lacks admitted exact reviewer proof");
+  }
+  const proof = event.event;
+  const state = requireUnique(events.filter(value => value.id === proof.candidateStateEventId), "candidate state proof missing");
+  const stateOwner = candidateEventOwner(approval, tasks, runs, state);
+  if (state.event.tag !== "CANDIDATE_STATE_RECORDED" || stateOwner.task.id !== task.id ||
+      (stateOwner.run.role !== "BUILDER" && stateOwner.run.role !== "REMEDIATOR") || stateOwner.run.attempt >= run.attempt) {
+    throw new TypeError("candidate state has foreign or invalid lineage");
+  }
+  const trigger = requireUnique(events.filter(value => value.id === run.triggerEventId), "candidate reviewer trigger missing");
+  if (trigger.id !== state.id) {
+    if (trigger.event.tag !== "CANDIDATE_RECORDED" || trigger.event.candidateStateEventId !== state.id ||
+        candidateEventOwner(approval, tasks, runs, trigger).task.id !== task.id) {
+      throw new TypeError("candidate reviewer trigger does not identify replayed state");
+    }
+    const triggerRun = requireUnique(runs.filter(value => value.id === trigger.runId), "candidate trigger Run missing");
+    if (triggerRun.attempt >= run.attempt) throw new TypeError("candidate trigger is not an earlier Run");
+  }
+  const validation = ownEvents.filter(value => value.event.tag === "VALIDATION_PASSED" || value.event.tag === "VALIDATION_FAILED");
+  if (validation.length !== validationOrder.length || proof.validationEventIds.length !== validationOrder.length ||
+      validation.some((value, index) => value.id !== proof.validationEventIds[index] ||
+        value.event.tag !== "VALIDATION_PASSED" || value.event.stage !== validationOrder[index] || value.sequence >= event.sequence)) {
+    throw new TypeError("candidate requires exact same-Run ordered V0–V7 proof");
+  }
+  const reviewPass = requireUnique(ownEvents.filter(value => value.event.tag === "REVIEW_PASSED"), "candidate lacks exact independent review");
+  if (reviewPass.sequence >= validation[4]!.sequence) throw new TypeError("V4 requires preceding independent review");
+  return [task.id, event.id];
+};
+
+const orderedCandidateMembers = (members: readonly CandidateMembers[number][]): CandidateMembers =>
+  CandidateMembersSchema.parse([...members].sort((left, right) => left[0] < right[0] ? -1 : left[0] > right[0] ? 1 : 0));
+
+export const candidateMembershipCanonicalJson = (approvalId: Approval["id"], members: CandidateMembers): string =>
+  canonicalJson([approvalId, CandidateMembersSchema.parse(members)]);
+
+export const orderedCandidateReviewEvents = (
+  approvalId: Approval["id"], history: readonly CandidateReviewEvent[],
+): readonly CandidateReviewEvent[] => {
+  const seen = new Set<CandidateReviewEventId>();
+  return history.map((value, index) => {
+    const event = CandidateReviewEventSchema.parse(value);
+    if (event.approvalId !== approvalId || event.sequence !== index + 1 || seen.has(event.id)) {
+      throw new TypeError("candidate review stream identity or sequence conflict");
+    }
+    seen.add(event.id);
+    return event;
+  });
+};
+
+const linkedSubmission = (
+  run: Run, runs: readonly Run[], events: readonly RunEvent[], history: readonly CandidateReviewEvent[],
+): CandidateReviewEventId | null => {
+  const visited = new Set<Run["id"]>();
+  let cursor = run;
+  for (;;) {
+    if (visited.has(cursor.id)) throw new TypeError("cyclic QA Run lineage");
+    visited.add(cursor.id);
+    const direct = history.filter(value => value.event.tag === "REVIEW_STARTED" && value.event.runId === cursor.id);
+    if (direct.length > 0) {
+      const entry = requireUnique(direct, "duplicate QA Run admission");
+      if (entry.event.tag !== "REVIEW_STARTED") throw new TypeError("invalid QA Run admission");
+      return entry.event.submissionId;
+    }
+    if (cursor.triggerEventId === null) return null;
+    const trigger = requireUnique(events.filter(value => value.id === cursor.triggerEventId), "QA lineage trigger missing");
+    const previous = requireUnique(runs.filter(value => value.id === trigger.runId), "QA lineage Run missing");
+    if (previous.executionTaskId !== run.executionTaskId || previous.workItemId !== run.workItemId ||
+        previous.baselineCommit !== run.baselineCommit || previous.attempt >= cursor.attempt) {
+      throw new TypeError("QA lineage must follow earlier exact task Run");
+    }
+    cursor = previous;
+  }
+};
+
+// The caller hashes the canonical JSON with the existing shell adapter,
+// then supplies those exact round hashes to the separate pure comparison.
+export const reconstructCandidateRounds = (
+  approval: Approval, tasks: readonly ExecutionTask[], runs: readonly Run[], events: readonly RunEvent[],
+  history: readonly CandidateReviewEvent[],
+): ReadonlyMap<CandidateReviewEventId, CandidateMembers> => {
+  const ordered = orderedCandidateReviewEvents(approval.id, history);
+  const signedTasks = tasks.filter(task => task.approvalId === approval.id);
+  if (signedTasks.length === 0 || new Set(signedTasks.map(task => task.id)).size !== signedTasks.length) {
+    throw new TypeError("exact signed candidate tasks required");
+  }
+  const opened = ordered[0];
+  if (opened?.event.tag !== "OPENED" || ordered.filter(value => value.event.tag === "OPENED").length !== 1) {
+    throw new TypeError("candidate review requires exactly one initial OPENED event");
+  }
+  const originals = signedTasks.map(task => {
+    const taskRuns = executionTaskRuns(task.id, runs);
+    const original = requireUnique(events.filter(event => {
+      if (event.event.tag !== "TASK_ALREADY_SATISFIED" && event.event.tag !== "CANDIDATE_RECORDED") return false;
+      const run = taskRuns.find(value => value.id === event.runId);
+      return run !== undefined && run.status === "COMPLETED" && linkedSubmission(run, runs, events, ordered) === null;
+    }), "original signed candidate member missing or ambiguous");
+    return admittedCandidateMember(approval, signedTasks, runs, events, original.id);
+  });
+  if (originals.every(([, eventId]) => events.find(event => event.id === eventId)?.event.tag === "TASK_ALREADY_SATISFIED")) {
+    throw new TypeError("all-no-op execution cannot open Acceptance");
+  }
+  let members = orderedCandidateMembers(originals);
+  const rounds = new Map<CandidateReviewEventId, CandidateMembers>([[opened.id, members]]);
+  for (const entry of ordered) {
+    if (entry.event.tag !== "REVIEW_COMPLETED") continue;
+    const completion = entry.event;
+    const submission = requireUnique(ordered.filter(value => value.id === completion.submissionId &&
+      value.sequence < entry.sequence && value.event.tag === "SUBMIT"), "QA completion lacks prior exact submission");
+    if (submission.event.tag !== "SUBMIT") throw new TypeError("invalid QA submission");
+    const reports = submission.event.findingIds.map(id => requireUnique(ordered.filter(value => value.id === id &&
+      value.sequence < submission.sequence && value.event.tag === "REPORT"), "submission report missing"));
+    const taskIds = new Set(reports.map(report => report.event.tag === "REPORT" ? report.event.taskId : null));
+    if (taskIds.size !== 1 || taskIds.has(null)) throw new TypeError("submission must own one task");
+    const replacement = admittedCandidateMember(approval, signedTasks, runs, events, completion.candidateEventId);
+    const replacementEvent = requireUnique(events.filter(event => event.id === replacement[1]), "replacement candidate missing");
+    const replacementRun = requireUnique(runs.filter(run => run.id === replacementEvent.runId), "replacement Run missing");
+    if (!taskIds.has(replacement[0]) || replacementEvent.event.tag !== "CANDIDATE_RECORDED" ||
+        linkedSubmission(replacementRun, runs, events, ordered.filter(value => value.sequence < entry.sequence)) !== submission.id ||
+        !members.some(member => member[0] === replacement[0] && member[1] !== replacement[1])) {
+      throw new TypeError("replacement is not the exact successful submitted-task candidate");
+    }
+    members = orderedCandidateMembers(members.map(member => member[0] === replacement[0] ? replacement : member));
+    rounds.set(entry.id, members);
+  }
+  return rounds;
+};
+
+export const verifyCandidateRoundHashes = (
+  history: readonly CandidateReviewEvent[], verified: ReadonlyMap<CandidateReviewEventId, Sha256>,
+): void => {
+  const rounds = history.filter(value => value.event.tag === "OPENED" || value.event.tag === "REVIEW_COMPLETED");
+  if (rounds.length !== verified.size) throw new TypeError("exact candidate round proof required");
+  for (const entry of rounds) {
+    if (entry.event.tag !== "OPENED" && entry.event.tag !== "REVIEW_COMPLETED") continue;
+    if (verified.get(entry.id) !== entry.event.candidateHash) throw new TypeError("candidate round hash mismatch");
+  }
+};
+
+export type AcceptanceDecision =
+  | Readonly<{ tag: "NONE" }>
+  | Readonly<{ tag: "RECONCILE_AUTHORITY"; owner: UpstreamReturnStage }>
+  | Readonly<{ tag: "RECONCILE_SOURCE" }>
+  | Readonly<{ tag: "REANALYSE_PROOF_UNAVAILABLE" }>
+  | Readonly<{ tag: "QUEUED"; submissionId: CandidateReviewEventId }>
+  | Readonly<{ tag: "REANALYSE_NO_OP" | "SUBMIT_FINDINGS" | "RETEST"; findingIds: readonly CandidateReviewEventId[] }>
+  | Readonly<{ tag: "ACCEPT" }>;
+
+type FindingDisposition = "OPEN" | "RETEST_REQUIRED" | "RETEST_FAILED" | "DISPOSED";
+
+export const candidateFindingDispositions = (
+  history: readonly CandidateReviewEvent[], rounds: ReadonlyMap<CandidateReviewEventId, CandidateMembers>,
+  tasks: readonly ExecutionTask[],
+): ReadonlyMap<CandidateReviewEventId, FindingDisposition> => {
+  const findings = new Map<CandidateReviewEventId, FindingDisposition>();
+  const reports = new Map<CandidateReviewEventId, Extract<CandidateReviewEvent["event"], { tag: "REPORT" }>>();
+  let currentHash: Sha256 | null = null;
+  let members: CandidateMembers | null = null;
+  let submission: CandidateReviewEvent | null = null;
+  let terminal = false;
+  for (const entry of history) {
+    const event = entry.event;
+    if (terminal) throw new TypeError("review history cannot follow a terminal human decision");
+    if (event.tag === "OPENED") {
+      if (members !== null) throw new TypeError("duplicate review opening");
+      members = rounds.get(entry.id) ?? null;
+      currentHash = event.candidateHash;
+      if (members === null) throw new TypeError("missing initial candidate membership");
+      continue;
+    }
+    if (members === null || currentHash === null) throw new TypeError("review event before initial membership");
+    if ("candidateHash" in event && event.tag !== "REVIEW_COMPLETED" &&
+        !(event.tag === "REANALYSIS_REQUESTED" && event.reason === "CANDIDATE_PROOF_UNAVAILABLE") &&
+        event.candidateHash !== currentHash) throw new TypeError("review event has stale candidate identity");
+    const pending = submission?.event.tag === "SUBMIT" ? submission.event : null;
+    if (pending !== null && event.tag !== "REVIEW_STARTED" && event.tag !== "REVIEW_COMPLETED" &&
+        !(event.tag === "REANALYSIS_REQUESTED" && event.reason === "CANDIDATE_PROOF_UNAVAILABLE")) {
+      throw new TypeError("queued correction excludes ordinary QA decisions");
+    }
+    switch (event.tag) {
+      case "REPORT": {
+        const task = requireUnique(tasks.filter(value => value.id === event.taskId && value.approvalId === entry.approvalId), "foreign report task");
+        if (!members.some(([taskId, eventId]) => taskId === event.taskId && eventId === event.candidateEventId) ||
+            !event.acceptanceRefs.every(ref => task.acceptanceRefs.includes(ref))) throw new TypeError("report lacks current signed member or criteria");
+        reports.set(entry.id, event); findings.set(entry.id, "OPEN"); break;
+      }
+      case "SUBMIT": {
+        const selected = event.findingIds.map(id => {
+          const report = reports.get(id);
+          if (report === undefined || (findings.get(id) !== "OPEN" && findings.get(id) !== "RETEST_FAILED")) throw new TypeError("finding is not submittable");
+          return report.taskId;
+        });
+        if (new Set(selected).size !== 1 || tasks.find(task => task.id === selected[0])?.state === "ALREADY_SATISFIED") throw new TypeError("submission requires one candidate-producing task");
+        submission = entry; break;
+      }
+      case "REVIEW_STARTED":
+        if (submission?.id !== event.submissionId) throw new TypeError("QA Run starts without exact queued submission");
+        break;
+      case "REVIEW_COMPLETED": {
+        const replacement = rounds.get(entry.id);
+        if (submission?.id !== event.submissionId || pending === null || replacement === undefined) throw new TypeError("completion without exact submission and membership");
+        const changed = replacement.filter(member => !members!.some(prior => prior[0] === member[0] && prior[1] === member[1]));
+        if (changed.length !== 1) throw new TypeError("completion must replace exactly one task member");
+        for (const [id, report] of reports) {
+          if (report.taskId === changed[0]![0] && (pending.findingIds.includes(id) || findings.get(id) === "DISPOSED")) findings.set(id, "RETEST_REQUIRED");
+        }
+        members = replacement; currentHash = event.candidateHash; submission = null; break;
+      }
+      case "RETEST_FAILED":
+        if (findings.get(event.findingId) !== "RETEST_REQUIRED") throw new TypeError("failed retest requires reviewed current member");
+        findings.set(event.findingId, "RETEST_FAILED"); break;
+      case "DISPOSITION": {
+        const state = findings.get(event.findingId);
+        if (event.outcome === "RESOLVED" ? state !== "RETEST_REQUIRED" : state !== "OPEN" && state !== "RETEST_REQUIRED" && state !== "RETEST_FAILED") {
+          throw new TypeError("finding disposition is not admitted");
+        }
+        findings.set(event.findingId, "DISPOSED"); break;
+      }
+      case "REANALYSIS_REQUESTED":
+        if (event.reason === "NO_OP_CHALLENGE") {
+          const unresolvedNoOps = [...reports].filter(([id, report]) => findings.get(id) !== "DISPOSED" &&
+            tasks.find(task => task.id === report.taskId)?.state === "ALREADY_SATISFIED").map(([id]) => id);
+          if (unresolvedNoOps.length !== event.findingIds.length || !unresolvedNoOps.every(id => event.findingIds.includes(id))) throw new TypeError("no-op return requires exact unresolved no-op finding set");
+        }
+        terminal = true; break;
+      case "ACCEPT":
+        if ([...findings.values()].some(value => value !== "DISPOSED") || canonicalJson(event.candidateMembers) !== canonicalJson(members)) {
+          throw new TypeError("acceptance requires exact final members and all findings disposed");
+        }
+        terminal = true; break;
+    }
+  }
+  return findings;
+};
+
+// The observation is supplied by the existing typed HTTP/authority boundary.
+// History alone never grants a current operator action.
+export const deriveAcceptanceDecision = (input: Readonly<{
+  current: boolean;
+  coherent: boolean;
+  mutationConflict: boolean;
+  approval: Approval | null;
+  history: readonly CandidateReviewEvent[];
+  currentProof: readonly CandidateReviewEvent[] | null;
+  diagnostic: OrderHttpError | null;
+  rounds: ReadonlyMap<CandidateReviewEventId, CandidateMembers>;
+  tasks: readonly ExecutionTask[];
+}>): AcceptanceDecision => {
+  if (!input.current || !input.coherent || input.mutationConflict || input.approval === null) return { tag: "NONE" };
+  const error = input.diagnostic;
+  if (error !== null) {
+    if (error.code === "SOURCE_AUTHORITY_STALE" || (error.code === "WORK_ITEM_SOURCE_CONFLICT" && error.sourceDiagnostic !== null)) return { tag: "RECONCILE_SOURCE" };
+    if (error.code === "STALE_AUTHORITY" && error.staleAuthorityOwner !== null) return { tag: "RECONCILE_AUTHORITY", owner: error.staleAuthorityOwner };
+    if (error.code === "CANDIDATE_PROOF_UNAVAILABLE") return { tag: "REANALYSE_PROOF_UNAVAILABLE" };
+    return { tag: "NONE" };
+  }
+  const history = orderedCandidateReviewEvents(input.approval.id, input.history);
+  if (input.currentProof === null || canonicalJson(input.currentProof) !== canonicalJson(history) ||
+      history.length === 0 || history.some(entry => entry.event.tag === "ACCEPT" || entry.event.tag === "REANALYSIS_REQUESTED")) return { tag: "NONE" };
+  const findings = candidateFindingDispositions(history, input.rounds, input.tasks);
+  const outstanding = history.findLast(entry => entry.event.tag === "SUBMIT");
+  if (outstanding !== undefined && !history.some(entry => entry.event.tag === "REVIEW_COMPLETED" && entry.event.submissionId === outstanding.id)) return { tag: "QUEUED", submissionId: outstanding.id };
+  const unresolved = history.flatMap(entry => entry.event.tag === "REPORT" && findings.get(entry.id) !== "DISPOSED" ? [entry] : []);
+  const noOps = unresolved.filter(entry => entry.event.tag === "REPORT" &&
+    input.tasks.some(task => task.id === entry.event.taskId && task.state === "ALREADY_SATISFIED"));
+  if (noOps.length > 0) return { tag: "REANALYSE_NO_OP", findingIds: noOps.map(entry => entry.id) };
+  const open = unresolved.filter(entry => findings.get(entry.id) === "OPEN" || findings.get(entry.id) === "RETEST_FAILED");
+  if (open.length > 0) return { tag: "SUBMIT_FINDINGS", findingIds: open.map(entry => entry.id) };
+  const retest = unresolved.filter(entry => findings.get(entry.id) === "RETEST_REQUIRED");
+  if (retest.length > 0) return { tag: "RETEST", findingIds: retest.map(entry => entry.id) };
+  return { tag: "ACCEPT" };
+};

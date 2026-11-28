@@ -22,6 +22,7 @@ import {
   ExecutionTaskIdSchema,
   IsoDateTimeSchema,
   RunEventIdSchema,
+  CandidateReviewEventIdSchema,
   RunIdSchema,
   Sha256Schema,
   WorkItemIdSchema,
@@ -31,6 +32,7 @@ import {
   type EvidencePath,
   type IsoDateTime,
   type RunEventId,
+  type CandidateReviewEventId,
   type RunId,
   type Sha256,
   type WorkItemId,
@@ -79,6 +81,9 @@ export const newRunId = (): RunId =>
 
 export const newRunEventId = (): RunEventId =>
   generatedId("event", (value) => RunEventIdSchema.parse(value));
+
+export const newCandidateReviewEventId = (): CandidateReviewEventId =>
+  generatedId("review", (value) => CandidateReviewEventIdSchema.parse(value));
 
 export const secureTokenHex = (): string => {
   const bytes = crypto.getRandomValues(new Uint8Array(32));

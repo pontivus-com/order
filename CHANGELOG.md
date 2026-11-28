@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Prepare native Acceptance review event contracts, immutable candidate-round membership and exact finding/assessment policy (IA35; activation requires the complete IA35–IA38 cutover).
+
 - Keep Implementation validation progress exact to the current reviewer Run, retain causal remediation failure, and display the current task's matching terminal reason independently of historical inspection (IA32).
 
 - Align Wave 3 certification with exact historical package inspection and pre-review document semantics; retain current-only authorization and explicit unavailable-membership checks.
