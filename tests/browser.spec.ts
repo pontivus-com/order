@@ -872,11 +872,9 @@ const authenticate = async (
 };
 
 const rowFor = (page: Page, title: string) =>
-  page
-    .locator('[data-testid^="work-item-row-"]')
-    .filter({ has: page.locator(".order-queue-primary strong").filter({hasText:new RegExp("^"+title.replace(/[.*+?^$\x7b\x7d()|[\]\\]/g,"\\.filter({ has: page.getByText(title, { exact: true }) })
-    .first();")+"$")}) })
-    .first();
+  page.locator('[data-testid^="work-item-row-"]').filter({
+    has: page.locator(".order-queue-primary strong").and(page.getByText(title,{exact:true})),
+  }).first();
 
 const recoveryFixtureEventIds = new Map([
   ["Workflow retry action", "event_00000000-0000-4000-8000-000000000001"],
