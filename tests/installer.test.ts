@@ -2359,6 +2359,34 @@ describe("actual IA25 installer transaction", () => {
       expect(outcome.activity).toBe("active");
     }, 120_000);
 
+  it.each([false,true] as const)("restores direct v3 exact absent-sidecar namespace (WAL fixture=%s)", databaseSidecars => {
+    const fixture = transactionFixture();
+    createPriorDeployment(fixture);
+    const outcome = runInstallerTransaction({ ...fixture, establishedHistory:"yes", legacyDatabaseVersion:3,
+      databaseSidecars, ...(databaseSidecars ? {absentOriginalSidecar:"-shm" as const} : {}),
+      failRestart:true, readiness:{ready:true,blockers:[]} });
+    expect(outcome.failure).toContain("injected host failure");
+    expect(outcome.originalNamespace[2]).toBeNull();
+    expect(outcome.databaseNamespace).toEqual(outcome.originalNamespace);
+    expect(outcome.configBytes).toBe(outcome.originalConfig);
+    expect(outcome.activity).toBe("active");
+    expect(outcome.restartObservations.map((entry:{deployment:string})=>entry.deployment)).toEqual(["candidate","prior"]);
+  },120_000);
+
+  it("retains ambiguous direct v3 copy and original archive without restarting either deployment", () => {
+    const fixture=transactionFixture();
+    createPriorDeployment(fixture);
+    const outcome=runInstallerTransaction({...fixture,establishedHistory:"yes",legacyDatabaseVersion:3,
+      databaseSidecars:true,databaseFault:"copy-replaced",databaseFaultSuffix:"-wal",readiness:{ready:true,blockers:[]}});
+    expect(outcome.failure).toContain("ambiguous installer database candidate retained");
+    const archive=outcome.stateEntries.find((name:string)=>name.startsWith("order.sqlite3-wal.legacy-v3."));
+    expect(typeof archive).toBe("string");
+    expect(readFileSync(join(fixture.stateRoot,archive)).toString("base64")).toBe(outcome.originalNamespace[1]);
+    expect(readFileSync(join(fixture.stateRoot,"order.sqlite3-wal"),"utf8")).toBe("unexpected replacement");
+    expect(outcome.restartObservations).toEqual([]);
+    expect(outcome.activity).toBe("inactive");
+  },120_000);
+
   it("retains direct v3 original archive and prevents unsafe restart after secondary compensation failure", () => {
     const fixture = transactionFixture();
     createPriorDeployment(fixture);

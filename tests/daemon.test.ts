@@ -8840,18 +8840,28 @@ describe("native QA immutable execution context", () => {
       const replay=execution.createExecutionRun(runtime,workItem,running,approval,"REVIEWER",member.id,active.contextHash);
       append(4,null,{tag:"REVIEW_STARTED",submissionId:submit.id,runId:replay.id});
       const reloaded=await authority.approvalContextForRun(runtime,approval,running,replay);
+      const replayState=execution.candidateForRun(runtime,replay,approval);
       const prompt=await execution.executionPrompt(workItem,"REVIEWER",running,reloaded);
       const rejects=async fn=>{try{await fn();return false;}catch{return true;}};
       const wrongTrigger=await rejects(()=>authority.approvalContext(runtime,approval,running,"REVIEWER",{...qa,triggerEventId:candidateState.id}));
       const wrongHash=await rejects(()=>authority.approvalContextForRun(runtime,approval,running,{...replay,contextHash:ordinaryReview.contextHash}));
+      sql.setExecutionTaskState(database,task.id,"RUNNING");
+      runStore.updateRun(runtime,replay.id,{status:"FAILED",terminalClassification:"PROVIDER_FAILURE",endedAt:timestamp});
+      const replacement=await execution.continuationForRunningTask(runtime,workItem,running,approval);
+      const replacementHistory=sql.loadCandidateReviewEvents(database,approval.id);
+      const replacementContext=await authority.approvalContextForRun(runtime,approval,running,replacement);
       console.log(JSON.stringify({stable:done.contextHash===active.contextHash&&active.contextHash===reloaded.contextHash,
+        replayExact:replayState.id===candidateState.id,
+        replacementExact:replacement.id!==replay.id&&replacement.triggerEventId===replay.triggerEventId&&
+          replacementContext.contextHash===replay.contextHash&&replacementHistory.at(-1).event.runId===replacement.id&&
+          replacementHistory.at(-1).event.submissionId===submit.id,
         ordinaryDifferent:ordinaryReview.contextHash!==active.contextHash,
         events:reloaded.qa.events.map(value=>value.id),expected:[submit.id,report.id],
         promptContains:prompt.includes(JSON.stringify(report.id))&&prompt.includes(member.id)&&!prompt.includes('"state":"RUNNING"'),
         wrongTrigger,wrongHash}));
       database.close();
-    `) as {stable:boolean;ordinaryDifferent:boolean;events:string[];expected:string[];promptContains:boolean;wrongTrigger:boolean;wrongHash:boolean};
-    expect(output).toMatchObject({stable:true,ordinaryDifferent:true,promptContains:true,wrongTrigger:true,wrongHash:true});
+    `) as {stable:boolean;ordinaryDifferent:boolean;events:string[];expected:string[];promptContains:boolean;wrongTrigger:boolean;wrongHash:boolean;replayExact:boolean;replacementExact:boolean};
+    expect(output).toMatchObject({stable:true,ordinaryDifferent:true,promptContains:true,wrongTrigger:true,wrongHash:true,replayExact:true,replacementExact:true});
     expect(output.events).toEqual(output.expected);
   },30_000);
 });

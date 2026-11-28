@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Prepare exact QA candidate-state replay and direct operational replacement linkage; reject historical ordinary Approval selection and recheck exact eligible task at admission; prove direct v3 absent and ambiguous namespace custody (IA36/IA37).
+
 - Prepare exact QA-linked signed context hashing and provider input from immutable task fields, selected submission/report/retest events and trigger; enforce exact assessment admission before persistence (IA37).
 
 - Derive exact per-action Acceptance admission from canonical review history; select immutable SUBMIT/REPORT/preceding RETEST_FAILED inputs and verify nested assessment evidence through existing Run evidence owner (IA35/IA37 preparation).
