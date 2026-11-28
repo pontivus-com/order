@@ -643,7 +643,7 @@ const beginDocumentRootMigration = (
   }
   if (executionWorkItemExistsForRepository(runtime, repositoryRoot)) {
     throw new TypeError(
-      "WorkItem document-root migration is blocked while repository work is in EXECUTION",
+      "WorkItem document-root migration is blocked while repository signed work is active",
     );
   }
   if (activeRunExistsForRepository(runtime, repositoryRoot)) {

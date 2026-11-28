@@ -20,6 +20,8 @@ import {
   WorkItemIdSchema,
   WorkItemSchema,
   type RunEventPayload,
+  type CandidateReviewEventPayload,
+  type CandidateMembers,
   type RunId,
   type StageCompletion,
   type WorkItemId,
@@ -532,6 +534,8 @@ writeFileSync(join(repositoryRoot, "docs", "plan.md"), planText);
 const nativeAcceptancePlanText = planText.replace('"acceptanceRefs":[]','"acceptanceRefs":["GW-FR-098-READINESS-AUTHORITY-TOPOLOGY-REVIEW"]');
 writeFileSync(join(repositoryRoot, "docs", "native-acceptance-plan.md"), nativeAcceptancePlanText);
 writeFileSync(join(repositoryRoot, "docs", "native-acceptance-stale-plan.md"), nativeAcceptancePlanText);
+const nativeMixedPlanText=nativeAcceptancePlanText.replace('"concernIds":[]}]}','"concernIds":[]},{"id":"T2","objective":"Verify existing behavior needs no change","dependsOn":[],"scope":["src/b.ts"],"exclusions":[],"acceptanceRefs":[],"changeSurface":["src/b.ts"],"gateIds":[],"authorityRefs":[],"concernIds":[]}]}');
+writeFileSync(join(repositoryRoot,"docs","native-acceptance-mixed-plan.md"),nativeMixedPlanText);
 writeFileSync(
   join(repositoryRoot, "docs", "historical-selection-plan.md"),
   historicalSelectionPlanText,
@@ -956,6 +960,7 @@ const seedLifecycle = async (
     | "docs/stale-approval-plan.md"
     | "docs/native-acceptance-plan.md"
     | "docs/native-acceptance-stale-plan.md"
+    | "docs/native-acceptance-mixed-plan.md"
     | "docs/long-wide-plan.md"
     | "docs/long-narrow-plan.md" = "docs/plan.md",
 ) => {
@@ -1674,6 +1679,23 @@ if(nativeRendered){
     nativeFaultItems.push({fault,item});
   }
 }
+const nativeHistoryItems=new Map<string,ReturnType<typeof workItem>>();
+if(nativeRendered){
+  for(const [kind,title] of [
+    ["queued","Native Acceptance queued correction"],
+    ["running","Native Acceptance running correction"],
+    ["blocked","Native Acceptance blocked correction"],
+    ["retest","Native Acceptance retest history"],
+    ["mixed","Native Acceptance mixed candidate"],
+    ["copy","Native Acceptance test copy"],
+    ["loading","Native Acceptance pending observation"],
+  ] as const){
+    const item=workItem(title,"AWAITING_SIGNOFF","ACTIVE",null);
+    storeWorkItem(database,item);
+    await seedLifecycle(item,kind==="mixed"?"docs/native-acceptance-mixed-plan.md":"docs/native-acceptance-plan.md");
+    nativeHistoryItems.set(kind,item);
+  }
+}
 git("add", "--", workItemsRoot);
 git("commit", "-q", "-m", "browser WorkItem sources");
 baselineCommit = await resolveHeadCommit(repositoryRoot);
@@ -1682,8 +1704,10 @@ const seedNativeCandidate = async (item:ReturnType<typeof workItem>)=>{
   const nativePackage=await signoffPackageForWorkItem(seedRuntime,item.id);
   const nativeApproval=await signOffWorkItem(seedRuntime,item.id,nativePackage.packageHash,"browser-signoff");
   const nativeTasks=await listExecutionTasks(seedRuntime,item.id);
-  if(nativeTasks.length!==1)throw new TypeError("Native Acceptance fixture requires one signed task");
-  const nativeTask=nativeTasks[0]!;
+  if(nativeTasks.length<1||nativeTasks.length>2)throw new TypeError("Native Acceptance fixture requires one or two signed tasks");
+  const nativeTask=nativeTasks.find(task=>task.planTaskId==="T1")!;
+  if(nativeTask===undefined)throw new TypeError("Native Acceptance candidate task missing");
+  const noOpTask=nativeTasks.find(task=>task.planTaskId==="T2");
   const nativeBuilder=RunSchema.parse({
     id:newRunId(),workItemId:item.id,executionTaskId:nativeTask.id,stage:"EXECUTION",
     mode:"UNATTENDED",role:"BUILDER",triggerEventId:null,status:"COMPLETED",attempt:1,
@@ -1704,18 +1728,94 @@ const seedNativeCandidate = async (item:ReturnType<typeof workItem>)=>{
     nativeValidationIds.push(persistEvent(nativeReviewer.id,nativeSequence++,{tag:"VALIDATION_PASSED",stage,evidence:[]}).id);
   }
   const nativeMember=persistEvent(nativeReviewer.id,nativeSequence,{tag:"CANDIDATE_RECORDED",candidateStateEventId:nativeState.id,validationEventIds:nativeValidationIds});
-  const nativeHash=sha256Text(candidateMembershipCanonicalJson(nativeApproval.id,[[nativeTask.id,nativeMember.id]]));
+  const members:CandidateMembers[number][]=[[nativeTask.id,nativeMember.id]];
+  let noOpMember:ReturnType<typeof persistEvent>|undefined;
+  if(noOpTask!==undefined){
+    const noOpRun=RunSchema.parse({...nativeBuilder,id:newRunId(),executionTaskId:noOpTask.id,terminalClassification:"ALREADY_SATISFIED"});
+    storeRun(database,noOpRun);
+    noOpMember=persistEvent(noOpRun.id,1,{tag:"TASK_ALREADY_SATISFIED",summary:"Existing behavior satisfies the signed task."});
+    members.push([noOpTask.id,noOpMember.id]);
+    setExecutionTaskState(database,noOpTask.id,"ALREADY_SATISFIED");
+  }
+  members.sort((left,right)=>left[0]<right[0]?-1:1);
+  const nativeHash=sha256Text(candidateMembershipCanonicalJson(nativeApproval.id,members));
   withTransaction(database,()=>{
     setExecutionTaskState(database,nativeTask.id,"CANDIDATE_DONE");
     storeCandidateReviewEvent(database,{id:newCandidateReviewEventId(),approvalId:nativeApproval.id,sequence:1,occurredAt:stamp,actor:null,event:{tag:"OPENED",candidateHash:nativeHash}});
     updateWorkItemLifecycle(database,item.id,{stage:"AWAITING_ACCEPTANCE",status:"ACTIVE",outcome:null});
   });
   await observeCurrentCandidateReview(seedRuntime,item.id,nativeApproval.id,1);
-  return {item, approval:nativeApproval, builder:nativeBuilder, task:nativeTask, member:nativeMember, hash:nativeHash};
+  return {item, approval:nativeApproval, builder:nativeBuilder, reviewer:nativeReviewer, state:nativeState,
+    task:nativeTask, member:nativeMember, hash:nativeHash, noOpTask,noOpMember};
 };
 await seedNativeCandidate(nativeAcceptanceItem);
 const nativeFaultFixtures=new Map<WorkItemId,Awaited<ReturnType<typeof seedNativeCandidate>> & {fault:NativeFault}>();
 for(const {fault,item} of nativeFaultItems) nativeFaultFixtures.set(item.id,{...await seedNativeCandidate(item),fault});
+
+// Canonical persisted histories: use the real signed package and exact
+// builder/reviewer/event lineage, not mocked view models or atlas states.
+for(const [kind,item] of nativeHistoryItems){
+  const fixture=await seedNativeCandidate(item);
+  if(kind==="copy"||kind==="loading"||kind==="mixed")continue;
+  let sequence=1;
+  let currentHash=fixture.hash;
+  let currentMember=fixture.member;
+  let attempt=2;
+  const appendQa=(event:CandidateReviewEventPayload,actor:string|null)=>{
+    const entry={id:newCandidateReviewEventId(),approvalId:fixture.approval.id,sequence:++sequence,occurredAt:stamp,actor,event};
+    storeCandidateReviewEvent(database,entry);
+    return entry;
+  };
+  const report=(observed:string)=>appendQa({tag:"REPORT",candidateHash:currentHash,
+    taskId:fixture.task.id,candidateEventId:currentMember.id,acceptanceRefs:fixture.task.acceptanceRefs,
+    expected:"The signed candidate meets its acceptance criterion.",observed,reproduction:"Inspect the exact candidate checkout.",
+    impact:"The observation requires a human retest.",evidence:[fixture.state.id]},"Fixture operator");
+  const submit=(findingId:ReturnType<typeof newCandidateReviewEventId>)=>appendQa({tag:"SUBMIT",candidateHash:currentHash,findingIds:[findingId]},"Fixture operator");
+  const dispose=(findingId:ReturnType<typeof newCandidateReviewEventId>,outcome:"RESOLVED"|"WITHDRAWN")=>appendQa({
+    tag:"DISPOSITION",candidateHash:currentHash,findingId,outcome,rationale:"The fixture operator recorded the required disposition.",
+    followupWorkItemId:null,withdrawalAttestation:outcome==="WITHDRAWN"?"NOT_A_KNOWN_UNMET_OBLIGATION":null},"Fixture operator");
+  const correction=(findingId:ReturnType<typeof newCandidateReviewEventId>,mode:"COMPLETED"|"RUNNING"|"BLOCKED")=>{
+    const submission=submit(findingId);
+    if(kind==="queued")return;
+    const run=RunSchema.parse({...fixture.reviewer,id:newRunId(),attempt:++attempt,
+      triggerEventId:currentMember.id,status:mode,endedAt:mode==="RUNNING"?null:stamp,
+      terminalClassification:mode==="COMPLETED"?"CANDIDATE_DONE":mode==="RUNNING"?null:"REVIEW_FAILURE"});
+    storeRun(database,run);
+    appendQa({tag:"REVIEW_STARTED",submissionId:submission.id,runId:run.id},null);
+    if(mode==="RUNNING"||mode==="BLOCKED"){
+      if(mode==="BLOCKED")persistEvent(run.id,1,{tag:"REVIEW_FAILED",classification:"REVIEW_FAILURE",
+        summary:"The submitted observation still requires repair.",evidence:[]});
+      setExecutionTaskState(database,fixture.task.id,mode);
+      updateWorkItemLifecycle(database,item.id,{stage:"EXECUTION",status:mode==="BLOCKED"?"BLOCKED":"ACTIVE",outcome:null});
+      return;
+    }
+    const bytes=encoder.encode("Independent assessment of the exact submitted finding.\n");
+    const proof={relativePath:"successor-review.txt",sha256:writeRunEvidenceBytes(stateRoot,run.id,"successor-review.txt",bytes),mediaType:"text/plain"};
+    let ordinal=1;
+    const validationIds=[];
+    for(const stage of ["V0","V1","V2","V3","V4","V5","V6","V7"] as const){
+      if(stage==="V4")persistEvent(run.id,ordinal++,{tag:"REVIEW_PASSED",minimumChange:"MINIMUM_SUFFICIENT",
+        minimumChangeSummary:null,evidence:[proof],qaAssessments:[{findingId,verdict:"NOT_REPRODUCED",rationale:"Independent reproduction did not reproduce the reported failure.",evidence:[proof]}]});
+      validationIds.push(persistEvent(run.id,ordinal++,{tag:"VALIDATION_PASSED",stage,evidence:[proof]}).id);
+    }
+    currentMember=persistEvent(run.id,ordinal,{tag:"CANDIDATE_RECORDED",candidateStateEventId:fixture.state.id,validationEventIds:validationIds});
+    currentHash=sha256Text(candidateMembershipCanonicalJson(fixture.approval.id,[[fixture.task.id,currentMember.id]]));
+    appendQa({tag:"REVIEW_COMPLETED",submissionId:submission.id,candidateHash:currentHash,candidateEventId:currentMember.id},null);
+  };
+  if(kind==="retest"){
+    const historical=report("Previously assessed finding");
+    const unassessed=report("Previously withdrawn finding");
+    dispose(unassessed.id,"WITHDRAWN");
+    correction(historical.id,"COMPLETED");
+    dispose(historical.id,"RESOLVED");
+    const newest=report("Current independently assessed finding");
+    correction(newest.id,"COMPLETED");
+  }else{
+    const finding=report("Submitted correction finding");
+    correction(finding.id,kind==="running"?"RUNNING":kind==="blocked"?"BLOCKED":"COMPLETED");
+  }
+  if(kind==="queued"||kind==="retest")await observeCurrentCandidateReview(seedRuntime,item.id,fixture.approval.id,sequence);
+}
 
 writeFileSync(
   join(repositoryRoot, "docs", "stale-approval-plan.md"),

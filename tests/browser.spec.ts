@@ -2189,6 +2189,8 @@ const validateNativeAcceptanceEvidence = (entries: readonly RenderedAcceptanceEn
   const missing = required.filter(([surface, state]) =>
     !eligible.some(entry => entry.surface === surface && entry.state === state));
   expect(missing.map(([surface,state]) => surface + "/" + state), "exact native Acceptance state coverage").toEqual([]);
+  const missingMedium=required.filter(([surface,state])=>!eligible.some(entry=>entry.surface===surface&&entry.state===state&&entry.viewport.width===1000&&entry.reference.viewportClass==="medium"));
+  expect(missingMedium.map(([surface,state])=>surface+"/"+state),"exact per-state 1000px medium coverage").toEqual([]);
   for (const viewport of declared.viewports) {
     expect(eligible.some(entry => entry.surface === acceptanceSurface && entry.reference.viewportClass === viewport),
       "native Acceptance viewport " + viewport).toBe(true);
@@ -3328,9 +3330,11 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   const runtimeErrors: string[] = [];
   let expectedConflictConsoleErrors = 0;
   const expectedAcceptanceFaultUrls = new Set<string>();
+  const expectedTransportFaultUrls = new Set<string>();
   page.on("pageerror", (error) => runtimeErrors.push("pageerror: " + error.message));
   page.on("console", (message) => {
     if (message.type() !== "error") return;
+    if (expectedTransportFaultUrls.has(message.location().url) && /status of (400|409|500)/.test(message.text())) return;
     if (message.text().includes("status of 409 (Conflict)") &&
       expectedAcceptanceFaultUrls.has(message.location().url)) return;
     if (
@@ -4936,9 +4940,16 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     const captureAcceptance = async (state:string, suffix:string, viewport:Readonly<{width:number;height:number}> = light,
       theme:RenderedAcceptanceInput["theme"]="Light",fixture="Native Acceptance review"):Promise<void> => {
       await page.setViewportSize(viewport);
-      await capture({id:"ia38-"+state+"-"+suffix, workItemKind:"CHANGE", workflowStep:"Acceptance",
+      const entry:RenderedAcceptanceInput={id:"ia38-"+state+"-"+suffix, workItemKind:"CHANGE", workflowStep:"Acceptance",
         surface:acceptanceSurface,state,fixture,viewport,theme,route:routeValue(),
-        authorityRefs:["GW-DOC-WORKBENCH-UX-V2","GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2","GW-DOC-CANONICAL-CONTRACTS-V2"]});
+        authorityRefs:["GW-DOC-WORKBENCH-UX-V2","GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2","GW-DOC-CANONICAL-CONTRACTS-V2"]};
+      await capture(entry);
+      if(!diagnosticCurrentState&&suffix==="wide-light"&&state!=="awaiting-review"){
+        try{
+          await page.setViewportSize({width:1000,height:800});
+          await capture({...entry,id:entry.id+"-medium",viewport:{width:1000,height:800}});
+        }finally{await page.setViewportSize(viewport);}
+      }
     };
     await captureAcceptance("awaiting-review","wide-light");
     if(integratedAcceptance){
@@ -4964,6 +4975,8 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     await page.getByRole("radio",{name:"System"}).click();
     await page.emulateMedia({colorScheme:"light"});
     await captureAcceptance("awaiting-review","wide-system-light",light,"System/light");
+    await page.emulateMedia({colorScheme:"dark"});
+    await captureAcceptance("awaiting-review","wide-system-dark",light,"System/dark");
     await page.getByRole("radio",{name:"Light"}).click();
     const criterion=review.getByRole("button",{name:"Open criterion",exact:true});
     await criterion.click();
@@ -5069,6 +5082,201 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
       await backToQueue(page);
     }
     if(!diagnosticCurrentState){
+      // Queued correction remains Acceptance and admits no competing decision.
+      await openWorkItem(page,"Native Acceptance queued correction");
+      await expect(review.getByTestId("review-verdict")).toContainText("Correction queued");
+      await expect(review.getByRole("button",{name:"Accept candidate",exact:true})).toHaveCount(0);
+      await expect(review.getByRole("button",{name:"Submit findings",exact:true})).toHaveCount(0);
+      await captureAcceptance("correction-queued","wide-light",light,"Light","Native Acceptance queued correction");
+      await backToQueue(page);
+
+      for(const [title,state] of [["Native Acceptance running correction","qa-review"],["Native Acceptance blocked correction","qa-blocked"]] as const){
+        await openWorkItem(page,title);
+        const execution=page.getByTestId("execution-workspace");
+        await expect(execution).toBeVisible();
+        await selectWorkflowMaterial(page,"Independent review · Attempt 3");
+        await expect(execution.getByText("QA findings",{exact:true})).toBeVisible();
+        await expect(execution).toContainText("Submitted correction finding");
+        if(integratedAcceptance){
+          await captureDependent("SURF-STEP-EXEC-001",state,"Implementation",title);
+          await captureDependent("SURF-MAT-EXEC-TASK-001",state,"Implementation",title);
+        }
+        if(state==="qa-review"){
+          await selectWorkflowStep(page,"Acceptance");
+          await expect(review.getByTestId("review-verdict")).toContainText("Correction in progress");
+          await expect(review.getByRole("button",{name:"Accept candidate",exact:true})).toHaveCount(0);
+          await captureAcceptance("historical-correction","wide-light",light,"Light",title);
+        }
+        await backToQueue(page);
+      }
+
+      // Three legitimately reopened findings: current assessment, historical
+      // assessment and a previously disposed finding with no assessment.
+      await openWorkItem(page,"Native Acceptance retest history");
+      await expect(review.getByTestId("review-verdict")).toContainText("Ready for retest");
+      await captureAcceptance("retest-required","wide-light",light,"Light","Native Acceptance retest history");
+      if(integratedAcceptance){
+        const successor=review.getByText("successor-review.txt",{exact:true}).first();
+        await successor.locator("..").getByRole("button",{name:"View evidence",exact:true}).click();
+        await expect(page.getByTestId("evidence-workspace")).toBeVisible();
+        await expect(page.getByTestId("raw-content-view")).toContainText("Independent assessment");
+        await captureDependent("SURF-MAT-EVIDENCE-001","qa-successor","Acceptance","Native Acceptance successor evidence");
+        await page.getByRole("button",{name:"Back to workflow context",exact:true}).click();
+      }
+      const retest=page.getByRole("dialog",{name:"Record retest",exact:true});
+      const inspectFinding=async(label:string)=>{
+        const resource=review.getByText(label,{exact:true});
+        await resource.locator("..").getByRole("button",{name:"Inspect finding",exact:true}).click();
+        await expect(review.getByText(label,{exact:true})).toBeVisible();
+        await review.getByRole("button",{name:"Record retest",exact:true}).last().click();
+        await expect(retest).toBeVisible();
+      };
+      await inspectFinding("Previously assessed finding");
+      await expect(retest).toContainText("Historical assessment");
+      await captureAcceptance("retest-historical-assessment-form","wide-light",light,"Light","Native Acceptance retest history");
+      await retest.getByRole("button",{name:"Cancel",exact:true}).click();
+      await review.getByRole("button",{name:"Back to findings",exact:true}).click();
+      await inspectFinding("Previously withdrawn finding");
+      await expect(retest).toContainText("No finding-specific assessment recorded.");
+      await captureAcceptance("retest-no-assessment-form","wide-light",light,"Light","Native Acceptance retest history");
+      await retest.getByRole("button",{name:"Cancel",exact:true}).click();
+      await review.getByRole("button",{name:"Back to findings",exact:true}).click();
+      await inspectFinding("Current independently assessed finding");
+      await expect(retest).toContainText("Independent assessment");
+      await retest.getByText("Defect still present",{exact:true}).click();
+      await expect(retest.getByLabel("Observed behavior")).toBeVisible();
+      await captureAcceptance("retest-form","wide-light",light,"Light","Native Acceptance retest history");
+      await retest.getByText("Correction confirmed",{exact:true}).click();
+      await captureAcceptance("retest-confirmed-form","wide-light",light,"Light","Native Acceptance retest history");
+      await retest.getByText("Defect still present",{exact:true}).click();
+      await retest.getByLabel("Observed behavior").fill("The defect remains after retest.");
+      await retest.getByLabel("Rationale").fill("The exact successor candidate was retested.");
+      await retest.getByLabel("Your name").fill("Rendered QA fixture");
+      await retest.getByRole("button",{name:"Record retest",exact:true}).click();
+      await expect(retest).toHaveCount(0);
+      await review.getByRole("button",{name:"Back to findings",exact:true}).click();
+      await expect(review.getByTestId("review-verdict")).toContainText("Findings open");
+      await expect(review.getByText("Retest failed",{exact:true})).toBeVisible();
+      await captureAcceptance("retest-failed","wide-light",light,"Light","Native Acceptance retest history");
+      await backToQueue(page);
+
+      // Mixed candidate: challenge the no-op member, rather than treating
+      // its technical success as human acceptance.
+      await openWorkItem(page,"Native Acceptance mixed candidate");
+      await expect(review.getByTestId("review-verdict")).toContainText("Verified candidate");
+      await expect(review.getByText("No change required",{exact:true})).toBeVisible();
+      await captureAcceptance("mixed-candidate","wide-light",light,"Light","Native Acceptance mixed candidate");
+      await review.getByRole("button",{name:"Report finding for task",exact:true}).last().click();
+      await expect(report).toContainText("Verify existing behavior needs no change");
+      await report.getByLabel("Expected behavior").fill("Existing behavior satisfies the signed obligation.");
+      await report.getByLabel("Observed behavior").fill("The no-change conclusion is challenged.");
+      await report.getByLabel("Reproduction").fill("Inspect the no-change member.");
+      await report.getByLabel("Impact").fill("The plan requires reconsideration.");
+      await report.getByLabel("Your name").fill("Rendered QA fixture");
+      await report.getByRole("button",{name:"Report finding",exact:true}).click();
+      await expect(report).toHaveCount(0);
+      await expect(review.getByTestId("review-verdict")).toContainText("No-change task challenged");
+      await captureAcceptance("no-op-challenge","wide-light",light,"Light","Native Acceptance mixed candidate");
+      await review.getByRole("button",{name:"Return to planning",exact:true}).click();
+      const reanalysis=page.getByRole("dialog",{name:"Return to planning",exact:true});
+      await expect(reanalysis).toBeVisible();
+      await captureAcceptance("reanalysis-form","wide-light",light,"Light","Native Acceptance mixed candidate");
+      await reanalysis.getByLabel("Rationale").fill("Reconsider the challenged signed no-change task.");
+      await reanalysis.getByLabel("Your name").fill("Rendered QA fixture");
+      await reanalysis.getByRole("button",{name:"Return to planning",exact:true}).click();
+      await expect(acceptanceRail.getByRole("button",{name:"Implementation plan",exact:true})).toHaveAttribute("aria-current","step");
+      await selectWorkflowStep(page,"Acceptance");
+      await expect(review.getByTestId("review-verdict")).toContainText("Historical review");
+      await expect(review.getByRole("button",{name:"Return to current step",exact:true})).toBeVisible();
+      await captureAcceptance("historical-return","wide-light",light,"Light","Native Acceptance mixed candidate returned to planning");
+      await backToQueue(page);
+
+      await openWorkItem(page,"Native Acceptance test copy");
+      await expect(review.getByTestId("review-verdict")).toContainText("Verified candidate");
+      await review.getByRole("button",{name:"Prepare test copy",exact:true}).click();
+      await copy.getByRole("button",{name:"Prepare test copy",exact:true}).click();
+      await expect(copy.getByText("Local checkout path",{exact:true})).toBeVisible();
+      await captureAcceptance("test-copy-result","wide-light",light,"Light","Native Acceptance actual isolated test copy");
+      await copy.getByRole("button",{name:"Close",exact:true}).click();
+
+      // Inject a transport failure at the existing HTTP effect boundary.
+      // The selected task and candidate still come from the real signed fixture.
+      const copyFault="**/qa/prepare-test-copy";
+      await page.route(copyFault,async route=>{
+        expectedTransportFaultUrls.add(route.request().url());
+        await route.fulfill({status:500,contentType:"application/json",body:JSON.stringify({code:"INTERNAL_ERROR",message:"Fixture transport failed",sourceDiagnostic:null,staleAuthorityOwner:null})});
+      });
+      await review.getByRole("button",{name:"Prepare test copy",exact:true}).click();
+      await copy.getByRole("button",{name:"Prepare test copy",exact:true}).click();
+      await expect(copy).toContainText("The decision could not be recorded.");
+      await captureAcceptance("test-copy-error","wide-light",light,"Light","Native Acceptance copy transport failure");
+      await page.unroute(copyFault);
+      await copy.getByRole("button",{name:"Cancel",exact:true}).click();
+
+      const reportFault="**/qa/report";
+      for(const [status,state,code] of [[500,"form-error","INTERNAL_ERROR"],[409,"mutation-conflict","CURRENT_STATE_CONFLICT"]] as const){
+        await expect(review.getByRole("button",{name:"Report finding for task",exact:true})).toBeEnabled();
+        await page.route(reportFault,async route=>{
+          expectedTransportFaultUrls.add(route.request().url());
+          await route.fulfill({status,contentType:"application/json",body:JSON.stringify({code,message:"Fixture transport failure",sourceDiagnostic:null,staleAuthorityOwner:null})});
+        });
+        await review.getByRole("button",{name:"Report finding for task",exact:true}).click();
+        await report.getByLabel("Expected behavior").fill("Expected result");
+        await report.getByLabel("Observed behavior").fill("Failed submission observation");
+        await report.getByLabel("Reproduction").fill("Exercise the transport failure");
+        await report.getByLabel("Impact").fill("The draft must remain intact");
+        await report.getByLabel("Your name").fill("Rendered QA fixture");
+        await report.getByRole("button",{name:"Report finding",exact:true}).click();
+        await expect(report).toContainText("The decision could not be recorded.");
+        await expect(report.getByLabel("Observed behavior")).toHaveValue("Failed submission observation");
+        await captureAcceptance(state,"wide-light",light,"Light","Native Acceptance "+code+" failure");
+        await page.unroute(reportFault);
+        await report.getByRole("button",{name:"Cancel",exact:true}).click();
+        await page.getByRole("alertdialog",{name:"Discard unsaved review form?"}).getByRole("button",{name:"Discard unsaved changes"}).click();
+      }
+      await backToQueue(page);
+
+      const pendingItem=await workItemForTitle(page,"Native Acceptance pending observation");
+      let releaseObservation=()=>{};
+      const pendingObservation=new Promise<void>(resolve=>{releaseObservation=resolve;});
+      const pendingPattern="**/api/work-items/"+pendingItem.id+"/approvals/*/qa-events*";
+      await page.route(pendingPattern,async route=>{await pendingObservation;await route.continue();});
+      try{
+        await openWorkItem(page,"Native Acceptance pending observation");
+        await expect(review.getByTestId("review-verdict")).toContainText("Loading current review");
+        await expect(review.getByRole("button",{name:"Accept candidate",exact:true})).toHaveCount(0);
+        await captureAcceptance("loading","wide-light",light,"Light","Native Acceptance pending exact observation");
+      }finally{releaseObservation();await page.unroute(pendingPattern);}
+      await expect(review.getByTestId("review-verdict")).toContainText("Verified candidate");
+      await backToQueue(page);
+
+      if(integratedAcceptance){
+        // These real repository effects are rejected while signed work exists.
+        // Assert both feedback and preservation of the repository inventory.
+        await page.getByRole("link",{name:"Settings",exact:true}).click();
+        const settings=page.getByTestId("settings-workspace");
+        await settings.getByRole("link",{name:"Repositories",exact:true}).click();
+        const repositories=page.getByTestId("settings-repositories");
+        const repoRow=repositories.getByRole("row").filter({hasText:repositoryRoot}).first();
+        const guardUrl=new URL("/api/settings/repositories/disconnect",page.url()).href;
+        const moveUrl=new URL("/api/settings/repositories/document-root",page.url()).href;
+        expectedTransportFaultUrls.add(guardUrl);expectedTransportFaultUrls.add(moveUrl);
+        await repoRow.getByRole("button",{name:/^Disconnect /}).click();
+        const disconnect=page.getByRole("alertdialog",{name:"Disconnect repository?"});
+        await disconnect.getByRole("button",{name:"Disconnect repository",exact:true}).click();
+        await expect(repositories).toContainText("Repository disconnect failed");
+        if(await disconnect.isVisible())await disconnect.getByRole("button",{name:"Cancel",exact:true}).click();
+        await expect(repoRow).toBeVisible();
+        await captureDependent("SURF-SET-REPO-001","acceptance-guard",null,"Signed Acceptance repository guard");
+        await repoRow.getByRole("button",{name:/^Move WorkItem documents for /}).click();
+        const move=page.getByTestId("move-workitem-documents");
+        await move.getByLabel("New repository-relative WorkItem document root").fill("docs/order/acceptance-guard");
+        await move.getByRole("button",{name:"Move documents",exact:true}).click();
+        await expect(move).toContainText("Document move failed");
+        await captureDependent("SURF-SET-REPO-MOVE-001","acceptance-guard",null,"Signed Acceptance document-root guard");
+        await move.getByRole("button",{name:"Cancel move",exact:true}).click();
+        await page.getByRole("link",{name:"Work items",exact:false}).click();
+      }
       for(const [fault,title,state,confirmation] of [
         ["SOURCE_AUTHORITY_STALE","Native Acceptance source drift","source-stale-authority","source-reconcile-confirmation"],
         ["STALE_AUTHORITY","Native Acceptance material drift","stale-authority","reconcile-confirmation"],
