@@ -607,6 +607,7 @@ export const WorkStageSchema = z.enum([
   "R3",
   "AWAITING_SIGNOFF",
   "EXECUTION",
+  "AWAITING_ACCEPTANCE",
   "COMPLETE",
 ]);
 export const WorkStatusSchema = z.enum(["ACTIVE", "BLOCKED", "COMPLETE"]);
@@ -793,7 +794,7 @@ export const RunSchema = z
       if (value.executionTaskId !== null || value.triggerEventId !== null || value.mode !== "INTERACTIVE") {
         ctx.addIssue({ code: "custom", message: "STAGE run must be interactive and pre-signoff" });
       }
-      if (value.stage === "EXECUTION" || value.stage === "COMPLETE") {
+      if (value.stage === "EXECUTION" || value.stage === "AWAITING_ACCEPTANCE" || value.stage === "COMPLETE") {
         ctx.addIssue({ code: "custom", message: "STAGE run cannot use aggregate execution/complete stage" });
       }
     } else {

@@ -64,6 +64,8 @@ import {
   observeCurrentApproval,
   observeApprovalHistory,
   observeApprovalArtifacts,
+  observeCandidateReviewEvents,
+  acceptanceObservationCodeForFailure,
   listProjects,
   listWorkItemSchemas,
   listRunEvents,
@@ -255,6 +257,9 @@ export const classifyHttpFailure = (
       staleAuthorityOwner,
     };
   }
+
+  const acceptanceCode = acceptanceObservationCodeForFailure(error);
+  if (acceptanceCode !== null) return { status: 409, code: acceptanceCode, message: (error as Error).message, sourceDiagnostic: null, staleAuthorityOwner: null };
 
   if (
     error instanceof TypeError &&
@@ -858,6 +863,20 @@ const routeApi = async (
     if (parts[3] === "approvals" && parts.length === 6 && parts[5] === "artifacts" && request.method === "GET") {
       const approvalId = await parseRequest(() => ApprovalIdSchema.parse(parts[4]));
       return jsonResponse(await observeApprovalArtifacts(runtime, workItemId, approvalId));
+    }
+    if (parts[3] === "approvals" && parts.length === 6 && parts[5] === "qa-events" && request.method === "GET") {
+      const approvalId = await parseRequest(() => ApprovalIdSchema.parse(parts[4]));
+      const entries = [...url.searchParams.entries()];
+      let sequence: number | undefined;
+      if (entries.length !== 0) {
+        const entry = entries[0]!;
+        if (entries.length !== 1 || entry[0] !== "expectedReviewSequence" ||
+            !/^(0|[1-9][0-9]*)$/.test(entry[1]) || !Number.isSafeInteger(Number(entry[1]))) {
+          throw badRequest("expected exactly one canonical expectedReviewSequence");
+        }
+        sequence = Number(entry[1]);
+      }
+      return jsonResponse(await observeCandidateReviewEvents(runtime, workItemId, approvalId, sequence));
     }
     if (parts[3] === "tasks" && parts.length === 4 && request.method === "GET") {
       return jsonResponse(await listExecutionTasks(runtime, workItemId));

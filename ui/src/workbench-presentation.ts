@@ -134,6 +134,7 @@ export const workflowSteps: readonly WorkflowStepPresentation[] = [
   { stage: "R3", label: "Readiness review", purpose: "Independently verify that the work is ready" },
   { stage: "AWAITING_SIGNOFF", label: "Approval", purpose: "Review and authorize the exact package" },
   { stage: "EXECUTION", label: "Implementation", purpose: "Execute and verify the approved change" },
+  { stage: "AWAITING_ACCEPTANCE", label: "Acceptance", purpose: "Review and accept the verified candidate" },
   { stage: "COMPLETE", label: "Complete", purpose: "Inspect the final outcome" },
 ];
 

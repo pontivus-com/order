@@ -36,7 +36,7 @@ export const artifactDirectEditIsAllowed = (
   workItem: Pick<WorkItem, "stage" | "status">,
   artifact: Pick<ArtifactRef, "role" | "authorityLayer">,
 ): boolean => {
-  if (workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE") return false;
+  if (workItem.stage === "EXECUTION" || workItem.stage === "AWAITING_ACCEPTANCE" || workItem.stage === "COMPLETE") return false;
   if (!directlyEditableArtifactRoles.includes(
     artifact.role as (typeof directlyEditableArtifactRoles)[number],
   )) {
@@ -82,6 +82,7 @@ export const stageOrder: readonly WorkStage[] = [
   "R3",
   "AWAITING_SIGNOFF",
   "EXECUTION",
+  "AWAITING_ACCEPTANCE",
   "COMPLETE",
 ];
 
@@ -272,7 +273,9 @@ export type WorkItemTransitionCause =
   | Readonly<{
       tag: "EXECUTION_COMPLETED";
       outcome: "CANDIDATE_DONE" | "ALREADY_SATISFIED";
-    }>;
+    }>
+  | Readonly<{ tag: "QA_REVIEW_STARTED" }>
+  | Readonly<{ tag: "CANDIDATE_ACCEPTED" }>;
 
 export type WorkflowRailItem = Readonly<{
   stage: WorkStage;
@@ -340,13 +343,13 @@ export const transitionWorkItem = (
       }
       return lifecycleTuple("EXECUTION", "ACTIVE", null);
     case "RECONCILE_AUTHORITY":
-      if (workItem.stage !== "AWAITING_SIGNOFF" || workItem.status !== "ACTIVE") {
-        throw new TypeError("RECONCILE_AUTHORITY requires AWAITING_SIGNOFF / ACTIVE");
+      if ((workItem.stage !== "AWAITING_SIGNOFF" && workItem.stage !== "AWAITING_ACCEPTANCE") || workItem.status !== "ACTIVE") {
+        throw new TypeError("RECONCILE_AUTHORITY requires active Approval or Acceptance");
       }
       return lifecycleTuple(cause.owner, "ACTIVE", null);
     case "EXECUTION_RETURN":
-      if (workItem.stage !== "EXECUTION") {
-        throw new TypeError("EXECUTION_RETURN requires EXECUTION owner");
+      if (workItem.stage !== "EXECUTION" && !(workItem.stage === "AWAITING_ACCEPTANCE" && workItem.status === "ACTIVE" && cause.owner === "PLAN")) {
+        throw new TypeError("EXECUTION_RETURN requires EXECUTION owner or active Acceptance PLAN return");
       }
       return lifecycleTuple(cause.owner, "ACTIVE", null);
     case "EXECUTION_COMPLETED":
@@ -354,6 +357,12 @@ export const transitionWorkItem = (
         throw new TypeError("EXECUTION_COMPLETED requires EXECUTION owner");
       }
       return lifecycleTuple("COMPLETE", "COMPLETE", cause.outcome);
+    case "QA_REVIEW_STARTED":
+      if (workItem.stage !== "AWAITING_ACCEPTANCE" || workItem.status !== "ACTIVE") throw new TypeError("QA_REVIEW_STARTED requires active Acceptance");
+      return lifecycleTuple("EXECUTION", "ACTIVE", null);
+    case "CANDIDATE_ACCEPTED":
+      if (workItem.stage !== "AWAITING_ACCEPTANCE" || workItem.status !== "ACTIVE") throw new TypeError("CANDIDATE_ACCEPTED requires active Acceptance");
+      return lifecycleTuple("COMPLETE", "COMPLETE", "CANDIDATE_DONE");
   }
 };
 

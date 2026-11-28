@@ -35,6 +35,9 @@ import {
   admittedStageCompletion,
   admittedTerminalR1Artifact,
   candidateFindingDispositions,
+  candidateMembershipCanonicalJson,
+  verifyCandidateRoundHashes,
+  orderedCandidateReviewEvents,
   candidateSubmissionEvents,
   linkedSubmission,
   reconstructCandidateRounds,
@@ -72,6 +75,7 @@ import {
 import {
   expandRepositoryPatterns,
   loadValidatedProjectManifest,
+  parseProjectManifestText,
   repositoryPatternMatches,
   resolveAuthorityRef,
   resolveAuthoritySources,
@@ -189,7 +193,7 @@ export const observeCurrentApproval = async (
   workItemId: WorkItemId,
 ): Promise<Approval | null> => {
   const workItem = getWorkItem(runtime, workItemId);
-  if (workItem.stage !== "EXECUTION" && workItem.stage !== "COMPLETE") return null;
+  if (workItem.stage !== "EXECUTION" && workItem.stage !== "AWAITING_ACCEPTANCE" && workItem.stage !== "COMPLETE") return null;
   if (workItem.stage === "COMPLETE") {
     const runs = listRuns(runtime, workItemId);
     const terminalR1 = admittedTerminalR1Artifact(
@@ -246,6 +250,140 @@ export const observeApprovalArtifacts = async (
   return [...new Map([closure.plan, closure.r3, ...closure.material].map((artifact) =>
     [artifact.id, artifact] as const)).values()];
 };
+
+// History is an observational read independent of source or candidate availability.
+export const observeCandidateReviewHistory = (
+  runtime: CoordinatorRuntime, workItemId: WorkItemId, approvalId: Approval["id"],
+): readonly CandidateReviewEvent[] => {
+  getWorkItem(runtime, workItemId);
+  const approval = getApproval(runtime, approvalId);
+  if (approval.workItemId !== workItemId) throw new TypeError("Approval does not exist for WorkItem");
+  return orderedCandidateReviewEvents(approvalId, loadCandidateReviewEvents(runtime.database, approvalId));
+};
+
+type AcceptanceObservationCode = "SOURCE_AUTHORITY_STALE" | "CANDIDATE_PROOF_UNAVAILABLE";
+const acceptanceObservationFailure = (orderCode: AcceptanceObservationCode, message: string) =>
+  Object.assign(new TypeError(message), { orderCode });
+
+export const acceptanceObservationCodeForFailure = (error: unknown): AcceptanceObservationCode | null => {
+  if (!(error instanceof TypeError) || !("orderCode" in error)) return null;
+  return error.orderCode === "SOURCE_AUTHORITY_STALE" || error.orderCode === "CANDIDATE_PROOF_UNAVAILABLE" ? error.orderCode : null;
+};
+
+const requireCurrentAcceptanceIdentity = (
+  runtime: CoordinatorRuntime, workItemId: WorkItemId, approvalId: Approval["id"], sequence: number,
+) => {
+  const workItem = getWorkItem(runtime, workItemId);
+  const approval = getApproval(runtime, approvalId);
+  if (approval.workItemId !== workItemId) throw new TypeError("Approval does not exist for WorkItem");
+  const history = observeCandidateReviewHistory(runtime, workItemId, approvalId);
+  if (workItem.stage !== "AWAITING_ACCEPTANCE" || workItem.status !== "ACTIVE" ||
+      currentApprovalForWorkItem(runtime, workItemId)?.id !== approvalId || history.length !== sequence ||
+      history[0]?.event.tag !== "OPENED" ||
+      history.some(value => value.event.tag === "ACCEPT" || value.event.tag === "REANALYSIS_REQUESTED")) {
+    throw new TypeError("current Acceptance identity or review sequence changed");
+  }
+  const runs = listRuns(runtime, workItemId);
+  if (runs.some(value => value.status === "RUNNING" || value.status === "WAITING_FOR_INPUT")) {
+    throw new TypeError("current Acceptance has an active Run");
+  }
+  const rows = taskRowsForApproval(runtime, approvalId);
+  if (rows.length === 0 || rows.some(value => value.state !== "CANDIDATE_DONE" && value.state !== "ALREADY_SATISFIED")) {
+    throw new TypeError("current Acceptance task state is incoherent");
+  }
+  return { workItem, approval, history, runs, rows };
+};
+
+// A proof read never materializes a draft, a Run, a checkout or an event.
+// Source/material diagnostics must precede candidate evidence diagnostics.
+export const observeCurrentCandidateReview = async (
+  runtime: CoordinatorRuntime, workItemId: WorkItemId, approvalId: Approval["id"], sequence: number,
+) => {
+  const before = requireCurrentAcceptanceIdentity(runtime, workItemId, approvalId, sequence);
+  const { workItem, approval, history, runs } = before;
+  const recheck = () => {
+    const after = requireCurrentAcceptanceIdentity(runtime, workItemId, approvalId, sequence);
+    if (canonicalJson(after) !== canonicalJson(before)) throw new TypeError("current Acceptance observation changed");
+  };
+  try {
+    const source = await currentWorkItemSource(runtime, workItemId);
+    if (source.sha256 !== approval.sourceSha256) {
+      throw acceptanceObservationFailure("SOURCE_AUTHORITY_STALE", "signed WorkItem source changed");
+    }
+    const freshness = await approvalFreshness(runtime, approval);
+    if (!freshness.fresh) {
+      // A source change during material inspection must not become material R1.
+      const currentSource = await currentWorkItemSource(runtime, workItemId);
+      if (currentSource.sha256 !== approval.sourceSha256) throw acceptanceObservationFailure("SOURCE_AUTHORITY_STALE", "signed WorkItem source changed");
+      throw staleAuthorityFailure(routeApprovalStale(freshness.changedOwners), "signed material authority changed");
+    }
+    const closure = await verifyApprovalClosureBytes(runtime, approval);
+    const tasks = await canonicalTasksForApproval(runtime, approval);
+    const events = runs.flatMap(value => listRunEvents(runtime, value.id));
+    const signed = [closure.plan, closure.r3, ...closure.material];
+    const manifests = signed.filter(value => value.role === "PROJECT_MANIFEST");
+    if (manifests.length !== 1) throw new TypeError("signed project manifest membership is inconsistent");
+    const manifestBytes = await readCommittedFile(workItem.repositoryRoot, approval.baselineCommit, manifests[0]!.repositoryPath);
+    let rounds: ReturnType<typeof reconstructCandidateRounds>;
+    try {
+      const manifest = parseProjectManifestText(new TextDecoder("utf-8", { fatal: true }).decode(manifestBytes));
+      for (const task of tasks) {
+        for (const ref of task.acceptanceRefs) {
+          const path = resolveAuthorityRef(manifest, ref);
+          if (signed.filter(value => value.repositoryPath === path && value.role === "GOVERNANCE").length !== 1) {
+            throw new TypeError("signed criterion does not resolve to an exact authority ArtifactRef");
+          }
+        }
+      }
+      rounds = reconstructCandidateRounds(approval, tasks, runs, events, history);
+      verifyCandidateRoundHashes(history, new Map([...rounds].map(([id, members]) =>
+        [id, sha256Text(candidateMembershipCanonicalJson(approval.id, members))])));
+    } catch (error) {
+      if (!(error instanceof TypeError) && !(error instanceof Error && error.name === "ZodError")) throw error;
+      throw acceptanceObservationFailure("CANDIDATE_PROOF_UNAVAILABLE", error.message);
+    }
+    // Malformed stream semantics are a state conflict, not missing candidate proof.
+    candidateFindingDispositions(history, rounds, tasks, runs, events);
+    const required = new Set<RunEventId>();
+    for (const members of rounds.values()) {
+      for (const [, id] of members) {
+        required.add(id);
+        const member = events.find(value => value.id === id);
+        if (member?.event.tag === "CANDIDATE_RECORDED") {
+          required.add(member.event.candidateStateEventId);
+          for (const validation of member.event.validationEventIds) required.add(validation);
+          for (const event of events.filter(value => value.runId === member.runId && value.event.tag === "REVIEW_PASSED")) required.add(event.id);
+        }
+      }
+    }
+    for (const entry of history) {
+      if (entry.event.tag === "REPORT" || entry.event.tag === "RETEST_FAILED") {
+        for (const id of entry.event.evidence) required.add(id);
+      }
+    }
+    try {
+      for (const id of required) {
+        const event = events.find(value => value.id === id);
+        if (event === undefined) throw new TypeError("required candidate evidence event missing");
+        validatePayloadEvidence(runtime, event.runId, event.event);
+      }
+    } catch (error) {
+      if (!(error instanceof TypeError)) throw error;
+      throw acceptanceObservationFailure("CANDIDATE_PROOF_UNAVAILABLE", error.message);
+    }
+    recheck();
+    return { approval, history, tasks, runs, runEvents: events, rounds };
+  } catch (error) {
+    recheck();
+    throw error;
+  }
+};
+
+export const observeCandidateReviewEvents = async (
+  runtime: CoordinatorRuntime, workItemId: WorkItemId, approvalId: Approval["id"], sequence?: number,
+): Promise<readonly CandidateReviewEvent[]> => sequence === undefined
+  ? observeCandidateReviewHistory(runtime, workItemId, approvalId)
+  : (await observeCurrentCandidateReview(runtime, workItemId, approvalId, sequence)).history;
 
 export const taskRowsForApproval = (
   runtime: CoordinatorRuntime,

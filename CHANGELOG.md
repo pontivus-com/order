@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Add the canonical Acceptance stage and exact historical/current review-event observation, with non-mutating evidence reads and typed source/proof diagnostics (IA35/IA37 staging).
+
 - Prepare exact QA candidate-state replay and direct operational replacement linkage; reject historical ordinary Approval selection and recheck exact eligible task at admission; prove direct v3 absent and ambiguous namespace custody (IA36/IA37).
 
 - Prepare exact QA-linked signed context hashing and provider input from immutable task fields, selected submission/report/retest events and trigger; enforce exact assessment admission before persistence (IA37).

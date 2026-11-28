@@ -613,6 +613,8 @@ export {
   observeCurrentApproval,
   observeApprovalHistory,
   observeApprovalArtifacts,
+  observeCandidateReviewEvents,
+  acceptanceObservationCodeForFailure,
   reconcileWorkItemAuthority,
   signoffPackageForWorkItem,
   observeSignoffPackageArtifacts,
