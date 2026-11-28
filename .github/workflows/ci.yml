@@ -281,13 +281,15 @@ jobs:
           PONTIVUS_ORDER_RENDERED_ACCEPTANCE_LABEL: "IA38 signed phase evidence"
           PONTIVUS_ORDER_RENDERED_EVIDENCE_KIND: "ia26_acceptance"
           PONTIVUS_ORDER_SIGNED_RENDERED_PHASE: "IA38"
+          ORDER_PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          ORDER_PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
         shell: bash
         run: |
           set +e
           mkdir -p "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR"
           node node_modules/@playwright/test/cli.js test --grep "rendered acceptance IA26 captures downstream Workbench"
           status=$?
-          printf '{"candidateSha":"%s","signedPhase":"%s","exitStatus":%s}\n' "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA" "$PONTIVUS_ORDER_SIGNED_RENDERED_PHASE" "$status" > "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR/exit-status.json"
+          printf '{"candidateSha":"%s","signedPhase":"%s","headSha":"%s","baseSha":"%s","mergeSha":"%s","runId":"%s","exitStatus":%s}\n' "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA" "$PONTIVUS_ORDER_SIGNED_RENDERED_PHASE" "$ORDER_PR_HEAD_SHA" "$ORDER_PR_BASE_SHA" "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA" "$GITHUB_RUN_ID" "$status" > "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR/exit-status.json"
           if [[ "$status" == 0 && ! -s "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR/manifest.json" ]]; then exit 1; fi
           exit "$status"
 
@@ -374,13 +376,15 @@ jobs:
           PONTIVUS_ORDER_RENDERED_ACCEPTANCE_LABEL: "IA39 signed phase evidence"
           PONTIVUS_ORDER_RENDERED_EVIDENCE_KIND: "ia26_acceptance"
           PONTIVUS_ORDER_SIGNED_RENDERED_PHASE: "IA39"
+          ORDER_PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          ORDER_PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
         shell: bash
         run: |
           set +e
           mkdir -p "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR"
           node node_modules/@playwright/test/cli.js test --grep "rendered acceptance IA26 captures downstream Workbench"
           status=$?
-          printf '{"candidateSha":"%s","signedPhase":"%s","exitStatus":%s}\n' "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA" "$PONTIVUS_ORDER_SIGNED_RENDERED_PHASE" "$status" > "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR/exit-status.json"
+          printf '{"candidateSha":"%s","signedPhase":"%s","headSha":"%s","baseSha":"%s","mergeSha":"%s","runId":"%s","exitStatus":%s}\n' "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA" "$PONTIVUS_ORDER_SIGNED_RENDERED_PHASE" "$ORDER_PR_HEAD_SHA" "$ORDER_PR_BASE_SHA" "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA" "$GITHUB_RUN_ID" "$status" > "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR/exit-status.json"
           if [[ "$status" == 0 && ! -s "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR/manifest.json" ]]; then exit 1; fi
           exit "$status"
 
