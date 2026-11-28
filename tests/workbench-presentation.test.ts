@@ -33,6 +33,7 @@ import {
   workflowRunEvents,
   readinessOutcomeLabel,
   runStatusLabel,
+  runTerminalClassificationLabel,
   workOutcomeProductLabel,
   workflowStepState,
   type ProposalSelection,
@@ -247,6 +248,15 @@ const resolveFixtureMaterial = (
     executionOwner,
   });
 };
+
+describe("IA32 execution feedback", () => {
+  it("humanizes recorded terminal classification without fabricating a failure event", () => {
+    expect(runTerminalClassificationLabel("PRECONDITION_FAILED")).toBe("An execution prerequisite failed.");
+    expect(runTerminalClassificationLabel("PROVIDER_FAILURE")).toBe("The agent provider failed.");
+    expect(runTerminalClassificationLabel("COORDINATOR_INTERRUPTED")).toBe("The implementation attempt was interrupted.");
+    expect(runTerminalClassificationLabel(null)).toContain("no matching terminal failure reason");
+  });
+});
 
 describe("workflow presentation policy", () => {
   it("binds Context to exact ArtifactRef identity rather than same-path bytes or a foreign WorkItem", () => {

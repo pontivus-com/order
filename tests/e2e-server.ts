@@ -1951,12 +1951,12 @@ const failedBuilderRun = RunSchema.parse({
   mode: "UNATTENDED",
   role: "BUILDER",
   triggerEventId: null,
-  status: "FAILED",
+  status: "COMPLETED",
   attempt: 1,
   baselineCommit,
   contextHash: sha256Text("failed-builder-context"),
   providerSessionId: null,
-  terminalClassification: "TEST_FAILURE",
+  terminalClassification: null,
   startedAt: stamp,
   endedAt: stamp,
 });
@@ -1966,11 +1966,27 @@ persistEvent(failedBuilderRun.id, 1, {
   gateId: "typecheck",
   evidence: [],
 });
-const failedGateEvent = persistEvent(failedBuilderRun.id, 2, {
+persistEvent(failedBuilderRun.id, 2, {
   tag: "GATE_FAILED",
   gateId: "test",
   classification: "TEST_FAILURE",
   evidence: [],
+});
+
+// A failed signed checkpoint is not a reviewer trigger. The builder
+// corrects within scope and records an actual candidate for independent review.
+persistEvent(failedBuilderRun.id, 3, {
+  tag: "GATE_PASSED", gateId: "test", evidence: [],
+});
+const failedCandidatePatch = encoder.encode("diff --git a/src/a.ts b/src/a.ts\n");
+const failedCandidate = persistEvent(failedBuilderRun.id, 4, {
+  tag: "CANDIDATE_STATE_RECORDED",
+  patch: {
+    relativePath: "candidate.patch",
+    sha256: writeRunEvidenceBytes(stateRoot, failedBuilderRun.id, "candidate.patch", failedCandidatePatch),
+    mediaType: "text/x-diff",
+  },
+  changedPaths: ["src/a.ts"],
 });
 
 const failedReviewerRun = RunSchema.parse({
@@ -1980,7 +1996,7 @@ const failedReviewerRun = RunSchema.parse({
   stage: "EXECUTION",
   mode: "UNATTENDED",
   role: "REVIEWER",
-  triggerEventId: failedGateEvent.id,
+  triggerEventId: failedCandidate.id,
   status: "FAILED",
   attempt: nextAttempt(seedRuntime, failedExecution.item.id, "EXECUTION", failedExecution.task.id),
   baselineCommit,
@@ -1991,13 +2007,16 @@ const failedReviewerRun = RunSchema.parse({
   endedAt: stamp,
 });
 storeRun(database, failedReviewerRun);
-persistEvent(failedReviewerRun.id, 1, {
+for (const [index, stage] of (["V0", "V1", "V2", "V3"] as const).entries()) {
+  persistEvent(failedReviewerRun.id, index + 1, { tag: "VALIDATION_PASSED", stage, evidence: [] });
+}
+persistEvent(failedReviewerRun.id, 5, {
   tag: "REVIEW_FAILED",
   classification: "REVIEW_FAILURE",
   summary: "Independent review rejected the candidate.",
   evidence: [],
 });
-persistEvent(failedReviewerRun.id, 2, {
+persistEvent(failedReviewerRun.id, 6, {
   tag: "VALIDATION_FAILED",
   stage: "V4",
   classification: "REVIEW_FAILURE",

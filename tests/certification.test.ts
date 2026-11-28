@@ -1058,6 +1058,9 @@ describe("Order cross-boundary certification", () => {
     expect(execution).toContain("<WorkbenchFacts");
     expect(execution).toContain("<WorkbenchSection");
     expect(execution).not.toContain('className="order-implementation-scope"');
+    expect(execution).toContain("terminalExecutionFailureEvent(latestOwnerRun, runEvents)");
+    expect(execution).toContain("executionTaskRuns(task.id, runs)");
+    expect(execution).not.toContain('className="order-implementation-heading"');
     expect(execution).toContain('label="Signed task details"');
     expect(execution).toContain('data-testid="validation-matrix"');
     expect(execution).toContain("lifecycleArtifactLabel(artifact.role)");
@@ -1097,7 +1100,7 @@ describe("Order cross-boundary certification", () => {
     expect(rail).toContain("aria-pressed={item.selected}");
     expect(rail).toContain('hidden={item.state !== "current"}');
     expect(execution).toContain('label="Task overview"');
-    expect(execution).toContain('label: "Validation boundary"');
+    expect(execution).toContain('label: "Task validation boundary"');
 
     expect(documentWorkspace).not.toContain("RequirementsAuthorityFacts");
     expect(documentWorkspace).not.toContain('aria-label="Requirements authority"');
@@ -1521,7 +1524,7 @@ describe("Order cross-boundary certification", () => {
     expect(execution).toContain('currentOwnerTask?.id === selectedTask.id');
     expect(execution).toContain('selectedTask.state === "CANDIDATE_DONE"');
     expect(execution).toContain('selectedTask.state === "ALREADY_SATISFIED"');
-    expect(execution).toContain('label: "Validation boundary"');
+    expect(execution).toContain('label: "Task validation boundary"');
     const attemptValidation = execution.slice(execution.indexOf("const ValidationSummary ="), execution.indexOf("const ValidationSummary =") + execution.slice(execution.indexOf("const ValidationSummary =")).indexOf("\n};") + 3);
     expect(attemptValidation).toContain("latestValidationEvent(events, stage)");
     expect(attemptValidation).not.toContain("ValidationBoundary");

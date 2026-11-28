@@ -1102,15 +1102,15 @@ const validationBoundaryFromEvents = (
     };
   }
 
-  const passed = new Set(
-    validationEvents.flatMap((event) =>
-      event.event.tag === "VALIDATION_PASSED" ? [event.event.stage] : [],
-    ),
-  );
   let last: ValidationStage | null = null;
-  for (const stage of validationOrder) {
-    if (!passed.has(stage)) break;
-    last = stage;
+  let expectedIndex = 0;
+  for (const { event } of validationEvents) {
+    if (event.tag !== "VALIDATION_PASSED") continue;
+    if (event.stage !== validationOrder[expectedIndex]) {
+      throw new TypeError("validation passes must follow the current Run's ordered V0–V7 boundary");
+    }
+    last = event.stage;
+    expectedIndex += 1;
   }
   return last === null ? { tag: "NONE" } : { tag: "PASSED_THROUGH", stage: last };
 };

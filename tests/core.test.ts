@@ -2958,6 +2958,13 @@ describe("closed Workbench workflow-state kernel", () => {
     expect(() => deriveValidationBoundary(owner, [runningTask], [run, wrongBaseline],
       [candidateEvent, ...reviewerPasses])).toThrow(/baseline/);
 
+    const outOfOrder = RunEventSchema.parse({
+      ...reviewerPasses[4],
+      event: { tag: "VALIDATION_PASSED", stage: "V2", evidence: [] },
+    });
+    expect(() => deriveValidationBoundary(owner, [runningTask], [run, reviewerTwo],
+      [candidateEvent, outOfOrder])).toThrow(/ordered V0/);
+
     const malformedReviewer = RunSchema.parse({
       ...reviewerTwo,
       triggerEventId: "event_12121212-1212-4212-8212-121212121212",

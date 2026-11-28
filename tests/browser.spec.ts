@@ -4748,6 +4748,13 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
 
   await openWorkItem(page, "Failed implementation feedback");
   await expect(page.getByTestId("workflow-rail").locator('li[data-state="current"][data-tone="danger"] .order-workbench-rail-status')).toHaveText("Blocked");
+  await expect(execution.getByText("Semantic review failed. Resolve this blocker before resuming the approved task.", { exact: true })).toBeVisible();
+  await expect(execution.getByLabel("Task overview")).toContainText("Current boundary: failed at V4");
+  await selectWorkflowMaterial(page, "Implementation agent · Attempt 1");
+  await expect(execution.getByText("Semantic review failed. Resolve this blocker before resuming the approved task.", { exact: true })).toBeVisible();
+  await expect(execution.getByTestId("validation-matrix")).toContainText("No validation results in this attempt");
+  await expect(execution.getByRole("button", { name: "Resume resolved blocker" })).toBeVisible();
+  await selectWorkflowMaterial(page, "Independent review · Attempt 2");
   await capture({
     id: "ia26-implementation-blocked-wide-light",
     workItemKind: "CHANGE",
@@ -5982,12 +5989,14 @@ test("P5 keeps current execution ownership independent from historical selection
   const detail = page.getByTestId("execution-task-detail");
   await expect(detail).toContainText("Completed prerequisite");
   await expect(detail).toContainText("No change required");
+  await expect(page.getByTestId("execution-workspace")).toContainText("Current boundary: not started");
   await expect(page.getByRole("button", { name: "Start current task", exact: true }))
     .toBeVisible();
 
   for (const width of [1000, 700]) {
     await page.setViewportSize({ width, height: 800 });
     await expect(detail).toContainText("Completed prerequisite");
+    await expect(page.getByTestId("execution-workspace")).toContainText("Current boundary: not started");
     await expect(page.getByRole("button", { name: "Approved tasks", exact: true }))
       .toBeVisible();
     await expect(page.getByRole("button", { name: "Start current task", exact: true }))
