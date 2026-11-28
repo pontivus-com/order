@@ -287,7 +287,7 @@ export const AcceptanceWorkspace = ({workItem,material,approvals,histories,histo
     if(value===taskId)return;
     if(formDirty)setDiscard({taskId:value});else resetTaskDraft(value);
   };
-  const closeForm=()=>{if(!pending){if(formDirty)setDiscard("CLOSE");else setForm(null);}};
+  const closeForm=()=>{if(!pending&&discard===null){if(formDirty)setDiscard("CLOSE");else setForm(null);}};
   const formBody=form===null?null:copyPath!==null?<WorkbenchFacts items={[{id:"copy",label:"Local checkout path",value:copyPath}]}/>:<>
     {form.action==="REPORT"||form.action==="SUBMIT"?choice("Task",taskId,changeTask,taskOptions):null}
     {form.action==="REPORT"?<>
@@ -357,7 +357,7 @@ export const AcceptanceWorkspace = ({workItem,material,approvals,histories,histo
           return [{id:entry.id,label:"Independent correction review",detail:new Date(entry.occurredAt).toLocaleString(),action:<WorkbenchAction label="View correction" onClick={()=>onOpenCorrection(run.executionTaskId!,run.id)}/> }];
         })}/></>}
     ]} decisions={primaryAction()}/>
-    <WorkbenchTaskPanel open={form!==null} title={form===null?"Acceptance":formTitles[form.action]} onOpenChange={next=>{if(!next)closeForm();}}
+    <WorkbenchTaskPanel open={form!==null&&discard===null} title={form===null?"Acceptance":formTitles[form.action]} onOpenChange={next=>{if(!next)closeForm();}}
       body={formBody} feedback={feedback!==null||criterionFeedback!==null?<WorkbenchNotice tone="danger" title={feedback??criterionFeedback??""}/>:form!==null&&!stable&&copyPath===null?<WorkbenchNotice tone="warning" title="Review identity must remain current."/>:undefined}
       footer={<><WorkbenchAction label={copyPath!==null?"Close":"Cancel"} disabled={pending} onClick={closeForm}/>{copyPath===null&&form!==null?<WorkbenchAction label={formTitles[form.action]} tone="primary" type="submit" disabled={!valid} loading={pending}/>:null}</>}
       onSubmit={event=>{event.preventDefault();void submit();}}/>

@@ -2181,6 +2181,10 @@ const validateNativeAcceptanceEvidence = (entries: readonly RenderedAcceptanceEn
     ...declared.states.map(state => [acceptanceSurface, state] as const),
     ...(integrated ? acceptanceDependentStates : []),
   ];
+  if (signedRenderedPhase === "IA38" || signedRenderedPhase === "IA39") {
+    const unrelated = entries.filter(entry => !required.some(([surface,state]) => entry.surface === surface && entry.state === state));
+    expect(unrelated.map(entry => entry.id), "no unrelated native phase captures").toEqual([]);
+  }
   const missing = required.filter(([surface, state]) =>
     !eligible.some(entry => entry.surface === surface && entry.state === state));
   expect(missing.map(([surface,state]) => surface + "/" + state), "exact native Acceptance state coverage").toEqual([]);
@@ -2188,6 +2192,8 @@ const validateNativeAcceptanceEvidence = (entries: readonly RenderedAcceptanceEn
     expect(eligible.some(entry => entry.surface === acceptanceSurface && entry.reference.viewportClass === viewport),
       "native Acceptance viewport " + viewport).toBe(true);
   }
+  expect(eligible.some(entry => entry.surface === acceptanceSurface && entry.viewport.width === 1000 &&
+    entry.reference.viewportClass === "medium"), "native Acceptance exact medium comparison").toBe(true);
   for (const theme of declared.themes) {
     expect(eligible.some(entry => entry.surface === acceptanceSurface && entry.reference.theme === theme),
       "native Acceptance theme " + theme).toBe(true);
@@ -2202,10 +2208,21 @@ const validateNativeAcceptanceEvidence = (entries: readonly RenderedAcceptanceEn
   }
 };
 
+const validateSignedPhaseManifest = (expectedIds:readonly string[]):void => {
+  const manifest = JSON.parse(readFileSync(join(renderedAcceptanceDir!, "manifest.json"), "utf8")) as {
+    candidateSha: string; evidenceKind: string; signedPhase: string; entries: RenderedAcceptanceEntry[];
+  };
+  expect(manifest.candidateSha).toBe(renderedAcceptanceCandidateSha);
+  expect(manifest.evidenceKind).toBe("ia26_acceptance");
+  expect(manifest.signedPhase).toBe(signedRenderedPhase);
+  expect(manifest.entries.map((entry) => entry.id).sort()).toEqual([...expectedIds].sort());
+};
+
 const validateSignedPhaseEvidence = (entries: readonly RenderedAcceptanceEntry[]): void => {
   if (signedRenderedPhase === null) return;
   if (signedRenderedPhase === "IA38" || signedRenderedPhase === "IA39") {
     validateNativeAcceptanceEvidence(entries, signedRenderedPhase === "IA39");
+    validateSignedPhaseManifest(entries.map(entry => entry.id));
     return;
   }
   const expectedIds: readonly string[] = signedPhaseCaptureIds[signedRenderedPhase];
@@ -2243,13 +2260,7 @@ const validateSignedPhaseEvidence = (entries: readonly RenderedAcceptanceEntry[]
       expect(readFileSync(join(renderedAcceptanceDir!, "references", entry.referenceScreenshot!)).length).toBeGreaterThan(0);
     }
   }
-  const manifest = JSON.parse(readFileSync(join(renderedAcceptanceDir!, "manifest.json"), "utf8")) as {
-    candidateSha: string; evidenceKind: string; signedPhase: string; entries: RenderedAcceptanceEntry[];
-  };
-  expect(manifest.candidateSha).toBe(renderedAcceptanceCandidateSha);
-  expect(manifest.evidenceKind).toBe("ia26_acceptance");
-  expect(manifest.signedPhase).toBe(signedRenderedPhase);
-  expect(manifest.entries.map((entry) => entry.id).sort()).toEqual([...expectedIds, ...expectedMediumIds].sort());
+  validateSignedPhaseManifest([...expectedIds, ...expectedMediumIds]);
 };
 
 test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
@@ -4903,7 +4914,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     await expect(report.getByLabel("Expected behavior")).toHaveValue("draft retained");
     await expect(report.getByRole("button",{name:"Open criterion",exact:true})).toBeFocused();
     await report.getByRole("button",{name:"Cancel",exact:true}).click();
-    await page.getByRole("dialog",{name:"Discard unsaved review form?"}).getByRole("button",{name:"Discard unsaved changes"}).click();
+    await page.getByRole("alertdialog",{name:"Discard unsaved review form?"}).getByRole("button",{name:"Discard unsaved changes"}).click();
     await expect(report).toHaveCount(0);
     await review.getByRole("button",{name:"Prepare test copy",exact:true}).click();
     const copy=page.getByRole("dialog",{name:"Prepare test copy",exact:true});
@@ -4919,8 +4930,57 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     const accept=page.getByRole("dialog",{name:"Accept candidate",exact:true});
     await expect(accept.getByRole("button",{name:"Accept candidate",exact:true})).toBeDisabled();
     await captureAcceptance("accept-form","wide-light");
-    // Rendered observation does not accept the candidate or mutate signed history.
     await accept.getByRole("button",{name:"Cancel",exact:true}).click();
+    if (!diagnosticCurrentState) {
+      // The dedicated test WorkItem owns its real durable review history. Prove
+      // additional forms through admitted commands rather than synthetic verdicts.
+      await review.getByRole("button",{name:"Report finding for task",exact:true}).click();
+      await report.getByLabel("Expected behavior").fill("Expected visible evidence");
+      await report.getByLabel("Observed behavior").fill("Unclassified fixture observation");
+      await report.getByLabel("Reproduction").fill("Inspect this signed candidate");
+      await report.getByLabel("Impact").fill("Review observation pending classification");
+      await report.getByLabel("Your name").fill("Rendered QA fixture");
+      await expect(report.getByRole("button",{name:"Report finding",exact:true})).toBeEnabled();
+      await captureAcceptance("report-unclassified-form","wide-light");
+      await report.getByRole("button",{name:"Report finding",exact:true}).click();
+      await expect(report).toHaveCount(0);
+      await expect(review.getByTestId("review-verdict")).toContainText("Findings open");
+      await captureAcceptance("findings-open","wide-light");
+      await review.getByRole("button",{name:"Inspect finding",exact:true}).click();
+      await expect(review.getByText("Unclassified fixture observation",{exact:true})).toBeVisible();
+      await captureAcceptance("finding-detail","wide-light");
+      await review.getByRole("button",{name:"Withdraw finding",exact:true}).click();
+      const withdraw=page.getByRole("dialog",{name:"Withdraw finding",exact:true});
+      await expect(withdraw).toBeVisible();
+      await captureAcceptance("withdraw-form","wide-light");
+      await withdraw.getByRole("button",{name:"Cancel",exact:true}).click();
+      await review.getByRole("button",{name:"Back to findings",exact:true}).click();
+      await review.getByRole("button",{name:"Submit findings",exact:true}).click();
+      const submit=page.getByRole("dialog",{name:"Submit findings",exact:true});
+      await expect(submit).toBeVisible();
+      await captureAcceptance("submit-form","wide-light");
+      await submit.getByRole("button",{name:"Cancel",exact:true}).click();
+      await review.getByRole("button",{name:"Inspect finding",exact:true}).click();
+      await review.getByRole("button",{name:"Withdraw finding",exact:true}).click();
+      await withdraw.getByLabel("Rationale").fill("Test fixture observation is not a known unmet signed obligation.");
+      await withdraw.getByLabel("Your name").fill("Rendered QA fixture");
+      await withdraw.getByText("I confirm",{exact:true}).click();
+      await expect(withdraw.getByRole("button",{name:"Withdraw finding",exact:true})).toBeEnabled();
+      await withdraw.getByRole("button",{name:"Withdraw finding",exact:true}).click();
+      await expect(withdraw).toHaveCount(0);
+      await expect(review.getByTestId("review-verdict")).toContainText("Verified candidate");
+      await review.getByRole("button",{name:"Accept candidate",exact:true}).click();
+      await accept.getByLabel("Your name").fill("Rendered QA fixture");
+      await accept.getByText("I confirm",{exact:true}).click();
+      await expect(accept.getByRole("button",{name:"Accept candidate",exact:true})).toBeEnabled();
+      await accept.getByRole("button",{name:"Accept candidate",exact:true}).click();
+      await expect(acceptanceRail.getByRole("button",{name:"Complete",exact:true})).toHaveAttribute("aria-current","step");
+      await expect(page.getByTestId("candidate-result-material")).toContainText("Accepted by Rendered QA fixture");
+      await selectWorkflowStep(page,"Acceptance");
+      await expect(review.getByTestId("review-verdict")).toContainText("Accepted candidate");
+      await expect(review.getByRole("button",{name:"Accept candidate",exact:true})).toHaveCount(0);
+      await captureAcceptance("historical-accepted","wide-light");
+    }
     await backToQueue(page);
   }
 
@@ -7578,7 +7638,14 @@ test("native Acceptance uses one exact current decision and historical round sta
   await expect(reportDialog.getByLabel("Expected behavior")).toHaveValue("draft retained");
   await expect(reportDialog.getByRole("button",{name:"Open criterion",exact:true})).toBeFocused();
   await reportDialog.getByRole("button",{name:"Cancel",exact:true}).click();
-  await page.getByRole("dialog",{name:"Discard unsaved review form?"}).getByRole("button",{name:"Discard unsaved changes"}).click();
+  const discard=page.getByRole("alertdialog",{name:"Discard unsaved review form?"});
+  await expect(discard).toBeVisible();
+  await expect(reportDialog).not.toBeVisible();
+  await discard.getByRole("button",{name:"Cancel",exact:true}).click();
+  await expect(reportDialog).toBeVisible();
+  await expect(reportDialog.getByLabel("Expected behavior")).toHaveValue("draft retained");
+  await reportDialog.getByRole("button",{name:"Cancel",exact:true}).click();
+  await discard.getByRole("button",{name:"Discard unsaved changes"}).click();
   await expect(reportDialog).toHaveCount(0);
   await workspace.getByRole("button",{name:"Inspect round",exact:true}).click();
   await expect(workspace.getByTestId("review-verdict")).toContainText("Historical review");

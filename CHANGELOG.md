@@ -6,6 +6,10 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Suspend the Acceptance review task panel during destructive discard confirmation, retaining its draft on cancellation; use the actual AlertDialog accessibility role and prove cancel/resume/discard in browser coverage.
+
+- Exercise report, withdrawal, submission and historical human acceptance through the dedicated signed runtime fixture; retain strict native phase identity, scope, actual medium evidence and exact PR run provenance checks.
+
 - Extend permanent rendered phase dispatch and diagnostic coverage to native Acceptance, with exact-state fail-closed certification and actual signed-fixture navigation/form captures. Remaining Acceptance variants and integrated dependent states require implementation and proof.
 
 - Preserve queued Acceptance admission failure semantics through the existing authority observation owner instead of a forbidden execution-to-source dependency.
