@@ -311,6 +311,14 @@ export const acceptanceObservationCodeForFailure = (error: unknown): AcceptanceO
   return error.orderCode === "SOURCE_AUTHORITY_STALE" || error.orderCode === "CANDIDATE_PROOF_UNAVAILABLE" ? error.orderCode : null;
 };
 
+// The authority observation owner composes semantic failure classification.
+// A queued submission with unavailable proof or stale source/material is not
+// eligible; unrelated operational failures must still escape the scheduler.
+export const candidateReviewObservationBlocksAdmission = (error: unknown): boolean =>
+  acceptanceObservationCodeForFailure(error) !== null ||
+  staleAuthorityOwnerForFailure(error) !== null ||
+  isSourceBoundaryFailure(error);
+
 export const requireCurrentAcceptanceIdentity = (
   runtime: CoordinatorRuntime, workItemId: WorkItemId, approvalId: Approval["id"], sequence: number,
 ) => {

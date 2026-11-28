@@ -117,15 +117,13 @@ import {
   approvalContextForRun,
   observeCurrentCandidateReview,
   requireCurrentAcceptanceIdentity,
-  acceptanceObservationCodeForFailure,
-  staleAuthorityOwnerForFailure,
+  candidateReviewObservationBlocksAdmission,
   canonicalTasksForApproval,
   getApproval,
   getWorkItem,
   signedPlanBytes,
   type ResolvedContext,
 } from "./authority.ts";
-import { isSourceBoundaryFailure } from "./work-item-source.ts";
 import {
   appendValidationFailed,
   appendValidationPassed,
@@ -1414,7 +1412,7 @@ export const startEligibleTask = async (
       const started=await withWorkItemOperatorMutation(runtime,workItem.id,async()=>{
         let proof: Awaited<ReturnType<typeof observeCurrentCandidateReview>>;
         try { proof=await observeCurrentCandidateReview(runtime,workItem.id,approval.id,history.length); }
-        catch(error) { if(acceptanceObservationCodeForFailure(error)!==null||staleAuthorityOwnerForFailure(error)!==null||isSourceBoundaryFailure(error)) return null; throw error; }
+        catch(error) { if(candidateReviewObservationBlocksAdmission(error)) return null; throw error; }
         const decision=deriveAcceptanceDecision({...proof,current:true,coherent:true,mutationConflict:false,currentProof:proof.history,diagnostic:null});
         if(decision.tag!=="QUEUED"||decision.submissionId!==submission.id) throw new TypeError("queued QA submission changed");
         const input=candidateSubmissionEvents(approval.id,proof.history,submission.id);
