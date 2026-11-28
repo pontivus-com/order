@@ -975,6 +975,7 @@ const selectWorkflowStep = async (
     | "Readiness review"
     | "Approval"
     | "Implementation"
+    | "Acceptance"
     | "Complete",
 ): Promise<void> => {
   const button = page

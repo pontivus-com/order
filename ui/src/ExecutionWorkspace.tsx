@@ -12,8 +12,6 @@ import type {
 } from "../../src/core/contracts.ts";
 import {
   executionTaskRuns,
-  linkedSubmission,
-  candidateSubmissionEvents,
   terminalExecutionFailureEvent,
   type ExecutionOwner,
   type ValidationBoundary,
@@ -27,6 +25,7 @@ import {
 } from "./query-keys.ts";
 import {
   agentActivityRunEvents,
+  executionQaSubmissionEvents,
   lifecycleArtifactLabel,
   runEventPresentation,
   runIsActive,
@@ -273,7 +272,7 @@ export const ExecutionWorkspace = ({
   onReturnFromEvidence: () => void;
   onReturnToAcceptance?: () => void;
   reviewEvents?: readonly CandidateReviewEvent[];
-  onOpenFinding?: (approvalId:string,findingId:string)=>void;
+  onOpenFinding?: (entry: CandidateReviewEvent) => void;
   onMutationError?: (error: unknown) => void;
 }>) => {
   const queryClient = useQueryClient();
@@ -612,18 +611,15 @@ export const ExecutionWorkspace = ({
         )}
 
         {selectedTask===null||selectedRun===null?null:(()=>{
-          const history=reviewEvents.filter(entry=>entry.approvalId===selectedTask.approvalId);
-          if(history.length===0)return null;
           try{
-            const submissionId=linkedSubmission(selectedRun,runs,runEvents,history);
-            if(submissionId===null)return null;
-            const submitted=candidateSubmissionEvents(selectedTask.approvalId,history,submissionId);
+            const submitted=executionQaSubmissionEvents(selectedTask,selectedRun,runs,runEvents,reviewEvents);
+            if(submitted===null)return null;
             const review=events.find(value=>value.event.tag==="REVIEW_PASSED"||value.event.tag==="REVIEW_FAILED");
             const assessments=review?.event.tag==="REVIEW_PASSED"||review?.event.tag==="REVIEW_FAILED"?review.event.qaAssessments??[]:[];
             return <WorkbenchSection title="QA findings" content={<WorkbenchResourceList items={submitted.flatMap(entry=>{
               if(entry.event.tag!=="REPORT")return [];
               const assessment=assessments.find(value=>value.findingId===entry.id);
-              return [{id:entry.id,label:entry.event.observed,detail:assessment?.rationale??"Submitted for independent review",action:onOpenFinding===undefined?undefined:<WorkbenchAction label="Inspect finding" onClick={()=>onOpenFinding(selectedTask.approvalId,entry.id)}/> }];
+              return [{id:entry.id,label:entry.event.observed,detail:assessment?.rationale??"Submitted for independent review",action:onOpenFinding===undefined?undefined:<WorkbenchAction label="Inspect finding" onClick={()=>onOpenFinding(entry)}/> }];
             })}/>}/>;
           }catch{return <WorkbenchSection title="QA findings" content={<WorkbenchState kind="error" title="Exact submission history unavailable"/>}/>;}
         })()}

@@ -1,5 +1,6 @@
 import type {
   Approval,
+  CandidateReviewEvent,
   Sha256,
   ArtifactRef,
   EvidencePath,
@@ -13,6 +14,8 @@ import type {
 } from "../../src/core/contracts.ts";
 import {
   reachStateForStage,
+  linkedSubmission,
+  candidateSubmissionEvents,
   latestApprovalTasks,
   type CurrentAttentionTag,
   type ExecutionOwner,
@@ -966,4 +969,17 @@ export const lifecycleArtifactLabel = (
     case "GOVERNANCE": return "Governance";
     case "VERIFICATION_MATERIAL": return "Verification material";
   }
+};
+
+export const executionQaSubmissionEvents = (
+  task: ExecutionTask,
+  run: Run,
+  runs: readonly Run[],
+  runEvents: readonly RunEvent[],
+  reviewEvents: readonly CandidateReviewEvent[],
+): readonly CandidateReviewEvent[] | null => {
+  const history = reviewEvents.filter(entry => entry.approvalId === task.approvalId);
+  if (history.length === 0) return null;
+  const submissionId = linkedSubmission(run, runs, runEvents, history);
+  return submissionId === null ? null : candidateSubmissionEvents(task.approvalId, history, submissionId);
 };

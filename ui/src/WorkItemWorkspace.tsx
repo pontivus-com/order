@@ -1554,7 +1554,7 @@ export const WorkItemWorkspace = ({
             onReturnFromEvidence={returnFromTransient}
             onReturnToAcceptance={returnSelection?.step==="AWAITING_ACCEPTANCE"?returnFromTransient:undefined}
             reviewEvents={allReviewEvents}
-            onOpenFinding={(approvalId,findingId)=>requestSelection({step:"AWAITING_ACCEPTANCE",material:{kind:"ACCEPTANCE_REVIEW",approvalId,findingId}},{step:selectedStep,material})}
+            onOpenFinding={entry=>requestSelection({step:"AWAITING_ACCEPTANCE",material:{kind:"ACCEPTANCE_REVIEW",approvalId:entry.approvalId,findingId:entry.id}},{step:selectedStep,material})}
             onMutationError={reportMutationError}
           />
         </Suspense>
