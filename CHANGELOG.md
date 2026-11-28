@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Require complete implementation-wave publication before remote PR Verification; retain focused intra-wave proof, independent QA and final exact-candidate verification without per-action CI stops.
+
 - Establish settled theme-control paint before browser contrast certification; preserve the 4.5 minimum and all appearance behavior checks.
 
 - Reconcile residual campaign-control HUX progression language with autonomous signed execution and independent phase-local QA; retain final explicit operator acceptance and unchanged T1.
