@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Suspend the exact 0.6.0 T1 authorization and reopen package evidence binding after signed criterion consumption and excluded Settings-path defects were identified; preserve the isolated Acceptance implementation and prior evidence pending governed upstream reconciliation.
+
 - Establish settled theme-control paint before browser contrast certification; preserve the 4.5 minimum and all appearance behavior checks.
 
 - Reconcile residual campaign-control HUX progression language with autonomous signed execution and independent phase-local QA; retain final explicit operator acceptance and unchanged T1.
