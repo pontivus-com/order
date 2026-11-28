@@ -2198,6 +2198,49 @@ const mediumComparisonSources = {
   "SURF-CONF-OC-REMOVE-001": "ia26-confirm-opencode-remove-wide-light",
 } as const satisfies Readonly<Record<string, string>>;
 const mediumComparisonId = (sourceId: string): string => sourceId + "-medium-comparison";
+// The remaining surfaces already have explicit narrow captures in their owning scenarios.
+// For these exact owners retain the same live fixture/selection at the narrow viewport.
+const narrowComparisonSurfaces: ReadonlySet<string> = new Set([
+  "SURF-SET-001",
+  "SURF-SET-REPO-001",
+  "SURF-SET-REPO-ADD-001",
+  "SURF-SET-REPO-MOVE-001",
+  "SURF-SET-OC-001",
+  "SURF-SET-OC-RENAME-001",
+  "SURF-SET-OC-ADD-001",
+  "SURF-SET-OC-LOGIN-001",
+  "SURF-MAT-DOC-001",
+  "SURF-MAT-DOC-RO-001",
+  "SURF-MAT-ACTIVITY-001",
+  "SURF-MAT-PROPOSAL-001",
+  "SURF-MAT-EVIDENCE-001",
+  "SURF-MAT-EXEC-TASK-001",
+  "SURF-CONF-DIRTY-DEST-001",
+  "SURF-CONF-DIRTY-MATERIAL-001",
+  "SURF-CONF-ARCHIVE-001",
+  "SURF-CONF-DOC-GIT-001",
+  "SURF-CONF-REPO-DISCONNECT-001",
+  "SURF-CONF-OC-REMOVE-001",
+]);
+const narrowComparisonId = (sourceId: string): string => sourceId + "-narrow-comparison";
+
+const validateSurfaceViewportCoverage = (
+  entries: readonly RenderedAcceptanceEntry[],
+  surfaces: readonly string[],
+): void => {
+  for (const surface of surfaces) {
+    const declared = referenceSurfaceById.get(surface);
+    if (declared === undefined) throw new TypeError("missing declared surface " + surface);
+    for (const viewportClass of declared.viewports) {
+      expect(entries.some(entry => entry.surface === surface &&
+        referenceViewportClass(entry.viewport) === viewportClass &&
+        entry.reference.viewportClass === viewportClass &&
+        entry.captureScope === entry.reference.captureScope &&
+        entry.reference.comparisonEligible && entry.referenceScreenshot !== undefined),
+        surface + " exact same-scope " + viewportClass + " coverage").toBe(true);
+    }
+  }
+};
 
 // IA38/39 must fail closed on absent runtime evidence; the atlas is not a fixture source.
 const acceptanceSurface = "SURF-STEP-ACCEPTANCE-001";
@@ -2274,8 +2317,11 @@ const validateSignedPhaseEvidence = (entries: readonly RenderedAcceptanceEntry[]
   const owned: readonly string[] = signedPhaseOwnedSurfaces[signedRenderedPhase];
   const expectedMediumIds = owned.map(surface =>
     mediumComparisonId(mediumComparisonSources[surface as keyof typeof mediumComparisonSources]));
+  const expectedNarrowIds = owned.filter(surface => narrowComparisonSurfaces.has(surface)).map(surface =>
+    narrowComparisonId(mediumComparisonSources[surface as keyof typeof mediumComparisonSources]));
   expect(entries.map((entry) => entry.id).sort(), "exact phase capture identities")
-    .toEqual([...expectedIds, ...expectedMediumIds].sort());
+    .toEqual([...expectedIds, ...expectedMediumIds, ...expectedNarrowIds].sort());
+  validateSurfaceViewportCoverage(entries, owned);
   for (const surface of owned) {
     const medium = entries.find(entry => entry.surface === surface &&
       entry.id === mediumComparisonId(mediumComparisonSources[surface as keyof typeof mediumComparisonSources]));
@@ -2305,7 +2351,7 @@ const validateSignedPhaseEvidence = (entries: readonly RenderedAcceptanceEntry[]
       expect(readFileSync(join(renderedAcceptanceDir!, "references", entry.referenceScreenshot!)).length).toBeGreaterThan(0);
     }
   }
-  validateSignedPhaseManifest([...expectedIds, ...expectedMediumIds]);
+  validateSignedPhaseManifest([...expectedIds, ...expectedMediumIds, ...expectedNarrowIds]);
 };
 
 test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
@@ -3465,20 +3511,26 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     entries.push(await captureRenderedAcceptance(page, entry, target));
     if (diagnosticCurrentState || renderedEvidenceKind !== "ia26_acceptance") return;
     if (mediumComparisonSources[entry.surface as keyof typeof mediumComparisonSources] !== entry.id) return;
+    const settingsCapture = entry.surface.startsWith("SURF-SET-") ||
+      entry.surface === "SURF-CONF-REPO-DISCONNECT-001" ||
+      entry.surface === "SURF-CONF-OC-REMOVE-001";
+    const comparisons: { viewport: { width: number; height: number }; id: string }[] = [
+      { viewport: { width: 1000, height: 800 }, id: mediumComparisonId(entry.id) },
+    ];
+    if (narrowComparisonSurfaces.has(entry.surface)) {
+      comparisons.push({ viewport: { width: 700, height: 800 }, id: narrowComparisonId(entry.id) });
+    }
     try {
-      const viewport = { width: 1000, height: 800 };
-      await page.setViewportSize(viewport);
-      const settingsCapture = entry.surface.startsWith("SURF-SET-") ||
-        entry.surface === "SURF-CONF-REPO-DISCONNECT-001" ||
-        entry.surface === "SURF-CONF-OC-REMOVE-001";
-      if (settingsCapture) {
-        await expect(page.getByTestId("workbench-settings-layout"))
-          .toHaveAttribute("data-responsive-class", "medium");
-        if (target !== undefined) await expect(target, entry.id + " medium selected Settings task").toBeVisible();
+      for (const { viewport, id } of comparisons) {
+        await page.setViewportSize(viewport);
+        if (settingsCapture) {
+          await expect(page.getByTestId("workbench-settings-layout"))
+            .toHaveAttribute("data-responsive-class", referenceViewportClass(viewport)!);
+        }
+        if (target !== undefined) await expect(target, id + " retained live material").toBeVisible();
+        expect(routeValue(), id + " retained route").toBe(entry.route);
+        entries.push(await captureRenderedAcceptance(page, { ...entry, id, viewport }, target));
       }
-      entries.push(await captureRenderedAcceptance(page, {
-        ...entry, id: mediumComparisonId(entry.id), viewport,
-      }, target));
     } finally {
       await page.setViewportSize(entry.viewport);
     }
@@ -5574,6 +5626,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   // The final corpus must prove the actual 38-surface runtime, including every
   // Acceptance state and its exact dependent state pairs, not just count labels.
   expect(referenceManifest.surfaces).toHaveLength(38);
+  validateSurfaceViewportCoverage(allEntries, requiredSurfaces);
   validateNativeAcceptanceEvidence(allEntries, true);
   expect([...new Set(allEntries.map((entry) => entry.reference.surface))].sort())
     .toEqual(requiredSurfaces);
