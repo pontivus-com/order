@@ -10,6 +10,7 @@ import {
   type RunEvent,
   type WorkItem,
 } from "../../src/core/contracts.ts";
+import { reconstructCandidateRounds, candidateFindingDispositions } from "../../src/core/lifecycle.ts";
 import * as api from "./http.ts";
 import { workbenchQueryKeys } from "./query-keys.ts";
 import {
@@ -165,11 +166,24 @@ export const TerminalResult = ({
     enabled: selectedArtifact !== null,
   });
 
-  const candidateEvidence = verifiedCandidateProofEvents(
-    tasksQuery.data ?? [],
-    candidateRuns,
-    eventQueries.flatMap((query) => query.data ?? []),
-  ).flatMap((event: RunEvent) => {
+  const allEvents=eventQueries.flatMap(query=>query.data??[]);
+  const exactProofEvents=(()=>{
+    if(!qaHistoryQuery.isSuccess||finalApprovalQuery.data==null)return [];
+    const history=qaHistoryQuery.data;
+    if(history.length===0)return verifiedCandidateProofEvents((tasksQuery.data??[]).filter(task=>task.approvalId===finalApprovalId),candidateRuns,allEvents);
+    if(accepted?.event.tag!=="ACCEPT")return [];
+    try{
+      const rounds=reconstructCandidateRounds(finalApprovalQuery.data,tasksQuery.data??[],candidateRuns,allEvents,history);
+      candidateFindingDispositions(history,rounds,tasksQuery.data??[],candidateRuns,allEvents);
+      return accepted.event.candidateMembers.flatMap(([,id])=>{
+        const member=allEvents.find(event=>event.id===id);
+        if(member?.event.tag!=="CANDIDATE_RECORDED")return [];
+        const ids=[member.event.candidateStateEventId,...member.event.validationEventIds];
+        return ids.flatMap(id=>allEvents.filter(event=>event.id===id));
+      });
+    }catch{return [];}
+  })();
+  const candidateEvidence = exactProofEvents.flatMap((event: RunEvent) => {
     const run = candidateRuns.find((candidate) => candidate.id === event.runId);
     return run === undefined ? [] : eventEvidence(event).map((proof) => ({
       runId: run.id,

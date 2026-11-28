@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Open exact signed documents in read-only Document, link review attempts to Implementation and use the final ACCEPT membership rather than latest task attempts for terminal evidence.
+
 - Preserve exact selected Acceptance finding and historical round, expose original/independent/retest/disposition facts and admit optional evidence and same-project follow-up selection through canonical lineage.
 
 - Connect the browser to canonical Acceptance history, current proof and QA commands; retain signed-stage authoring locks and render exact final human acceptance provenance.

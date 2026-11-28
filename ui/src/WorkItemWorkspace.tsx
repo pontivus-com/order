@@ -1552,6 +1552,9 @@ export const WorkItemWorkspace = ({
               })}
             onOpenEvidence={openEvidence}
             onReturnFromEvidence={returnFromTransient}
+            onReturnToAcceptance={returnSelection?.step==="AWAITING_ACCEPTANCE"?returnFromTransient:undefined}
+            reviewEvents={allReviewEvents}
+            onOpenFinding={(approvalId,findingId)=>requestSelection({step:"AWAITING_ACCEPTANCE",material:{kind:"ACCEPTANCE_REVIEW",approvalId,findingId}},{step:selectedStep,material})}
             onMutationError={reportMutationError}
           />
         </Suspense>
@@ -1563,7 +1566,20 @@ export const WorkItemWorkspace = ({
             input={acceptanceInput} decision={acceptanceDecision} signedArtifacts={signedArtifacts}
             onSelectMaterial={next=>requestSelection({step:"AWAITING_ACCEPTANCE",material:next})}
             onReturnCurrent={()=>requestSelection({step:workItem.stage,material:null})}
-            onOpenEvidence={openEvidence} />
+            onOpenEvidence={openEvidence}
+            onOpenDocument={artifactId=>openSupportingMaterial({kind:"SUPPORTING_DOCUMENT",artifactId})}
+            onOpenCorrection={(taskId,runId)=>requestSelection({step:"EXECUTION",material:{kind:"EXECUTION_TASK",taskId,runId}},{step:selectedStep,material})}
+            onMutationError={reportMutationError} />
+        </Suspense>
+      ) : selectedStep === "AWAITING_ACCEPTANCE" && material.kind === "SUPPORTING_DOCUMENT" ? (
+        <Suspense fallback={<WorkbenchState kind="loading" title="Loading signed document…"/>}>
+          <WorkbenchAction label="Back to Acceptance" onClick={returnFromTransient}/>
+          {inspectionArtifacts.find(artifact=>artifact.id===material.artifactId)===undefined
+            ? <WorkbenchState kind="error" title="Exact signed document unavailable"/>
+            : <LifecycleDocumentMaterial workItem={workItem} artifactId={material.artifactId}
+                historicalArtifact={inspectionArtifacts.find(artifact=>artifact.id===material.artifactId)}
+                materialState={{tag:"SIGNED_LOCKED"}} readOnly onDirtyChange={()=>{}}
+                onOpenArtifactEvidence={openArtifactEvidence} onContextDocumentChange={onContextDocumentChange}/>}
         </Suspense>
       ) : selectedStep === "COMPLETE" && material.kind !== "EVIDENCE" ? (
         <Suspense fallback={<WorkbenchState kind="loading" title="Loading final outcome…" />}>

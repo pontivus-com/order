@@ -31,11 +31,12 @@ const formTitles: Record<FormAction,string> = {
 };
 
 export const AcceptanceWorkspace = ({workItem,material,approvals,histories,historyPending,historyError,input,decision,
-  signedArtifacts,onSelectMaterial,onReturnCurrent,onOpenEvidence}:Readonly<{
+  signedArtifacts,onSelectMaterial,onReturnCurrent,onOpenEvidence,onOpenDocument,onOpenCorrection,onMutationError}:Readonly<{
   workItem:WorkItem; material:Material; approvals:readonly Approval[]; histories:readonly CandidateReviewEvent[];
   historyPending:boolean; historyError:unknown; input:Parameters<typeof deriveAcceptanceDecision>[0];
   decision:ReturnType<typeof deriveAcceptanceDecision>; signedArtifacts:readonly ArtifactRef[];
   onSelectMaterial:(material:Material)=>void; onReturnCurrent:()=>void; onOpenEvidence:(selection:EvidenceSelection)=>void;
+  onOpenDocument:(artifactId:ArtifactRef["id"])=>void; onOpenCorrection:(taskId:string,runId:string)=>void; onMutationError:(error:unknown)=>void;
 }>) => {
   const queryClient=useQueryClient();
   const approval = material.approvalId === undefined
@@ -145,7 +146,7 @@ export const AcceptanceWorkspace = ({workItem,material,approvals,histories,histo
         case "COPY": setCopyPath(await api.prepareCandidateTestCopy(workItem.id,approval.id,{...base,taskId,candidateEventId:memberFor(taskId)!.id}));return;
       }
       setForm(null); await invalidateWorkbenchMutation(queryClient,workItem.id);
-    } catch {setFeedback("The decision could not be recorded. Refresh current evidence before retrying.");await invalidateWorkbenchMutation(queryClient,workItem.id);}
+    } catch(error) {onMutationError(error);setFeedback("The decision could not be recorded. Refresh current evidence before retrying.");await invalidateWorkbenchMutation(queryClient,workItem.id);}
     finally {setPending(false);}
   };
   const recover=async()=>{
@@ -156,7 +157,7 @@ export const AcceptanceWorkspace = ({workItem,material,approvals,histories,histo
       else if(confirmRecovery.decision.tag==="RECONCILE_AUTHORITY"&&decision.tag==="RECONCILE_AUTHORITY"&&confirmRecovery.decision.owner===decision.owner)
         await api.reconcileWorkItemAuthority(workItem.id,{expectedApprovalId:approval.id,expectedReviewSequence:sequence,expectedOwner:decision.owner});
       setConfirmRecovery(null);await invalidateWorkbenchMutation(queryClient,workItem.id);
-    }catch{setFeedback("Authority reconciliation was rejected. Reinspect current authority.");await invalidateWorkbenchMutation(queryClient,workItem.id);}
+    }catch(error){onMutationError(error);setFeedback("Authority reconciliation was rejected. Reinspect current authority.");await invalidateWorkbenchMutation(queryClient,workItem.id);}
     finally{setPending(false);}
   };
   const evidenceActions=(events:readonly RunEvent[])=>events.flatMap(event=>eventEvidence(event).map(ref=>({
@@ -258,7 +259,7 @@ export const AcceptanceWorkspace = ({workItem,material,approvals,histories,histo
             ...evidenceActions([member,...(state?[state]:[]),...input.runEvents.filter(event=>event.runId===member.runId&&event.event.tag.startsWith("VALIDATION_"))])];
         })}/>
         <WorkbenchResourceList items={artifacts.map(artifact=>({id:artifact.id,label:lifecycleArtifactLabel(artifact.role),detail:artifact.repositoryPath,
-          action:<WorkbenchAction label="Open document" onClick={()=>onOpenEvidence({kind:"ARTIFACT",artifactId:artifact.id,label:"Signed document"})}/> }))}/>
+          action:<WorkbenchAction label="Open document" onClick={()=>onOpenDocument(artifact.id)}/> }))}/>
       </>},
       {id:"findings",title:"QA findings",content:<>{report===undefined?<WorkbenchResourceList items={reports.map(entry=>({id:entry.id,label:entry.event.observed,detail:tasks.find(task=>task.id===entry.event.taskId)?.objective,
         meta:<WorkbenchStatus tone="neutral" label={dispositions.get(entry.id)==="DISPOSED"?"Disposed":dispositions.get(entry.id)==="RETEST_REQUIRED"?"Retest required":dispositions.get(entry.id)==="RETEST_FAILED"?"Retest failed":"Open"}/>,
@@ -269,7 +270,14 @@ export const AcceptanceWorkspace = ({workItem,material,approvals,histories,histo
         {findingAllowed("WITHDRAW",report.id)?<WorkbenchAction label="Withdraw finding" onClick={()=>open("WITHDRAW","",report.id)}/>:null}
       </>}
       {tasks.some(task=>actionAllowed("REPORT",task.id))?<WorkbenchAction label="Report finding" onClick={()=>open("REPORT")}/>:null}</>},
-      {id:"history",title:"Review history",content:<WorkbenchResourceList items={approvals.flatMap(value=>roundEntries(histories.filter(entry=>entry.approvalId===value.id)).map((entry,index)=>({id:entry.id,label:"Review round "+(index+1),detail:new Date(entry.occurredAt).toLocaleString(),action:<WorkbenchAction label="Inspect round" onClick={()=>{onSelectMaterial({kind:"ACCEPTANCE_REVIEW",approvalId:value.id,roundId:entry.id});}}/>})))} empty={<p>No correction rounds yet.</p>}/>}
+      {id:"history",title:"Review history",content:<><WorkbenchResourceList items={approvals.flatMap(value=>roundEntries(histories.filter(entry=>entry.approvalId===value.id)).map((entry,index)=>({id:entry.id,label:"Review round "+(index+1),detail:new Date(entry.occurredAt).toLocaleString(),action:<WorkbenchAction label="Inspect round" onClick={()=>{onSelectMaterial({kind:"ACCEPTANCE_REVIEW",approvalId:value.id,roundId:entry.id});}}/>})))} empty={<p>No correction rounds yet.</p>}/>
+        <WorkbenchResourceList items={visibleHistory.flatMap(entry=>{
+          const event=entry.event;
+          if(event.tag!=="REVIEW_STARTED")return [];
+          const run=input.runs.find(value=>value.id===event.runId);
+          if(run?.executionTaskId==null)return [];
+          return [{id:entry.id,label:"Independent correction review",detail:new Date(entry.occurredAt).toLocaleString(),action:<WorkbenchAction label="View correction" onClick={()=>onOpenCorrection(run.executionTaskId!,run.id)}/> }];
+        })}/></>}
     ]} decisions={primaryAction()}/>
     <WorkbenchTaskPanel open={form!==null} title={form===null?"Acceptance":formTitles[form.action]} onOpenChange={next=>{if(!next&&!pending)setForm(null);}}
       body={formBody} feedback={feedback!==null?<WorkbenchNotice tone="danger" title={feedback}/>:form!==null&&!stable&&copyPath===null?<WorkbenchNotice tone="warning" title="Review identity must remain current."/>:undefined}

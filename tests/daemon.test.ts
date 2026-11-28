@@ -7073,9 +7073,9 @@ describe("daemon control plane", () => {
     };
 
     expect(output.workItem).toMatchObject({
-      stage: "COMPLETE",
-      status: "COMPLETE",
-      outcome: "CANDIDATE_DONE",
+      stage: "AWAITING_ACCEPTANCE",
+      status: "ACTIVE",
+      outcome: null,
     });
     expect(output.eventTags).toContain("GATE_CHECKPOINT_REQUESTED");
     expect(output.eventTags).toContain("GATE_PASSED");
@@ -7337,9 +7337,9 @@ describe("daemon control plane", () => {
     expect(output.v6Passes).toBe(1);
     expect(output.task.state).toBe("CANDIDATE_DONE");
     expect(output.workItem).toMatchObject({
-      stage: "COMPLETE",
-      status: "COMPLETE",
-      outcome: "CANDIDATE_DONE",
+      stage: "AWAITING_ACCEPTANCE",
+      status: "ACTIVE",
+      outcome: null,
     });
   }, 30_000);
 
@@ -7431,7 +7431,7 @@ describe("daemon control plane", () => {
 
     expect(output.sameActionKey).toBe(true);
     expect(output.firstTwoRoles).toEqual(["BUILDER", "BUILDER"]);
-    expect(output.final, JSON.stringify(output)).toMatchObject({ status: "COMPLETE", stage: "COMPLETE" });
+    expect(output.final, JSON.stringify(output)).toMatchObject({ status: "ACTIVE", stage: "AWAITING_ACCEPTANCE" });
 
     const repository2 = createRepository();
     const state2 = tempDir("order-daemon-operational-block-");

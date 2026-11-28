@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import type {
   ArtifactRef,
+  CandidateReviewEvent,
   ExecutionTask,
   Run,
   RunEvent,
@@ -11,6 +12,8 @@ import type {
 } from "../../src/core/contracts.ts";
 import {
   executionTaskRuns,
+  linkedSubmission,
+  candidateSubmissionEvents,
   terminalExecutionFailureEvent,
   type ExecutionOwner,
   type ValidationBoundary,
@@ -249,6 +252,9 @@ export const ExecutionWorkspace = ({
   onSelectMaterial,
   onOpenEvidence,
   onReturnFromEvidence,
+  onReturnToAcceptance,
+  reviewEvents = [],
+  onOpenFinding,
   onMutationError,
 }: Readonly<{
   workItem: WorkItem;
@@ -265,6 +271,9 @@ export const ExecutionWorkspace = ({
   onSelectMaterial: (material: WorkflowMaterial) => void;
   onOpenEvidence: (selection: EvidenceSelection) => void;
   onReturnFromEvidence: () => void;
+  onReturnToAcceptance?: () => void;
+  reviewEvents?: readonly CandidateReviewEvent[];
+  onOpenFinding?: (approvalId:string,findingId:string)=>void;
   onMutationError?: (error: unknown) => void;
 }>) => {
   const queryClient = useQueryClient();
@@ -602,7 +611,23 @@ export const ExecutionWorkspace = ({
           </>} />
         )}
 
-        <WorkbenchSection title="Evidence and governed material" content={artifacts.length === 0 ? (
+        {selectedTask===null||selectedRun===null?null:(()=>{
+          const history=reviewEvents.filter(entry=>entry.approvalId===selectedTask.approvalId);
+          if(history.length===0)return null;
+          try{
+            const submissionId=linkedSubmission(selectedRun,runs,runEvents,history);
+            if(submissionId===null)return null;
+            const submitted=candidateSubmissionEvents(selectedTask.approvalId,history,submissionId);
+            const review=events.find(value=>value.event.tag==="REVIEW_PASSED"||value.event.tag==="REVIEW_FAILED");
+            const assessments=review?.event.tag==="REVIEW_PASSED"||review?.event.tag==="REVIEW_FAILED"?review.event.qaAssessments??[]:[];
+            return <WorkbenchSection title="QA findings" content={<WorkbenchResourceList items={submitted.flatMap(entry=>{
+              if(entry.event.tag!=="REPORT")return [];
+              const assessment=assessments.find(value=>value.findingId===entry.id);
+              return [{id:entry.id,label:entry.event.observed,detail:assessment?.rationale??"Submitted for independent review",action:onOpenFinding===undefined?undefined:<WorkbenchAction label="Inspect finding" onClick={()=>onOpenFinding(selectedTask.approvalId,entry.id)}/> }];
+            })}/>}/>;
+          }catch{return <WorkbenchSection title="QA findings" content={<WorkbenchState kind="error" title="Exact submission history unavailable"/>}/>;}
+        })()}
+                <WorkbenchSection title="Evidence and governed material" content={artifacts.length === 0 ? (
             <WorkbenchState kind="empty" title="No governed implementation material" />
           ) : (
             <WorkbenchResourceList
@@ -643,6 +668,7 @@ export const ExecutionWorkspace = ({
 
   return (
     <div data-testid="execution-workspace">
+      {onReturnToAcceptance===undefined?null:<WorkbenchAction label="Back to Acceptance" onClick={onReturnToAcceptance}/> }
       <WorkbenchMasterDetail
         master={master}
         detail={primary}
