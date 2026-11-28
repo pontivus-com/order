@@ -15,10 +15,9 @@ import { WorkbenchConfirmation } from "./primitives/WorkbenchConfirmation.tsx";
 import { WorkbenchFacts } from "./primitives/WorkbenchFacts.tsx";
 import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
 import { WorkbenchResourceList } from "./primitives/WorkbenchResourceList.tsx";
-import { WorkbenchReview } from "./primitives/WorkbenchReview.tsx";
+import { WorkbenchReview, type WorkbenchReviewProps } from "./primitives/WorkbenchReview.tsx";
 import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
 import { WorkbenchTaskPanel } from "./primitives/WorkbenchTaskPanel.tsx";
-import type { WorkbenchReviewVerdictProps } from "./primitives/WorkbenchReviewVerdict.tsx";
 
 type Material = Extract<WorkflowMaterial, {kind:"ACCEPTANCE_REVIEW"}>;
 type FormAction = "REPORT"|"SUBMIT"|"RETEST"|"WITHDRAW"|"RETURN"|"ACCEPT"|"COPY";
@@ -150,7 +149,7 @@ export const AcceptanceWorkspace = ({workItem,material,approvals,histories,histo
     id:event.id+":"+ref.relativePath,label:ref.relativePath,detail:ref.mediaType,
     action:<WorkbenchAction label="View evidence" onClick={()=>onOpenEvidence({kind:"EVIDENCE",runId:event.runId,relativePath:ref.relativePath})}/>
   })));
-  const verdict:WorkbenchReviewVerdictProps=(()=>{
+  const verdict:WorkbenchReviewProps["verdict"]=(()=>{
     if(historyPending)return {label:"Loading current review",tone:"info",description:"Please wait."};
     if(historyError!=null||feedback!==null&&form===null)return {label:"Review could not be updated",tone:"danger",description:"Reinspect current evidence."};
     if(!current)return {label:history.some(entry=>entry.event.tag==="ACCEPT")?"Accepted candidate":workItem.stage==="EXECUTION"?"Correction in progress":"Historical review",tone:"neutral",currentness:"Read-only"};

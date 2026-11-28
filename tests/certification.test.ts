@@ -788,6 +788,7 @@ describe("Order cross-boundary certification", () => {
       "WorkItemWorkspace.tsx",
     ]);
     expect(consumersOf("WorkbenchReview")).toEqual([
+      "AcceptanceWorkspace.tsx",
       "ProposalReview.tsx",
       "ReadinessWorkspace.tsx",
       "SignoffReview.tsx",
@@ -802,6 +803,7 @@ describe("Order cross-boundary certification", () => {
       "ActivityWorkspace.tsx",
     ]);
     expect(consumersOf("WorkbenchConfirmation")).toEqual([
+      "AcceptanceWorkspace.tsx",
       "DocumentWorkspace.tsx",
       "OpenCodeAccountSettings.tsx",
       "SettingsWorkspace.tsx",
@@ -823,6 +825,7 @@ describe("Order cross-boundary certification", () => {
     ]);
     expect(consumersOf("WorkbenchResult")).toEqual(["TerminalResult.tsx"]);
     expect(consumersOf("WorkbenchFacts")).toEqual([
+      "AcceptanceWorkspace.tsx",
       "DocumentWorkspace.tsx",
       "ExecutionWorkspace.tsx",
       "OpenCodeAccountSettings.tsx",
@@ -852,6 +855,7 @@ describe("Order cross-boundary certification", () => {
       "WorkflowRail.tsx",
     ]);
     expect(consumersOf("WorkbenchResourceList")).toEqual([
+      "AcceptanceWorkspace.tsx",
       "ExecutionWorkspace.tsx",
       "PreSignoffStageWorkspace.tsx",
       "ReadinessWorkspace.tsx",
@@ -911,6 +915,7 @@ describe("Order cross-boundary certification", () => {
       "WorkItemQueue.tsx",
     ]);
     expect(consumersOf("WorkbenchTaskPanel")).toEqual([
+      "AcceptanceWorkspace.tsx",
       "app.tsx",
     ]);
     expect(consumersOf("WorkbenchTimeline")).toEqual([

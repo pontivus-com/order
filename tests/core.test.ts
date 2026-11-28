@@ -2221,10 +2221,21 @@ describe("closed Workbench workflow-state kernel", () => {
         outcome: "CANDIDATE_DONE",
       }),
     ).toEqual({
-      stage: "COMPLETE",
-      status: "COMPLETE",
-      outcome: "CANDIDATE_DONE",
+      stage: "AWAITING_ACCEPTANCE",
+      status: "ACTIVE",
+      outcome: null,
     });
+    const acceptance = WorkItemSchema.parse({...execution,stage:"AWAITING_ACCEPTANCE"});
+    expect(transitionWorkItem(acceptance,{tag:"CANDIDATE_ACCEPTED"})).toEqual({
+      stage:"COMPLETE",status:"COMPLETE",outcome:"CANDIDATE_DONE",
+    });
+    expect(transitionWorkItem(acceptance,{tag:"QA_REVIEW_STARTED"})).toEqual({
+      stage:"EXECUTION",status:"ACTIVE",outcome:null,
+    });
+    expect(transitionWorkItem(execution,{tag:"EXECUTION_COMPLETED",outcome:"ALREADY_SATISFIED"})).toEqual({
+      stage:"COMPLETE",status:"COMPLETE",outcome:"ALREADY_SATISFIED",
+    });
+    expect(()=>transitionWorkItem(execution,{tag:"CANDIDATE_ACCEPTED"})).toThrow();
     expect(() =>
       transitionWorkItem(research, {
         tag: "EXECUTION_RETURN",
@@ -3317,7 +3328,8 @@ describe("closed Workbench workflow-state kernel", () => {
 
     const reached = deriveReachedStages(active, [failed], [], [], []);
     const rail = deriveWorkflowRail(active, reached, attention, recovery, "PLAN");
-    expect(rail).toHaveLength(9);
+    expect(rail).toHaveLength(10);
+    expect(rail.find(item=>item.stage==="AWAITING_ACCEPTANCE")?.reach).toBe("UNREACHED");
     expect(rail.filter((item) => item.reach === "CURRENT")).toHaveLength(1);
     expect(rail.find((item) => item.stage === "R1")?.marker).toBe("ACTION_REQUIRED");
     expect(rail.find((item) => item.stage === "PLAN")?.marker).toBeNull();
