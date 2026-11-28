@@ -731,7 +731,7 @@ describe("architecture fitness", () => {
         "src/core/contracts.ts",
         "src/core/canonical.ts",
       ],
-      "src/core/lifecycle.ts": ["src/core/contracts.ts"],
+      "src/core/lifecycle.ts": ["src/core/contracts.ts", "src/core/canonical.ts"],
       "src/core/work-item-source.ts": ["src/core/contracts.ts"],
       "src/core/execution.ts": ["src/core/contracts.ts"],
     };

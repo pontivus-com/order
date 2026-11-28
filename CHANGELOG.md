@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Reconcile the protected lifecycle dependency fitness map with the existing canonical JSON owner for native Acceptance round membership; retain the prospective atomic stage/renderer checks (pre-authorization).
+
 - Establish settled theme-control paint before browser contrast certification; preserve the 4.5 minimum and all appearance behavior checks.
 
 - Reconcile residual campaign-control HUX progression language with autonomous signed execution and independent phase-local QA; retain final explicit operator acceptance and unchanged T1.
