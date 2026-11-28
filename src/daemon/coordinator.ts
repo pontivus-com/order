@@ -19,6 +19,7 @@ import {
   type WorkItemId,
   WorkItemSchema,
 } from "../core/contracts.ts";
+import { canonicalJson } from "../core/canonical.ts";
 import {
   executionResumeIsAllowed,
 } from "../core/execution.ts";
@@ -188,7 +189,7 @@ export const recordCandidateReviewDecision = (
   const proofUnavailable = payload.tag === "REANALYSIS_REQUESTED" && payload.reason === "CANDIDATE_PROOF_UNAVAILABLE";
   const commit = (event: CandidateReviewEvent) => withTransaction(runtime.database, () => {
     const current = requireCurrentAcceptanceIdentity(runtime,workItemId,approvalId,expectedReviewSequence);
-    if (JSON.stringify(current)!==JSON.stringify(identity)) throw new TypeError("Acceptance identity changed before command commit");
+    if (canonicalJson(current) !== canonicalJson(identity)) throw new TypeError("Acceptance identity changed before command commit");
     storeCandidateReviewEvent(runtime.database,event);
     if (event.event.tag === "ACCEPT") updateWorkItemLifecycle(runtime.database,workItemId,transitionWorkItem(current.workItem,{tag:"CANDIDATE_ACCEPTED"}));
     if (event.event.tag === "REANALYSIS_REQUESTED") {
