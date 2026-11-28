@@ -682,6 +682,7 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
     const originalConfigIdentity = readIdentity(configPath);
     const originalConfigMode = fs.lstatSync(configPath, { throwIfNoEntry: false })?.mode ?? null;
     let retainedArchive = null;
+    let preStartNamespace = null;
     const token = "a".repeat(64);
     const result = (stdout = "", exitCode = 0) => ({
       stdout: Buffer.from(stdout), stderr: Buffer.from(exitCode === 0 ? "" : "injected host failure"),
@@ -787,6 +788,13 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
                   document: readBytes(path.join(fixture.project, migrationTarget)),
                 };
               } finally { db.close(); }
+              if (fixture.candidateSidecars) leaveWal("UPDATE sentinel SET value='candidate';", "candidate", 4);
+              if (fixture.loseDatabaseArchive) {
+                const name = fs.readdirSync(fixture.stateRoot).find(name => name.startsWith("order.sqlite3.legacy-v2."));
+                if (!name) throw new Error("expected actual v2 database archive");
+                retainedArchive = path.join(fixture.stateRoot, name + ".retained");
+                fs.renameSync(path.join(fixture.stateRoot, name), retainedArchive);
+              }
             } else if (fixture.legacyDatabaseVersion === 3) {
               const db = new Database(databasePath, { create: false, readonly: true, strict: true });
               try {
@@ -974,6 +982,7 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
         fs.renameSync(from, to);
         if (kind === "launcher-activation" && fixture.unitDrift === "before-publication") fs.appendFileSync(unitPath, "# external edit");
         if (kind === "app-activation" && fixture.interruptAt === "app-activation") process.exit(77);
+        if (kind === "unit-publication") preStartNamespace = readDatabaseNamespace();
         if (kind === "unit-publication" && fixture.databaseFault === "pre-start-replaced") {
           if (fs.existsSync(faultPath)) fs.renameSync(faultPath, faultPath + ".retained-candidate");
           fs.writeFileSync(faultPath, "unexpected pre-start file");
@@ -1158,7 +1167,7 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
       marker: fs.lstatSync(marker, { throwIfNoEntry: false })?.isFile() ? fs.readFileSync(marker, "utf8") : null,
       config: (() => { try { const bytes = readBytes(configPath); return bytes === null ? null : JSON.parse(Buffer.from(bytes, "base64").toString("utf8")); } catch { return null; } })(),
       app: fs.existsSync(installRoot), launcher: fs.existsSync(launcher), unit: fs.existsSync(unitPath),
-      originalDatabase, originalConfig, retainedArchive, originalNamespace, migrationObservation,
+      originalDatabase, originalConfig, retainedArchive, originalNamespace, migrationObservation, preStartNamespace,
       databaseNamespace: readDatabaseNamespace(),
       database: fs.existsSync(databasePath) ? fs.readFileSync(databasePath).toString("base64") : null,
       configBytes: readBytes(configPath), originalConfigIdentity, originalConfigMode,
@@ -1193,6 +1202,19 @@ const transactionFixture = (): Omit<InstallerTransactionFixture, "readiness"> =>
   project: createProject(),
   binary: createFakeOpenCode(tempDir("order-transaction-provider-"), {}),
 });
+
+const nativeV2Predecessor = (
+  fixture: ReturnType<typeof transactionFixture>,
+  version: number,
+): Pick<InstallerTransactionFixture, "repositoryNativeV2"> => {
+  if (version !== 2) return {};
+  const root = tempDir("order-transaction-legacy-work-items-");
+  writeFileSync(join(fixture.stateRoot, "config.json"), JSON.stringify({
+    version: 2, model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+    repositoryRoots: [fixture.project], referenceRoots: [], workItemRoot: root,
+  }), { mode: 0o600 });
+  return { repositoryNativeV2: { root, activeExecution: false } };
+};
 
 const createPriorDeployment = (fixture: ReturnType<typeof transactionFixture>): void => {
   const root = join(fixture.home, ".local/share/pontivus-order");
@@ -2105,7 +2127,7 @@ describe("actual IA25 installer transaction", () => {
   it.each([1, 2] as const)("refuses v%i startup when an unexpected sidecar appears before service activation", legacyDatabaseVersion => {
     const fixture = transactionFixture();
     createPriorDeployment(fixture);
-    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes", legacyDatabaseVersion,
+    const outcome = runInstallerTransaction({ ...fixture, ...nativeV2Predecessor(fixture, legacyDatabaseVersion), establishedHistory: "yes", legacyDatabaseVersion,
       databaseSidecars: true, databaseFault: "pre-start-replaced", databaseFaultSuffix: "-wal",
       readiness: { ready: true, blockers: [] } });
     expect(outcome.failure).toContain("installer database identity changed or missing");
@@ -2152,18 +2174,19 @@ describe("actual IA25 installer transaction", () => {
   }, 120_000);
 
   it.each(["pre-start-content-drift", "pre-start-disappearance"] as const)(
-    "preserves v2 sidecar and original archive after quiesced custody violation: %s", databaseFault => {
+    "preserves migrated v2 primary and original archive after quiesced custody violation: %s", databaseFault => {
       const fixture = transactionFixture();
       createPriorDeployment(fixture);
-      const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes", legacyDatabaseVersion: 2,
-        databaseSidecars: true, databaseFault, databaseFaultSuffix: "-wal",
+      const outcome = runInstallerTransaction({ ...fixture, ...nativeV2Predecessor(fixture, 2), establishedHistory: "yes", legacyDatabaseVersion: 2,
+        databaseSidecars: true, databaseFault, databaseFaultSuffix: "",
         readiness: { ready: true, blockers: [] } });
       expect(outcome.failure).toContain("database restoration incomplete");
       expect(outcome.restartObservations).toEqual([]);
       expect(outcome.activity).toBe("inactive");
-      const archive = outcome.stateEntries.find((name: string) => name.startsWith("order.sqlite3-wal.legacy-v2."));
-      expect(readFileSync(join(fixture.stateRoot, archive)).toString("base64")).toBe(outcome.originalNamespace[1]);
-      const candidate = join(fixture.stateRoot, "order.sqlite3-wal");
+      const archive = outcome.stateEntries.find((name: string) => name.startsWith("order.sqlite3.legacy-v2."));
+      expect(readFileSync(join(fixture.stateRoot, archive)).toString("base64")).toBe(outcome.originalNamespace[0]);
+      const candidate = join(fixture.stateRoot, "order.sqlite3");
+      expect(outcome.preStartNamespace[0]).not.toBe(outcome.originalNamespace[0]);
       if (databaseFault === "pre-start-content-drift") {
         expect(readFileSync(candidate).subarray(-"unexpected same-inode bytes".length).toString()).toBe("unexpected same-inode bytes");
       } else {
@@ -2175,7 +2198,7 @@ describe("actual IA25 installer transaction", () => {
   it.each([1, 2] as const)("restores v%i archive after legitimate WAL/SHM evolution on service stop", legacyDatabaseVersion => {
     const fixture = transactionFixture();
     createPriorDeployment(fixture);
-    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes", legacyDatabaseVersion,
+    const outcome = runInstallerTransaction({ ...fixture, ...nativeV2Predecessor(fixture, legacyDatabaseVersion), establishedHistory: "yes", legacyDatabaseVersion,
       databaseSidecars: true, candidateSidecars: true, gracefulCandidateStop: true, failRestart: true,
       readiness: { ready: true, blockers: [] } });
     expect(outcome.failure).toContain("injected host failure");
@@ -2426,7 +2449,7 @@ describe("actual IA25 installer transaction", () => {
   it.each([1, 2] as const)("restores all original v%i DB/WAL/SHM bytes after candidate restart fails", legacyDatabaseVersion => {
     const fixture = transactionFixture();
     createPriorDeployment(fixture);
-    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes", legacyDatabaseVersion,
+    const outcome = runInstallerTransaction({ ...fixture, ...nativeV2Predecessor(fixture, legacyDatabaseVersion), establishedHistory: "yes", legacyDatabaseVersion,
       databaseSidecars: true, candidateSidecars: true, failRestart: true, readiness: { ready: true, blockers: [] } });
     expect(outcome.failure).toContain("injected host failure");
     expect(outcome.databaseNamespace.map((value: string | null, index: number) =>
@@ -2528,7 +2551,7 @@ describe("actual IA25 installer transaction", () => {
   it.each([1, 2, 3] as const)("restores exact database bytes for version %i on established activation failure", legacyDatabaseVersion => {
     const fixture = transactionFixture();
     createPriorDeployment(fixture);
-    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes",
+    const outcome = runInstallerTransaction({ ...fixture, ...nativeV2Predecessor(fixture, legacyDatabaseVersion), establishedHistory: "yes",
       readiness: { ready: true, blockers: [] }, legacyDatabaseVersion, failRestart: true });
     expect(outcome.failure).toContain("injected host failure");
     expect(outcome.database).toBe(outcome.originalDatabase);
@@ -2545,7 +2568,7 @@ describe("actual IA25 installer transaction", () => {
   it.each([1, 2] as const)("preserves candidate and retained v%i archive when database rollback cannot prove original", legacyDatabaseVersion => {
     const fixture = transactionFixture();
     createPriorDeployment(fixture);
-    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes",
+    const outcome = runInstallerTransaction({ ...fixture, ...nativeV2Predecessor(fixture, legacyDatabaseVersion), establishedHistory: "yes",
       readiness: { ready: true, blockers: [] }, legacyDatabaseVersion, failRestart: true, loseDatabaseArchive: true });
     expect(outcome.failure).toContain("injected host failure");
     expect(outcome.failure).toContain("database restoration incomplete");
