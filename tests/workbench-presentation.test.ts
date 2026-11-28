@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   ArtifactRefSchema,
+  ApprovalSchema,
   ExecutionTaskSchema,
   RunEventSchema,
   RunSchema,
@@ -1043,15 +1044,29 @@ describe("verified candidate evidence projection", () => {
     const event = (run: Run, sequence: number, identity: number, payload: RunEventPayload) =>
       RunEventSchema.parse({ id: "event_00000000-0000-4000-8000-" + String(identity).padStart(12, "0"), runId: run.id, sequence, occurredAt: stamp, event: payload });
     const state = event(builder, 1, 1, { tag: "CANDIDATE_STATE_RECORDED", patch: { relativePath: "candidate.patch", sha256: hash, mediaType: "text/x-diff" }, changedPaths: ["ui/src/WorkItemWorkspace.tsx"] });
-    const reviewer = RunSchema.parse({ ...executionRun(current, "COMPLETED", uuidG), role: "REVIEWER", triggerEventId: state.id, terminalClassification: "CANDIDATE_DONE" });
-    const validations = (["V0","V1","V2","V3","V4","V5","V6","V7"] as const).map((stage, i) => event(reviewer, i + 1, i + 2, { tag: "VALIDATION_PASSED", stage, evidence: [] }));
-    const record = event(reviewer, 9, 10, { tag: "CANDIDATE_RECORDED", candidateStateEventId: state.id, validationEventIds: validations.map((v) => v.id) });
+    const approval = ApprovalSchema.parse({id: current.approvalId, workItemId: builder.workItemId, baselineCommit: commit,
+      packageHash:hash, planArtifactRefId:"artifact_"+uuidA,r3ArtifactRefId:"artifact_"+uuidB,
+      sourceSha256:hash,approvedBy:"test",approvedAt:stamp});
+    const reviewer = RunSchema.parse({ ...executionRun(current, "COMPLETED", uuidG), attempt:2, role: "REVIEWER", triggerEventId: state.id, terminalClassification: "CANDIDATE_DONE" });
+    const independentReview = event(reviewer, 1, 12, {tag:"REVIEW_PASSED",minimumChange:"MINIMUM_SUFFICIENT",minimumChangeSummary:null,evidence:[]});
+    const validations = (["V0","V1","V2","V3","V4","V5","V6","V7"] as const).map((stage, i) => event(reviewer, i + 2, i + 2, { tag: "VALIDATION_PASSED", stage, evidence: [] }));
+    const record = event(reviewer, 10, 10, { tag: "CANDIDATE_RECORDED", candidateStateEventId: state.id, validationEventIds: validations.map((v) => v.id) });
     const oldRun = executionRun(historical, "FAILED", uuidH);
     const oldEvent = event(oldRun, 1, 11, { tag: "PROVIDER_FAILED", detail: "Unrelated failed attempt", evidence: [] });
-    const all = [state, ...validations, record, oldEvent];
+    const all = [state, independentReview, ...validations, record, oldEvent];
     expect(latestApprovalTasks([historical, current])).toEqual([current]);
-    expect(verifiedCandidateProofEvents([historical, current], [builder, reviewer, oldRun], all)).toEqual([state, ...validations]);
-    expect(verifiedCandidateProofEvents([current], [builder, reviewer], all.filter((v) => v.id !== validations[2]!.id))).toEqual([]);
-    expect(verifiedCandidateProofEvents([current], [builder, reviewer], all.filter((v) => v.id !== record.id))).toEqual([]);
+    expect(verifiedCandidateProofEvents(approval,[historical, current], [builder, reviewer, oldRun], all,[])).toEqual([state, ...validations]);
+    for(const missing of [validations[2]!,record,independentReview]){
+      expect(verifiedCandidateProofEvents(approval,[current],[builder,reviewer],all.filter(v=>v.id!==missing.id),[])).toBeNull();
+    }
+    const second=ExecutionTaskSchema.parse({...current,id:"task_"+uuidH,planTaskId:"T2"});
+    expect(verifiedCandidateProofEvents(approval,[current,second],[builder,reviewer],all,[])).toBeNull();
+    const foreign=RunSchema.parse({...reviewer,baselineCommit:"b".repeat(40)});
+    expect(verifiedCandidateProofEvents(approval,[current],[builder,foreign],all,[])).toBeNull();
+    const noOp=ExecutionTaskSchema.parse({...second,state:"ALREADY_SATISFIED"});
+    const noOpRun=RunSchema.parse({...executionRun(noOp,"COMPLETED",uuidI),terminalClassification:"ALREADY_SATISFIED"});
+    const noOpProof=event(noOpRun,1,13,{tag:"TASK_ALREADY_SATISFIED",summary:"exact no-op"});
+    expect(verifiedCandidateProofEvents(approval,[current,noOp],[builder,reviewer,noOpRun],[...all,noOpProof],[])).toEqual([state,...validations]);
+    expect(verifiedCandidateProofEvents(approval,[current,noOp],[builder,reviewer,noOpRun],all,[])).toBeNull();
   });
 });
