@@ -37,6 +37,8 @@ import {
   signOffWorkItem,
   signoffPackageForWorkItem,
   observeCurrentCandidateReview,
+  acceptanceObservationCodeForFailure,
+  staleAuthorityOwnerForFailure,
 } from "../src/daemon/authority.ts";
 import {
   appendRunEvent,
@@ -527,8 +529,9 @@ writeFileSync(join(repositoryRoot, "docs", "change-plan.md"), changePlanContract
 writeFileSync(join(repositoryRoot, "docs", "defect-plan.md"), defectPlanContractText);
 writeFileSync(join(repositoryRoot, "docs", "design.md"), designText);
 writeFileSync(join(repositoryRoot, "docs", "plan.md"), planText);
-writeFileSync(join(repositoryRoot, "docs", "native-acceptance-plan.md"),
-  planText.replace('"acceptanceRefs":[]','"acceptanceRefs":["GW-FR-098-READINESS-AUTHORITY-TOPOLOGY-REVIEW"]'));
+const nativeAcceptancePlanText = planText.replace('"acceptanceRefs":[]','"acceptanceRefs":["GW-FR-098-READINESS-AUTHORITY-TOPOLOGY-REVIEW"]');
+writeFileSync(join(repositoryRoot, "docs", "native-acceptance-plan.md"), nativeAcceptancePlanText);
+writeFileSync(join(repositoryRoot, "docs", "native-acceptance-stale-plan.md"), nativeAcceptancePlanText);
 writeFileSync(
   join(repositoryRoot, "docs", "historical-selection-plan.md"),
   historicalSelectionPlanText,
@@ -952,6 +955,7 @@ const seedLifecycle = async (
     | "docs/plan.md"
     | "docs/stale-approval-plan.md"
     | "docs/native-acceptance-plan.md"
+    | "docs/native-acceptance-stale-plan.md"
     | "docs/long-wide-plan.md"
     | "docs/long-narrow-plan.md" = "docs/plan.md",
 ) => {
@@ -1649,42 +1653,69 @@ for (const [title, planPath] of [
 const nativeAcceptanceItem=workItem("Native Acceptance review","AWAITING_SIGNOFF","ACTIVE",null);
 storeWorkItem(database,nativeAcceptanceItem);
 await seedLifecycle(nativeAcceptanceItem,"docs/native-acceptance-plan.md");
+
+// Additional exact signed fixtures are needed only by the rendered Acceptance
+// matrix. Each fault affects a separate real WorkItem/Approval or evidence owner.
+const nativeFaultSpecs = [
+  ["SOURCE_AUTHORITY_STALE","Native Acceptance source drift","docs/native-acceptance-plan.md"],
+  ["STALE_AUTHORITY","Native Acceptance material drift","docs/native-acceptance-stale-plan.md"],
+  ["CANDIDATE_PROOF_UNAVAILABLE","Native Acceptance missing proof","docs/native-acceptance-plan.md"],
+] as const;
+type NativeFault = typeof nativeFaultSpecs[number][0];
+const nativeFaultItems: {fault:NativeFault;item:ReturnType<typeof workItem>}[]=[];
+const nativeRendered = process.env.PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR !== undefined &&
+  (process.env.PONTIVUS_ORDER_SIGNED_RENDERED_PHASE === undefined ||
+   ["IA38","IA39"].includes(process.env.PONTIVUS_ORDER_SIGNED_RENDERED_PHASE));
+if(nativeRendered){
+  for(const [fault,title,planPath] of nativeFaultSpecs){
+    const item=workItem(title,"AWAITING_SIGNOFF","ACTIVE",null);
+    storeWorkItem(database,item);
+    await seedLifecycle(item,planPath);
+    nativeFaultItems.push({fault,item});
+  }
+}
 git("add", "--", workItemsRoot);
 git("commit", "-q", "-m", "browser WorkItem sources");
 baselineCommit = await resolveHeadCommit(repositoryRoot);
 
-const nativePackage=await signoffPackageForWorkItem(seedRuntime,nativeAcceptanceItem.id);
-const nativeApproval=await signOffWorkItem(seedRuntime,nativeAcceptanceItem.id,nativePackage.packageHash,"browser-signoff");
-const nativeTasks=await listExecutionTasks(seedRuntime,nativeAcceptanceItem.id);
-if(nativeTasks.length!==1)throw new TypeError("Native Acceptance fixture requires one signed task");
-const nativeTask=nativeTasks[0]!;
-const nativeBuilder=RunSchema.parse({
-  id:newRunId(),workItemId:nativeAcceptanceItem.id,executionTaskId:nativeTask.id,stage:"EXECUTION",
-  mode:"UNATTENDED",role:"BUILDER",triggerEventId:null,status:"COMPLETED",attempt:1,
-  baselineCommit:nativeApproval.baselineCommit,contextHash:sha256Text("native-acceptance-builder"),
-  providerSessionId:null,terminalClassification:"CANDIDATE_DONE",startedAt:stamp,endedAt:stamp,
-});
-storeRun(database,nativeBuilder);
-const nativePatch=encoder.encode("diff --git a/src/a.ts b/src/a.ts\n--- a/src/a.ts\n+++ b/src/a.ts\n@@ -1 +1 @@\n-export const a = 1;\n+export const a = 2;\n");
-const nativeState=persistEvent(nativeBuilder.id,1,{tag:"CANDIDATE_STATE_RECORDED",changedPaths:["src/a.ts"],patch:{
-  relativePath:"candidate.patch",sha256:writeRunEvidenceBytes(stateRoot,nativeBuilder.id,"candidate.patch",nativePatch),mediaType:"text/x-diff"
-}});
-const nativeReviewer=RunSchema.parse({...nativeBuilder,id:newRunId(),role:"REVIEWER",triggerEventId:nativeState.id,attempt:2,contextHash:sha256Text("native-acceptance-reviewer")});
-storeRun(database,nativeReviewer);
-const nativeValidationIds=[];
-let nativeSequence=1;
-for(const stage of ["V0","V1","V2","V3","V4","V5","V6","V7"] as const){
-  if(stage==="V4")persistEvent(nativeReviewer.id,nativeSequence++,{tag:"REVIEW_PASSED",minimumChange:"MINIMUM_SUFFICIENT",minimumChangeSummary:null,evidence:[]});
-  nativeValidationIds.push(persistEvent(nativeReviewer.id,nativeSequence++,{tag:"VALIDATION_PASSED",stage,evidence:[]}).id);
-}
-const nativeMember=persistEvent(nativeReviewer.id,nativeSequence,{tag:"CANDIDATE_RECORDED",candidateStateEventId:nativeState.id,validationEventIds:nativeValidationIds});
-const nativeHash=sha256Text(candidateMembershipCanonicalJson(nativeApproval.id,[[nativeTask.id,nativeMember.id]]));
-withTransaction(database,()=>{
-  setExecutionTaskState(database,nativeTask.id,"CANDIDATE_DONE");
-  storeCandidateReviewEvent(database,{id:newCandidateReviewEventId(),approvalId:nativeApproval.id,sequence:1,occurredAt:stamp,actor:null,event:{tag:"OPENED",candidateHash:nativeHash}});
-  updateWorkItemLifecycle(database,nativeAcceptanceItem.id,{stage:"AWAITING_ACCEPTANCE",status:"ACTIVE",outcome:null});
-});
-await observeCurrentCandidateReview(seedRuntime,nativeAcceptanceItem.id,nativeApproval.id,1);
+const seedNativeCandidate = async (item:ReturnType<typeof workItem>)=>{
+  const nativePackage=await signoffPackageForWorkItem(seedRuntime,item.id);
+  const nativeApproval=await signOffWorkItem(seedRuntime,item.id,nativePackage.packageHash,"browser-signoff");
+  const nativeTasks=await listExecutionTasks(seedRuntime,item.id);
+  if(nativeTasks.length!==1)throw new TypeError("Native Acceptance fixture requires one signed task");
+  const nativeTask=nativeTasks[0]!;
+  const nativeBuilder=RunSchema.parse({
+    id:newRunId(),workItemId:item.id,executionTaskId:nativeTask.id,stage:"EXECUTION",
+    mode:"UNATTENDED",role:"BUILDER",triggerEventId:null,status:"COMPLETED",attempt:1,
+    baselineCommit:nativeApproval.baselineCommit,contextHash:sha256Text("native-acceptance-builder"),
+    providerSessionId:null,terminalClassification:"CANDIDATE_DONE",startedAt:stamp,endedAt:stamp,
+  });
+  storeRun(database,nativeBuilder);
+  const nativePatch=encoder.encode("diff --git a/src/a.ts b/src/a.ts\n--- a/src/a.ts\n+++ b/src/a.ts\n@@ -1 +1 @@\n-export const a = 1;\n+export const a = 2;\n");
+  const nativeState=persistEvent(nativeBuilder.id,1,{tag:"CANDIDATE_STATE_RECORDED",changedPaths:["src/a.ts"],patch:{
+    relativePath:"candidate.patch",sha256:writeRunEvidenceBytes(stateRoot,nativeBuilder.id,"candidate.patch",nativePatch),mediaType:"text/x-diff"
+  }});
+  const nativeReviewer=RunSchema.parse({...nativeBuilder,id:newRunId(),role:"REVIEWER",triggerEventId:nativeState.id,attempt:2,contextHash:sha256Text("native-acceptance-reviewer")});
+  storeRun(database,nativeReviewer);
+  const nativeValidationIds=[];
+  let nativeSequence=1;
+  for(const stage of ["V0","V1","V2","V3","V4","V5","V6","V7"] as const){
+    if(stage==="V4")persistEvent(nativeReviewer.id,nativeSequence++,{tag:"REVIEW_PASSED",minimumChange:"MINIMUM_SUFFICIENT",minimumChangeSummary:null,evidence:[]});
+    nativeValidationIds.push(persistEvent(nativeReviewer.id,nativeSequence++,{tag:"VALIDATION_PASSED",stage,evidence:[]}).id);
+  }
+  const nativeMember=persistEvent(nativeReviewer.id,nativeSequence,{tag:"CANDIDATE_RECORDED",candidateStateEventId:nativeState.id,validationEventIds:nativeValidationIds});
+  const nativeHash=sha256Text(candidateMembershipCanonicalJson(nativeApproval.id,[[nativeTask.id,nativeMember.id]]));
+  withTransaction(database,()=>{
+    setExecutionTaskState(database,nativeTask.id,"CANDIDATE_DONE");
+    storeCandidateReviewEvent(database,{id:newCandidateReviewEventId(),approvalId:nativeApproval.id,sequence:1,occurredAt:stamp,actor:null,event:{tag:"OPENED",candidateHash:nativeHash}});
+    updateWorkItemLifecycle(database,item.id,{stage:"AWAITING_ACCEPTANCE",status:"ACTIVE",outcome:null});
+  });
+  await observeCurrentCandidateReview(seedRuntime,item.id,nativeApproval.id,1);
+  return {item, approval:nativeApproval, builder:nativeBuilder, task:nativeTask, member:nativeMember, hash:nativeHash};
+};
+await seedNativeCandidate(nativeAcceptanceItem);
+const nativeFaultFixtures=new Map<WorkItemId,Awaited<ReturnType<typeof seedNativeCandidate>> & {fault:NativeFault}>();
+for(const {fault,item} of nativeFaultItems) nativeFaultFixtures.set(item.id,{...await seedNativeCandidate(item),fault});
 
 writeFileSync(
   join(repositoryRoot, "docs", "stale-approval-plan.md"),
@@ -2417,6 +2448,31 @@ const fixtureControl = Bun.serve({
         endedAt: null,
       });
       return Response.json(received);
+    }
+
+    if (url.pathname === "/acceptance-proof-fault") {
+      const workItemId=WorkItemIdSchema.parse(body.workItemId);
+      const fixture=nativeFaultFixtures.get(workItemId);
+      if(fixture===undefined||body.fault!==fixture.fault) return new Response("exact native fault fixture required",{status:409});
+      // First establish the signed candidate and exact current sequence. Change
+      // only the selected fixture's actual source, signed material or evidence.
+      await observeCurrentCandidateReview(daemon.coordinator,workItemId,fixture.approval.id,1);
+      if(fixture.fault==="SOURCE_AUTHORITY_STALE"){
+        const target=join(repositoryRoot,fixture.item.sourcePath);
+        writeFileSync(target,readFileSync(target,"utf8")+"\nFixture source changed after sign-off.\n");
+      } else if(fixture.fault==="STALE_AUTHORITY"){
+        const target=join(repositoryRoot,"docs","native-acceptance-stale-plan.md");
+        writeFileSync(target,readFileSync(target,"utf8")+"\nFixture material changed after sign-off.\n");
+      } else {
+        rmSync(join(statePaths(stateRoot).evidence,fixture.builder.id,"candidate.patch"));
+      }
+      try { await observeCurrentCandidateReview(daemon.coordinator,workItemId,fixture.approval.id,1); }
+      catch(error) {
+        const actual=staleAuthorityOwnerForFailure(error)!==null?"STALE_AUTHORITY":acceptanceObservationCodeForFailure(error);
+        if(actual!==fixture.fault) throw error;
+        return Response.json({code:actual,approvalId:fixture.approval.id});
+      }
+      throw new TypeError("fixture fault did not produce the exact typed observation");
     }
 
     if (url.pathname === "/tick") {

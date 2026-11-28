@@ -11,6 +11,7 @@ import {
   RunEventSchema,
   RunSchema,
   WorkItemSchema,
+  ApprovalSchema,
   WorkItemSourceSnapshotSchema,
 } from "../src/core/contracts.ts";
 import { expect, test, type APIRequestContext, type Locator, type Page } from "@playwright/test";
@@ -839,7 +840,7 @@ const captureRenderedAcceptance = async (
 
 const fixtureMutation = async (
   request: APIRequestContext,
-  action: "/start-stage" | "/submit-input" | "/tick",
+  action: "/start-stage" | "/submit-input" | "/tick" | "/acceptance-proof-fault",
   data: Record<string, unknown>,
 ): Promise<unknown> => {
   const response = await request.post(fixtureControlURL + action, { data });
@@ -3326,9 +3327,12 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
 
   const runtimeErrors: string[] = [];
   let expectedConflictConsoleErrors = 0;
+  const expectedAcceptanceFaultUrls = new Set<string>();
   page.on("pageerror", (error) => runtimeErrors.push("pageerror: " + error.message));
   page.on("console", (message) => {
     if (message.type() !== "error") return;
+    if (message.text().includes("status of 409 (Conflict)") &&
+      expectedAcceptanceFaultUrls.has(message.location().url)) return;
     if (
       expectedConflictConsoleErrors > 0 &&
       message.text().includes("status of 409 (Conflict)")
@@ -4884,10 +4888,10 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     await expect(review.getByTestId("review-verdict")).toContainText("Verified candidate");
     await expect(review.getByRole("button",{name:"Accept candidate",exact:true})).toBeEnabled();
     const captureAcceptance = async (state:string, suffix:string, viewport:Readonly<{width:number;height:number}> = light,
-      theme:RenderedAcceptanceInput["theme"]="Light"):Promise<void> => {
+      theme:RenderedAcceptanceInput["theme"]="Light",fixture="Native Acceptance review"):Promise<void> => {
       await page.setViewportSize(viewport);
       await capture({id:"ia38-"+state+"-"+suffix, workItemKind:"CHANGE", workflowStep:"Acceptance",
-        surface:acceptanceSurface,state,fixture:"Native Acceptance review",viewport,theme,route:routeValue(),
+        surface:acceptanceSurface,state,fixture,viewport,theme,route:routeValue(),
         authorityRefs:["GW-DOC-WORKBENCH-UX-V2","GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2","GW-DOC-CANONICAL-CONTRACTS-V2"]});
     };
     await captureAcceptance("awaiting-review","wide-light");
@@ -4982,6 +4986,37 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
       await captureAcceptance("historical-accepted","wide-light");
     }
     await backToQueue(page);
+    if(!diagnosticCurrentState){
+      for(const [fault,title,state,confirmation] of [
+        ["SOURCE_AUTHORITY_STALE","Native Acceptance source drift","source-stale-authority","source-reconcile-confirmation"],
+        ["STALE_AUTHORITY","Native Acceptance material drift","stale-authority","reconcile-confirmation"],
+        ["CANDIDATE_PROOF_UNAVAILABLE","Native Acceptance missing proof","proof-unavailable","proof-reanalysis-form"],
+      ] as const){
+        const item=await workItemForTitle(page,title);
+        await openWorkItem(page,title);
+        await expect(review.getByTestId("review-verdict")).toContainText("Verified candidate");
+        // The fixture control mutates real isolated source/material/evidence and
+        // verifies the exact typed response using the production observation.
+        const current=await page.context().request.get("/api/work-items/"+item.id+"/current-approval");
+        expect(current.ok()).toBe(true);
+        const approval=ApprovalSchema.parse(await current.json());
+        const proofUrl=new URL("/api/work-items/"+item.id+"/approvals/"+approval.id+"/qa-events?expectedReviewSequence=1",page.url()).href;
+        expectedAcceptanceFaultUrls.add(proofUrl);
+        const observation=await fixtureMutation(request,"/acceptance-proof-fault",{workItemId:item.id,fault});
+        expect(observation).toEqual({code:fault,approvalId:approval.id});
+        await expect(review.getByTestId("review-verdict")).toContainText(fault==="CANDIDATE_PROOF_UNAVAILABLE"?"Candidate proof unavailable":"Authority changed");
+        await expect(review.getByRole("button",{name:"Accept candidate",exact:true})).toHaveCount(0);
+        await expect(review.getByRole("button",{name:"Report finding for task",exact:true})).toHaveCount(0);
+        await captureAcceptance(state,"wide-light",light,"Light",title);
+        const action=fault==="CANDIDATE_PROOF_UNAVAILABLE"?"Return to planning":"Reconcile authority";
+        await review.getByRole("button",{name:action,exact:true}).click();
+        const confirmationDialog=page.getByRole("dialog",{name:action,exact:true});
+        await expect(confirmationDialog).toBeVisible();
+        await captureAcceptance(confirmation,"wide-light",light,"Light",title);
+        await confirmationDialog.getByRole("button",{name:"Cancel",exact:true}).click();
+        await backToQueue(page);
+      }
+    }
   }
 
   if (runRenderedPhase("IA33")) {
