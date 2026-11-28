@@ -2876,6 +2876,9 @@ describe("public release delivery certification", () => {
     expect(browser).toContain('type ReferenceViewportClass = "wide" | "medium" | "narrow"');
     expect(browser).toContain('viewport.width >= 1280 ? "wide" : viewport.width >= 800 ? "medium" : "narrow"');
     expect(browser).toContain("const mediumComparisonSources");
+    expect(browser).toContain("Object.values(signedPhaseOwnedSurfaces).flat().sort()");
+    expect(browser).toContain("stateCaptureScopes");
+    expect(browser).toContain("matching toolbar reference");
     expect(browser).toContain("surface + \" same-scope comparison\"");
     expect(browser).toContain("surface + \" medium reference PNG\"");
     expect(browser).toContain("await referencePage.setViewportSize(entry.viewport)");

@@ -84,13 +84,16 @@ const signedPhaseCaptureIds = {
     "hux-app-queue-wide-light",
     "hux-app-queue-narrow-dark",
     "create-work-item-wide-light-change",
+    "create-work-item-narrow-light-change",
     "ia26-create-workitem-wide-dark",
     "create-linked-remediation-wide-light",
+    "create-linked-remediation-narrow-light",
     "application-toolbar-workitem-wide-light",
     "application-toolbar-workitem-medium-light",
     "workitem-shell-wide-light-chrome",
     "workitem-shell-wide-light-current-attention",
     "workitem-context-wide-light-selected-workitem",
+    "workitem-context-narrow-light-selected-workitem",
     "application-toolbar-workitem-narrow-light",
     "workitem-shell-narrow-light-chrome",
     "workitem-shell-narrow-light-current-attention",
@@ -784,6 +787,8 @@ const captureRenderedAcceptance = async (
       const referenceSurface = referencePage.locator(reference.selector);
       await expect(referenceSurface).toBeVisible();
       await expect(referenceSurface).toHaveAttribute("data-state", reference.state!);
+      const expectedDark = entry.theme === "Dark" || entry.theme === "System/dark";
+      expect(await referencePage.locator("html").evaluate(node => node.classList.contains("dark"))).toBe(expectedDark);
       const lifecycleFixture = referenceLifecycleFixture(entry);
       const referenceRail = referenceSurface.locator(".rail");
       if (lifecycleFixture !== null && await referenceRail.count() > 0) {
@@ -2164,6 +2169,15 @@ const validateSignedPhaseEvidence = (entries: readonly RenderedAcceptanceEntry[]
     expect(medium?.reference.comparisonEligible, surface + " same-scope comparison").toBe(true);
     expect(medium?.referenceScreenshot, surface + " medium reference PNG").toBeDefined();
   }
+  if (signedRenderedPhase === "IA27_28") {
+    for (const id of ["application-toolbar-workitem-medium-light", "application-toolbar-settings-medium-light",
+      "hux-app-queue-narrow-dark", "application-toolbar-workitem-narrow-light", "application-toolbar-settings-narrow-light"]) {
+      const entry = entries.find(candidate => candidate.id === id);
+      expect(entry?.reference.captureScope, id + " exact toolbar scope").toBe("component-reference");
+      expect(entry?.reference.comparisonEligible, id + " matching toolbar reference").toBe(true);
+      expect(entry?.referenceScreenshot, id + " matching toolbar PNG").toBeDefined();
+    }
+  }
   const shared = signedPhaseSharedSurfaces[signedRenderedPhase] ?? [];
   expect([...new Set(entries.map((entry) => entry.surface))].sort(), "exact phase SURF coverage")
     .toEqual([...owned, ...shared].sort());
@@ -2195,6 +2209,22 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     "rendered acceptance capture runs only in its GitHub Actions evidence step",
   );
   test.setTimeout(300_000);
+  const widths = [[390,"narrow"],[700,"narrow"],[760,"narrow"],[799,"narrow"],[800,"medium"],
+    [1000,"medium"],[1279,"medium"],[1280,"wide"],[1440,"wide"]] as const;
+  for (const [width, expected] of widths) expect(referenceViewportClass({width,height:800})).toBe(expected);
+  for (const width of [0,-1,NaN,Infinity]) expect(referenceViewportClass({width,height:800})).toBeNull();
+  expect(referenceViewportClass({width:1000,height:0})).toBeNull();
+  const toolbarComparison: RenderedAcceptanceInput = {
+    id: "scope-check", workItemKind: "QUEUE", workflowStep: null,
+    surface: "SURF-APP-001", state: "toolbar-queue", fixture: "scope check",
+    viewport: {width:1000,height:800}, theme:"Light", route:"/", authorityRefs:[],
+  };
+  expect(resolveRenderedReference(toolbarComparison,"component-reference").comparisonEligible).toBe(true);
+  expect(resolveRenderedReference(toolbarComparison,"full-workbench").comparisonEligible).toBe(false);
+  expect(resolveRenderedReference({...toolbarComparison,viewport:{width:1000,height:0}},"component-reference").comparisonEligible).toBe(false);
+  expect(Object.keys(mediumComparisonSources).sort()).toEqual(
+    Object.values(signedPhaseOwnedSurfaces).flat().sort()
+  );
   const phaseOneNegativeStates = diagnosticCurrentState || signedRenderedPhase === "IA27_28";
   const runtimeErrors: string[] = [];
   let expectedDiagnosticConsoleErrors = 0;
@@ -2820,6 +2850,16 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM",
     ],
   }, createDialog);
+  await page.setViewportSize({ width: 700, height: 800 });
+  await expect(createDialog.getByLabel("Title")).toHaveValue("Rendered acceptance change");
+  await expect(createDialog.getByRole("button", { name: "Cancel", exact: true })).toBeVisible();
+  await capturePhaseOne({
+    id: "create-work-item-narrow-light-change", workItemKind: "CHANGE",
+    workflowStep: "Work request", surface: "SURF-CREATE-001", state: "ordinary-change-populated",
+    fixture: "Create WorkItem deterministic CHANGE input", viewport: { width: 700, height: 800 },
+    theme: "Light", route: "/", authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM"],
+  }, createDialog);
+  await page.setViewportSize({ width: 1440, height: 900 });
   await createDialog.getByRole("button", { name: "Cancel", exact: true }).click();
   await page.getByRole("radio", { name: "Dark" }).click();
   await openCreate();
@@ -2858,6 +2898,17 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM",
     ],
   }, linkedDialog);
+  await page.setViewportSize({ width: 700, height: 800 });
+  await expect(linkedDialog).toContainText("Completed parent Investigation · same project");
+  await expect(linkedDialog.getByLabel("Title")).toHaveValue("Rendered acceptance remediation");
+  await capturePhaseOne({
+    id: "create-linked-remediation-narrow-light", workItemKind: "DEFECT",
+    workflowStep: "Complete", surface: "SURF-CREATE-001", state: "linked-remediation",
+    fixture: "Completed investigation linked-remediation creation", viewport: { width: 700, height: 800 },
+    theme: "Light", route: new URL(page.url()).pathname + new URL(page.url()).search,
+    authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM"],
+  }, linkedDialog);
+  await page.setViewportSize({ width: 1440, height: 900 });
   await linkedDialog.getByRole("button", { name: "Cancel", exact: true }).click();
   await backToQueue(page);
 
@@ -3065,6 +3116,21 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
     ],
   }, currentAttention);
+  await page.getByRole("button", { name: "Context", exact: true }).click();
+  const contextDrawer = page.getByTestId("work-item-context-drawer");
+  await expect(contextDrawer).toBeVisible();
+  await expect(contextDrawer.getByRole("heading", { name: "WorkItem identity", exact: true })).toBeVisible();
+  await capturePhaseOne({
+    id: "workitem-context-narrow-light-selected-workitem", workItemKind: "CHANGE",
+    workflowStep: "Work request", surface: "SURF-WI-CONTEXT-001",
+    state: "selected-workitem-technical-inspection", fixture: "Change work type explicit WorkItem Context",
+    viewport: { width: 700, height: 800 }, theme: "Light",
+    route: new URL(page.url()).pathname + new URL(page.url()).search,
+    authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2"],
+  }, contextDrawer);
+  await contextDrawer.getByRole("button", { name: "Close context", exact: true }).click();
+  await expect(contextDrawer).toBeHidden();
+  await expect(page.getByTestId("work-item-heading")).toHaveText("Change work type");
 
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.getByRole("link", { name: "Settings", exact: true }).click();
@@ -6983,6 +7049,13 @@ test("Requirements keeps governed content primary and routes artifact mechanics 
   await expect(context.getByText("P3", { exact: true })).toBeVisible();
   await expect(context.getByText("Artifact id", { exact: true })).toBeVisible();
   await expect(context.getByText("Git commit", { exact: true })).toBeVisible();
+  const selectedItem = await workItemForTitle(page, "Requirements document visual");
+  const response = await page.context().request.get("/api/work-items/" + selectedItem.id + "/lifecycle-artifacts");
+  expect(response.ok()).toBe(true);
+  const selectedArtifact = ArtifactRefSchema.array().parse(await response.json()).find(artifact => artifact.role === "R2");
+  expect(selectedArtifact).toBeDefined();
+  await expect(context.getByText(selectedArtifact!.id, { exact: true })).toBeVisible();
+  await expect(context.getByText(selectedArtifact!.sha256, { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Close context", exact: true }).click();
 });
 

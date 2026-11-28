@@ -67,6 +67,9 @@ export const WorkItemContext=({workItem,selectedStep,selectedMaterial,selectedDo
   const selectedProposalEvent=material.kind==="PROPOSAL"
     ?(proposalEventsQuery.data??[]).find((event)=>event.id===material.eventId&&event.runId===material.runId&&event.event.tag==="ARTIFACT_PROPOSAL_CREATED")??null
     :null;
+  const selectedProposalDisposition=material.kind==="PROPOSAL"
+    ?(proposalEventsQuery.data??[]).find(event=>event.runId===material.runId&&event.event.tag==="ARTIFACT_PROPOSAL_DISPOSITIONED"&&event.event.proposalEventId===material.eventId)??null
+    :null;
   const selectedTask=material.kind==="EXECUTION_TASK"
     ?(tasksQuery.data??[]).find((task)=>task.id===material.taskId)??null
     :null;
@@ -136,6 +139,9 @@ export const WorkItemContext=({workItem,selectedStep,selectedMaterial,selectedDo
               ]}
             />
           ):null}
+          {material.kind==="EXECUTION_TASK"&&selectedTask===null?(
+            <WorkbenchNotice tone={tasksQuery.isPending?"info":"warning"} title={tasksQuery.isPending?"Resolving selected task":"Selected task identity unavailable"}/>
+          ):null}
           {((selectedTask!==null&&selectedApproval===null)||
             (material.kind==="APPROVAL_PACKAGE"&&workItem.stage==="AWAITING_SIGNOFF"&&selectedPackage===null)||
             (material.kind==="APPROVAL_PACKAGE"&&finalApprovalQuery.isError))?(
@@ -178,6 +184,10 @@ export const WorkItemContext=({workItem,selectedStep,selectedMaterial,selectedDo
                 {id:"proposal-target",label:"Target path",value:<code>{selectedProposalEvent.event.targetPath}</code>,emphasis:"strong" as const},
                 {id:"proposal-base",label:"Base SHA",value:<code>{selectedProposalEvent.event.baseSha256??"—"}</code>},
                 {id:"proposal-authority",label:"Authority layer",value:<code>{selectedProposalEvent.event.authorityLayer}</code>},
+              ]:[]),
+              ...(selectedProposalDisposition?.event.tag==="ARTIFACT_PROPOSAL_DISPOSITIONED"?[
+                {id:"proposal-disposition",label:"Disposition",value:<code>{selectedProposalDisposition.event.disposition}</code>},
+                {id:"proposal-disposition-event",label:"Disposition event",value:<code>{selectedProposalDisposition.id}</code>},
               ]:[]),
             ]}
           />
