@@ -484,6 +484,9 @@ type InstallerTransactionFixture = Readonly<{
   establishedHistory?: string;
   historyAnswers?: readonly string[];
   cancelHistory?: boolean;
+  setupAnswers?: Readonly<Record<string, string>>;
+  providerRecordPath?: string;
+  driftBeforeProvider?: string;
   failMarker?: boolean;
   failRename?: "app-backup" | "launcher-backup" | "app-activation" | "launcher-activation" | "unit-publication" | "unit-restoration" | "marker-publication" | "predecessor-app" | "predecessor-state" | "predecessor-db" | "predecessor-wal" | "predecessor-shm";
   interruptAtReadiness?: boolean;
@@ -835,6 +838,10 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
         const installed = path.join(options.env.BUN_INSTALL_BIN, "opencode");
         fs.copyFileSync(fixture.binary, installed);
         fs.chmodSync(installed, 0o755);
+        if (fixture.providerRecordPath) {
+          fs.copyFileSync(path.join(path.dirname(fixture.binary), ".fake-installer-opencode.json"),
+            path.join(path.dirname(installed), ".fake-installer-opencode.json"));
+        }
         return result();
       }
       if (argv[0].endsWith("/runtime/opencode/opencode") && argv[1] === "--version") return result("opencode v2.2.6\\n");
@@ -894,6 +901,17 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
         if (fixture.cancelHistory) throw new Error("installation history cancelled");
         return historyAnswers.shift() ?? fixture.establishedHistory ?? "";
       }
+      if (fixture.providerRecordPath && (prompt.startsWith("Replacement for ") ||
+          prompt === "Target repository root: " || prompt === "STAGE reference root (blank for none): ") &&
+          fs.existsSync(fixture.providerRecordPath)) {
+        throw new Error("provider invoked before root correction");
+      }
+      if (fixture.driftBeforeProvider && prompt === "STAGE reference root (blank for none): ") {
+        const moved = path.join(fixture.home, "retained-project-before-provider");
+        fs.renameSync(fixture.driftBeforeProvider, moved);
+        fs.symlinkSync(moved, fixture.driftBeforeProvider);
+      }
+      if (Object.hasOwn(fixture.setupAnswers ?? {}, prompt)) return fixture.setupAnswers[prompt];
       if (prompt === "Retain saved OpenCode credentials or login again? [retain/login]: ") return "retain";
       if (prompt === "Select model [1]: ") return "";
       if (prompt === "Target repository root: ") return fixture.project;
@@ -1282,6 +1300,90 @@ describe("actual IA25 installer transaction", () => {
     expect(updated.stdout).toContain("Order updated successfully.");
     expect(updated.stdout).toContain("OPENCODE_ACCOUNT_REQUIRED");
   }, 180_000);
+
+  it.each(([3, 4] as const).flatMap(version =>
+    (["missing", "file", "symlink"] as const).map(kind => ({ version, kind }))))(
+    "repairs v$version retained $kind roots before the installed provider is invoked", ({ version, kind }) => {
+      const fixture = transactionFixture();
+      const invalid = join(fixture.home, "invalid-target");
+      const missingReference = join(fixture.home, "missing-reference");
+      const retainedReference = tempDir("order-transaction-valid-reference-");
+      if (kind === "file") writeFileSync(invalid, "not a repository");
+      if (kind === "symlink") symlinkSync(fixture.project, invalid);
+      const recordRoot = tempDir("order-transaction-provider-proof-");
+      const providerRecordPath = join(recordRoot, "calls.jsonl");
+      const binary = createFakeOpenCode(recordRoot, { recordPath: providerRecordPath });
+      const model = { providerID: "opencode", id: "glm-5.3-flash-free" };
+      writeFileSync(join(fixture.stateRoot, "config.json"), JSON.stringify({
+        version, model, repositoryRoots: [invalid], referenceRoots: [missingReference, retainedReference],
+      }) + "\n", { mode: 0o600 });
+      const outcome = runInstallerTransaction({ ...fixture, binary, providerRecordPath,
+        setupAnswers: {
+          ["Replacement for " + invalid + " (blank removes): "]: fixture.project,
+          ["Replacement for " + missingReference + " (blank removes): "]: "",
+          "Retain saved OpenCode credentials or login again? [retain/login]: ": "login",
+        },
+        readiness: { ready: true, blockers: [] },
+      });
+      expect(outcome.failure).toBeNull();
+      expect(outcome.prompts.slice(0, 2)).toEqual([
+        "Replacement for " + invalid + " (blank removes): ",
+        "Replacement for " + missingReference + " (blank removes): ",
+      ]);
+      expect(outcome.config).toEqual({ version: 4, model,
+        repositoryRoots: [fixture.project], referenceRoots: [retainedReference] });
+      const calls = readFileSync(providerRecordPath, "utf8").trim().split("\n").map(line => JSON.parse(line));
+      expect(calls.some(call => call.kind === "login")).toBe(true);
+      expect(calls.filter(call => call.kind === "serve").length).toBeGreaterThanOrEqual(2);
+      expect(calls.every(call => call.cwd === fixture.project)).toBe(true);
+      expect(outcome.marker).toBe(outcome.sourceCommit + "\n");
+      expect(outcome.stdout).toContain("Order installed successfully.");
+    }, 120_000);
+
+  it("re-proves the repaired target before provider startup and uses the explicit replacement", () => {
+    const fixture = transactionFixture();
+    const replacement = createProject();
+    const recordRoot = tempDir("order-transaction-startup-proof-");
+    const providerRecordPath = join(recordRoot, "calls.jsonl");
+    const binary = createFakeOpenCode(recordRoot, { recordPath: providerRecordPath });
+    const model = { providerID: "opencode", id: "glm-5.3-flash-free" };
+    writeFileSync(join(fixture.stateRoot, "config.json"), JSON.stringify({
+      version: 4, model, repositoryRoots: [fixture.project], referenceRoots: [],
+    }) + "\n", { mode: 0o600 });
+    const outcome = runInstallerTransaction({ ...fixture, binary, providerRecordPath,
+      driftBeforeProvider: fixture.project,
+      setupAnswers: { ["Replacement for " + fixture.project + " (blank removes): "]: replacement },
+      readiness: { ready: true, blockers: [] },
+    });
+    expect(outcome.failure).toBeNull();
+    expect(outcome.stdout).toContain("Configured roots changed before provider startup");
+    expect(outcome.prompts).toContain("Replacement for " + fixture.project + " (blank removes): ");
+    expect(outcome.config).toEqual({ version: 4, model, repositoryRoots: [replacement], referenceRoots: [] });
+    const calls = readFileSync(providerRecordPath, "utf8").trim().split("\n").map(line => JSON.parse(line));
+    expect(calls.length).toBeGreaterThan(0);
+    expect(calls.every(call => call.cwd === replacement)).toBe(true);
+    expect(outcome.marker).toBe(outcome.sourceCommit + "\n");
+  }, 120_000);
+
+  it("rejects cancellation of required root repair before provider use or config publication", () => {
+    const fixture = transactionFixture();
+    const invalid = join(fixture.home, "missing-target");
+    const recordRoot = tempDir("order-transaction-cancel-proof-");
+    const providerRecordPath = join(recordRoot, "calls.jsonl");
+    const binary = createFakeOpenCode(recordRoot, { recordPath: providerRecordPath });
+    const original = JSON.stringify({ version: 3, model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+      repositoryRoots: [invalid], referenceRoots: [] }) + "\n";
+    writeFileSync(join(fixture.stateRoot, "config.json"), original, { mode: 0o600 });
+    const outcome = runInstallerTransaction({ ...fixture, binary, providerRecordPath,
+      setupAnswers: { ["Replacement for " + invalid + " (blank removes): "]: "", "Target repository root: ": "" },
+      readiness: { ready: true, blockers: [] },
+    });
+    expect(outcome.failure).toContain("an exact target repository root is required");
+    expect(existsSync(providerRecordPath)).toBe(false);
+    expect(readFileSync(join(fixture.stateRoot, "config.json"), "utf8")).toBe(original);
+    expect(outcome.marker).toBeNull();
+    expect(outcome.stdout).not.toContain("Order installed successfully.");
+  }, 120_000);
 
   it("fresh blocker rolls back actual activated paths without publishing a marker", () => {
     const outcome = runInstallerTransaction({
