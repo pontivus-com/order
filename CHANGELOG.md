@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Prepare upstream reconciliation for exact PLAN inspection dependency and the existing Settings responsive continuity owner; preserve the signed implementation branch and require renewed exact-package review and authorization.
+
 - Align Wave 3 certification with exact historical package inspection and pre-review document semantics; retain current-only authorization and explicit unavailable-membership checks.
 
 - Correct Wave 3 strict-typing defects, pin prospective Approval inspection to its selected package identity, and display Readiness package documents only from exact available canonical membership; do not substitute unrelated history.

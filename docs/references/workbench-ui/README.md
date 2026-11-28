@@ -13,7 +13,7 @@ The active corpus is valid only for these exact inputs:
 - `GW-DOC-WORKBENCH-UX-V2` — blob `7569fc5be387c974fe7fe0c3bc123c300f147311`;
 - `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2` — blob `7985991b91c5717677da6a38e057c00eb2e4e2fe`;
 - `GW-DOC-WORKBENCH-THEME-V1` — blob `03dfc6be3600a1128b5639d011f4c0159d3497dd`;
-- current 0.6.0 DESIGN — blob `5414b551fa090bcedb05433a3527410ae389ba2c`.
+- current 0.6.0 DESIGN — blob `3eee258376122b075367998964fa179635d31902`.
 
 These are the exact current authority versions projected by this corpus. If any bound owner changes, this corpus is stale until regenerated and reviewed. The owner wins on every conflict.
 
@@ -24,6 +24,8 @@ These are the exact current authority versions projected by this corpus. If any 
 - Git history is the only retained provenance for the superseded 0.5.0 SVG pack. Those SVGs are not live comparison material.
 
 ## Evidence integrity
+
+The Wave 3 P4 and SD28/SD29 correction preserves the SURF definitions and reference layout. This exact DESIGN rebind is metadata only; the existing IA34 responsive continuity and IA30 PLAN inspection obligations require candidate proof, not a new reference verdict.
 
 The 2026-11-27 REV-F11 installer forecast correction rebinds the DESIGN authority identity without changing settled SURF contracts or visual reference layout. The Workbench integration correction binds exact selection and prospective package inspection; replacement Dialogue is the existing P4 target. These metadata bindings are not visual acceptance or new rendered proof; IA26 must revalidate actual state/scope/selection equivalence.
 
