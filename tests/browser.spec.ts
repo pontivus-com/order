@@ -1176,8 +1176,29 @@ test("appearance uses a direct compact mode switcher, follows system mode, and p
       return (lighter + 0.05) / (darker + 0.05);
     });
   const expectThemeControlContrast = async (): Promise<void> => {
-    for (const radio of [system, light, dark]) {
-      expect(await radioLabelContrast(radio)).toBeGreaterThanOrEqual(4.5);
+    // Astryx animates segment foreground/background colors. The toolbar
+    // background may already be current while a segment is still transitioning.
+    // Establish settled control paint independently of the contrast result.
+    await expect.poll(
+      () => system.evaluate(async (node) => {
+        const group = node.closest('[role="radiogroup"]');
+        if (group === null) throw new TypeError("theme radio has no group");
+        await new Promise<void>((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+        );
+        for (const radio of group.querySelectorAll('[role="radio"]')) {
+          // Force computed-style resolution before observing CSS transitions.
+          void getComputedStyle(radio).color;
+          void getComputedStyle(radio).backgroundColor;
+        }
+        return group.getAnimations({ subtree: true }).some(
+          (animation) => animation.pending || animation.playState === "running",
+        );
+      }),
+      { message: "theme control paint must settle before contrast measurement" },
+    ).toBe(false);
+    for (const [label, radio] of [["System", system], ["Light", light], ["Dark", dark]] as const) {
+      expect(await radioLabelContrast(radio), label + " settled text contrast").toBeGreaterThanOrEqual(4.5);
     }
   };
 

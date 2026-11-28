@@ -37,8 +37,12 @@ Exact correction-head run 46083849078: PR release metadata, dependency-lock, typ
 
 No remaining material specification contradiction or missing implementation/proof owner was identified in this targeted read-only review. The final closure commit must pass its own protected fitness verification; full exact integrated PR verification remains required before merge. PR #83 integration and separate explicit operator authorization remain outstanding; no delivery permission is conferred. The implementation and product acceptance obligations remain open until actually realized and verified; this decision does not turn them into factual completion.
 
+## Integration verification addendum
+
+Prior READY_FOR_SIGNOFF evidence is historical pending targeted disposition of run 46087439765. The exact integrated PR failed only the browser appearance contrast assertion after System light-to-dark media change. The same tree passed runs 46084816828 and 46086006318. Pinned Astryx v0.7.13 component source explicitly transitions segment color and background; the previous test waited only for the toolbar's background, not the segment paint. The correction preserves 4.5 for every radio and all prior interaction/persistence checks, establishes animation settlement without polling contrast success, and changes only one frozen input (`tests/browser.spec.ts`). The other 259 input identities, every specification artifact, scope, and prior audit body remain unchanged. Exact current frozen input digest `6373fb2fca3bdc6b81a34054b284a11c2c77d133`. The specific failed frame is not retained; actual historical timing is not conclusively established. No runtime or acceptance claim. Await exact candidate verification before restoring readiness; persistent settled contrast failure is a real failure requiring owner-level resolution.
+
 ## Readiness verdict
 
-`READY_FOR_SIGNOFF`
+`BLOCKED`
 
-Current normal and bounded authorizations are NONE. This is readiness for separate explicit normal operator sign-off on the exact fully reviewed package, not authorization to mutate T1, product acceptance, or PR/merge readiness. Record actual operator decision and exact baseline/R3 provenance under the campaign authorization owner before execution. Normal signed continuation requires no intermediate operator sign-offs; final independent proof and consolidated human acceptance remain mandatory.
+Current normal and bounded authorizations are NONE. The previous readiness verdict is not current sign-off authority. No T1 mutation, product acceptance, or PR/merge readiness is authorized. Record actual operator decision and exact baseline/R3 provenance under the campaign authorization owner before execution. Normal signed continuation requires no intermediate operator sign-offs; final independent proof and consolidated human acceptance remain mandatory.

@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Establish settled theme-control paint before browser contrast certification; preserve the 4.5 minimum and all appearance behavior checks.
+
 - Reconcile residual campaign-control HUX progression language with autonomous signed execution and independent phase-local QA; retain final explicit operator acceptance and unchanged T1.
 
 - Remove the residual intermediate operator-milestone instruction from normal signed execution; distinguish historical installer proof scope from current v4 Acceptance proof without changing T1.
