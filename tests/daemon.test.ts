@@ -295,6 +295,14 @@ const fixturePlan = `# fixture plan
 \`\`\`
 `;
 
+const currentV2StageFixture = (stage: "R1" | "R2" | "DESIGN" | "PLAN" | "R3"): string => {
+  const template = stageTemplateForSchema("change-v2", stage);
+  if (template === null) throw new TypeError("missing current-v2 stage template");
+  return stage === "R2"
+    ? template.replace("|  |  |  |", "| Fixture requirement | LOCAL | — |")
+    : template;
+};
+
 const currentV2PlanTemplate = stageTemplateForSchema("change-v2", "PLAN");
 if (currentV2PlanTemplate === null) {
   throw new TypeError("missing current-v2 PLAN template");
@@ -319,6 +327,18 @@ p5 = []
 p6 = []
 
 [refs]
+GW-DOC-WORK-LIFECYCLE-V1 = "AGENTS.md"
+GW-DOC-LIFECYCLE-CONTEXT-V1 = "AGENTS.md"
+GW-DOC-LIFECYCLE-CONTEXT-V2 = "AGENTS.md"
+GW-DOC-SPECIFICATION-STANDARD-V1 = "AGENTS.md"
+GW-DOC-SPECIFICATION-STANDARD-V2 = "AGENTS.md"
+GW-DOC-TECHNICAL-ARCHITECTURE-V1 = "AGENTS.md"
+GW-DOC-TECHNICAL-ARCHITECTURE-V2 = "AGENTS.md"
+GW-DOC-CANONICAL-CONTRACTS-V1 = "AGENTS.md"
+GW-DOC-CANONICAL-CONTRACTS-V2 = "AGENTS.md"
+GW-DOC-VALIDATION-STANDARD-V1 = "AGENTS.md"
+GW-FR-096-LIFECYCLE-AUTHORITY-DISPOSITION = "AGENTS.md"
+GW-FR-098-READINESS-AUTHORITY-TOPOLOGY-REVIEW = "AGENTS.md"
 
 [governance.fitness]
 GW-P1-FCIS = ["architecture"]
@@ -561,10 +581,25 @@ const server = Bun.serve({
             ? '[{"tag":"REVIEW_PASSED","minimumChange":"MINIMUM_SUFFICIENT","minimumChangeSummary":null,"evidence":[]}]'
             : '[{"tag":"REVIEW_FAILED","classification":"REVIEW_FAILURE","summary":"target still needs repair or V4 inputs are incomplete","evidence":[]}]';
         }
+        if (text.includes("Immutable submitted QA events")) {
+          const eventsLine=text.split("\\n").find(line=>line.startsWith("[{")&&line.includes('"tag":"SUBMIT"'));
+          const submission=JSON.parse(eventsLine)[0];
+          const payload=JSON.parse(output)[0];
+          payload.qaAssessments=submission.event.findingIds.map(findingId=>({findingId,verdict:payload.tag==="REVIEW_PASSED"?"SATISFIED":"FAIL_REPAIRABLE",rationale:"independent fixture review",evidence:[]}));
+          output=JSON.stringify([payload]);
+        }
+      } else if (mode === "stage-durable-history") {
+        writeFileSync(join(own, "durable-history-prompt"), text);
+        output = '[{"tag":"AGENT_MESSAGE_FINAL","text":"history captured for inspection","evidence":[]}]';
       } else if (mode === "stage-durable-complete") {
         output = text.includes("Human input:")
           ? '[{"tag":"STAGE_COMPLETED","completion":{"stage":"R1","outcome":"CONFIRMED"},"artifactRefIds":[]}]'
-          : '[{"tag":"HUMAN_INPUT_REQUESTED","category":"AUTHORITY_DECISION","question":"Which authority governs?"}]';
+          : text.includes("Owning-stage durable decision evidence across attempts") &&
+            text.includes("Use the canonical authority.") &&
+            text.includes("Which authority governs?") &&
+            text.includes("A new attempt, unrelated adoption or prior chat answer alone is not coverage")
+            ? '[{"tag":"AGENT_MESSAGE_FINAL","text":"prior durable decision requires current coverage","evidence":[]}]'
+            : '[{"tag":"HUMAN_INPUT_REQUESTED","category":"AUTHORITY_DECISION","question":"Which authority governs?"}]';
       } else if (mode === "stage-invalid-batch") {
         output = '[{"tag":"AGENT_MESSAGE_FINAL","text":"one","evidence":[]},{"tag":"AGENT_MESSAGE_FINAL","text":"two","evidence":[]}]';
       } else if (mode === "stage-invalid-r1" || mode === "stage-bound-r1") {
@@ -736,11 +771,18 @@ const seedSignoffScript = (
     repositoryRoot,
     createdSource.path,
   );
-  ${planMarkdown === null
-    ? ""
-    : `await Bun.write(repositoryRoot + "/docs/plan.md", ${JSON.stringify(planMarkdown)});`}
+  const stagePaths = ${schemaId === "change-v2"
+    ? `Object.fromEntries(["R1", "R2", "DESIGN", "PLAN", "R3"].map((stage) => [stage, sourceCore.workItemDocumentPath("docs/order/work-items", work, stage)]))`
+    : JSON.stringify({ R1: "docs/r1.md", R2: "docs/r2.md", DESIGN: "docs/design.md", PLAN: "docs/plan.md", R3: "docs/r3.md" })};
+  ${schemaId === "change-v2"
+    ? `for (const [stage, markdown] of Object.entries(${JSON.stringify({
+        R1: currentV2StageFixture("R1"), R2: currentV2StageFixture("R2"),
+        DESIGN: currentV2StageFixture("DESIGN"), PLAN: planMarkdown ?? vacuousCurrentV2Plan,
+        R3: currentV2StageFixture("R3"),
+      })})) await Bun.write(repositoryRoot + "/" + stagePaths[stage], markdown);`
+    : planMarkdown === null ? "" : `await Bun.write(repositoryRoot + "/docs/plan.md", ${JSON.stringify(planMarkdown)});`}
   for (const argv of [
-    ["git", "add", "--", createdSource.path${planMarkdown === null ? "" : ', "docs/plan.md"'}],
+    ["git", "add", "--", createdSource.path${schemaId === "change-v2" ? ", ...Object.values(stagePaths)" : planMarkdown === null ? "" : ', "docs/plan.md"'}],
     ["git", "commit", "-qm", "seed WorkItem source"],
   ]) {
     const result = Bun.spawnSync(argv, {
@@ -775,15 +817,17 @@ const seedSignoffScript = (
 
   const seedWorkItem = coord.getWorkItem(runtime, work);
   const outputs = {
-    R1: await authority.currentFileArtifact(runtime, seedWorkItem, "docs/r1.md", "R1", "P1"),
-    R2: await authority.currentFileArtifact(runtime, seedWorkItem, "docs/r2.md", "R2", "P3"),
-    DESIGN: await authority.currentFileArtifact(runtime, seedWorkItem, "docs/design.md", "DESIGN", "P6"),
-    PLAN: await authority.currentFileArtifact(runtime, seedWorkItem, "docs/plan.md", "PLAN", "P7"),
-    R3: await authority.currentFileArtifact(runtime, seedWorkItem, "docs/r3.md", "R3", "P7"),
+    R1: await authority.currentFileArtifact(runtime, seedWorkItem, stagePaths.R1, "R1", "P1"),
+    R2: await authority.currentFileArtifact(runtime, seedWorkItem, stagePaths.R2, "R2", "P3"),
+    DESIGN: await authority.currentFileArtifact(runtime, seedWorkItem, stagePaths.DESIGN, "DESIGN", "P6"),
+    PLAN: await authority.currentFileArtifact(runtime, seedWorkItem, stagePaths.PLAN, "PLAN", "P7"),
+    R3: await authority.currentFileArtifact(runtime, seedWorkItem, stagePaths.R3, "R3", "P7"),
   };
 
   const conform = async (stage, output) => {
-    const context = await authority.resolveStageContext(runtime, seedWorkItem, stage);
+    const state = await authority.resolveStageContextState(runtime, seedWorkItem, stage, true, output);
+    if (state.staleStage !== null) throw new TypeError("fixture upstream context is stale: " + state.staleStage);
+    const context = state.context;
     const run = runStore.insertRun(runtime, {
       id: rt.newRunId(),
       workItemId: work,
@@ -807,6 +851,11 @@ const seedSignoffScript = (
           sql.storeArtifactDependency(database, output.id, dependency.id);
         }
       }
+      runStore.appendRunEvent(runtime, run.id, {
+        tag: "STAGE_COMPLETED",
+        completion: { stage, outcome: stage === "R1" ? "CONFIRMED" : stage === "R3" ? "READY_FOR_SIGNOFF" : "ACCEPTED" },
+        artifactRefIds: [output.id],
+      });
       runStore.appendRunEvent(runtime, run.id, {
         tag: "CONFORMANCE_PASSED",
         stage,
@@ -836,6 +885,289 @@ const seedSignoffScript = (
 };
 
 describe("daemon control plane", () => {
+  it("admits only authenticated canonical loopback readiness in the installed setup owner", () => {
+    const state = tempDir("order-installer-readiness-");
+    const result = bunEval(`
+      const setup = await import("./src/shell/setup.ts");
+      const runtime = await import("./src/shell/runtime.ts");
+      const token = runtime.loadOrCreateDaemonToken(${JSON.stringify(state)});
+      let body = { ready: true, blockers: [] };
+      let status = 200;
+      let redirected = false;
+      let authenticated = true;
+      const server = Bun.serve({ hostname: "127.0.0.1", port: 0, fetch(request) {
+        authenticated &&= request.method === "GET" &&
+          new URL(request.url).pathname === "/api/settings/readiness" &&
+          request.headers.get("authorization") === "Bearer " + token;
+        if (redirected) return Response.redirect("http://127.0.0.1:" + server.port + "/unexpected");
+        return Response.json(body, { status });
+      } });
+      const env = { ...process.env, PONTIVUS_ORDER_STATE_ROOT: ${JSON.stringify(state)},
+        PONTIVUS_ORDER_BIND: "127.0.0.1:" + server.port };
+      const failures = [];
+      const reject = async (environment = env) => {
+        try { await setup.requireFreshInstallerReadiness(environment); failures.push(null); }
+        catch (error) { failures.push(String(error)); }
+      };
+      try {
+        await setup.requireFreshInstallerReadiness(env);
+        body = { ready: false, blockers: ["OPENCODE_ACCOUNT_REQUIRED"] };
+        await reject();
+        body = { ready: true, blockers: ["MODEL_INVALID"] };
+        await reject();
+        body = { ready: true, blockers: [], secret: token };
+        await reject();
+        status = 503;
+        await reject();
+        status = 200;
+        redirected = true;
+        await reject();
+        redirected = false;
+        await reject({ ...env, PONTIVUS_ORDER_BIND: "example.com:7347" });
+        await reject({ ...env, PONTIVUS_ORDER_BIND: "127.0.0.1:7347/extra" });
+        let report = "";
+        await setup.reportEstablishedInstallerReadiness(env, (line) => report += line);
+        console.log(JSON.stringify({ failures, authenticated, report, leaked: JSON.stringify(failures).includes(token) || report.includes(token) }));
+      } finally { server.stop(true); }
+    `) as { failures: (string | null)[]; authenticated: boolean; report: string; leaked: boolean };
+    expect(result.authenticated).toBe(true);
+    expect(result.failures).toHaveLength(7);
+    expect(result.failures.every((failure) => failure !== null)).toBe(true);
+    expect(result.failures[0]).toContain("OPENCODE_ACCOUNT_REQUIRED");
+    expect(result.report).toContain("could not be confirmed");
+    expect(result.leaked).toBe(false);
+  }, 30_000);
+
+  it("observes only the exact prospective conformed closure without persisting an Approval", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-prospective-closure-");
+    const output = bunEval(seedSignoffScript(repository, state, `
+      const changes = () => database.query("SELECT total_changes() AS n").get().n;
+      const before = changes();
+      const prospective = await coord.computeSignoffPackage(runtime, work);
+      const members = await coord.observeSignoffPackageArtifacts(runtime, work, prospective.packageHash);
+      const again = await coord.observeSignoffPackageArtifacts(runtime, work, prospective.packageHash);
+      let mismatch = false;
+      try { await coord.observeSignoffPackageArtifacts(runtime, work, rt.sha256Text("other package")); }
+      catch (error) { mismatch = String(error).includes("identity changed"); }
+      const proof = {
+        ids: members.map(member => member.id).sort(),
+        expected: [...new Set([outputs.R3.id, ...authority.dependencyClosure(runtime, outputs.R3.id)])].sort(),
+        hasPlan: members.some(member => member.id === outputs.PLAN.id),
+        same: JSON.stringify(members) === JSON.stringify(again),
+        mismatch,
+        observational: before === changes(),
+      };
+    `) + `
+      const beforeSignedRead = changes();
+      let unavailableAfterApproval = false;
+      try { await coord.observeSignoffPackageArtifacts(runtime, work, prospective.packageHash); }
+      catch { unavailableAfterApproval = true; }
+      console.log(JSON.stringify({...proof, unavailableAfterApproval, signedReadObservational: beforeSignedRead === changes()}));
+      database.close();
+    `) as {ids:string[];expected:string[];hasPlan:boolean;same:boolean;mismatch:boolean;observational:boolean;unavailableAfterApproval:boolean;signedReadObservational:boolean};
+    expect(output.ids).toEqual(output.expected);
+    expect(output.hasPlan).toBe(true);
+    expect(output.same).toBe(true);
+    expect(output.mismatch).toBe(true);
+    expect(output.observational).toBe(true);
+    expect(output.unavailableAfterApproval).toBe(true);
+    expect(output.signedReadObservational).toBe(true);
+  }, 30_000);
+
+  it("observes exact Approval identity, immutable membership and successful final task aggregate", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-approval-observation-");
+    const output = bunEval(seedSignoffScript(repository, state) + `
+      const current = await coord.observeCurrentApproval(runtime, work);
+      const history = coord.observeApprovalHistory(runtime, work);
+      const members = await coord.observeApprovalArtifacts(runtime, work, approval.id);
+      sql.updateWorkItemLifecycle(database, work, { stage: "PLAN", status: "ACTIVE", outcome: null });
+      const returned = await coord.observeCurrentApproval(runtime, work);
+      sql.updateWorkItemLifecycle(database, work, { stage: "COMPLETE", status: "COMPLETE", outcome: "ALREADY_SATISFIED" });
+      let missing = false;
+      try { await coord.observeCurrentApproval(runtime, work); } catch { missing = true; }
+      database.query("UPDATE executionTasks SET state = 'ALREADY_SATISFIED' WHERE approvalId = ?1").run(approval.id);
+      const final = await coord.observeCurrentApproval(runtime, work);
+      const terminalRun = () => {
+        const run = runStore.insertRun(runtime, {
+          id: rt.newRunId(), workItemId: work, executionTaskId: null,
+          stage: "R1", role: "STAGE", mode: "INTERACTIVE", triggerEventId: null,
+          status: "COMPLETED", attempt: runStore.nextAttempt(runtime, work, "R1", null),
+          baselineCommit: baseline, contextHash: rt.sha256Text("terminal-r1"),
+          providerSessionId: null, terminalClassification: null, startedAt: timestamp, endedAt: timestamp,
+        });
+        runStore.appendRunEvent(runtime, run.id, {
+          tag: "STAGE_COMPLETED", completion: { stage: "R1", outcome: "ALREADY_SATISFIED" },
+          artifactRefIds: [outputs.R1.id],
+        });
+        runStore.appendRunEvent(runtime, run.id, {
+          tag: "CONFORMANCE_PASSED", stage: "R1", outputArtifactRefIds: [outputs.R1.id],
+          contextHash: run.contextHash, evidence: [],
+        });
+      };
+      terminalRun();
+      const terminal = await coord.observeCurrentApproval(runtime, work);
+      const retainedHistory = coord.observeApprovalHistory(runtime, work).map((value) => value.id);
+      terminalRun();
+      let ambiguous = false;
+      try { await coord.observeCurrentApproval(runtime, work); } catch { ambiguous = true; }
+      console.log(JSON.stringify({
+        current: current?.id, approval: approval.id, history: history.map((value) => value.id),
+        roots: members.some((value) => value.id === approval.planArtifactRefId) &&
+          members.some((value) => value.id === approval.r3ArtifactRefId),
+        returned, missing, final: final?.id, terminal, retainedHistory, ambiguous,
+      }));
+      database.close();
+    `) as { current: string; approval: string; history: string[]; roots: boolean; returned: null; missing: boolean; final: string; terminal: null; retainedHistory: string[]; ambiguous: boolean };
+    expect(output.current).toBe(output.approval);
+    expect(output.history).toEqual([output.approval]);
+    expect(output.roots).toBe(true);
+    expect(output.returned).toBeNull();
+    expect(output.missing).toBe(true);
+    expect(output.final).toBe(output.approval);
+    expect(output.terminal).toBeNull();
+    expect(output.retainedHistory).toEqual([output.approval]);
+    expect(output.ambiguous).toBe(true);
+  }, 30_000);
+
+  it("resolves an exact signed task criterion observationally even after live authority drift", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-signed-criterion-");
+    const ref = "GW-FR-098-READINESS-AUTHORITY-TOPOLOGY-REVIEW";
+    const plan = fixturePlan.replace('"acceptanceRefs":[]', '"acceptanceRefs":["' + ref + '"]');
+    const output = bunEval(seedSignoffScript(repository, state, "", "human", "change-v1", plan) + `
+      const fs = await import("node:fs");
+      const server = await import("./src/daemon/server.ts");
+      const ref = ${JSON.stringify(ref)};
+      const tasks = await coord.listExecutionTasks(runtime, work);
+      const task = tasks[0];
+      const changes = () => database.query("SELECT total_changes() AS n").get().n;
+      const before = changes();
+      const full = await coord.observeApprovalArtifacts(runtime, work, approval.id);
+      const exact = await coord.observeApprovalArtifacts(runtime, work, approval.id, task.id, ref);
+      const denied = async (id, key) => {
+        try { await coord.observeApprovalArtifacts(runtime, work, approval.id, id, key); return null; }
+        catch (error) { return server.classifyHttpFailure(error).code; }
+      };
+      const absent = await denied("task_00000000-0000-4000-8000-000000000000", ref);
+      const unsigned = await denied(task.id, "GW-DOC-WORK-LIFECYCLE-V1");
+      const noWrites = changes() === before;
+      sql.updateWorkItemLifecycle(database, work, { stage: "PLAN", status: "ACTIVE", outcome: null });
+      const manifest = repositoryRoot + "/pontivus-order.toml";
+      fs.writeFileSync(manifest, fs.readFileSync(manifest, "utf8").replace(ref+' = "AGENTS.md"', ref+' = "docs/r2.md"'));
+      fs.appendFileSync(repositoryRoot + "/AGENTS.md", "\\nlive drift\\n");
+      const historicalBefore = changes();
+      const historical = await coord.observeApprovalArtifacts(runtime, work, approval.id, task.id, ref);
+      console.log(JSON.stringify({
+        length: exact.length, exact: exact[0], member: full.find(x => x.id === exact[0]?.id),
+        absent, unsigned, noWrites, historical, historicalNoWrites: changes() === historicalBefore,
+        sameFull: JSON.stringify(await coord.observeApprovalArtifacts(runtime, work, approval.id)) === JSON.stringify(full),
+      }));
+      database.close();
+    `) as { length: number; exact: { repositoryPath: string }; member: unknown; absent: string; unsigned: string; noWrites: boolean; historical: unknown[]; historicalNoWrites: boolean; sameFull: boolean };
+    expect(output.length).toBe(1);
+    expect(output.exact.repositoryPath).toBe("AGENTS.md");
+    expect(output.exact).toEqual(output.member);
+    expect(output.absent).toBe("NOT_FOUND");
+    expect(output.unsigned).toBe("CURRENT_STATE_CONFLICT");
+    expect(output.noWrites && output.historicalNoWrites && output.sameFull).toBe(true);
+    expect(output.historical).toEqual([output.exact]);
+  }, 30_000);
+
+  it("rejects missing or injected signed closure membership without mutating observations", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-signed-membership-");
+    const output = bunEval(seedSignoffScript(repository, state) + `
+      const fs = await import("node:fs");
+      const members = await coord.observeApprovalArtifacts(runtime, work, approval.id);
+      const material = members.find(member => member.role === "VERIFICATION_MATERIAL");
+      if (!material) throw new Error("fixture signed verification material missing");
+      const edges = database.query("SELECT artifactRefId, dependsOnArtifactRefId FROM artifactDependencies WHERE dependsOnArtifactRefId=?1").all(material.id);
+      if (edges.length === 0) throw new Error("fixture signed dependency missing");
+      database.query("DELETE FROM artifactDependencies WHERE dependsOnArtifactRefId=?1").run(material.id);
+      const changes = () => database.query("SELECT total_changes() AS n").get().n;
+      const rejection = async (id = work) => {
+        const before = changes();
+        let error = null;
+        try { await coord.observeApprovalArtifacts(runtime, id, approval.id); }
+        catch (failure) { error = String(failure); }
+        return { error, observational: changes() === before };
+      };
+      const missing = await rejection();
+      for (const edge of edges) sql.storeArtifactDependency(database, edge.artifactRefId, edge.dependsOnArtifactRefId);
+      const extra = await authority.currentFileArtifact(runtime, coord.getWorkItem(runtime, work), "src/target.ts", "GOVERNANCE", "P1");
+      sql.storeArtifactDependency(database, approval.r3ArtifactRefId, extra.id);
+      const injected = await rejection();
+      database.query("DELETE FROM artifactDependencies WHERE artifactRefId=?1 AND dependsOnArtifactRefId=?2")
+        .run(approval.r3ArtifactRefId, extra.id);
+      const other = await coord.createWorkItem(runtime, {
+        projectId: "fixture", schemaId: "change-v1", title: "other work", concernIds: [],
+      });
+      const foreign = await rejection(other.id);
+      sql.updateWorkItemLifecycle(database, work, { stage: "PLAN", status: "ACTIVE", outcome: null });
+      fs.appendFileSync(repositoryRoot + "/AGENTS.md", "\\nchanged working authority\\n");
+      const before = changes();
+      const historical = await coord.observeApprovalArtifacts(runtime, work, approval.id);
+      const current = await coord.observeCurrentApproval(runtime, work);
+      const unchanged = changes() === before;
+      console.log(JSON.stringify({ missing, injected, foreign, current, unchanged,
+        sameMembership: JSON.stringify(historical.map(member => member.id).sort()) ===
+          JSON.stringify(members.map(member => member.id).sort()),
+        stage: coord.getWorkItem(runtime, work).stage }));
+      database.close();
+    `) as {
+      missing: { error: string | null; observational: boolean };
+      injected: { error: string | null; observational: boolean };
+      foreign: { error: string | null; observational: boolean };
+      current: null; unchanged: boolean; sameMembership: boolean; stage: string;
+    };
+    expect(output.missing.error).toContain("signed package hash");
+    expect(output.injected.error).toContain("signed package hash");
+    expect(output.foreign.error).toContain("Approval does not exist for WorkItem");
+    expect(output.missing.observational && output.injected.observational && output.foreign.observational).toBe(true);
+    expect(output.current).toBeNull();
+    expect(output.unchanged && output.sameMembership).toBe(true);
+    expect(output.stage).toBe("PLAN");
+  }, 30_000);
+
+  it.each(["bare", "reversed", "wrong-context", "duplicate", "return"] as const)(
+    "does not admit sign-off from defective R3 completion evidence: %s", fault => {
+      const repository = createRepository();
+      const state = tempDir("order-daemon-exact-r3-");
+      const output = bunEval(seedSignoffScript(repository, state, `
+        const r3 = outputs.R3;
+        const context = await authority.resolveStageContextState(runtime, seedWorkItem, "R3", true, r3);
+        const run = runStore.insertRun(runtime, {
+          id: rt.newRunId(), workItemId: work, executionTaskId: null,
+          stage: "R3", role: "STAGE", mode: "INTERACTIVE", triggerEventId: null,
+          status: "COMPLETED", attempt: runStore.nextAttempt(runtime, work, "R3", null),
+          baselineCommit: baseline, contextHash: context.context.contextHash,
+          providerSessionId: null, terminalClassification: null, startedAt: timestamp, endedAt: timestamp,
+        });
+        const fault = ${JSON.stringify(fault)};
+        const completion = () => runStore.appendRunEvent(runtime, run.id, {
+          tag: "STAGE_COMPLETED", completion: { stage: "R3", outcome: fault === "return" ? "RETURN_TO_PLAN" : "READY_FOR_SIGNOFF" },
+          artifactRefIds: [r3.id],
+        });
+        if (fault !== "bare" && fault !== "reversed") completion();
+        runStore.appendRunEvent(runtime, run.id, {
+          tag: "CONFORMANCE_PASSED", stage: "R3", outputArtifactRefIds: [r3.id],
+          contextHash: fault === "wrong-context" ? rt.sha256Text("wrong context") : run.contextHash, evidence: [],
+        });
+        if (fault === "reversed" || fault === "duplicate") completion();
+        let error = null;
+        try { await coord.computeSignoffPackage(runtime, work); } catch (failure) { error = String(failure); }
+        console.log(JSON.stringify({ error, stage: coord.getWorkItem(runtime, work).stage,
+          history: coord.observeApprovalHistory(runtime, work).length }));
+        database.close();
+        process.exit(0);
+      `)) as { error: string | null; stage: string; history: number };
+      expect(output.error).toMatch(/conformance is missing or stale|no conformed R3 root/);
+      expect(output.stage).toBe("AWAITING_SIGNOFF");
+      expect(output.history).toBe(0);
+    }, 30_000);
+
   it("labels configured STAGE reference roots as read-only non-authoritative context", async () => {
     const repository = createRepository();
     const sourceMarkdown = `---
@@ -1866,6 +2198,21 @@ describe("daemon control plane", () => {
         const before = await fetch(origin + "/api/settings/config", { headers: { cookie } }).then(
           (response) => response.json(),
         );
+        const readinessPath = origin + "/api/settings/readiness";
+        const browserReadiness = await fetch(readinessPath, { headers: { cookie } });
+        const bearerReadiness = await fetch(readinessPath, { headers: { authorization: "Bearer " + daemonToken } });
+        const sameReadiness = JSON.stringify(await browserReadiness.json()) === JSON.stringify(await bearerReadiness.json());
+        const unauthenticated = await fetch(readinessPath);
+        const wrongBearer = await fetch(readinessPath, { headers: { authorization: "Bearer invalid" } });
+        const otherSettings = await fetch(origin + "/api/settings/config", { headers: { authorization: "Bearer " + daemonToken } });
+        const wrongMethod = await fetch(readinessPath, { method: "POST", headers: { authorization: "Bearer " + daemonToken } });
+        const unchanged = await fetch(origin + "/api/settings/config", { headers: { cookie } }).then((response) => response.json());
+        const readinessProof = {
+          browser: browserReadiness.status, bearer: bearerReadiness.status, sameReadiness,
+          unauthenticated: unauthenticated.status, wrongBearer: wrongBearer.status,
+          otherSettings: otherSettings.status, wrongMethod: wrongMethod.status,
+          unchanged: unchanged.sha256 === before.sha256 && owner.current === initial,
+        };
         const mutation = await fetch(origin + "/api/settings/repositories/connect", {
           method: "POST",
           headers: { cookie, origin, "content-type": "application/json" },
@@ -1880,6 +2227,7 @@ describe("daemon control plane", () => {
         );
         console.log(JSON.stringify({
           mutationStatus: mutation.status,
+          readinessProof,
           mutationBody,
           runtimeReplaced: owner.current !== initial,
           after,
@@ -1891,12 +2239,18 @@ describe("daemon control plane", () => {
       }
     `, providerEnvironment(binary, state)) as {
       mutationStatus: number;
+      readinessProof: { browser: number; bearer: number; sameReadiness: boolean; unauthenticated: number; wrongBearer: number; otherSettings: number; wrongMethod: number; unchanged: boolean };
       runtimeReplaced: boolean;
       after: { config: { repositoryRoots: string[] } };
     };
 
     expect(output.mutationStatus).toBe(200);
     expect(output.runtimeReplaced).toBe(true);
+    expect(output.readinessProof).toMatchObject({
+      browser: 200, bearer: 200, sameReadiness: true,
+      unauthenticated: 401, wrongBearer: 401, otherSettings: 401, unchanged: true,
+    });
+    expect(output.readinessProof.wrongMethod).toBeGreaterThanOrEqual(400);
     expect(output.after.config.repositoryRoots).toEqual([repository]);
   });
 
@@ -1969,6 +2323,10 @@ describe("daemon control plane", () => {
         terminalClassification: null,
         startedAt: "2026-11-13T08:00:00.000Z",
         endedAt: "2026-11-13T08:00:00.000Z",
+      });
+      runStore.appendRunEvent(runtime, run.id, {
+        tag: "STAGE_COMPLETED", completion: { stage: "PLAN", outcome: "ACCEPTED" },
+        artifactRefIds: [historical.id],
       });
       runStore.appendRunEvent(runtime, run.id, {
         tag: "CONFORMANCE_PASSED",
@@ -2102,6 +2460,7 @@ describe("daemon control plane", () => {
       const coord = await import("./src/daemon/coordinator.ts");
       const settings = await import("./src/daemon/settings.ts");
       const repo = await import("./src/shell/repository.ts");
+      const config = await import("./src/shell/config.ts");
 
       const database = sql.openOrderDatabase(${JSON.stringify(state)});
       const runtime = daemonRuntime.createCoordinatorRuntime(
@@ -2117,6 +2476,8 @@ describe("daemon control plane", () => {
       );
       runtime.schedulerStopped = true;
       const owner = settings.createCoordinatorRuntimeOwner(runtime);
+      config.writeOrderConfig(runtime.stateRoot,runtime.config);
+      const originalConfig=settings.orderConfigState(owner);
       const created = await coord.createWorkItem(runtime, {
         projectId: "document-root-admission",
         schemaId: "change-v1",
@@ -2172,6 +2533,31 @@ describe("daemon control plane", () => {
       }
 
       sql.updateWorkItemLifecycle(database, created.id, {
+        stage: "AWAITING_ACCEPTANCE",
+        status: "ACTIVE",
+        outcome: null,
+      });
+      let acceptance = null;
+      let acceptanceDisconnect = null;
+      try {
+        await settings.migrateWorkItemDocumentRoot(owner, {
+          repositoryRoot: ${JSON.stringify(repository)},
+          expectedManifestSha256: manifest.sha256,
+          targetWorkItemsRoot: "docs/order/acceptance-target",
+        });
+      } catch (error) {
+        acceptance = error instanceof Error ? error.message : String(error);
+      }
+      try {
+        await settings.disconnectRepository(owner, {
+          repositoryRoot: ${JSON.stringify(repository)},
+          expectedConfigSha256: originalConfig.sha256,
+        });
+      } catch (error) {
+        acceptanceDisconnect = error instanceof Error ? error.message : String(error);
+      }
+
+      sql.updateWorkItemLifecycle(database, created.id, {
         stage: "PLAN",
         status: "ACTIVE",
         outcome: null,
@@ -2209,6 +2595,10 @@ describe("daemon control plane", () => {
         stale,
         conflict,
         execution,
+        acceptance,
+        acceptanceDisconnect,
+        configUnchanged: settings.orderConfigState(owner).sha256 === originalConfig.sha256,
+        acceptanceTargetExists: fs.existsSync(path.join(${JSON.stringify(repository)}, "docs/order/acceptance-target")),
         activeRun,
         manifestUnchanged: fs.readFileSync(manifestPath, "utf8") === originalManifest,
         oldRootExists: fs.existsSync(path.join(${JSON.stringify(repository)}, "docs/order/work-items")),
@@ -2221,7 +2611,11 @@ describe("daemon control plane", () => {
 
     expect(String(output.stale)).toContain("manifest changed");
     expect(String(output.conflict)).toContain("conflicting bytes");
-    expect(String(output.execution)).toContain("EXECUTION");
+    expect(String(output.execution)).toContain("repository signed work is active");
+    expect(String(output.acceptance)).toContain("repository signed work is active");
+    expect(String(output.acceptanceDisconnect)).toContain("repository disconnect is blocked by signed work");
+    expect(output.configUnchanged).toBe(true);
+    expect(output.acceptanceTargetExists).toBe(false);
     expect(String(output.activeRun)).toContain("active Run");
     expect(output.manifestUnchanged).toBe(true);
     expect(output.oldRootExists).toBe(true);
@@ -2783,7 +3177,14 @@ describe("daemon control plane", () => {
     expect(output.runCount).toBe(0);
   }, 30_000);
 
-  it("enforces same-project terminal investigation/audit lineage and delivery-only remediation", () => {
+  it.each([
+    ["investigation-v1", "INVESTIGATION_COMPLETE"],
+    ["audit-v1", "AUDIT_COMPLETE"],
+    ["investigation-v2", "DUPLICATE"],
+    ["audit-v2", "ALREADY_SATISFIED"],
+    ["audit-v2", "DUPLICATE"],
+    ["investigation-v2", "ALREADY_SATISFIED"],
+  ] as const)("enforces same-project %s %s lineage and delivery-only remediation", (parentSchemaId, parentOutcome) => {
     const repository = createRepository();
     const state = tempDir("order-daemon-remediation-");
     const workItemRoot = join(repository, "docs", "order", "work-items");
@@ -2814,7 +3215,7 @@ describe("daemon control plane", () => {
         id: parentId,
         projectId: "fixture",
         concernIds: ["shell"],
-        schemaId: "investigation-v1",
+        schemaId: ${JSON.stringify(parentSchemaId)},
       }, "finished investigation");
       const created = sourceShell.createWorkItemSourceFile(runtime.config.repositoryRoots[0], "docs/order/work-items", parentId,
         parentMarkdown,
@@ -2827,13 +3228,13 @@ describe("daemon control plane", () => {
         repositoryRoot: ${JSON.stringify(repository)},
         title: parentSource.title,
         origin: "DISCOVERED",
-        schemaId: "investigation-v1",
+        schemaId: ${JSON.stringify(parentSchemaId)},
         sourcePath: parentSource.path,
         sourceSha256: parentSource.sha256,
         derivedFromWorkItemId: null,
         stage: "COMPLETE",
         status: "COMPLETE",
-        outcome: "INVESTIGATION_COMPLETE",
+        outcome: ${JSON.stringify(parentOutcome)},
         concernIds: ["shell"],
         createdAt: rt.nowIsoDateTime(),
       });
@@ -3110,9 +3511,9 @@ describe("daemon control plane", () => {
         PLAN: root + "/implementation-plan.md",
       };
       fs.mkdirSync(path.join(repositoryRoot, root), { recursive: true });
-      fs.writeFileSync(path.join(repositoryRoot, files.R1), "# R1\\n");
-      fs.writeFileSync(path.join(repositoryRoot, files.R2), "# R2\\n");
-      fs.writeFileSync(path.join(repositoryRoot, files.DESIGN), "# DESIGN\\n");
+      fs.writeFileSync(path.join(repositoryRoot, files.R1), ${JSON.stringify(currentV2StageFixture("R1"))});
+      fs.writeFileSync(path.join(repositoryRoot, files.R2), ${JSON.stringify(currentV2StageFixture("R2"))});
+      fs.writeFileSync(path.join(repositoryRoot, files.DESIGN), ${JSON.stringify(currentV2StageFixture("DESIGN"))});
       fs.writeFileSync(
         path.join(repositoryRoot, files.PLAN),
         ${JSON.stringify(vacuousCurrentV2Plan)},
@@ -3127,7 +3528,9 @@ describe("daemon control plane", () => {
       const repo = await import("./src/shell/repository.ts");
       const baseline = await repo.resolveHeadCommit(repositoryRoot);
       const conform = async (stage, artifact) => {
-        const context = await authority.resolveStageContext(runtime, workItem, stage);
+        const state = await authority.resolveStageContextState(runtime, workItem, stage, true, artifact);
+        if (state.staleStage !== null) throw new TypeError("fixture upstream context is stale: " + state.staleStage);
+        const context = state.context;
         const row = runStore.insertRun(runtime, {
           id: rt.newRunId(),
           workItemId: workItem.id,
@@ -3151,6 +3554,11 @@ describe("daemon control plane", () => {
               sql.storeArtifactDependency(database, artifact.id, dependency.id);
             }
           }
+          runStore.appendRunEvent(runtime, row.id, {
+            tag: "STAGE_COMPLETED",
+            completion: { stage, outcome: stage === "R1" ? "CONFIRMED" : stage === "R3" ? "READY_FOR_SIGNOFF" : "ACCEPTED" },
+            artifactRefIds: [artifact.id],
+          });
           runStore.appendRunEvent(runtime, row.id, {
             tag: "CONFORMANCE_PASSED",
             stage,
@@ -3246,9 +3654,9 @@ describe("daemon control plane", () => {
         R3: root + "/readiness-review.md",
       };
       fs.mkdirSync(path.join(repositoryRoot, root), { recursive: true });
-      fs.writeFileSync(path.join(repositoryRoot, files.R1), "# R1\\n");
-      fs.writeFileSync(path.join(repositoryRoot, files.R2), "# R2\\n");
-      fs.writeFileSync(path.join(repositoryRoot, files.DESIGN), "# DESIGN\\n");
+      fs.writeFileSync(path.join(repositoryRoot, files.R1), ${JSON.stringify(currentV2StageFixture("R1"))});
+      fs.writeFileSync(path.join(repositoryRoot, files.R2), ${JSON.stringify(currentV2StageFixture("R2"))});
+      fs.writeFileSync(path.join(repositoryRoot, files.DESIGN), ${JSON.stringify(currentV2StageFixture("DESIGN"))});
       fs.writeFileSync(
         path.join(repositoryRoot, files.PLAN),
         ${JSON.stringify(vacuousCurrentV2Plan)},
@@ -3268,7 +3676,9 @@ describe("daemon control plane", () => {
       const repo = await import("./src/shell/repository.ts");
       const baseline = await repo.resolveHeadCommit(repositoryRoot);
       const conform = async (stage, artifact) => {
-        const context = await authority.resolveStageContext(runtime, workItem, stage);
+        const state = await authority.resolveStageContextState(runtime, workItem, stage, true, artifact);
+        if (state.staleStage !== null) throw new TypeError("fixture upstream context is stale: " + state.staleStage);
+        const context = state.context;
         const row = runStore.insertRun(runtime, {
           id: rt.newRunId(),
           workItemId: workItem.id,
@@ -3292,6 +3702,11 @@ describe("daemon control plane", () => {
               sql.storeArtifactDependency(database, artifact.id, dependency.id);
             }
           }
+          runStore.appendRunEvent(runtime, row.id, {
+            tag: "STAGE_COMPLETED",
+            completion: { stage, outcome: stage === "R1" ? "CONFIRMED" : stage === "R3" ? "READY_FOR_SIGNOFF" : "ACCEPTED" },
+            artifactRefIds: [artifact.id],
+          });
           runStore.appendRunEvent(runtime, row.id, {
             tag: "CONFORMANCE_PASSED",
             stage,
@@ -3472,6 +3887,10 @@ describe("daemon control plane", () => {
         endedAt: rt.nowIsoDateTime(),
       });
       runStore.appendRunEvent(runtime, priorRun.id, {
+        tag: "STAGE_COMPLETED", completion: { stage: "R1", outcome: "AUDIT_COMPLETE" },
+        artifactRefIds: [artifact.id],
+      });
+      runStore.appendRunEvent(runtime, priorRun.id, {
         tag: "CONFORMANCE_PASSED",
         stage: "R1",
         outputArtifactRefIds: [artifact.id],
@@ -3578,6 +3997,10 @@ describe("daemon control plane", () => {
         terminalClassification: null,
         startedAt: rt.nowIsoDateTime(),
         endedAt: rt.nowIsoDateTime(),
+      });
+      runStore.appendRunEvent(runtime, priorRun.id, {
+        tag: "STAGE_COMPLETED", completion: { stage: "R1", outcome: "CONFIRMED" },
+        artifactRefIds: [artifact.id],
       });
       runStore.appendRunEvent(runtime, priorRun.id, {
         tag: "CONFORMANCE_PASSED",
@@ -3730,7 +4153,7 @@ describe("daemon control plane", () => {
     });
     expect(output.recoveryArtifactCountUnchanged).toBe(true);
     expect(output.recoveryBytesUnchanged).toBe(true);
-  });
+  }, 30_000);
 
   it("does not misclassify an unavailable WorkItem root as semantic approval staleness", () => {
     const repository = createRepository();
@@ -5119,6 +5542,10 @@ describe("daemon control plane", () => {
         endedAt: "2026-11-11T04:00:00.000Z",
       });
       runStore.appendRunEvent(runtime, priorPlanRun.id, {
+        tag: "STAGE_COMPLETED", completion: { stage: "PLAN", outcome: "ACCEPTED" },
+        artifactRefIds: [plan.id],
+      });
+      runStore.appendRunEvent(runtime, priorPlanRun.id, {
         tag: "CONFORMANCE_PASSED",
         stage: "PLAN",
         outputArtifactRefIds: [plan.id],
@@ -5361,6 +5788,11 @@ describe("daemon control plane", () => {
           'P1-STRICT = "docs/principles.md"',
           'P1-FCIS-EXT = "AGENTS.md"',
           "",
+        ].join("\n"),
+      )
+      .replace(
+        "[governance.fitness]\n",
+        [
           "[precedence]",
           'p2 = ["docs/product-b.md", "docs/product-a.md"]',
           "",
@@ -5375,6 +5807,8 @@ describe("daemon control plane", () => {
           'source = "AGENTS.md"',
           'authorityRef = "P1-FCIS-EXT"',
           'gates = ["test"]',
+          "",
+          "[governance.fitness]",
           "",
         ].join("\n"),
       );
@@ -5409,6 +5843,10 @@ describe("daemon control plane", () => {
         concernIds: ["shell"],
       });
       const current = coord.getWorkItem(runtime, created.id);
+      const [, reachable] = await authority.resolveCurrentStageAuthority(
+        current,
+        "R1",
+      );
       const resolved = await authority.resolveStageContextState(
         runtime,
         current,
@@ -5424,10 +5862,13 @@ describe("daemon control plane", () => {
       const p2Paths = resolved.context.artifacts
         .filter((artifact) => artifact.authorityLayer === "P2")
         .map((artifact) => artifact.repositoryPath);
-      const p1 = resolved.context.authority.layers.find(
+      const p1 = reachable.layers.find(
         (entry) => entry.layer === "p1",
       );
-      const p2 = resolved.context.authority.layers.find(
+      const p2 = reachable.layers.find(
+        (entry) => entry.layer === "p2",
+      );
+      const materialP2 = resolved.context.authority.layers.find(
         (entry) => entry.layer === "p2",
       );
 
@@ -5449,12 +5890,10 @@ describe("daemon control plane", () => {
         p1,
         p2,
         p2Paths,
+        materialP2,
         inherited: resolved.context.authority.inheritedDefaultRuleIds,
         fitness: resolved.context.authority.fitnessGateIds,
         promptHasProjection: prompt.includes("Resolved project authority projection:"),
-        promptUsesResolvedP2Order:
-          prompt.indexOf("docs/product-b.md") <
-          prompt.indexOf("docs/product-a.md"),
         blockedBeforeRun,
       }));
       database.close();
@@ -5462,10 +5901,10 @@ describe("daemon control plane", () => {
       p1: { layer: string; sources: string[]; precedence: string[] };
       p2: { layer: string; sources: string[]; precedence: string[] };
       p2Paths: string[];
+      materialP2: { layer: string; sources: string[]; precedence: string[] };
       inherited: string[];
       fitness: string[];
       promptHasProjection: boolean;
-      promptUsesResolvedP2Order: boolean;
       blockedBeforeRun: boolean;
     };
 
@@ -5475,21 +5914,261 @@ describe("daemon control plane", () => {
       sources: ["docs/product-b.md", "docs/product-a.md"],
       precedence: ["docs/product-b.md", "docs/product-a.md"],
     });
-    expect(output.p2Paths).toEqual(["docs/product-b.md", "docs/product-a.md"]);
+    expect(output.p2Paths).toEqual([]);
+    expect(output.materialP2).toEqual({
+      layer: "p2",
+      sources: [],
+      precedence: [],
+    });
+    // Reachability/precedence remain available to governance while the
+    // productive context excludes unrelated selected sources.
     expect(output.inherited).toContain("GW-P1-FCIS");
     expect(output.inherited).not.toContain("GW-P1-STRICT-TYPING");
     expect(output.fitness).toEqual(["architecture", "test"]);
     expect(output.promptHasProjection).toBe(true);
-    expect(output.promptUsesResolvedP2Order).toBe(true);
     expect(output.blockedBeforeRun).toBe(true);
   }, 30_000);
 
-  it("adopts only current manifest-resolved permanent authority and rejects a stale base", () => {
+
+  it("binds current-v2 and historical schema pins to their exact lifecycle authority refs", () => {
+    const resolve = (schema: "change-v1" | "change-v2") => {
+      const repository = createRepository("fixture");
+      writeFileSync(join(repository, "docs", "work-lifecycle.md"), "# work lifecycle\n");
+      writeFileSync(join(repository, "docs", "lifecycle-context-current.md"), "# current lifecycle context\n");
+      writeFileSync(join(repository, "docs", "lifecycle-context-v1.md"), "# retained lifecycle context v1\n");
+      const manifestPath = join(repository, "pontivus-order.toml");
+      const manifest = readFileSync(manifestPath, "utf8")
+        .replace(
+          "p3 = []",
+          'p3 = ["docs/work-lifecycle.md", "docs/lifecycle-context-current.md", "docs/lifecycle-context-v1.md"]',
+        )
+        .replace(
+          'GW-DOC-WORK-LIFECYCLE-V1 = "AGENTS.md"',
+          'GW-DOC-WORK-LIFECYCLE-V1 = "docs/work-lifecycle.md"',
+        )
+        .replace(
+          'GW-DOC-LIFECYCLE-CONTEXT-V1 = "AGENTS.md"',
+          'GW-DOC-LIFECYCLE-CONTEXT-V1 = "docs/lifecycle-context-v1.md"',
+        )
+        .replace(
+          'GW-DOC-LIFECYCLE-CONTEXT-V2 = "AGENTS.md"',
+          'GW-DOC-LIFECYCLE-CONTEXT-V2 = "docs/lifecycle-context-current.md"',
+        );
+      writeFileSync(manifestPath, manifest);
+      runGit(repository, "add", ".");
+      runGit(repository, "commit", "--amend", "--no-edit");
+
+      const state = tempDir("order-daemon-authority-pin-");
+      try {
+        return bunEval(`
+          const sql = await import("./src/shell/sqlite.ts");
+          const coord = await import("./src/daemon/coordinator.ts");
+          const authority = await import("./src/daemon/authority.ts");
+          const database = sql.openOrderDatabase(${JSON.stringify(state)});
+          const repositoryRoot = ${JSON.stringify(repository)};
+          const runtime = coord.createCoordinatorRuntime(
+            database,
+            ${JSON.stringify(state)},
+            process.env,
+            {
+              version: 4,
+              model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+              repositoryRoots: [repositoryRoot],
+              referenceRoots: [],
+            },
+          );
+          const created = await coord.createWorkItem(runtime, {
+            projectId: "fixture",
+            schemaId: ${JSON.stringify(schema)},
+            title: "authority pin",
+            concernIds: [],
+          });
+          const current = coord.getWorkItem(runtime, created.id);
+          const resolved = await authority.resolveStageContextState(
+            runtime,
+            current,
+            "R1",
+          );
+          const p3Paths = resolved.context.artifacts
+            .filter((artifact) => artifact.authorityLayer === "P3")
+            .map((artifact) => artifact.repositoryPath);
+          console.log(JSON.stringify({
+            staleStage: resolved.staleStage,
+            p3Paths,
+          }));
+          database.close();
+        `) as { staleStage: string | null; p3Paths: string[] };
+      } finally {
+        rmSync(repository, { recursive: true, force: true });
+        rmSync(state, { recursive: true, force: true });
+      }
+    };
+
+    const current = resolve("change-v2");
+    expect(current.staleStage).toBeNull();
+    expect(current.p3Paths).toEqual([
+      "docs/lifecycle-context-current.md",
+      "docs/work-lifecycle.md",
+    ]);
+
+    const retained = resolve("change-v1");
+    expect(retained.staleStage).toBeNull();
+    expect(retained.p3Paths).toEqual([
+      "docs/lifecycle-context-v1.md",
+      "docs/work-lifecycle.md",
+    ]);
+  }, 60_000);
+  it("requires fresh producing context for new exact declarations and excludes prose-only authority", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-producing-authority-");
+    const binary = createFakeOpenCode("stage-bound-r1");
+    for (const name of ["additional", "dependency", "historical"]) {
+      writeFileSync(join(repository, "docs", name + ".md"), "# " + name + "\n");
+    }
+    const manifestPath = join(repository, "pontivus-order.toml");
+    const manifest = readFileSync(manifestPath, "utf8")
+      .replace("p3 = []", 'p3 = ["docs/additional.md", "docs/dependency.md", "docs/historical.md"]')
+      .replace("[refs]\n", '[refs]\nEXTRA = "docs/additional.md"\nDEPENDENCY = "docs/dependency.md"\nHISTORICAL = "docs/historical.md"\n')
+      .replace("[governance.fitness]", '[refDependencies]\nEXTRA = ["DEPENDENCY"]\n\n[governance.fitness]');
+    writeFileSync(manifestPath, manifest);
+    runGit(repository, "add", ".");
+    runGit(repository, "commit", "--amend", "--no-edit");
+    const output = bunEval(`
+      const fs = await import("node:fs");
+      const path = await import("node:path");
+      const sql = await import("./src/shell/sqlite.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const authority = await import("./src/daemon/authority.ts");
+      const source = await import("./src/core/work-item-source.ts");
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const repositoryRoot = ${JSON.stringify(repository)};
+      const runtime = coord.createCoordinatorRuntime(database, ${JSON.stringify(state)}, process.env, {
+        version: 4, model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+        repositoryRoots: [repositoryRoot], referenceRoots: [],
+      });
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture", schemaId: "change-v2", title: "producing authority", concernIds: [],
+      });
+      const work = coord.getWorkItem(runtime, created.id);
+      const outputPath = source.workItemDocumentPath("docs/order/work-items", work.id, "R1");
+      fs.writeFileSync(path.join(repositoryRoot, outputPath),
+        source.stageTemplateForSchema("change-v2", "R1").replace(" -->", ", EXTRA -->") +
+          "\\nHISTORICAL is mentioned only as evidence.\\n");
+      const artifact = await authority.currentFileArtifact(runtime, work, outputPath, "R1", "P1");
+      fs.writeFileSync(path.join(path.dirname(process.env.PONTIVUS_ORDER_OPENCODE_BIN), "binding-id"), artifact.id);
+      const initial = await authority.resolveStageContextState(runtime, work, "R1");
+      const candidate = await authority.resolveStageContextState(runtime, work, "R1", false, artifact);
+      const settle = async () => {
+        const run = await coord.startStageRun(runtime, work.id, "INTERACTIVE");
+        await Promise.all([...runtime.stageTurnTasks.values()].map((task) => task.catch(() => undefined)));
+        return { run: coord.getRun(runtime, run.id), events: coord.listRunEvents(runtime, run.id) };
+      };
+      const first = await settle();
+      const second = await settle();
+      const current = coord.getWorkItem(runtime, work.id);
+      const downstream = await authority.resolveStageContextState(runtime, current, "R2", false);
+      const paths = (context) => context.artifacts.map((item) => item.repositoryPath);
+      console.log(JSON.stringify({
+        initial: paths(initial.context), producing: paths(candidate.context),
+        firstStatus: first.run.status, secondStatus: second.run.status,
+        firstFailed: first.events.some((event) => event.event.tag === "CONFORMANCE_FAILED" &&
+          event.event.summary.includes("stage context changed")),
+        secondConformed: second.events.some((event) => event.event.tag === "CONFORMANCE_PASSED"),
+        stage: current.stage, downstream: paths(downstream.context), outputPath,
+        downstreamStale: downstream.staleStage,
+      }));
+      database.close();
+    `, providerEnvironment(binary, state), 60_000) as {
+      initial: string[]; producing: string[]; firstStatus: string; secondStatus: string;
+      firstFailed: boolean; secondConformed: boolean; stage: string; downstream: string[];
+      outputPath: string; downstreamStale: string | null;
+    };
+    expect(output.initial).not.toContain("docs/additional.md");
+    expect(output.producing).toContain("docs/additional.md");
+    expect(output.producing).toContain("docs/dependency.md");
+    expect(output.producing).not.toContain(output.outputPath);
+    expect(output.producing).not.toContain("docs/historical.md");
+    expect(output.firstStatus).toBe("BLOCKED");
+    expect(output.firstFailed).toBe(true);
+    expect(output.secondStatus).toBe("COMPLETED");
+    expect(output.secondConformed).toBe(true);
+    expect(output.stage).toBe("R2");
+    expect(output.downstreamStale).toBeNull();
+    expect(output.downstream).toContain("docs/additional.md");
+    expect(output.downstream).toContain("docs/dependency.md");
+    expect(output.downstream).not.toContain("docs/historical.md");
+  }, 60_000);
+
+  it("blocks before provider use when pinned template authority is unresolved", () => {
+    const repository = createRepository();
+    const manifestPath = join(repository, "pontivus-order.toml");
+    writeFileSync(
+      manifestPath,
+      readFileSync(manifestPath, "utf8").replace(
+        'GW-DOC-LIFECYCLE-CONTEXT-V2 = "AGENTS.md"\n',
+        "",
+      ),
+    );
+    runGit(repository, "add", "pontivus-order.toml");
+    runGit(repository, "commit", "--amend", "--no-edit");
+
+    const state = tempDir("order-daemon-unresolved-template-authority-");
+    const output = bunEval(`
+      const sql = await import("./src/shell/sqlite.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const authority = await import("./src/daemon/authority.ts");
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [${JSON.stringify(repository)}],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v2",
+        title: "unresolved template authority",
+        concernIds: [],
+      });
+      let error = null;
+      try {
+        await authority.resolveStageContextState(
+          runtime,
+          coord.getWorkItem(runtime, created.id),
+          "R1",
+        );
+      } catch (caught) {
+        error = caught instanceof Error ? caught.message : String(caught);
+      }
+      console.log(JSON.stringify({
+        error,
+        runCount: coord.listRuns(runtime, created.id).length,
+      }));
+      database.close();
+    `) as { error: string | null; runCount: number };
+
+    expect(output.error).toContain(
+      "stage template AuthorityRef is not reachable in R1 context: GW-DOC-LIFECYCLE-CONTEXT-V2",
+    );
+    expect(output.runCount).toBe(0);
+  }, 30_000);
+  it.each([
+    ["R2", "P2", "ordinary"],
+    ["R2", "P2", "before-effect"],
+    ["R2", "P2", "after-effect"],
+    ["DESIGN", "P4", "before-effect"],
+    ["DESIGN", "P4", "after-effect"],
+  ] as const)("adopts %s %s permanent authority with %s intent and rejects a stale base", (ownerStage, layer, interruption) => {
     const repository = createRepository();
     writeFileSync(join(repository, "docs", "product.md"), "# product\n");
     writeFileSync(
       join(repository, "pontivus-order.toml"),
-      fixtureManifest.replace("p2 = []", 'p2 = ["docs/product.md"]'),
+      fixtureManifest.replace(layer.toLowerCase() + " = []", layer.toLowerCase() + ' = ["docs/product.md"]'),
     );
     runGit(repository, "add", ".");
     runGit(repository, "commit", "--amend", "--no-edit");
@@ -5522,7 +6201,7 @@ describe("daemon control plane", () => {
         concernIds: ["shell"],
       });
       sql.updateWorkItemLifecycle(database, created.id, {
-        stage: "R2",
+        stage: ${JSON.stringify(ownerStage)},
         status: "ACTIVE",
         outcome: null,
       });
@@ -5531,7 +6210,7 @@ describe("daemon control plane", () => {
         id: rt.newRunId(),
         workItemId: workItem.id,
         executionTaskId: null,
-        stage: "R2",
+        stage: ${JSON.stringify(ownerStage)},
         mode: "INTERACTIVE",
         role: "STAGE",
         triggerEventId: null,
@@ -5546,7 +6225,7 @@ describe("daemon control plane", () => {
       });
       runStore.appendRunEvent(runtime, run.id, {
         tag: "STAGE_STARTED",
-        stage: "R2",
+        stage: ${JSON.stringify(ownerStage)},
         mode: "INTERACTIVE",
         contextHash: run.contextHash,
       });
@@ -5557,12 +6236,45 @@ describe("daemon control plane", () => {
       });
       const productPath = "docs/product.md";
       const base = rt.sha256Text("# product\\n");
+      const rejectedPostimages = [];
+      // Exercise the real Git patch effect through daemon admission, not a
+      // synthetic invalid diff or an already-rejected pathname.
+      for (const fault of ["delete", "symlink"]) {
+        const absolute = repositoryRoot + "/" + productPath;
+        fs.unlinkSync(absolute);
+        if (fault === "symlink") fs.symlinkSync("nonexistent.md", absolute);
+        const diff = Bun.spawnSync(["git", "diff", "--binary", "--", productPath], {
+          cwd: repositoryRoot, stdout: "pipe", stderr: "pipe",
+        });
+        if (fault === "symlink") fs.unlinkSync(absolute);
+        fs.writeFileSync(absolute, "# product\\n");
+        if (diff.exitCode !== 0 || diff.stdout.length === 0) throw new Error("failed to generate invalid-postimage fixture");
+        const invalid = runStore.appendRunEvent(runtime, run.id, {
+          tag: "ARTIFACT_PROPOSAL_CREATED", targetPath: productPath, baseSha256: base,
+          role: "GOVERNANCE", authorityLayer: ${JSON.stringify(layer)},
+          unifiedDiff: new TextDecoder().decode(diff.stdout), rationale: "Reject nonregular result",
+        });
+        let error = null;
+        try { await coord.adoptArtifactProposal(runtime, invalid.id); }
+        catch (failure) { error = String(failure); }
+        const preserved = fs.lstatSync(absolute).isFile() &&
+          fs.readFileSync(absolute, "utf8") === "# product\\n";
+        const intent = coord.listRunEvents(runtime, run.id).some(event =>
+          event.event.tag === "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED" &&
+          event.event.proposalEventId === invalid.id);
+        rejectedPostimages.push({ fault, error, preserved, intent });
+        if (!preserved || intent || error === null) throw new Error("unsafe nonregular proposal admission");
+        await coord.rejectArtifactProposal(runtime, invalid.id);
+        runStore.appendRunEvent(runtime, run.id, {
+          tag: "AGENT_MESSAGE_FINAL", text: "Corrected permanent authority proposal", evidence: [],
+        });
+      }
       const proposal = runStore.appendRunEvent(runtime, run.id, {
         tag: "ARTIFACT_PROPOSAL_CREATED",
         targetPath: productPath,
         baseSha256: base,
         role: "GOVERNANCE",
-        authorityLayer: "P2",
+        authorityLayer: ${JSON.stringify(layer)},
         unifiedDiff:
           "--- a/docs/product.md\\n" +
           "+++ b/docs/product.md\\n" +
@@ -5571,7 +6283,65 @@ describe("daemon control plane", () => {
           "+# product adopted\\n",
         rationale: "Adopt the durable product decision",
       });
+      const manifestPath = repositoryRoot + "/pontivus-order.toml";
+      const originalManifest = fs.readFileSync(manifestPath, "utf8");
+      const ownerLayer = ${JSON.stringify(layer)}.toLowerCase();
+      fs.writeFileSync(manifestPath, originalManifest.replace(ownerLayer + ' = ["docs/product.md"]', ownerLayer + " = []"));
+      let changedOwnerError = null;
+      try { await coord.adoptArtifactProposal(runtime, proposal.id); }
+      catch (error) { changedOwnerError = String(error); }
+      fs.writeFileSync(manifestPath, originalManifest);
+      // An exact postimage without persisted human intent is still stale.
+      await repo.adoptProposalPatch(repositoryRoot, productPath, base, proposal.event.unifiedDiff);
+      let noIntentError = null;
+      try { await coord.adoptArtifactProposal(runtime, proposal.id); }
+      catch (error) { noIntentError = String(error); }
+      const noIntentPreserved = fs.readFileSync(repositoryRoot + "/" + productPath, "utf8") === "# product adopted\\n";
+      const prematureIntent = coord.listRunEvents(runtime, run.id).some(event =>
+        event.event.tag === "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED" && event.event.proposalEventId === proposal.id);
+      fs.writeFileSync(repositoryRoot + "/" + productPath, "# product\\n");
+      if (changedOwnerError === null || noIntentError === null || !noIntentPreserved || prematureIntent) {
+        throw new Error("unsafe governance adoption without current owner and intent");
+      }
+      if (${JSON.stringify(interruption)} !== "ordinary") {
+        runStore.appendRunEvent(runtime, run.id, {
+          tag: "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED",
+          proposalEventId: proposal.id,
+        });
+      }
+      if (${JSON.stringify(interruption)} === "after-effect") {
+        await repo.adoptProposalPatch(repositoryRoot, productPath, base, proposal.event.unifiedDiff);
+      }
       const adopted = await coord.adoptArtifactProposal(runtime, proposal.id);
+      let repeatedError = null;
+      try { await coord.adoptArtifactProposal(runtime, proposal.id); }
+      catch (error) { repeatedError = String(error); }
+      const repeatedPreserved = fs.readFileSync(repositoryRoot + "/" + productPath, "utf8") === "# product adopted\\n";
+      const exactDispositions = coord.listRunEvents(runtime, run.id).filter(event =>
+        event.event.tag === "ARTIFACT_PROPOSAL_DISPOSITIONED" && event.event.proposalEventId === proposal.id).length;
+      let driftError = null;
+      const driftPath = "docs/drift.md";
+      const before = "line one\\nline two\\nline three\\nline four\\nline five\\n";
+      const driftPatch = "--- a/docs/drift.md\\n+++ b/docs/drift.md\\n@@ -1,3 +1,3 @@\\n-line one\\n+adopted one\\n line two\\n line three\\n";
+      fs.writeFileSync(repositoryRoot + "/" + driftPath, before);
+      await repo.adoptProposalPatch(repositoryRoot, driftPath, rt.sha256Text(before), driftPatch);
+      fs.appendFileSync(repositoryRoot + "/" + driftPath, "unrelated change\\n");
+      const observed = fs.readFileSync(repositoryRoot + "/" + driftPath, "utf8");
+      try {
+        await repo.adoptProposalPatch(repositoryRoot, driftPath, rt.sha256Text(before), driftPatch, true);
+      } catch (error) {
+        driftError = error instanceof Error ? error.message : String(error);
+      }
+      const driftPreserved = fs.readFileSync(repositoryRoot + "/" + driftPath, "utf8") === observed;
+      const danglingPath = "docs/dangling.md";
+      const danglingTarget = repositoryRoot + "/docs/nonexistent.md";
+      fs.symlinkSync(danglingTarget, repositoryRoot + "/" + danglingPath);
+      const newPatch = "diff --git a/docs/dangling.md b/docs/dangling.md\\nnew file mode 100644\\n--- /dev/null\\n+++ b/docs/dangling.md\\n@@ -0,0 +1 @@\\n+new\\n";
+      let danglingRejected = false;
+      try { await repo.adoptProposalPatch(repositoryRoot, danglingPath, null, newPatch, true); }
+      catch (error) { danglingRejected = String(error).includes("symlink"); }
+      const danglingPreserved = fs.lstatSync(repositoryRoot + "/" + danglingPath).isSymbolicLink() &&
+        fs.readlinkSync(repositoryRoot + "/" + danglingPath) === danglingTarget && !fs.existsSync(danglingTarget);
 
       runStore.appendRunEvent(runtime, run.id, {
         tag: "AGENT_MESSAGE_FINAL",
@@ -5584,7 +6354,7 @@ describe("daemon control plane", () => {
         targetPath: productPath,
         baseSha256: staleBase,
         role: "GOVERNANCE",
-        authorityLayer: "P2",
+        authorityLayer: ${JSON.stringify(layer)},
         unifiedDiff:
           "--- a/docs/product.md\\n" +
           "+++ b/docs/product.md\\n" +
@@ -5594,6 +6364,12 @@ describe("daemon control plane", () => {
         rationale: "This base will become stale",
       });
       fs.writeFileSync(repositoryRoot + "/" + productPath, "# external change\\n");
+      let staleReadError = null;
+      try {
+        coord.readArtifactProposalTarget(runtime, stale.id);
+      } catch (error) {
+        staleReadError = error instanceof Error ? error.message : String(error);
+      }
       let staleError = null;
       try {
         await coord.adoptArtifactProposal(runtime, stale.id);
@@ -5613,7 +6389,12 @@ describe("daemon control plane", () => {
             event.event.proposalEventId === proposal.id &&
             event.event.disposition === "ADOPTED"
           ),
+        staleReadError,
         staleError,
+        driftError,
+        driftPreserved, danglingRejected, danglingPreserved, rejectedPostimages,
+        changedOwnerError, noIntentError, noIntentPreserved, prematureIntent,
+        repeatedError, repeatedPreserved, exactDispositions,
         adoptionRequests: events.filter((event) =>
           event.event.tag === "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED"
         ).length,
@@ -5623,20 +6404,46 @@ describe("daemon control plane", () => {
     `) as {
       adopted: { role: string; layer: string; path: string };
       contentAfterFirstAdoption: boolean;
+      staleReadError: string | null;
       staleError: string | null;
+      driftError: string | null;
+      driftPreserved: boolean;
+      danglingRejected: boolean;
+      danglingPreserved: boolean;
+      rejectedPostimages: { fault: string; error: string | null; preserved: boolean; intent: boolean }[];
+      changedOwnerError: string | null; noIntentError: string | null; noIntentPreserved: boolean; prematureIntent: boolean;
+      repeatedError: string | null; repeatedPreserved: boolean; exactDispositions: number;
       adoptionRequests: number;
       stage: string;
     };
 
     expect(output.adopted).toEqual({
       role: "GOVERNANCE",
-      layer: "P2",
+      layer,
       path: "docs/product.md",
     });
     expect(output.contentAfterFirstAdoption).toBe(true);
+    expect(output.staleReadError).toContain("baseSha256 is stale");
     expect(output.staleError).toContain("baseSha256 is stale");
     expect(output.adoptionRequests).toBe(1);
-    expect(output.stage).toBe("R2");
+    expect(output.stage).toBe(ownerStage);
+    expect(output.driftError).toContain("reconstructed base");
+    expect(output.driftPreserved).toBe(true);
+    expect(output.danglingRejected).toBe(true);
+    expect(output.danglingPreserved).toBe(true);
+    expect(output.changedOwnerError).toContain("not admitted by current resolved authority");
+    expect(output.noIntentError).toContain("baseSha256 is stale");
+    expect(output.noIntentPreserved).toBe(true);
+    expect(output.prematureIntent).toBe(false);
+    expect(output.repeatedError).toContain("already dispositioned");
+    expect(output.repeatedPreserved).toBe(true);
+    expect(output.exactDispositions).toBe(1);
+    expect(output.rejectedPostimages.map(value => value.fault)).toEqual(["delete", "symlink"]);
+    for (const value of output.rejectedPostimages) {
+      expect(value.error).not.toBeNull();
+      expect(value.preserved).toBe(true);
+      expect(value.intent).toBe(false);
+    }
   }, 30_000);
 
   it("rejects STAGE completion after durable decision input without later adoption", () => {
@@ -5683,8 +6490,16 @@ describe("daemon control plane", () => {
       );
       const finalRun = coord.getRun(runtime, run.id);
       const events = coord.listRunEvents(runtime, run.id);
+      const retry = await coord.startStageRun(runtime, created.id, "INTERACTIVE");
+      await Promise.all([...runtime.stageTurnTasks.values()]);
+      const retryEvents = coord.listRunEvents(runtime, retry.id);
+      await coord.cancelRun(runtime, retry.id);
       console.log(JSON.stringify({
         status: finalRun.status,
+        retryEvidence: retryEvents.some((event) =>
+          event.event.tag === "AGENT_MESSAGE_FINAL" &&
+          event.event.text === "prior durable decision requires current coverage"
+        ),
         terminalClassification: finalRun.terminalClassification,
         completions: events.filter((event) =>
           event.event.tag === "STAGE_COMPLETED"
@@ -5697,6 +6512,7 @@ describe("daemon control plane", () => {
       database.close();
     `, providerEnvironment(binary, state), 30_000) as {
       status: string;
+      retryEvidence: boolean;
       terminalClassification: string | null;
       completions: number;
       providerFailure: { tag: string; detail: string } | null;
@@ -5706,11 +6522,125 @@ describe("daemon control plane", () => {
     expect(output.status).toBe("FAILED");
     expect(output.terminalClassification).toBe("PROVIDER_FAILURE");
     expect(output.completions).toBe(0);
+    expect(output.retryEvidence).toBe(true);
     expect(output.providerFailure?.detail).toContain(
       "later adopted canonical authority proposal",
     );
     expect(output.workItem).toMatchObject({ stage: "R1", status: "ACTIVE" });
   }, 30_000);
+
+  it("carries exact owning-stage decisions and adoption chronology into a fresh Run after explicit source Save", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-decision-history-");
+    const binary = createFakeOpenCode("stage-durable-history");
+    const output = bunEval(`
+      const fs = await import("node:fs");
+      const path = await import("node:path");
+      const sql = await import("./src/shell/sqlite.ts");
+      const rt = await import("./src/shell/runtime.ts");
+      const repo = await import("./src/shell/repository.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const runStore = await import("./src/daemon/run.ts");
+      const authority = await import("./src/daemon/authority.ts");
+      const sourceCore = await import("./src/core/work-item-source.ts");
+      const repositoryRoot = ${JSON.stringify(repository)};
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const runtime = coord.createCoordinatorRuntime(database, ${JSON.stringify(state)}, process.env, {
+        version: 4, model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+        repositoryRoots: [repositoryRoot], referenceRoots: [],
+      });
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture", schemaId: "change-v1", title: "decision history", concernIds: [],
+      });
+      sql.promoteIdeaToR1(database, created.id);
+      const work = coord.getWorkItem(runtime, created.id);
+      const baseline = await repo.resolveHeadCommit(repositoryRoot);
+      const append = (run, payload) => runStore.appendRunEvent(runtime, run.id, payload);
+      const prior = (id, stage, status) => {
+        const stamp = rt.nowIsoDateTime();
+        const run = runStore.insertRun(runtime, {
+          id: rt.newRunId(), workItemId: id, executionTaskId: null,
+          stage, mode: "INTERACTIVE", role: "STAGE", triggerEventId: null,
+          status: "RUNNING", attempt: runStore.nextAttempt(runtime, id, stage, null),
+          baselineCommit: baseline, contextHash: rt.sha256Text("prior decision context"),
+          providerSessionId: null, terminalClassification: null, startedAt: stamp, endedAt: null,
+        });
+        append(run, { tag: "STAGE_STARTED", stage, mode: "INTERACTIVE", contextHash: run.contextHash });
+        return { run, finish: () => runStore.updateRun(runtime, run.id, {
+          status, terminalClassification: status === "FAILED" ? "PROVIDER_FAILURE" : null, endedAt: rt.nowIsoDateTime(),
+        }) };
+      };
+      const answer = (run, category, question, text) => {
+        const request = append(run, { tag: "HUMAN_INPUT_REQUESTED", category, question });
+        return append(run, { tag: "HUMAN_INPUT_RECEIVED", requestEventId: request.id, text });
+      };
+      const first = prior(work.id, "R1", "CANCELLED");
+      const firstAnswer = answer(first.run, "AUTHORITY_DECISION", "original decision question", "historical decision alpha");
+      answer(first.run, "STAGE_CHOICE", "second decision question", "historical decision beta");
+      answer(first.run, "INFORMATION", "ordinary information question", "ordinary information only");
+      answer(first.run, "EVIDENCE", "ordinary evidence question", "ordinary evidence only");
+      const artifactPath = sourceCore.workItemDocumentPath("docs/order/work-items", work.id, "R1");
+      fs.writeFileSync(path.join(repositoryRoot, artifactPath), "unrelated adopted material\\n");
+      const artifact = await authority.currentFileArtifact(runtime, work, artifactPath, "R1", "P1");
+      const proposed = append(first.run, { tag: "ARTIFACT_PROPOSAL_CREATED",
+        targetPath: artifactPath, baseSha256: null, role: "R1", authorityLayer: "P1",
+        unifiedDiff: "--- /dev/null\\n+++ b/" + artifactPath + "\\n@@ -0,0 +1 @@\\n+unrelated adopted material\\n",
+        rationale: "unrelated adoption rationale" });
+      append(first.run, { tag: "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED", proposalEventId: proposed.id });
+      append(first.run, { tag: "ARTIFACT_PROPOSAL_DISPOSITIONED", proposalEventId: proposed.id,
+        disposition: "ADOPTED", adoptedArtifactRefId: artifact.id });
+      append(first.run, { tag: "HUMAN_INPUT_REQUESTED", category: "AUTHORITY_DECISION", question: "unanswered question excluded" });
+      first.finish();
+      const failed = prior(work.id, "R1", "FAILED");
+      answer(failed.run, "AUTHORITY_CONFLICT", "superseding decision question", "superseding decision gamma");
+      failed.finish();
+      const otherStage = prior(work.id, "R2", "CANCELLED");
+      answer(otherStage.run, "AUTHORITY_DECISION", "foreign-stage question", "foreign-stage decision");
+      otherStage.finish();
+      const other = await coord.createWorkItem(runtime, {
+        projectId: "fixture", schemaId: "change-v1", title: "other item", concernIds: [],
+      });
+      const otherItem = prior(other.id, "R1", "CANCELLED");
+      answer(otherItem.run, "AUTHORITY_DECISION", "foreign-item question", "foreign-item decision");
+      otherItem.finish();
+      const original = fs.readFileSync(path.join(repositoryRoot, work.sourcePath), "utf8");
+      const saved = await coord.saveSource(runtime, work.id, {
+        expectedSha256: work.sourceSha256,
+        markdown: original + "\\nDurable authority: superseding decision gamma. Retain historical decision beta.\\n",
+      });
+      const current = coord.getWorkItem(runtime, work.id);
+      const fresh = await coord.startStageRun(runtime, work.id, "INTERACTIVE");
+      await Promise.all([...runtime.stageTurnTasks.values()]);
+      const prompt = fs.readFileSync(path.join(path.dirname(process.env.PONTIVUS_ORDER_OPENCODE_BIN), "durable-history-prompt"), "utf8");
+      const events = coord.listRunEvents(runtime, fresh.id);
+      await coord.cancelRun(runtime, fresh.id);
+      console.log(JSON.stringify({ prompt, saved, sourceHash: current.sourceSha256, artifactId: artifact.id,
+        artifactHash: artifact.sha256, firstAnswerId: firstAnswer.id,
+        providerObserved: events.some(event => event.event.tag === "AGENT_MESSAGE_FINAL" &&
+          event.event.text === "history captured for inspection"),
+        completed: events.some(event => event.event.tag === "STAGE_COMPLETED") }));
+      database.close();
+    `, providerEnvironment(binary, state), 60_000) as {
+      prompt: string; saved: { tag: string; sha256: string }; sourceHash: string; artifactId: string;
+      artifactHash: string; firstAnswerId: string; providerObserved: boolean; completed: boolean;
+    };
+    expect(output.saved.tag).toBe("UPDATED");
+    expect(output.saved.sha256).toBe(output.sourceHash);
+    expect(output.providerObserved).toBe(true);
+    expect(output.completed).toBe(false);
+    for (const evidence of [
+      "historical decision alpha", "historical decision beta", "superseding decision gamma",
+      "original decision question", "second decision question", "superseding decision question",
+      output.firstAnswerId, output.artifactId, output.artifactHash, output.sourceHash,
+      "unrelated adoption rationale", "Durable authority: superseding decision gamma.",
+      "A new attempt, unrelated adoption or prior chat answer alone is not coverage",
+      "explain any superseded decision using current durable authority",
+    ]) expect(output.prompt).toContain(evidence);
+    for (const excluded of [
+      "ordinary information only", "ordinary evidence only", "unanswered question excluded",
+      "foreign-stage decision", "foreign-item decision",
+    ]) expect(output.prompt).not.toContain(excluded);
+  }, 60_000);
 
   it("rejects sign-off when material authority changes after R3", () => {
     const repository = createRepository();
@@ -5735,7 +6665,7 @@ describe("daemon control plane", () => {
     expect(output.message).toContain("current R3 conformance is missing or stale");
   }, 30_000);
 
-  it("routes newly resolved post-signoff authority through APPROVAL_STALE before provider mutation", () => {
+  it("does not stale an Approval for newly reachable but non-material authority", () => {
     const repository = createRepository();
     mkdirSync(join(repository, "docs", "governance"), { recursive: true });
     writeFileSync(
@@ -5748,45 +6678,34 @@ describe("daemon control plane", () => {
     runGit(repository, "add", "pontivus-order.toml");
     runGit(repository, "commit", "--amend", "--no-edit");
 
-    const state = tempDir("order-daemon-new-authority-stale-");
-    const binary = createFakeOpenCode("fix");
+    const state = tempDir("order-daemon-new-reachable-authority-");
     const output = bunEval(`
       ${seedSignoffScript(repository, state)}
-      await Bun.write(repositoryRoot + "/docs/governance/new.md", "# new P1 authority\\n");
-      const tick = await coord.runCoordinatorTick(runtime);
-      const task = (await coord.listExecutionTasks(runtime, work))[0];
-      const postRuns = coord.listRuns(runtime, work).filter((run) => run.executionTaskId !== null);
-      const firstRun = postRuns[0];
-      const events = firstRun ? coord.listRunEvents(runtime, firstRun.id) : [];
-      console.log(JSON.stringify({
-        tick,
-        workItem: coord.getWorkItem(runtime, work),
-        taskState: task?.state ?? null,
-        providerSessionId: firstRun?.providerSessionId ?? null,
-        failures: events
-          .filter((event) => event.event.tag === "VALIDATION_FAILED")
-          .map((event) => event.event),
-      }));
+      await Bun.write(repositoryRoot + "/docs/governance/new.md", "# newly reachable but unreferenced P1 authority\\n");
+      const freshness = await authority.approvalFreshness(runtime, approval);
+      console.log(JSON.stringify(freshness));
       database.close();
-    `, providerEnvironment(binary, state), 180_000) as {
-      workItem: { stage: string; status: string };
-      taskState: string | null;
-      providerSessionId: string | null;
-      failures: Array<{ tag: string; stage: string; classification: string }>;
-    };
+    `) as { fresh: boolean; changedOwners: string[] };
 
-    expect(output.workItem).toMatchObject({ stage: "R2", status: "ACTIVE" });
-    expect(output.taskState).toBe("BLOCKED");
-    expect(output.providerSessionId).toBeNull();
-    expect(output.failures).toContainEqual(
-      expect.objectContaining({
-        tag: "VALIDATION_FAILED",
-        stage: "V1",
-        classification: "APPROVAL_STALE",
-      }),
-    );
+    expect(output).toEqual({ fresh: true, changedOwners: [] });
   }, 30_000);
 
+  it("stales an Approval when material P1 authority changes post-signoff", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-material-authority-stale-");
+    const output = bunEval(`
+      ${seedSignoffScript(repository, state)}
+      await Bun.write(repositoryRoot + "/AGENTS.md", "# changed material P1 authority\\n");
+      const freshness = await authority.approvalFreshness(runtime, approval);
+      console.log(JSON.stringify(freshness));
+      database.close();
+    `) as { fresh: boolean; changedOwners: string[] };
+
+    expect(output.fresh).toBe(false);
+    expect(output.changedOwners).toContain("R2");
+    expect(output.changedOwners).toContain("PLAN");
+    expect(output.changedOwners).not.toContain("R1");
+  }, 30_000);
 
   it("does not let a running execution Run overwrite an observed source-drift return", () => {
     const repository = createRepository();
@@ -6087,7 +7006,32 @@ describe("daemon control plane", () => {
           providerEventIndex >= 0 &&
           diagnosticIndex < providerEventIndex;
       });
+      const history=await coord.observeCandidateReviewEvents(runtime,work,approval.id,1);
+      const opening=history[0];
+      const hash=opening.event.candidateHash;
+      const rejected=async fn=>{try{await fn();return false;}catch{return true;}};
+      const testCopy=await coord.prepareAcceptanceTestCopy(runtime,work,approval.id,hash,1,tasks[0].id,recorded.id);
+      const fs=await import("node:fs");
+      const isolated=fs.readFileSync(testCopy+"/src/target.ts","utf8")==="fixed\\n"&&testCopy!==repositoryRoot;
+      fs.rmSync(testCopy.slice(0,testCopy.lastIndexOf("/")),{recursive:true,force:true});
+      const report=await coord.recordCandidateReviewDecision(runtime,work,approval.id,hash,1,"human",{tag:"REPORT",candidateHash:hash,taskId:tasks[0].id,candidateEventId:recorded.id,acceptanceRefs:[],expected:"correct",observed:"manual concern",reproduction:"inspect",impact:"functional",evidence:[]});
+      const premature=await rejected(()=>coord.recordCandidateReviewDecision(runtime,work,approval.id,hash,2,"human",{tag:"ACCEPT"}));
+      const stale=await rejected(()=>coord.recordCandidateReviewDecision(runtime,work,approval.id,hash,1,"human",{tag:"SUBMIT",candidateHash:hash,findingIds:[report.id]}));
+      const submitted=await coord.recordCandidateReviewDecision(runtime,work,approval.id,hash,2,"human",{tag:"SUBMIT",candidateHash:hash,findingIds:[report.id]});
+      const queued=await coord.observeCandidateReviewEvents(runtime,work,approval.id,3);
+      const correction=await coord.runCoordinatorTick(runtime);
+      const returned=coord.getWorkItem(runtime,work);
+      const round=await coord.observeCandidateReviewEvents(runtime,work,approval.id,5);
+      const freshHash=round[4].event.candidateHash;
+      const retest=await coord.recordCandidateReviewDecision(runtime,work,approval.id,freshHash,5,"human",{tag:"DISPOSITION",candidateHash:freshHash,findingId:report.id,outcome:"RESOLVED",rationale:"manual retest confirmed",followupWorkItemId:null,withdrawalAttestation:null});
+      const accepted=await coord.recordCandidateReviewDecision(runtime,work,approval.id,freshHash,6,"human",{tag:"ACCEPT"});
+      const final=coord.getWorkItem(runtime,work);
+      const finalApproval=await coord.observeCurrentApproval(runtime,work);
+      const finalHistory=await coord.observeCandidateReviewEvents(runtime,work,approval.id);
+      const duplicate=await rejected(()=>coord.recordCandidateReviewDecision(runtime,work,approval.id,freshHash,6,"human",{tag:"ACCEPT"}));
+      const acceptance={isolated,premature,stale,queued:queued.at(-1).id===submitted.id,correction:correction.result,returned:returned.stage,changedHash:freshHash!==hash,retest:retest.event.tag,final:final.stage,finalOutcome:final.outcome,actor:accepted.actor,finalApproval:finalApproval.id===approval.id,history:finalHistory.map(value=>value.event.tag),duplicate};
       console.log(JSON.stringify({
+        acceptance,
         tick,
         workItem,
         taskState: tasks[0].state,
@@ -6138,10 +7082,11 @@ describe("daemon control plane", () => {
 
     expect(output.tick.result).toBe("STARTED");
     expect(output.workItem, JSON.stringify(output)).toMatchObject({
-      stage: "COMPLETE",
-      status: "COMPLETE",
-      outcome: "CANDIDATE_DONE",
+      stage: "AWAITING_ACCEPTANCE",
+      status: "ACTIVE",
+      outcome: null,
     });
+    expect(output).toMatchObject({acceptance:{isolated:true,premature:true,stale:true,queued:true,correction:"STARTED",returned:"AWAITING_ACCEPTANCE",changedHash:true,retest:"DISPOSITION",final:"COMPLETE",finalOutcome:"CANDIDATE_DONE",actor:"human",finalApproval:true,history:["OPENED","REPORT","SUBMIT","REVIEW_STARTED","REVIEW_COMPLETED","DISPOSITION","ACCEPT"],duplicate:true}});
     expect(output.taskState).toBe("CANDIDATE_DONE");
     expect(output.roles, JSON.stringify(output)).toEqual(["BUILDER", "REVIEWER", "REMEDIATOR", "REVIEWER"]);
     expect(output.remediationCount).toBe(1);
@@ -6208,9 +7153,9 @@ describe("daemon control plane", () => {
     };
 
     expect(output.workItem).toMatchObject({
-      stage: "COMPLETE",
-      status: "COMPLETE",
-      outcome: "CANDIDATE_DONE",
+      stage: "AWAITING_ACCEPTANCE",
+      status: "ACTIVE",
+      outcome: null,
     });
     expect(output.eventTags).toContain("GATE_CHECKPOINT_REQUESTED");
     expect(output.eventTags).toContain("GATE_PASSED");
@@ -6472,9 +7417,9 @@ describe("daemon control plane", () => {
     expect(output.v6Passes).toBe(1);
     expect(output.task.state).toBe("CANDIDATE_DONE");
     expect(output.workItem).toMatchObject({
-      stage: "COMPLETE",
-      status: "COMPLETE",
-      outcome: "CANDIDATE_DONE",
+      stage: "AWAITING_ACCEPTANCE",
+      status: "ACTIVE",
+      outcome: null,
     });
   }, 30_000);
 
@@ -6566,7 +7511,7 @@ describe("daemon control plane", () => {
 
     expect(output.sameActionKey).toBe(true);
     expect(output.firstTwoRoles).toEqual(["BUILDER", "BUILDER"]);
-    expect(output.final, JSON.stringify(output)).toMatchObject({ status: "COMPLETE", stage: "COMPLETE" });
+    expect(output.final, JSON.stringify(output)).toMatchObject({ status: "ACTIVE", stage: "AWAITING_ACCEPTANCE" });
 
     const repository2 = createRepository();
     const state2 = tempDir("order-daemon-operational-block-");
@@ -7934,4 +8879,131 @@ describe("daemon control plane", () => {
     });
   });
 
+});
+
+describe("native QA assessment evidence", () => {
+  it("validates nested review evidence before persistence and authorizes its exact persisted Run read", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-qa-evidence-");
+    const output = bunEval(`
+      ${seedSignoffScript(repository,state)}
+      const execution = await import("./src/daemon/execution.ts");
+      const task = (await coord.listExecutionTasks(runtime,work))[0];
+      const running = {...task,state:"RUNNING"};
+      sql.setExecutionTaskState(database,task.id,"RUNNING");
+      const context = await authority.approvalContext(runtime,approval,running,"BUILDER");
+      const run = execution.createExecutionRun(runtime,coord.getWorkItem(runtime,work),running,approval,"BUILDER",null,context.contextHash);
+      const findingId = "review_00000000-0000-4000-8000-000000000001";
+      const bytes = new TextEncoder().encode("independent evidence");
+      const evidence = runStore.writeRunEvidence(runtime,run.id,"qa/assessment.txt",bytes,"text/plain");
+      const review = {tag:"REVIEW_PASSED",minimumChange:"MINIMUM_SUFFICIENT",minimumChangeSummary:null,evidence:[],
+        qaAssessments:[{findingId,verdict:"SATISFIED",rationale:"verified",evidence:[evidence]}]};
+      const rejected = (fn) => { try { fn(); return false; } catch { return true; } };
+      const bad = {...review,qaAssessments:[{...review.qaAssessments[0],evidence:[{...evidence,sha256:"sha256:"+"0".repeat(64)}]}]};
+      const missing = {...review,qaAssessments:[{...review.qaAssessments[0],evidence:[{...evidence,relativePath:"qa/missing.txt"}]}]};
+      const before = runStore.listRunEvents(runtime,run.id).length;
+      const badRejected = rejected(()=>runStore.persistProviderEvents(runtime,run,[bad]));
+      const missingRejected = rejected(()=>runStore.persistProviderEvents(runtime,run,[missing]));
+      const unchanged = runStore.listRunEvents(runtime,run.id).length===before;
+      runStore.persistProviderEvents(runtime,run,[review]);
+      const read = new TextDecoder().decode(runStore.readReferencedEvidence(runtime,run.id,"qa/assessment.txt"));
+      console.log(JSON.stringify({badRejected,missingRejected,unchanged,read,refs:runStore.evidenceRefsInPayload(review),evidence}));
+      database.close();
+    `) as {badRejected:boolean;missingRejected:boolean;unchanged:boolean;read:string;refs:unknown[];evidence:unknown};
+    expect(output).toMatchObject({badRejected:true,missingRejected:true,unchanged:true,read:"independent evidence"});
+    expect(output.refs).toEqual([output.evidence]);
+  },30_000);
+});
+
+describe("native QA immutable execution context", () => {
+  it("binds exact submitted events and trigger without mutable task state or future Run identity", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-qa-context-");
+    const output = bunEval(`
+      ${seedSignoffScript(repository,state)}
+      const execution = await import("./src/daemon/execution.ts");
+      const core = await import("./src/core/lifecycle.ts");
+      const task = (await coord.listExecutionTasks(runtime,work))[0];
+      sql.setExecutionTaskState(database,task.id,"RUNNING");
+      const running = {...task,state:"RUNNING"};
+      const workItem = coord.getWorkItem(runtime,work);
+      const ordinary = await authority.approvalContext(runtime,approval,running,"BUILDER");
+      const builder = execution.createExecutionRun(runtime,workItem,running,approval,"BUILDER",null,ordinary.contextHash);
+      const patch = runStore.writeRunEvidence(runtime,builder.id,"candidate/patch.diff",new TextEncoder().encode("patch"),"text/x-diff");
+      const candidateState = runStore.appendRunEvent(runtime,builder.id,{tag:"CANDIDATE_STATE_RECORDED",patch,changedPaths:["src/target.ts"]});
+      runStore.updateRun(runtime,builder.id,{status:"COMPLETED",endedAt:timestamp});
+      const ordinaryReview = await authority.approvalContext(runtime,approval,running,"REVIEWER");
+      const reviewer = execution.createExecutionRun(runtime,workItem,running,approval,"REVIEWER",candidateState.id,ordinaryReview.contextHash);
+      const validations = [];
+      for (const stage of ["V0","V1","V2","V3","V4","V5","V6","V7"]) {
+        if(stage==="V4") runStore.appendRunEvent(runtime,reviewer.id,{tag:"REVIEW_PASSED",minimumChange:"MINIMUM_SUFFICIENT",minimumChangeSummary:null,evidence:[]});
+        validations.push(runStore.appendRunEvent(runtime,reviewer.id,{tag:"VALIDATION_PASSED",stage,evidence:[]}));
+      }
+      const member = runStore.appendRunEvent(runtime,reviewer.id,{tag:"CANDIDATE_RECORDED",candidateStateEventId:candidateState.id,validationEventIds:validations.map(value=>value.id)});
+      runStore.updateRun(runtime,reviewer.id,{status:"COMPLETED",terminalClassification:"CANDIDATE_DONE",endedAt:timestamp});
+      sql.setExecutionTaskState(database,task.id,"CANDIDATE_DONE");
+      const hash=rt.sha256Text(core.candidateMembershipCanonicalJson(approval.id,[[task.id,member.id]]));
+      const append=(sequence,actor,event)=>{const value={id:rt.newCandidateReviewEventId(),approvalId:approval.id,sequence,occurredAt:timestamp,actor,event};sql.storeCandidateReviewEvent(database,value);return value;};
+      const opened=append(1,null,{tag:"OPENED",candidateHash:hash});
+      // Exact current proof is observational; history remains inspectable even
+      // after the current source or evidence has become unavailable.
+      sql.updateWorkItemLifecycle(database,work,{stage:"AWAITING_ACCEPTANCE",status:"ACTIVE",outcome:null});
+      const fs=await import("node:fs");
+      const changes=()=>database.query("SELECT total_changes() AS n").get().n;
+      const beforeProof=changes();
+      const proof=await coord.observeCandidateReviewEvents(runtime,work,approval.id,1);
+      const sourceFile=repositoryRoot+"/"+workItem.sourcePath;
+      const originalSource=fs.readFileSync(sourceFile);
+      const patchFile=rt.statePaths(runtime.stateRoot).evidence+"/"+builder.id+"/candidate/patch.diff";
+      const originalPatch=fs.readFileSync(patchFile);
+      const diagnostic=async sequence=>{try{await coord.observeCandidateReviewEvents(runtime,work,approval.id,sequence);return null;}catch(error){return (await import("./src/daemon/server.ts")).classifyHttpFailure(error).code;}};
+      fs.writeFileSync(patchFile,"corrupt");
+      const proofMissing=await diagnostic(1);
+      fs.appendFileSync(sourceFile,"\\nChanged work request.\\n");
+      const staleBeforeProof=await diagnostic(1);
+      fs.writeFileSync(sourceFile,originalSource);
+      fs.unlinkSync(patchFile);
+      fs.rmdirSync(patchFile.slice(0,patchFile.lastIndexOf("/")));
+      const missing=await diagnostic(1);
+      const noEvidenceReadEffects=!fs.existsSync(patchFile.slice(0,patchFile.lastIndexOf("/")));
+      const history=await coord.observeCandidateReviewEvents(runtime,work,approval.id);
+      const sequenceConflict=await diagnostic(0);
+      fs.mkdirSync(patchFile.slice(0,patchFile.lastIndexOf("/")));
+      fs.writeFileSync(patchFile,originalPatch);
+      const observational=changes()===beforeProof&&proof[0].id===opened.id&&history[0].id===opened.id;
+      sql.updateWorkItemLifecycle(database,work,{stage:"EXECUTION",status:"ACTIVE",outcome:null});
+
+      const report=append(2,"human",{tag:"REPORT",candidateHash:hash,taskId:task.id,candidateEventId:member.id,acceptanceRefs:[],expected:"expected",observed:"observed",reproduction:"steps",impact:"impact",evidence:[candidateState.id]});
+      const submit=append(3,"human",{tag:"SUBMIT",candidateHash:hash,findingIds:[report.id]});
+      const qa={submissionId:submit.id,triggerEventId:member.id};
+      const done=await authority.approvalContext(runtime,approval,{...task,state:"CANDIDATE_DONE"},"REVIEWER",qa);
+      const active=await authority.approvalContext(runtime,approval,running,"REVIEWER",qa);
+      const replay=execution.createExecutionRun(runtime,workItem,running,approval,"REVIEWER",member.id,active.contextHash);
+      append(4,null,{tag:"REVIEW_STARTED",submissionId:submit.id,runId:replay.id});
+      const reloaded=await authority.approvalContextForRun(runtime,approval,running,replay);
+      const replayState=execution.candidateForRun(runtime,replay,approval);
+      const prompt=await execution.executionPrompt(workItem,"REVIEWER",running,reloaded);
+      const rejects=async fn=>{try{await fn();return false;}catch{return true;}};
+      const wrongTrigger=await rejects(()=>authority.approvalContext(runtime,approval,running,"REVIEWER",{...qa,triggerEventId:candidateState.id}));
+      const wrongHash=await rejects(()=>authority.approvalContextForRun(runtime,approval,running,{...replay,contextHash:ordinaryReview.contextHash}));
+      sql.setExecutionTaskState(database,task.id,"RUNNING");
+      runStore.updateRun(runtime,replay.id,{status:"FAILED",terminalClassification:"PROVIDER_FAILURE",endedAt:timestamp});
+      const replacement=await execution.continuationForRunningTask(runtime,workItem,running,approval);
+      const replacementHistory=sql.loadCandidateReviewEvents(database,approval.id);
+      const replacementContext=await authority.approvalContextForRun(runtime,approval,running,replacement);
+      console.log(JSON.stringify({stable:done.contextHash===active.contextHash&&active.contextHash===reloaded.contextHash,
+        replayExact:replayState.id===candidateState.id,
+        replacementExact:replacement.id!==replay.id&&replacement.triggerEventId===replay.triggerEventId&&
+          replacementContext.contextHash===replay.contextHash&&replacementHistory.at(-1).event.runId===replacement.id&&
+          replacementHistory.at(-1).event.submissionId===submit.id,
+        observational,proofMissing,staleBeforeProof,missing,noEvidenceReadEffects,sequenceConflict,
+        ordinaryDifferent:ordinaryReview.contextHash!==active.contextHash,
+        events:reloaded.qa.events.map(value=>value.id),expected:[submit.id,report.id],
+        promptContains:prompt.includes(JSON.stringify(report.id))&&prompt.includes(member.id)&&!prompt.includes('"state":"RUNNING"'),
+        wrongTrigger,wrongHash}));
+      database.close();
+    `) as {stable:boolean;ordinaryDifferent:boolean;events:string[];expected:string[];promptContains:boolean;wrongTrigger:boolean;wrongHash:boolean;replayExact:boolean;replacementExact:boolean};
+    expect(output).toMatchObject({stable:true,ordinaryDifferent:true,promptContains:true,wrongTrigger:true,wrongHash:true,replayExact:true,replacementExact:true,observational:true,proofMissing:"CANDIDATE_PROOF_UNAVAILABLE",staleBeforeProof:"SOURCE_AUTHORITY_STALE",missing:"CANDIDATE_PROOF_UNAVAILABLE",noEvidenceReadEffects:true,sequenceConflict:"CURRENT_STATE_CONFLICT"});
+    expect(output.events).toEqual(output.expected);
+  },30_000);
 });

@@ -31,6 +31,7 @@ import {
 import {
   artifactReturnOwner,
   deriveProposalDecision,
+  isDurableDecisionRequest,
   stageInputIsAdmitted,
   stageProviderBatchRejectionCode,
   stageRunInteraction,
@@ -206,6 +207,42 @@ const stageConformanceQuestions: Record<PreSignoffStage, readonly string[]> = {
   ],
 };
 
+const stageDecisionEvidence = (
+  runtime: CoordinatorRuntime,
+  workItem: WorkItem,
+  stage: PreSignoffStage,
+): readonly RunEvent[] => {
+  const attempts = listRuns(runtime, workItem.id)
+    .filter((run) => run.role === "STAGE" && run.stage === stage)
+    .sort((left, right) => left.attempt - right.attempt || left.id.localeCompare(right.id));
+  const evidence: RunEvent[] = [];
+  let hasAnsweredDecision = false;
+  for (const attempt of attempts) {
+    const events = listRunEvents(runtime, attempt.id);
+    const requests = events.filter((event) => isDurableDecisionRequest(event.event));
+    const answers = events.filter((event) => {
+      const payload = event.event;
+      return payload.tag === "HUMAN_INPUT_RECEIVED" && requests.some(
+        (request) => request.id === payload.requestEventId && request.sequence < event.sequence,
+      );
+    });
+    const answeredIds = new Set(answers.flatMap((event) =>
+      event.event.tag === "HUMAN_INPUT_RECEIVED" && event.event.requestEventId !== null
+        ? [event.event.requestEventId] : [],
+    ));
+    if (answers.length > 0) hasAnsweredDecision = true;
+    const answerIds = new Set(answers.map((event) => event.id));
+    evidence.push(...events.filter((event) =>
+      answeredIds.has(event.id) ||
+      answerIds.has(event.id) ||
+      event.event.tag === "ARTIFACT_PROPOSAL_CREATED" ||
+      event.event.tag === "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED" ||
+      event.event.tag === "ARTIFACT_PROPOSAL_DISPOSITIONED",
+    ));
+  }
+  return hasAnsweredDecision ? evidence : [];
+};
+
 export const stagePrompt = async (
   workItem: WorkItem,
   stage: PreSignoffStage,
@@ -214,6 +251,8 @@ export const stagePrompt = async (
   referenceRoots: readonly string[],
   userInput?: string,
   completionArtifacts: readonly ArtifactRef[] = currentStageDrafts,
+  decisionEvidence: readonly RunEvent[] = [],
+  adoptedDecisionArtifacts: readonly ArtifactRef[] = [],
 ): Promise<string> => {
   const manifest = await loadValidatedProjectManifest(workItem.repositoryRoot);
   const expectedOutputPath = workItemDocumentPath(
@@ -221,6 +260,12 @@ export const stagePrompt = async (
     workItem.id,
     stage,
   );
+  // Current output material can be unchanged from an earlier adoption.
+  // Render exact bound bytes as well as changed drafts; IDs alone cannot
+  // support the owning-stage decision-coverage question.
+  const reviewArtifacts = [...new Map(
+    [...currentStageDrafts, ...completionArtifacts].map((artifact) => [artifact.id, artifact] as const),
+  ).values()];
   const completionBindings = completionArtifacts.map((artifact) => ({
     id: artifact.id,
     repositoryPath: artifact.repositoryPath,
@@ -253,18 +298,37 @@ export const stagePrompt = async (
     [
       "Stage conformance questions:",
       ...stageConformanceQuestions[stage].map((question) => "- " + question),
+      "- For every applicable answered durable decision in the owning-stage history, is its material intent represented in the exact current canonical source or adopted authority? Identify the current path/hash that covers it and explain any superseded decision using current durable authority. A new attempt, unrelated adoption or prior chat answer alone is not coverage. Do not complete while material coverage is absent; seek governed correction or clarification.",
+      ...(workItem.schemaId.endsWith("-v2") ? [
+        "- Does the exact pinned first-line authority declaration include every materially governing ref, encoded canonically, plus all required refs? Structured R2/PLAN references are also governing inputs. Never rely on prose mentions.",
+        "- If a newly declared governing input was absent from the producing Run's context, do not claim conformance until a fresh productive turn resolves that input.",
+      ] : []),
     ].join("\n"),
-    currentStageDrafts.length === 0
+    reviewArtifacts.length === 0
       ? [
           "Completion is not yet admissible: no current stage output ArtifactRef exists.",
           "Create/propose and have the canonical stage artifact adopted before emitting STAGE_COMPLETED.",
         ].join("\n")
       : [
           "Current stage draft for review (own-stage output, not higher authority):",
-          await renderArtifacts(workItem, currentStageDrafts),
+          await renderArtifacts(workItem, reviewArtifacts),
           "Coordinator-owned completion bindings: " + canonicalJson(completionBindings),
-          "If and only if the stage is conformant, STAGE_COMPLETED.artifactRefIds must contain exactly one id from the binding above for the canonical output path.",
+          completionBindings.length === 0
+            ? "Completion is not yet admissible: no exact current completion binding exists."
+            : "If and only if the stage is conformant, STAGE_COMPLETED.artifactRefIds must contain exactly one id from the binding above for the canonical output path.",
         ].join("\n"),
+    decisionEvidence.length === 0 ? "" : [
+      "Owning-stage durable decision evidence across attempts (evidence only, never authority):",
+      "Request/reply and proposal intent/disposition chronology is retained; historical adoption identities do not prove current bytes or semantic coverage.",
+      canonicalJson(decisionEvidence),
+      "Exact historical adopted ArtifactRefs:",
+      canonicalJson(adoptedDecisionArtifacts),
+      "Current canonical material identities for coverage:",
+      canonicalJson([...context.artifacts, ...reviewArtifacts]),
+      stage === "R1" || stage === "R2" ? "" :
+        "Current canonical WorkItem source for decision coverage (evidence only, not additional stage authority):\n" + context.source.markdown,
+      "Use the current source and artifact bytes below/above to evaluate coverage, including explicit canonical Save followed by a fresh Run. INFORMATION/EVIDENCE replies are not durable decisions.",
+    ].join("\n"),
     userInput === undefined ? "" : `Human input: ${userInput}`,
     referenceRoots.length === 0
       ? ""
@@ -290,13 +354,6 @@ const persistStageCompletionBatch = async (
   }
 
   const workItem = getWorkItem(runtime, run.workItemId);
-  const current = await resolveStageContextState(runtime, workItem, run.stage);
-  const staleReturnTo =
-    current.staleStage !== null ||
-    current.context.contextHash !== run.contextHash
-      ? current.staleStage ?? run.stage
-      : null;
-
   const manifest = await loadValidatedProjectManifest(workItem.repositoryRoot);
   const expectedOutputPath = workItemDocumentPath(
     manifest.workItems.root,
@@ -314,6 +371,7 @@ const persistStageCompletionBatch = async (
   );
   let outputConformanceFailure =
     outputEvaluation.tag === "FAIL" ? outputEvaluation.summary : null;
+  let producingOutput: ArtifactRef | null = null;
   if (outputEvaluation.tag === "PASS") {
     const bytes = readWorkingTreeFile(
       workItem.repositoryRoot,
@@ -356,40 +414,57 @@ const persistStageCompletionBatch = async (
             parseSignedTaskBlockFromPlan(bytes),
           );
         }
-        if (
-          run.stage === "R3" &&
-          completion.outcome === "READY_FOR_SIGNOFF"
-        ) {
-          const plans = current.context.artifacts.filter(
-            (artifact) =>
-              artifact.workItemId === workItem.id &&
-              artifact.role === "PLAN",
-          );
-          if (plans.length !== 1 || plans[0] === undefined) {
-            throw new TypeError(
-              "R3 READY_FOR_SIGNOFF requires exactly one current PLAN artifact",
-            );
-          }
-          const planBytes = readWorkingTreeFile(
-            workItem.repositoryRoot,
-            plans[0].repositoryPath,
-          );
-          if (sha256(planBytes) !== plans[0].sha256) {
-            throw new TypeError(
-              "R3 READY_FOR_SIGNOFF references stale PLAN bytes",
-            );
-          }
-          await validateTaskDefinitions(
-            workItem,
-            manifest,
-            [...current.context.artifacts, ...outputArtifacts],
-            planBytes,
-          );
-        }
+        producingOutput = outputEvaluation.output;
       } catch (error) {
         outputConformanceFailure =
           error instanceof Error ? error.message : String(error);
       }
+    }
+  }
+
+  let current: Awaited<ReturnType<typeof resolveStageContextState>>;
+  try {
+    current = await resolveStageContextState(runtime, workItem, run.stage, true, producingOutput);
+  } catch (error) {
+    if (!workItem.schemaId.endsWith("-v2") || producingOutput === null) throw error;
+    outputConformanceFailure = error instanceof Error ? error.message : String(error);
+    current = await resolveStageContextState(runtime, workItem, run.stage, true, null);
+  }
+  const staleReturnTo = current.staleStage ??
+    (current.context.contextHash !== run.contextHash &&
+      (!workItem.schemaId.endsWith("-v2") || outputConformanceFailure === null)
+      ? run.stage : null);
+
+  if (outputConformanceFailure === null && run.stage === "R3" &&
+      completion.outcome === "READY_FOR_SIGNOFF") {
+    try {
+      const plans = current.context.artifacts.filter(
+        (artifact) =>
+          artifact.workItemId === workItem.id &&
+          artifact.role === "PLAN",
+      );
+      if (plans.length !== 1 || plans[0] === undefined) {
+        throw new TypeError(
+          "R3 READY_FOR_SIGNOFF requires exactly one current PLAN artifact",
+        );
+      }
+      const planBytes = readWorkingTreeFile(
+        workItem.repositoryRoot,
+        plans[0].repositoryPath,
+      );
+      if (sha256(planBytes) !== plans[0].sha256) {
+        throw new TypeError(
+          "R3 READY_FOR_SIGNOFF references stale PLAN bytes",
+        );
+      }
+      await validateTaskDefinitions(
+        workItem,
+        manifest,
+        [...current.context.artifacts, ...outputArtifacts],
+        planBytes,
+      );
+    } catch (error) {
+      outputConformanceFailure = error instanceof Error ? error.message : String(error);
     }
   }
 
@@ -739,6 +814,12 @@ export const runStageTurn = async (
       }
     }
 
+    const decisionEvidence = stageDecisionEvidence(runtime, workItem, run.stage);
+    const adoptedDecisionArtifacts = decisionEvidence.flatMap((event) => {
+      const payload = event.event;
+      return payload.tag === "ARTIFACT_PROPOSAL_DISPOSITIONED" && payload.adoptedArtifactRefId !== null
+        ? [getArtifact(runtime, payload.adoptedArtifactRefId)] : [];
+    });
     const events = await runOpenCodeTurn(
       active.server,
       active.sessionId,
@@ -755,6 +836,8 @@ export const runStageTurn = async (
         runtime.config.referenceRoots,
         userInput,
         currentStageCompletionArtifacts(runtime, workItem, run.stage),
+        decisionEvidence,
+        adoptedDecisionArtifacts,
       ),
       (record, stderr) => {
         diagnosticEvidence = recordProviderDiagnostics(
@@ -766,6 +849,10 @@ export const runStageTurn = async (
       },
       createAgentActivityRecorder(runtime, run.id),
     );
+    const [, currentAuthority] = await resolveCurrentStageAuthority(
+      workItem,
+      runStage,
+    );
     const rejection = stageProviderBatchRejectionCode(
       getRun(runtime, run.id),
       listRunEvents(runtime, run.id),
@@ -774,7 +861,7 @@ export const runStageTurn = async (
         permanentAuthorityProposalIsAdmitted(
           runStage,
           proposal,
-          context.authority,
+          currentAuthority,
         ),
     );
     if (rejection !== null) {
@@ -1102,6 +1189,29 @@ const requireCurrentProposalDecision = (
   return decision;
 };
 
+export const readArtifactProposalTarget = (
+  runtime: CoordinatorRuntime,
+  proposalEventId: RunEventId,
+): Uint8Array => {
+  const proposal = getRunEvent(runtime, proposalEventId);
+  if (proposal.event.tag !== "ARTIFACT_PROPOSAL_CREATED") {
+    throw new TypeError("proposalEventId does not identify an artifact proposal");
+  }
+  if (proposal.event.baseSha256 === null) {
+    return new Uint8Array();
+  }
+  const run = getRun(runtime, proposal.runId);
+  const workItem = getWorkItem(runtime, run.workItemId);
+  const bytes = readWorkingTreeFile(
+    workItem.repositoryRoot,
+    proposal.event.targetPath,
+  );
+  if (sha256(bytes) !== proposal.event.baseSha256) {
+    throw new TypeError("artifact proposal baseSha256 is stale");
+  }
+  return bytes;
+};
+
 const adoptArtifactProposalUnlocked = async (
   runtime: CoordinatorRuntime,
   proposalEventId: RunEventId,
@@ -1119,6 +1229,12 @@ const adoptArtifactProposalUnlocked = async (
     throw new TypeError("artifact proposals are pre-signoff only");
   }
   const initialDecision = requireCurrentProposalDecision(runtime, proposal, run);
+  let adoptionRequested = proposalAdoptionRequest(runtime, proposal) !== null;
+  if (
+    adoptionRequested !== (initialDecision.tag === "ADOPTION_IN_PROGRESS")
+  ) {
+    throw new TypeError("proposal adoption intent does not match current proposal decision");
+  }
   if (
     workItem.stage === "EXECUTION" ||
     workItem.stage === "COMPLETE"
@@ -1149,6 +1265,7 @@ const adoptArtifactProposalUnlocked = async (
       );
     }
     if (
+      !adoptionRequested &&
       sha256(
         readWorkingTreeFile(
           workItem.repositoryRoot,
@@ -1172,12 +1289,6 @@ const adoptArtifactProposalUnlocked = async (
     }
   }
 
-  let adoptionRequested = proposalAdoptionRequest(runtime, proposal) !== null;
-  if (
-    adoptionRequested !== (initialDecision.tag === "ADOPTION_IN_PROGRESS")
-  ) {
-    throw new TypeError("proposal adoption intent does not match current proposal decision");
-  }
   if (!adoptionRequested) {
     await verifyProposalPatchAdoption(
       workItem.repositoryRoot,

@@ -104,6 +104,9 @@ describe("runtime shell", () => {
           prompts += 1;
           return "";
         },
+        true,
+        { snapshot: cfg.captureInstallerConfigSnapshot(${JSON.stringify(stateRoot)}), onPublished: () => {} },
+        () => {},
       );
       console.log(JSON.stringify({
         code,
@@ -299,9 +302,9 @@ describe("project manifest shell", () => {
 
     const output = bunEval(`
       const p = await import("./src/shell/project.ts");
-      const first = await p.prepareProjectRootForInstall(${JSON.stringify(root)});
+      const first = await p.prepareProjectRootForInstall(${JSON.stringify(root)}, () => {});
       const manifest = await p.loadValidatedProjectManifest(${JSON.stringify(root)});
-      const second = await p.prepareProjectRootForInstall(${JSON.stringify(root)});
+      const second = await p.prepareProjectRootForInstall(${JSON.stringify(root)}, () => {});
       console.log(JSON.stringify({ first, manifest, second }));
     `, process.cwd());
     const parsed = JSON.parse(output);

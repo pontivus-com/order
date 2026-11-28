@@ -2,7 +2,7 @@ name: PR Verification
 
 on:
   pull_request:
-    branches: [master]
+    branches: [master, fix/0.6.0-post-squash-campaign-fitness, docs/0.6.0-workbench-implementation-contract]
 permissions:
   contents: read
   pull-requests: read
@@ -32,7 +32,15 @@ jobs:
           git fetch --no-tags origin \
             "+refs/heads/${{ github.event.pull_request.base.ref }}:refs/remotes/origin/${{ github.event.pull_request.base.ref }}" \
             "+refs/pull/${{ github.event.pull_request.number }}/merge:refs/remotes/origin/pr-merge"
+          # Stacked PR bases are not master; the existing campaign sensor
+          # also needs the actual shared default-branch history for its
+          # historical squash-integration proof. This ref is evidence only.
+          if [[ "${{ github.event.pull_request.base.ref }}" != "master" ]]; then
+            git fetch --no-tags origin "+refs/heads/master:refs/remotes/origin/master"
+          fi
           git checkout --detach refs/remotes/origin/pr-merge
+          test "$(git rev-parse HEAD^1)" = "${{ github.event.pull_request.base.sha }}"
+          test "$(git rev-parse HEAD^2)" = "${{ github.event.pull_request.head.sha }}"
 
       - name: Install exact Node and Bun
         shell: bash
@@ -86,9 +94,6 @@ jobs:
       - name: dependency-lock
         run: bun ci
 
-      - name: Install Playwright Chromium
-        run: node node_modules/@playwright/test/cli.js install --with-deps chromium
-
       - name: typecheck
         run: bun run tsc --noEmit
 
@@ -101,6 +106,349 @@ jobs:
       - name: build
         run: node node_modules/vite/bin/vite.js build
 
+      - name: Install Playwright Chromium
+        run: node node_modules/@playwright/test/cli.js install --with-deps chromium
+
+      - name: Record signed rendered phase candidate
+        id: signed_candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: signed rendered IA27_28
+        id: signed_ia27_28
+        if: ${{ !cancelled() && steps.signed_candidate.outcome == 'success' }}
+        continue-on-error: true
+        env:
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR: ${{ runner.temp }}/order-rendered-signed-ia27_28
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA: ${{ steps.signed_candidate.outputs.sha }}
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_LABEL: "IA27_28 signed phase evidence"
+          PONTIVUS_ORDER_RENDERED_EVIDENCE_KIND: "ia26_acceptance"
+          PONTIVUS_ORDER_SIGNED_RENDERED_PHASE: "IA27_28"
+        shell: bash
+        run: |
+          set +e
+          mkdir -p "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR"
+          node node_modules/@playwright/test/cli.js test --grep "rendered acceptance phase 1"
+          status=$?
+          printf '{"candidateSha":"%s","signedPhase":"%s","exitStatus":%s}\n' "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA" "$PONTIVUS_ORDER_SIGNED_RENDERED_PHASE" "$status" > "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR/exit-status.json"
+          if [[ "$status" == 0 && ! -s "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR/manifest.json" ]]; then exit 1; fi
+          exit "$status"
+
+      - name: Upload signed rendered IA27_28
+        id: upload_ia27_28
+        if: ${{ !cancelled() && steps.signed_candidate.outcome == 'success' }}
+        continue-on-error: true
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: rendered-signed-ia27_28-${{ steps.signed_candidate.outputs.sha }}
+          path: ${{ runner.temp }}/order-rendered-signed-ia27_28
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: signed rendered IA29
+        id: signed_ia29
+        if: ${{ !cancelled() && steps.signed_candidate.outcome == 'success' }}
+        continue-on-error: true
+        env:
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR: ${{ runner.temp }}/order-rendered-signed-ia29
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA: ${{ steps.signed_candidate.outputs.sha }}
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_LABEL: "IA29 signed phase evidence"
+          PONTIVUS_ORDER_RENDERED_EVIDENCE_KIND: "ia26_acceptance"
+          PONTIVUS_ORDER_SIGNED_RENDERED_PHASE: "IA29"
+        shell: bash
+        run: |
+          set +e
+          mkdir -p "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR"
+          node node_modules/@playwright/test/cli.js test --grep "rendered acceptance IA26 captures downstream Workbench"
+          status=$?
+          printf '{"candidateSha":"%s","signedPhase":"%s","exitStatus":%s}\n' "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA" "$PONTIVUS_ORDER_SIGNED_RENDERED_PHASE" "$status" > "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR/exit-status.json"
+          if [[ "$status" == 0 && ! -s "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR/manifest.json" ]]; then exit 1; fi
+          exit "$status"
+
+      - name: Upload signed rendered IA29
+        id: upload_ia29
+        if: ${{ !cancelled() && steps.signed_candidate.outcome == 'success' }}
+        continue-on-error: true
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: rendered-signed-ia29-${{ steps.signed_candidate.outputs.sha }}
+          path: ${{ runner.temp }}/order-rendered-signed-ia29
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: signed rendered IA31
+        id: signed_ia31
+        if: ${{ !cancelled() && steps.signed_candidate.outcome == 'success' }}
+        continue-on-error: true
+        env:
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR: ${{ runner.temp }}/order-rendered-signed-ia31
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA: ${{ steps.signed_candidate.outputs.sha }}
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_LABEL: "IA31 signed phase evidence"
+          PONTIVUS_ORDER_RENDERED_EVIDENCE_KIND: "ia26_acceptance"
+          PONTIVUS_ORDER_SIGNED_RENDERED_PHASE: "IA31"
+        shell: bash
+        run: |
+          set +e
+          mkdir -p "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR"
+          node node_modules/@playwright/test/cli.js test --grep "rendered acceptance IA26 captures downstream Workbench"
+          status=$?
+          printf '{"candidateSha":"%s","signedPhase":"%s","exitStatus":%s}\n' "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA" "$PONTIVUS_ORDER_SIGNED_RENDERED_PHASE" "$status" > "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR/exit-status.json"
+          if [[ "$status" == 0 && ! -s "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR/manifest.json" ]]; then exit 1; fi
+          exit "$status"
+
+      - name: Upload signed rendered IA31
+        id: upload_ia31
+        if: ${{ !cancelled() && steps.signed_candidate.outcome == 'success' }}
+        continue-on-error: true
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: rendered-signed-ia31-${{ steps.signed_candidate.outputs.sha }}
+          path: ${{ runner.temp }}/order-rendered-signed-ia31
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: signed rendered IA30
+        id: signed_ia30
+        if: ${{ !cancelled() && steps.signed_candidate.outcome == 'success' }}
+        continue-on-error: true
+        env:
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR: ${{ runner.temp }}/order-rendered-signed-ia30
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA: ${{ steps.signed_candidate.outputs.sha }}
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_LABEL: "IA30 signed phase evidence"
+          PONTIVUS_ORDER_RENDERED_EVIDENCE_KIND: "ia26_acceptance"
+          PONTIVUS_ORDER_SIGNED_RENDERED_PHASE: "IA30"
+        shell: bash
+        run: |
+          set +e
+          mkdir -p "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR"
+          node node_modules/@playwright/test/cli.js test --grep "rendered acceptance IA26 captures downstream Workbench"
+          status=$?
+          printf '{"candidateSha":"%s","signedPhase":"%s","exitStatus":%s}\n' "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA" "$PONTIVUS_ORDER_SIGNED_RENDERED_PHASE" "$status" > "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR/exit-status.json"
+          if [[ "$status" == 0 && ! -s "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR/manifest.json" ]]; then exit 1; fi
+          exit "$status"
+
+      - name: Upload signed rendered IA30
+        id: upload_ia30
+        if: ${{ !cancelled() && steps.signed_candidate.outcome == 'success' }}
+        continue-on-error: true
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: rendered-signed-ia30-${{ steps.signed_candidate.outputs.sha }}
+          path: ${{ runner.temp }}/order-rendered-signed-ia30
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: signed rendered IA32
+        id: signed_ia32
+        if: ${{ !cancelled() && steps.signed_candidate.outcome == 'success' }}
+        continue-on-error: true
+        env:
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR: ${{ runner.temp }}/order-rendered-signed-ia32
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA: ${{ steps.signed_candidate.outputs.sha }}
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_LABEL: "IA32 signed phase evidence"
+          PONTIVUS_ORDER_RENDERED_EVIDENCE_KIND: "ia26_acceptance"
+          PONTIVUS_ORDER_SIGNED_RENDERED_PHASE: "IA32"
+        shell: bash
+        run: |
+          set +e
+          mkdir -p "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR"
+          node node_modules/@playwright/test/cli.js test --grep "rendered acceptance IA26 captures downstream Workbench"
+          status=$?
+          printf '{"candidateSha":"%s","signedPhase":"%s","exitStatus":%s}\n' "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA" "$PONTIVUS_ORDER_SIGNED_RENDERED_PHASE" "$status" > "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR/exit-status.json"
+          if [[ "$status" == 0 && ! -s "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR/manifest.json" ]]; then exit 1; fi
+          exit "$status"
+
+      - name: Upload signed rendered IA32
+        id: upload_ia32
+        if: ${{ !cancelled() && steps.signed_candidate.outcome == 'success' }}
+        continue-on-error: true
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: rendered-signed-ia32-${{ steps.signed_candidate.outputs.sha }}
+          path: ${{ runner.temp }}/order-rendered-signed-ia32
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: signed rendered IA38
+        id: signed_ia38
+        if: ${{ !cancelled() && steps.signed_candidate.outcome == 'success' }}
+        continue-on-error: true
+        env:
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR: ${{ runner.temp }}/order-rendered-signed-ia38
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA: ${{ steps.signed_candidate.outputs.sha }}
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_LABEL: "IA38 signed phase evidence"
+          PONTIVUS_ORDER_RENDERED_EVIDENCE_KIND: "ia26_acceptance"
+          PONTIVUS_ORDER_SIGNED_RENDERED_PHASE: "IA38"
+          ORDER_PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          ORDER_PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        shell: bash
+        run: |
+          set +e
+          mkdir -p "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR"
+          node node_modules/@playwright/test/cli.js test --grep "rendered acceptance IA26 captures downstream Workbench"
+          status=$?
+          printf '{"candidateSha":"%s","signedPhase":"%s","headSha":"%s","baseSha":"%s","mergeSha":"%s","runId":"%s","exitStatus":%s}\n' "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA" "$PONTIVUS_ORDER_SIGNED_RENDERED_PHASE" "$ORDER_PR_HEAD_SHA" "$ORDER_PR_BASE_SHA" "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA" "$GITHUB_RUN_ID" "$status" > "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR/exit-status.json"
+          if [[ "$status" == 0 && ! -s "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR/manifest.json" ]]; then exit 1; fi
+          exit "$status"
+
+      - name: Upload signed rendered IA38
+        id: upload_ia38
+        if: ${{ !cancelled() && steps.signed_candidate.outcome == 'success' }}
+        continue-on-error: true
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: rendered-signed-ia38-${{ steps.signed_candidate.outputs.sha }}
+          path: ${{ runner.temp }}/order-rendered-signed-ia38
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: signed rendered IA33
+        id: signed_ia33
+        if: ${{ !cancelled() && steps.signed_candidate.outcome == 'success' }}
+        continue-on-error: true
+        env:
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR: ${{ runner.temp }}/order-rendered-signed-ia33
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA: ${{ steps.signed_candidate.outputs.sha }}
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_LABEL: "IA33 signed phase evidence"
+          PONTIVUS_ORDER_RENDERED_EVIDENCE_KIND: "ia26_acceptance"
+          PONTIVUS_ORDER_SIGNED_RENDERED_PHASE: "IA33"
+        shell: bash
+        run: |
+          set +e
+          mkdir -p "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR"
+          node node_modules/@playwright/test/cli.js test --grep "rendered acceptance IA26 captures downstream Workbench"
+          status=$?
+          printf '{"candidateSha":"%s","signedPhase":"%s","exitStatus":%s}\n' "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA" "$PONTIVUS_ORDER_SIGNED_RENDERED_PHASE" "$status" > "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR/exit-status.json"
+          if [[ "$status" == 0 && ! -s "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR/manifest.json" ]]; then exit 1; fi
+          exit "$status"
+
+      - name: Upload signed rendered IA33
+        id: upload_ia33
+        if: ${{ !cancelled() && steps.signed_candidate.outcome == 'success' }}
+        continue-on-error: true
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: rendered-signed-ia33-${{ steps.signed_candidate.outputs.sha }}
+          path: ${{ runner.temp }}/order-rendered-signed-ia33
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: signed rendered IA34
+        id: signed_ia34
+        if: ${{ !cancelled() && steps.signed_candidate.outcome == 'success' }}
+        continue-on-error: true
+        env:
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR: ${{ runner.temp }}/order-rendered-signed-ia34
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA: ${{ steps.signed_candidate.outputs.sha }}
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_LABEL: "IA34 signed phase evidence"
+          PONTIVUS_ORDER_RENDERED_EVIDENCE_KIND: "ia26_acceptance"
+          PONTIVUS_ORDER_SIGNED_RENDERED_PHASE: "IA34"
+        shell: bash
+        run: |
+          set +e
+          mkdir -p "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR"
+          node node_modules/@playwright/test/cli.js test --grep "rendered acceptance IA26 captures downstream Workbench"
+          status=$?
+          printf '{"candidateSha":"%s","signedPhase":"%s","exitStatus":%s}\n' "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA" "$PONTIVUS_ORDER_SIGNED_RENDERED_PHASE" "$status" > "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR/exit-status.json"
+          if [[ "$status" == 0 && ! -s "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR/manifest.json" ]]; then exit 1; fi
+          exit "$status"
+
+      - name: Upload signed rendered IA34
+        id: upload_ia34
+        if: ${{ !cancelled() && steps.signed_candidate.outcome == 'success' }}
+        continue-on-error: true
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: rendered-signed-ia34-${{ steps.signed_candidate.outputs.sha }}
+          path: ${{ runner.temp }}/order-rendered-signed-ia34
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: signed rendered IA39
+        id: signed_ia39
+        if: ${{ !cancelled() && steps.signed_candidate.outcome == 'success' }}
+        continue-on-error: true
+        env:
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR: ${{ runner.temp }}/order-rendered-signed-ia39
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA: ${{ steps.signed_candidate.outputs.sha }}
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_LABEL: "IA39 signed phase evidence"
+          PONTIVUS_ORDER_RENDERED_EVIDENCE_KIND: "ia26_acceptance"
+          PONTIVUS_ORDER_SIGNED_RENDERED_PHASE: "IA39"
+          ORDER_PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          ORDER_PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        shell: bash
+        run: |
+          set +e
+          mkdir -p "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR"
+          node node_modules/@playwright/test/cli.js test --grep "rendered acceptance IA26 captures downstream Workbench"
+          status=$?
+          printf '{"candidateSha":"%s","signedPhase":"%s","headSha":"%s","baseSha":"%s","mergeSha":"%s","runId":"%s","exitStatus":%s}\n' "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA" "$PONTIVUS_ORDER_SIGNED_RENDERED_PHASE" "$ORDER_PR_HEAD_SHA" "$ORDER_PR_BASE_SHA" "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA" "$GITHUB_RUN_ID" "$status" > "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR/exit-status.json"
+          if [[ "$status" == 0 && ! -s "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR/manifest.json" ]]; then exit 1; fi
+          exit "$status"
+
+      - name: Upload signed rendered IA39
+        id: upload_ia39
+        if: ${{ !cancelled() && steps.signed_candidate.outcome == 'success' }}
+        continue-on-error: true
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: rendered-signed-ia39-${{ steps.signed_candidate.outputs.sha }}
+          path: ${{ runner.temp }}/order-rendered-signed-ia39
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Record current-state diagnostic candidate
+        id: diagnostic_candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: diagnostic current-state rendered evidence
+        id: diagnostic_capture
+        continue-on-error: true
+        env:
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR: ${{ runner.temp }}/order-rendered-diagnostic-current-state
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA: ${{ steps.diagnostic_candidate.outputs.sha }}
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_LABEL: "pre-remediation current-state diagnostic"
+          PONTIVUS_ORDER_RENDERED_EVIDENCE_KIND: "diagnostic_current_state"
+        shell: bash
+        run: |
+          set +e
+          failures=0
+          node node_modules/@playwright/test/cli.js test             --grep "rendered acceptance phase 1" || failures=1
+          for phase in IA34 IA29 IA30 IA31 IA32 IA38 IA33; do
+            PONTIVUS_ORDER_DIAGNOSTIC_PHASE="$phase"               node node_modules/@playwright/test/cli.js test               --grep "rendered acceptance IA26" || failures=1
+          done
+          exit "$failures"
+
+      - name: Upload current-state diagnostic evidence
+        if: ${{ !cancelled() && steps.diagnostic_candidate.outcome == 'success' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: rendered-diagnostic-current-state-${{ steps.diagnostic_candidate.outputs.sha }}
+          path: ${{ runner.temp }}/order-rendered-diagnostic-current-state
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Resolve bounded evidence authorization
+        id: bounded_authorization
+        shell: bash
+        run: |
+          set -euo pipefail
+          campaign="docs/order/work-items/work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21/0.6.0-design-campaign-plan.md"
+          line="$(grep -F 'Current bounded authorization:' "$campaign" | tail -n 1)"
+          if [[ "$line" == *"Current bounded authorization: NONE."* ]]; then
+            echo "active=false" >> "$GITHUB_OUTPUT"
+          elif [[ "$line" == *"Current bounded authorization:"* && "$line" == *" only."* ]]; then
+            echo "active=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Unreadable current bounded authorization register: $line" >&2
+            exit 1
+          fi
+
       - name: Verify release packager
         shell: bash
         run: |
@@ -112,5 +460,170 @@ jobs:
           tar -xOf release/pontivus-order.tar.gz order/RELEASE.json > "${RUNNER_TEMP}/release.json"
           RELEASE_MANIFEST="${RUNNER_TEMP}/release.json" bun -e 'const v=JSON.parse(await Bun.file("package.json").text()).version; const r=JSON.parse(await Bun.file(process.env.RELEASE_MANIFEST).text()); if(r.version!==v) process.exit(1);'
 
+      - name: Record bounded IA27/IA28 evidence candidate
+        if: ${{ steps.bounded_authorization.outputs.active == 'true' }}
+        id: bounded_candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: bounded IA27/IA28 rendered evidence
+        if: ${{ steps.bounded_authorization.outputs.active == 'true' }}
+        env:
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR: ${{ runner.temp }}/order-rendered-ia27-ia28
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA: ${{ steps.bounded_candidate.outputs.sha }}
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_LABEL: "IA27/IA28 bounded evidence"
+          PONTIVUS_ORDER_RENDERED_EVIDENCE_KIND: "bounded_phase_acceptance"
+        run: >-
+          node node_modules/@playwright/test/cli.js test
+          --grep "rendered acceptance phase 1"
+
+      - name: Upload bounded IA27/IA28 evidence
+        if: ${{ !cancelled() && steps.bounded_authorization.outputs.active == 'true' && steps.bounded_candidate.outcome == 'success' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: rendered-evidence-ia27-ia28-${{ steps.bounded_candidate.outputs.sha }}
+          path: ${{ runner.temp }}/order-rendered-ia27-ia28
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Validate current-state diagnostic completeness
+        if: ${{ !cancelled() && steps.diagnostic_candidate.outcome == 'success' }}
+        shell: bash
+        env:
+          DIAGNOSTIC_DIR: ${{ runner.temp }}/order-rendered-diagnostic-current-state
+          DIAGNOSTIC_SHA: ${{ steps.diagnostic_candidate.outputs.sha }}
+        run: |
+          set -euo pipefail
+          DIAGNOSTIC_DIR="$DIAGNOSTIC_DIR" DIAGNOSTIC_SHA="$DIAGNOSTIC_SHA" node <<'NODE'
+          const fs = require("node:fs");
+          const path = require("node:path");
+          const manifestPath = path.join(process.env.DIAGNOSTIC_DIR, "manifest.json");
+          const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+          if (manifest.candidateSha !== process.env.DIAGNOSTIC_SHA) {
+            throw new Error("diagnostic candidate SHA mismatch");
+          }
+          if (manifest.evidenceKind !== "diagnostic_current_state") {
+            throw new Error("diagnostic evidence kind mismatch");
+          }
+          const surfaces = new Set(manifest.entries.map((entry) => entry.surface));
+          if (surfaces.size !== 38) {
+            throw new Error("diagnostic surface coverage must be 38, found " + surfaces.size);
+          }
+          const ids = new Set(manifest.entries.map((entry) => entry.id));
+          for (const id of [
+            "application-wide-light-active-account",
+            "diagnostic-application-wide-light-account-required",
+            "application-wide-light-installation-readiness",
+            "diagnostic-application-wide-light-readiness-all-blockers",
+            "diagnostic-queue-wide-light-loading",
+            "diagnostic-queue-wide-light-true-empty",
+            "diagnostic-application-wide-light-browser-session-required",
+            "queue-wide-light-source-diagnostic",
+            "create-work-item-wide-light-change",
+            "create-linked-remediation-wide-light",
+            "workitem-shell-wide-light-current-attention",
+            "diagnostic-application-settings-wide-light",
+            "diagnostic-application-settings-narrow-light",
+            "diagnostic-application-workitem-wide-light",
+            "diagnostic-application-workitem-medium-light",
+            "diagnostic-application-workitem-narrow-light",
+            "ia26-source-document-editor-wide-light",
+            "ia26-source-document-editor-narrow-light",
+            "ia26-lifecycle-document-editor-wide-light",
+            "ia26-stage-dialogue-open-wide-light",
+            "ia26-stage-dialogue-required-input-wide-light",
+            "ia26-stage-dialogue-processing-wide-light",
+            "ia26-proposal-review-wide-light",
+            "ia26-readiness-review-wide-light",
+            "ia26-readiness-required-input-wide-light",
+            "ia26-approval-wide-light",
+            "ia26-approval-task-wide-light",
+            "ia26-implementation-wide-light",
+            "ia26-implementation-processing-wide-light",
+            "ia26-implementation-blocked-wide-light",
+            "ia38-awaiting-review-wide-light",
+            "ia26-complete-candidate-wide-light",
+            "ia26-evidence-wide-light",
+            "ia26-settings-frame-wide-light",
+            "ia26-settings-opencode-login-pending-wide-light",
+          ]) {
+            if (!ids.has(id)) throw new Error("diagnostic required active-state capture missing: " + id);
+          }
+          for (const entry of manifest.entries) {
+            if (typeof entry.captureScope !== "string" || entry.captureScope.length === 0) {
+              throw new Error("diagnostic capture missing captureScope: " + entry.id);
+            }
+            const screenshot = path.join(process.env.DIAGNOSTIC_DIR, entry.screenshot);
+            if (!fs.existsSync(screenshot) || fs.statSync(screenshot).size === 0) {
+              throw new Error("diagnostic capture missing/empty: " + entry.id);
+            }
+          }
+          NODE
+
       - name: browser
         run: node node_modules/@playwright/test/cli.js test
+
+      - name: Record rendered acceptance candidate
+        id: rendered_candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: rendered acceptance IA26
+        env:
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR: ${{ runner.temp }}/order-rendered-acceptance
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA: ${{ steps.rendered_candidate.outputs.sha }}
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_LABEL: "IA26 final acceptance"
+          PONTIVUS_ORDER_RENDERED_EVIDENCE_KIND: "ia26_acceptance"
+        run: >-
+          node node_modules/@playwright/test/cli.js test
+          --grep "rendered acceptance"
+
+      - name: Upload rendered acceptance IA26
+        if: ${{ !cancelled() && steps.rendered_candidate.outcome == 'success' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: rendered-acceptance-ia26-${{ steps.rendered_candidate.outputs.sha }}
+          path: ${{ runner.temp }}/order-rendered-acceptance
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Require all independently published signed phase evidence
+        if: ${{ !cancelled() && steps.signed_candidate.outcome == 'success' }}
+        shell: bash
+        env:
+          IA27_28_CAPTURE: ${{ steps.signed_ia27_28.outcome }}
+          IA27_28_UPLOAD: ${{ steps.upload_ia27_28.outcome }}
+          IA29_CAPTURE: ${{ steps.signed_ia29.outcome }}
+          IA29_UPLOAD: ${{ steps.upload_ia29.outcome }}
+          IA31_CAPTURE: ${{ steps.signed_ia31.outcome }}
+          IA31_UPLOAD: ${{ steps.upload_ia31.outcome }}
+          IA30_CAPTURE: ${{ steps.signed_ia30.outcome }}
+          IA30_UPLOAD: ${{ steps.upload_ia30.outcome }}
+          IA32_CAPTURE: ${{ steps.signed_ia32.outcome }}
+          IA32_UPLOAD: ${{ steps.upload_ia32.outcome }}
+          IA38_CAPTURE: ${{ steps.signed_ia38.outcome }}
+          IA38_UPLOAD: ${{ steps.upload_ia38.outcome }}
+          IA39_CAPTURE: ${{ steps.signed_ia39.outcome }}
+          IA39_UPLOAD: ${{ steps.upload_ia39.outcome }}
+          IA33_CAPTURE: ${{ steps.signed_ia33.outcome }}
+          IA33_UPLOAD: ${{ steps.upload_ia33.outcome }}
+          IA34_CAPTURE: ${{ steps.signed_ia34.outcome }}
+          IA34_UPLOAD: ${{ steps.upload_ia34.outcome }}
+          DIAGNOSTIC_CAPTURE: ${{ steps.diagnostic_capture.outcome }}
+        run: |
+          set -euo pipefail
+          failures=0
+          for phase in IA27_28 IA29 IA31 IA30 IA32 IA38 IA33 IA34 IA39; do
+            capture="${phase}_CAPTURE"
+            upload="${phase}_UPLOAD"
+            if [[ "${!capture}" != success || "${!upload}" != success ]]; then
+              echo "Required signed phase evidence failed: $phase (capture=${!capture}, upload=${!upload})" >&2
+              failures=1
+            fi
+          done
+          if [[ "$DIAGNOSTIC_CAPTURE" != success ]]; then failures=1; fi
+          exit "$failures"

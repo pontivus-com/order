@@ -1,12 +1,9 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  MetadataList,
-  MetadataListItem,
-} from "@astryxdesign/core/MetadataList";
 import { TextInput } from "@astryxdesign/core/TextInput";
 
 import type {
+  Approval,
   ArtifactRef,
   ExecutionTask,
   Sha256,
@@ -14,28 +11,22 @@ import type {
   SignedTaskDefinition,
   WorkItem,
 } from "../../src/core/contracts.ts";
+import type { MaterialPresentationState } from "../../src/core/lifecycle.ts";
 import * as api from "./http.ts";
 import { ReadOnlyLifecycleDocumentMaterial } from "./DocumentWorkspace.tsx";
 import { invalidateWorkbenchMutation } from "./query-keys.ts";
-import { lifecycleArtifactLabel } from "./workbench-presentation.ts";
-import {
-  WorkflowStepFrame,
-} from "./WorkflowStepFrame.tsx";
+import { lifecycleArtifactLabel, lifecycleArtifactRoleRank, type WorkflowMaterial } from "./workbench-presentation.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
-import { WorkbenchDisclosure } from "./primitives/WorkbenchDisclosure.tsx";
+import { WorkbenchIcon } from "./primitives/WorkbenchIcon.tsx";
 import { WorkbenchReview } from "./primitives/WorkbenchReview.tsx";
-import { WorkbenchResourceRow } from "./primitives/WorkbenchResourceRow.tsx";
-import { WorkbenchSectionHeader } from "./primitives/WorkbenchSectionHeader.tsx";
-import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
+import { WorkbenchFacts } from "./primitives/WorkbenchFacts.tsx";
+import { WorkbenchResourceList } from "./primitives/WorkbenchResourceList.tsx";
 import {
-  WorkbenchEmptyState,
   WorkbenchErrorState,
+  WorkbenchState,
 } from "./primitives/WorkbenchState.tsx";
 
-type ApprovalSelection =
-  | Readonly<{ kind: "OVERVIEW" }>
-  | Readonly<{ kind: "DOCUMENT"; artifactId: ArtifactRef["id"] }>
-  | Readonly<{ kind: "TASK"; taskId: string }>;
+type ApprovalSelection = Extract<WorkflowMaterial, {kind:"APPROVAL_PACKAGE"}>;
 
 const packageDocumentRoles = new Set<ArtifactRef["role"]>([
   "R1",
@@ -45,142 +36,96 @@ const packageDocumentRoles = new Set<ArtifactRef["role"]>([
   "R3",
 ]);
 
-const TaskDetail = ({
-  task,
-}: Readonly<{
-  task: SignedTaskDefinition;
-}>) => (
-  <section className="order-approval-task-detail" data-testid="approval-task-detail">
-    <div className="order-section-heading">
-      <div>
-        <h2>{task.objective}</h2>
-        <span>Signed implementation task</span>
-      </div>
-    </div>
-    <MetadataList columns="multi">
-      <MetadataListItem label="Depends on">
-        {task.dependsOn.length > 0 ? task.dependsOn.join(", ") : "None"}
-      </MetadataListItem>
-      <MetadataListItem label="Gates">
-        {task.gateIds.length > 0 ? task.gateIds.join(", ") : "None"}
-      </MetadataListItem>
-      <MetadataListItem label="Concerns">
-        {task.concernIds.length > 0 ? task.concernIds.join(", ") : "None"}
-      </MetadataListItem>
-      <MetadataListItem label="Acceptance">
-        {task.acceptanceRefs.length > 0
-          ? task.acceptanceRefs.join(", ")
-          : "None"}
-      </MetadataListItem>
-    </MetadataList>
-    <div className="order-approval-task-sections">
-      <section>
-        <h3>Scope</h3>
-        {task.scope.length > 0 ? (
-          <ul>{task.scope.map((value) => <li key={value}><code>{value}</code></li>)}</ul>
-        ) : <p>None</p>}
-      </section>
-      <section>
-        <h3>Exclusions</h3>
-        {task.exclusions.length > 0 ? (
-          <ul>{task.exclusions.map((value) => <li key={value}><code>{value}</code></li>)}</ul>
-        ) : <p>None</p>}
-      </section>
-      <section>
-        <h3>Change surface</h3>
-        <ul>
-          {task.changeSurface.map((value) => <li key={value}><code>{value}</code></li>)}
-        </ul>
-      </section>
-      <section>
-        <h3>Authority</h3>
-        <ul>
-          {task.authorityRefs.map((value) => <li key={value}><code>{value}</code></li>)}
-        </ul>
-      </section>
-    </div>
-    <WorkbenchDisclosure
-      label="Task technical details"
-      content={<dl><div><dt>Task id</dt><dd><code>{task.id}</code></dd></div></dl>}
-    />
-  </section>
-);
+const resourceItems = (
+  prefix: string,
+  values: readonly string[],
+) => values.map((value, index) => ({
+  id: prefix + ":" + index,
+  label: value,
+}));
 
-const HistoricalTaskDetail = ({
-  task,
-}: Readonly<{
-  task: ExecutionTask;
-}>) => (
-  <section className="order-approval-task-detail" data-testid="approval-task-detail">
-    <div className="order-section-heading">
-      <div>
-        <h2>{task.objective}</h2>
-        <span>Approved historical task</span>
-      </div>
-    </div>
-    <MetadataList columns="multi">
-      <MetadataListItem label="Execution state">
-        {task.state.replaceAll("_", " ").toLowerCase()}
-      </MetadataListItem>
-      <MetadataListItem label="Depends on">
-        {task.dependsOn.length > 0 ? task.dependsOn.join(", ") : "None"}
-      </MetadataListItem>
-      <MetadataListItem label="Gates">
-        {task.gateIds.length > 0 ? task.gateIds.join(", ") : "None"}
-      </MetadataListItem>
-      <MetadataListItem label="Concerns">
-        {task.concernIds.length > 0 ? task.concernIds.join(", ") : "None"}
-      </MetadataListItem>
-      <MetadataListItem label="Acceptance">
-        {task.acceptanceRefs.length > 0
-          ? task.acceptanceRefs.join(", ")
-          : "None"}
-      </MetadataListItem>
-    </MetadataList>
-    <div className="order-approval-task-sections">
-      <section>
-        <h3>Scope</h3>
-        {task.scope.length > 0 ? (
-          <ul>{task.scope.map((value) => <li key={value}><code>{value}</code></li>)}</ul>
-        ) : <p>None</p>}
-      </section>
-      <section>
-        <h3>Exclusions</h3>
-        {task.exclusions.length > 0 ? (
-          <ul>{task.exclusions.map((value) => <li key={value}><code>{value}</code></li>)}</ul>
-        ) : <p>None</p>}
-      </section>
-      <section>
-        <h3>Change surface</h3>
-        <ul>
-          {task.changeSurface.map((value) => <li key={value}><code>{value}</code></li>)}
-        </ul>
-      </section>
-      <section>
-        <h3>Authority</h3>
-        <ul>
-          {task.authorityRefs.map((value) => <li key={value}><code>{value}</code></li>)}
-        </ul>
-      </section>
-    </div>
-    <WorkbenchDisclosure
-      label="Task technical details"
-      content={<dl>
-        <div><dt>Execution task id</dt><dd><code>{task.id}</code></dd></div>
-        <div><dt>Plan task id</dt><dd><code>{task.planTaskId}</code></dd></div>
-        <div><dt>Approval id</dt><dd><code>{task.approvalId}</code></dd></div>
-      </dl>}
-    />
-  </section>
-);
+const taskStateLabel = (task: SignedTaskDefinition | ExecutionTask): string | null => {
+  if (!("state" in task)) return null;
+  switch (task.state) {
+    case "TODO":
+      return "Not started";
+    case "RUNNING":
+      return "In progress";
+    case "CANDIDATE_DONE":
+      return "Candidate ready";
+    case "ALREADY_SATISFIED":
+      return "Already satisfied";
+    case "BLOCKED":
+      return "Blocked";
+  }
+};
+
+const signedValues = (values: readonly string[]): ReactNode =>
+  values.length === 0 ? "None" : (
+    <ul >
+      {values.map((value, index) => <li key={index}>{value}</li>)}
+    </ul>
+  );
+
+const taskDetailSections = (
+  task: SignedTaskDefinition | ExecutionTask,
+) => [
+  {
+    id: "boundaries",
+    title: "Scope and boundaries",
+    description: "The authorized scope and exclusions govern implementation.",
+    content: (
+      <WorkbenchFacts
+        label="Task boundaries"
+        items={[
+          { id: "scope", label: "Scope", value: signedValues(task.scope), emphasis: "strong" },
+          { id: "exclusions", label: "Exclusions", value: signedValues(task.exclusions) },
+          { id: "dependencies", label: "Dependencies", value: signedValues(task.dependsOn) },
+        ]}
+      />
+    ),
+  },
+  {
+    id: "verification",
+    title: "Acceptance and authority",
+    content: (
+      <WorkbenchFacts
+        label="Verification and traceability"
+        items={[
+          { id: "acceptance", label: "Acceptance", value: signedValues(task.acceptanceRefs) },
+          { id: "gates", label: "Gates", value: signedValues(task.gateIds) },
+          { id: "authority", label: "Authority", value: signedValues(task.authorityRefs) },
+          { id: "concerns", label: "Concerns", value: signedValues(task.concernIds) },
+        ]}
+      />
+    ),
+  },
+  {
+    id: "change-surface",
+    title: "Expected change surface",
+    description: "Physical change forecast, not an additional scope boundary.",
+    content: task.changeSurface.length === 0 ? (
+      <WorkbenchFacts items={[{ id: "forecast", label: "Forecast", value: "None" }]} />
+    ) : task.changeSurface.length === 1 ? (
+      <WorkbenchFacts items={[{ id: "forecast", label: "Forecast", value: task.changeSurface[0] }]} />
+    ) : (
+      <WorkbenchResourceList items={resourceItems("change", task.changeSurface)} />
+    ),
+  },
+] as const;
 
 export const SignoffReview = ({
   workItem,
-  summary,
   packageValue,
   packageFetching,
   packageError,
   packageStale = false,
+  packageSuperseded = false,
+  selectedApproval,
+  approvals,
+  selection,
+  onSelectionChange,
+  materialStateForArtifact,
   artifacts,
   artifactsPending,
   artifactsError,
@@ -188,16 +133,23 @@ export const SignoffReview = ({
   tasksPending,
   tasksError,
   mutationsDisabled = false,
+  reviewNotice,
+  reviewAction,
   onOpenArtifactEvidence,
   onContextDocumentChange,
   onMutationError,
 }: Readonly<{
   workItem: WorkItem;
-  summary: ReactNode;
   packageValue: SignoffPackage | null;
   packageFetching: boolean;
   packageError: unknown;
   packageStale?: boolean;
+  packageSuperseded?: boolean;
+  selectedApproval: Approval | null;
+  approvals: readonly Approval[];
+  selection: ApprovalSelection;
+  onSelectionChange: (material: ApprovalSelection) => void;
+  materialStateForArtifact: (artifact: ArtifactRef) => MaterialPresentationState | null;
   artifacts: readonly ArtifactRef[];
   artifactsPending: boolean;
   artifactsError: unknown;
@@ -205,41 +157,41 @@ export const SignoffReview = ({
   tasksPending: boolean;
   tasksError: unknown;
   mutationsDisabled?: boolean;
+  reviewNotice?: ReactNode;
+  reviewAction?: ReactNode;
   onOpenArtifactEvidence: (artifactId: ArtifactRef["id"]) => void;
   onContextDocumentChange: (path: string | null, sha256: Sha256 | null) => void;
   onMutationError?: (error: unknown) => void;
 }>) => {
   const queryClient = useQueryClient();
-  const [selection, setSelection] = useState<ApprovalSelection>({
-    kind: "OVERVIEW",
-  });
+  const selectDetail = (detail: {artifactId?: ArtifactRef["id"]; taskId?: string} = {}): void =>
+    onSelectionChange({kind:"APPROVAL_PACKAGE",approvalId:selection.approvalId,
+      packageHash:selection.packageHash,...detail});
   const [approvedBy, setApprovedBy] = useState("");
 
-  const currentApproval = workItem.stage === "AWAITING_SIGNOFF";
-
+  const prospectiveSelection = selectedApproval === null && selection.approvalId === undefined && packageValue !== null;
+  const currentApproval = !packageSuperseded && workItem.stage === "AWAITING_SIGNOFF" && selectedApproval === null && selection.approvalId === undefined;
+  const currentTasks = packageValue?.taskBlock.tasks ?? [];
+  const approvalCompleted = selectedApproval !== null;
   const packageArtifacts = artifacts
     .filter((artifact) => packageDocumentRoles.has(artifact.role))
     .sort((left, right) =>
+      lifecycleArtifactRoleRank(left.role) - lifecycleArtifactRoleRank(right.role) ||
       left.repositoryPath.localeCompare(right.repositoryPath));
+
   const selectedArtifact =
-    selection.kind === "DOCUMENT"
+    selection.artifactId !== undefined
       ? packageArtifacts.find((artifact) => artifact.id === selection.artifactId) ?? null
       : null;
-  const selectedCurrentTask =
-    selection.kind === "TASK" && currentApproval
-      ? packageValue?.taskBlock.tasks.find(
-          (task) => task.id === selection.taskId,
-        ) ?? null
-      : null;
-  const selectedHistoricalTask =
-    selection.kind === "TASK" && !currentApproval
-      ? tasks.find(
-          (task) => task.id === selection.taskId,
-        ) ?? null
+  const selectedTask =
+    selection.taskId !== undefined
+      ? prospectiveSelection
+        ? currentTasks.find((task) => task.id === selection.taskId) ?? null
+        : tasks.find((task) => task.id === selection.taskId) ?? null
       : null;
 
   useEffect(() => {
-    if (selectedArtifact) return;
+    if (selectedArtifact !== null) return;
     onContextDocumentChange(null, null);
   }, [onContextDocumentChange, selectedArtifact]);
 
@@ -248,7 +200,8 @@ export const SignoffReview = ({
 
   const signoff = useMutation({
     mutationFn: () => {
-      if (!packageValue) {
+      if (packageSuperseded || packageValue === null || packageStale || artifactsPending || artifactsError !== null ||
+          artifacts.length === 0 || selection.packageHash !== packageValue.packageHash) {
         throw new TypeError("current sign-off package is unavailable");
       }
       return api.signOffWorkItem(
@@ -267,268 +220,170 @@ export const SignoffReview = ({
     },
   });
 
-  const currentTasks = packageValue?.taskBlock.tasks ?? [];
-  const historicalTasks = tasks;
-  const approvalCompleted = !currentApproval && historicalTasks.length > 0;
-
-  const packageMaterial = (
-    <WorkbenchDisclosure
-      label="Package material"
-      content={
-        <div className="order-resource-list">
-          <WorkbenchResourceRow
-            label="Approval overview"
-            detail={
-              packageStale
-                ? "Stale package history and recovery context"
-                : currentApproval
-                  ? "Exact current package and authorization"
-                  : "Reached Approval history"
-            }
-            actionLabel="Open approval overview"
-            onOpen={() => setSelection({ kind: "OVERVIEW" })}
-          />
-          {packageArtifacts.map((artifact) => (
-            <WorkbenchResourceRow
-              key={artifact.id}
-              label={lifecycleArtifactLabel(artifact.role)}
-              detail="Read-only governed package material"
-              actionLabel={"Open " + lifecycleArtifactLabel(artifact.role)}
-              onOpen={() => setSelection({ kind: "DOCUMENT", artifactId: artifact.id })}
-            />
-          ))}
-          {(currentApproval ? currentTasks : historicalTasks).map((task) => (
-            <WorkbenchResourceRow
-              key={task.id}
-              label={task.objective}
-              detail={currentApproval ? "Signed implementation task" : "Approved historical task"}
-              actionLabel={"Inspect task: " + task.objective}
-              onOpen={() => setSelection({ kind: "TASK", taskId: task.id })}
-            />
-          ))}
-        </div>
-      }
-    />
-  );
-
-  const primary = (() => {
-    if (
-      artifactsPending ||
-      (currentApproval ? packageFetching : tasksPending)
-    ) {
-      return (
-        <WorkbenchEmptyState
-          compact
-          title={packageStale
-            ? "Loading historical package material…"
-            : currentApproval
-              ? "Resolving exact package…"
-              : "Loading approved package history…"}
+  if (packageSuperseded && packageValue === null) {
+    return (
+      <div data-testid="review-workspace">
+        <WorkbenchState
+          kind="error"
+          title="Inspected package is no longer current"
+          description="The selected package has been superseded. Review the current work before authorizing another package."
+          action={reviewAction}
         />
-      );
-    }
-    if (
-      artifactsError !== null ||
-      (currentApproval
-        ? packageError !== null && !packageStale
-        : tasksError !== null)
-    ) {
-      const error = artifactsError ??
-        (currentApproval ? packageError : tasksError);
-      return (
+      </div>
+    );
+  }
+
+  if (
+    !packageSuperseded && (artifactsPending ||
+    (currentApproval ? packageFetching : tasksPending))
+  ) {
+    return (
+      <div data-testid="review-workspace">
+        <WorkbenchState
+          kind="loading"
+          title={currentApproval ? "Resolving approval package…" : "Loading approval history…"}
+        />
+      </div>
+    );
+  }
+
+  if (
+    !packageSuperseded && (artifactsError !== null ||
+    (currentApproval ? packageError !== null && !packageStale : tasksError !== null))
+  ) {
+    const error =
+      artifactsError ??
+      (currentApproval ? packageError : tasksError);
+    return (
+      <div data-testid="review-workspace">
         <WorkbenchErrorState
-          title={currentApproval
-            ? "Package is not current"
-            : "Approved package history unavailable"}
+          title={currentApproval ? "Approval package unavailable" : "Approval history unavailable"}
           description={error instanceof Error ? error.message : String(error)}
         />
-      );
-    }
-    if (
-      currentApproval &&
-      packageStale &&
-      selection.kind === "OVERVIEW"
-    ) {
-      return (
-        <section
-          className="order-workspace-section order-approval-overview"
-          data-testid="review-workspace"
-        >
-          <div className="order-section-heading">
-            <div>
-              <h2>Package no longer current</h2>
-              <span>Prior governed package material remains inspection-only</span>
-            </div>
-            <WorkbenchStatus tone="warning" label="Stale" />
-          </div>
-          <p>
-            Review the prior governed documents below while workflow ownership
-            returns to the canonical upstream owner. This package cannot be signed.
-          </p>
-        </section>
-      );
-    }
-
-    if (currentApproval && !packageValue && selection.kind === "OVERVIEW") {
-      return (
-        <WorkbenchEmptyState
-          title="No current sign-off package"
-          description="Approval remains blocked until the exact package is current."
-        />
-      );
-    }
-
-    if (selection.kind === "DOCUMENT") {
-      return selectedArtifact ? (
-        <ReadOnlyLifecycleDocumentMaterial
-          workItem={workItem}
-          artifactId={selectedArtifact.id}
-          historicalArtifact={packageStale ? selectedArtifact : undefined}
-          embeddedReadOnly={packageStale}
-          onOpenArtifactEvidence={onOpenArtifactEvidence}
-          onContextDocumentChange={onContextDocumentChange}
-        />
-      ) : (
-        <WorkbenchEmptyState
-          compact
-          title="Governed document is no longer current"
-        />
-      );
-    }
-
-    if (selection.kind === "TASK") {
-      if (currentApproval) {
-        return selectedCurrentTask ? (
-          <TaskDetail task={selectedCurrentTask} />
-        ) : (
-          <WorkbenchEmptyState compact title="Signed task is no longer current" />
-        );
-      }
-      return selectedHistoricalTask ? (
-        <HistoricalTaskDetail task={selectedHistoricalTask} />
-      ) : (
-        <WorkbenchEmptyState compact title="Approved task is unavailable" />
-      );
-    }
-
-    if (!currentApproval) {
-      return (
-        <section
-          className="order-workspace-section order-approval-overview"
-          data-testid="review-workspace"
-        >
-          <div className="order-section-heading">
-            <div>
-              <h2>{approvalCompleted ? "Approved package history" : "Approval history"}</h2>
-              <span>
-                {approvalCompleted
-                  ? historicalTasks.length + " signed task" +
-                    (historicalTasks.length === 1 ? "" : "s") +
-                    " · approval completed"
-                  : "Sign-off not completed · workflow returned upstream"}
-              </span>
-            </div>
-          </div>
-          <p>
-            {approvalCompleted
-              ? "Signed task and governed document material remains inspectable here. Exact package hash and baseline are current-Approval facts and are not re-derived after sign-off."
-              : "Approval was reached, but no sign-off authority was created before the workflow returned upstream. Governed documents remain inspectable within reached history."}
-          </p>
-        </section>
-      );
-    }
-
-    if (!packageValue) {
-      return (
-        <WorkbenchEmptyState
-          title="No current sign-off package"
-          description="Approval remains blocked until the exact package is current."
-        />
-      );
-    }
-
-    return (
-      <section className="order-workspace-section order-approval-overview" data-testid="review-workspace">
-        <div className="order-section-heading" data-testid="approval-readiness-summary">
-          <div>
-            <h2>Readiness</h2>
-            <span>Current R3 readiness admitted this exact package for authorization.</span>
-          </div>
-          <WorkbenchStatus tone="success" label="Ready for sign-off" />
-        </div>
-
-        <div className="order-section-heading">
-          <div>
-            <h2>Package currentness</h2>
-            <span>
-              {packageValue.taskBlock.tasks.length} signed task
-              {packageValue.taskBlock.tasks.length === 1 ? "" : "s"} · exact package current
-            </span>
-          </div>
-          <WorkbenchStatus tone="success" label="Current" />
-        </div>
-
-        <section>
-          <h3>Signed task meaning / scope / gates</h3>
-          <div className="order-resource-list">
-            {packageValue.taskBlock.tasks.map((task) => (
-              <WorkbenchResourceRow
-                key={task.id}
-                label={task.objective}
-                detail={task.scope.length + " scope item" + (task.scope.length === 1 ? "" : "s") + " · " + task.gateIds.length + " gate" + (task.gateIds.length === 1 ? "" : "s")}
-                actionLabel={"Inspect signed task: " + task.objective}
-                onOpen={() => setSelection({ kind: "TASK", taskId: task.id })}
-              />
-            ))}
-          </div>
-        </section>
-
-        <section>
-          <h3>Governed documents</h3>
-          <p>{packageArtifacts.length} current package document{packageArtifacts.length === 1 ? "" : "s"} available for inspection.</p>
-        </section>
-
-        <WorkbenchDisclosure
-          label="Technical details"
-          content={
-            <MetadataList
-              columns="multi"
-              title="Technical identity"
-              data-testid="approval-package-metadata"
-            >
-              <MetadataListItem label="Package">
-                <code data-testid="signoff-package-hash">{packageValue.packageHash}</code>
-              </MetadataListItem>
-              <MetadataListItem label="Source">
-                <code>{packageValue.sourceSha256}</code>
-              </MetadataListItem>
-              <MetadataListItem label="Baseline">
-                <code>{packageValue.baselineCommit}</code>
-              </MetadataListItem>
-            </MetadataList>
-          }
-        />
-      </section>
+      </div>
     );
-  })();
+  }
 
-  const approvalAction =
+  if (selection.artifactId !== undefined) {
+    return (
+      <div className="order-document-inspection" data-testid="review-workspace">
+        <div className="order-review-navigation">
+          <WorkbenchAction
+            label="Back to Approval"
+            icon={<WorkbenchIcon name="back" />}
+            tone="ghost"
+            onClick={() => selectDetail()}
+          />
+          {reviewAction}
+        </div>
+        {packageSuperseded ? <WorkbenchState kind="empty" title="Inspected package is no longer current" description="This document belongs to the superseded package." /> : null}
+        {selectedArtifact === null ? (
+          <WorkbenchState kind="empty" title="Governed document is no longer available" />
+        ) : (
+          <ReadOnlyLifecycleDocumentMaterial
+            workItem={workItem}
+            artifactId={selectedArtifact.id}
+            materialState={materialStateForArtifact(selectedArtifact)}
+            historicalArtifact={selectedArtifact}
+            embeddedReadOnly={packageStale || packageSuperseded}
+            onOpenArtifactEvidence={onOpenArtifactEvidence}
+            onContextDocumentChange={onContextDocumentChange}
+          />
+        )}
+      </div>
+    );
+  }
+
+  if (selection.taskId !== undefined && selectedTask === null) {
+    return (
+      <div data-testid="review-workspace">
+        <WorkbenchState kind="empty" title="Signed task is no longer available"
+          action={<><WorkbenchAction label="Back to Approval" onClick={() => selectDetail()} />{reviewAction}</>} />
+      </div>
+    );
+  }
+
+  const taskItems = (prospectiveSelection ? currentTasks : tasks).map((task, index) => ({
+    id: "task:" + task.id,
+    label: task.objective,
+    detail:
+      task.scope.length +
+      " scope item" +
+      (task.scope.length === 1 ? "" : "s") +
+      " · " +
+      task.gateIds.length +
+      " gate" +
+      (task.gateIds.length === 1 ? "" : "s"),
+    action: (
+      <WorkbenchAction
+        label={"View task " + (index + 1)}
+        icon={<WorkbenchIcon name="execution" />}
+        tone="secondary"
+        onClick={() => selectDetail({taskId:task.id})}
+      />
+    ),
+  }));
+
+  const documentItems = packageArtifacts.map((artifact) => ({
+    id: "artifact:" + artifact.id,
+    label: lifecycleArtifactLabel(artifact.role),
+    action: (
+      <WorkbenchAction
+        label={"View " + lifecycleArtifactLabel(artifact.role)}
+        icon={<WorkbenchIcon name="document" />}
+        tone="secondary"
+        onClick={() => selectDetail({artifactId:artifact.id})}
+      />
+    ),
+  }));
+
+  const verdict = packageSuperseded
+    ? {
+      label: "Inspected package is no longer current",
+      description: "This historical package is read-only. Return to the current work to review a replacement.",
+      tone: "warning" as const,
+      currentness: "Historical package",
+    }
+    : packageStale
+    ? {
+      label: "Package stale",
+      description: "Sign-off is unavailable while ownership returns upstream.",
+      tone: "warning" as const,
+      currentness: "Historical package",
+    }
+    : currentApproval
+      ? {
+        label: "Ready for sign-off",
+        description: "The current readiness result admits this exact package for authorization.",
+        tone: "success" as const,
+        currentness: "Current package",
+      }
+      : approvalCompleted
+        ? {
+          label: "Approved",
+          description: "This package has already been authorized.",
+          tone: "success" as const,
+          currentness: "Approval history",
+        }
+        : {
+          label: "Returned before sign-off",
+          description: "Approval was reached without creating sign-off authority.",
+          tone: "neutral" as const,
+          currentness: "Approval history",
+        };
+
+  const approvalDecision =
     currentApproval &&
-    packageValue &&
-    packageError === null &&
-    !packageFetching ? (
-      <section className="order-approval-action-region">
-        <WorkbenchSectionHeader
-          title="Authorization"
-          description="Approver identity and exact-package decision remain in the Review decision region."
-        />
-        <div className="order-approval-authorization-controls">
+    !packageStale &&
+    packageValue !== null && selection.packageHash === packageValue.packageHash &&
+    artifacts.length > 0 && !artifactsPending && artifactsError === null
+      ? (
+        <div className="order-approval-decision">
           <TextInput
             label="Approved by"
-            description="Identify the operator authorizing this exact package."
             value={approvedBy}
-            onChange={(value) => setApprovedBy(value)}
-            placeholder="Local operator identity"
+            onChange={setApprovedBy}
+            placeholder="Operator identity"
             isDisabled={mutationsDisabled || signoff.isPending}
             width="100%"
           />
@@ -536,71 +391,119 @@ export const SignoffReview = ({
             label="Sign off exact package"
             tone="primary"
             loading={signoff.isPending}
-            disabled={mutationsDisabled || approvedBy.trim().length === 0 || signoff.isPending}
+            disabled={
+              mutationsDisabled ||
+              approvedBy.trim().length === 0 ||
+              signoff.isPending
+            }
             onClick={() => signoff.mutate()}
           />
         </div>
-        {signoff.error ? (
-          <WorkbenchErrorState
-            title="Sign-off failed"
-            description={signoff.error instanceof Error
-              ? signoff.error.message
-              : String(signoff.error)}
+      )
+      : undefined;
+
+  const taskState = selectedTask === null ? null : taskStateLabel(selectedTask);
+  const selectedTaskDescription =
+    selectedTask === null
+      ? undefined
+      : taskState === null
+        ? "Approval task detail"
+        : "Approval task detail · " + taskState;
+
+  const sections =
+    selectedTask === null
+      ? [
+        {
+          id: "tasks",
+          title: packageSuperseded ? "Historical proposed tasks" : currentApproval ? "Signed tasks" : "Approved tasks",
+          content: taskItems.length === 1 ? (
+            <>
+              <WorkbenchFacts label="Signed task" items={[
+                { id: "objective", label: "Objective", value: taskItems[0]!.label, emphasis: "strong" },
+                { id: "scope-gates", label: "Authorization", value: taskItems[0]!.detail },
+              ]} />
+              <div className="order-inline-actions">{taskItems[0]!.action}</div>
+            </>
+          ) : (
+            <WorkbenchResourceList
+              items={taskItems}
+              empty={<WorkbenchState kind="empty" title="No signed tasks" />}
+            />
+          ),
+        },
+        {
+          id: "documents",
+          title: "Package documents",
+          content: (
+            <WorkbenchResourceList
+              items={documentItems}
+              empty={<WorkbenchState kind="empty" title={packageSuperseded ? "Exact historical package documents unavailable" : "No package documents"} />}
+            />
+          ),
+        },
+
+      ]
+      : [...taskDetailSections(selectedTask)];
+  const reviewSections = [
+    ...(selectedTask === null && (approvals.some(approval=>approval.id!==selectedApproval?.id) || selectedApproval !== null && workItem.stage==="AWAITING_SIGNOFF") ? [{
+      id:"approval-history", title:"Approval history",
+      content:<WorkbenchResourceList items={[
+        ...(workItem.stage === "AWAITING_SIGNOFF" && selectedApproval !== null ? [{
+          id:"prospective",label:"Current package",action:<WorkbenchAction label="View current package"
+            onClick={()=>onSelectionChange({kind:"APPROVAL_PACKAGE"})} />
+        }] : []),
+        ...approvals.filter(approval=>approval.id!==selectedApproval?.id).map(approval=>({
+          id:approval.id,label:"Approved "+new Date(approval.approvedAt).toLocaleString(),
+          action:<WorkbenchAction label={"View Approval "+new Date(approval.approvedAt).toLocaleString()}
+            onClick={()=>onSelectionChange({kind:"APPROVAL_PACKAGE",approvalId:approval.id})} />
+        }))
+      ]}/>
+    }] : []),
+    ...(reviewNotice === undefined ? [] : [{ id: "notice", title: "Current package status", content: reviewNotice }]),
+    ...sections,
+    ...(signoff.error === null
+          ? []
+          : [{
+            id: "signoff-error",
+            title: "Sign-off failed",
+            content: (
+              <WorkbenchErrorState
+                title="Sign-off failed"
+                description={signoff.error instanceof Error
+                  ? signoff.error.message
+                  : String(signoff.error)}
+              />
+            ),
+          }]),
+  ];
+
+  const decisions =
+    selectedTask === null
+      ? reviewAction ?? approvalDecision
+      : (
+        <>
+          <WorkbenchAction
+            label="Back to Approval"
+            icon={<WorkbenchIcon name="back" />}
+            tone="ghost"
+            onClick={() => selectDetail()}
           />
-        ) : null}
-      </section>
-    ) : null;
+          {currentApproval ? reviewAction ?? approvalDecision : reviewAction}
+        </>
+      );
 
   return (
-    <WorkflowStepFrame
-      summary={summary}
-      primary={
-        <WorkbenchReview
-          currentness={
-            <WorkbenchStatus
-              tone={currentApproval ? "warning" : approvalCompleted ? "success" : "neutral"}
-              label={
-                packageStale
-                  ? "Package stale"
-                  : currentApproval
-                    ? "Awaiting authorization"
-                  : approvalCompleted
-                    ? "Approved package history"
-                    : "Returned before sign-off"
-              }
-            />
-          }
-          summary={
-            <div>
-              <h2>
-                {packageStale
-                  ? "Stale approval package"
-                  : currentApproval
-                    ? "Exact approval package"
-                  : approvalCompleted
-                    ? "Approved package"
-                    : "Approval history"}
-              </h2>
-              <p>
-                {packageStale
-                  ? "Inspect the prior governed package material while the canonical upstream owner is restored."
-                  : currentApproval
-                    ? "Review and authorize the exact signed package."
-                  : approvalCompleted
-                    ? "Inspect the governed package retained after approval."
-                    : "Inspect the reached Approval stage retained after the workflow returned upstream without sign-off."}
-              </p>
-            </div>
-          }
-          body={
-            <div className="order-review-material-stack">
-              {primary}
-              <div className="order-review-supporting-disclosure">{packageMaterial}</div>
-            </div>
-          }
-          decisions={approvalAction ?? <></>}
-        />
-      }
-    />
+    <div className="order-review-workspace" data-testid="review-workspace">
+      <WorkbenchReview
+        title={selectedTask === null ? "Approval" : selectedTask.objective}
+        description={
+          selectedTaskDescription ??
+          (currentApproval ? "Authorize the current governed package." : undefined)
+        }
+        verdict={verdict}
+        sections={reviewSections}
+        decisions={decisions}
+      />
+    </div>
   );
 };

@@ -1,10 +1,16 @@
 import type { ReactNode } from "react";
-export const WorkbenchSurface = ({ attention, selector, material }: Readonly<{
-  attention: ReactNode; selector?: ReactNode; material: ReactNode;
+
+export const WorkbenchSurface = ({
+  attention,
+  material,
+}: Readonly<{
+  attention?: ReactNode;
+  material: ReactNode;
 }>) => (
   <section className="order-workbench-surface">
-    <div className="order-workbench-surface-attention">{attention}</div>
-    {selector ? <div className="order-workbench-surface-selector">{selector}</div> : null}
+    {attention === undefined ? null : (
+      <div className="order-workbench-surface-attention">{attention}</div>
+    )}
     <div className="order-workbench-surface-material">{material}</div>
   </section>
 );

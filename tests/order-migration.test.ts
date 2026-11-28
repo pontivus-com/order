@@ -52,9 +52,36 @@ describe("Order predecessor cutover boundary", () => {
     for (const path of [binDir, configHome, fakeBin]) mkdirSync(path, { recursive: true });
 
     const systemctl = join(fakeBin, "systemctl");
+    const activity = join(root, "systemctl-activity");
+    const enablement = join(root, "systemctl-enablement");
+    writeFileSync(activity, "active\n");
+    writeFileSync(enablement, "enabled\n");
     writeFileSync(
       systemctl,
-      "#!/bin/sh\nprintf '%s\\n' \"$*\" >> \"$SYSTEMCTL_LOG\"\nexit 0\n",
+      [
+        "#!/bin/sh",
+        'printf \'%s\\n\' "$*" >> "$SYSTEMCTL_LOG"',
+        'case "$2" in',
+        '  show) case "$3" in',
+        '    --property=ActiveState) cat "$SYSTEMCTL_ACTIVITY" ;;',
+        '    --property=UnitFileState) cat "$SYSTEMCTL_ENABLEMENT" ;;',
+        '    *) exit 1 ;;',
+        '  esac ;;',
+        '  stop) case "${SYSTEMCTL_STOP_MODE:-normal}" in',
+        '    stuck) exit 1 ;;',
+        '    unknown) printf "unknown\\n" > "$SYSTEMCTL_ACTIVITY"; exit 1 ;;',
+        '    failed-inactive) printf "inactive\\n" > "$SYSTEMCTL_ACTIVITY"; exit 1 ;;',
+        '    normal) printf "inactive\\n" > "$SYSTEMCTL_ACTIVITY" ;;',
+        '    *) exit 1 ;;',
+        '  esac ;;',
+        '  restart) printf "active\\n" > "$SYSTEMCTL_ACTIVITY" ;;',
+        '  enable) printf "enabled\\n" > "$SYSTEMCTL_ENABLEMENT" ;;',
+        '  disable) printf "disabled\\n" > "$SYSTEMCTL_ENABLEMENT" ;;',
+        '  daemon-reload) ;;',
+        '  *) exit 1 ;;',
+        'esac',
+        "",
+      ].join("\n"),
       { mode: 0o755 },
     );
     chmodSync(systemctl, 0o755);
@@ -81,25 +108,38 @@ describe("Order predecessor cutover boundary", () => {
       "const configHome = " + JSON.stringify(configHome) + ";",
       "const fakeBin = " + JSON.stringify(fakeBin) + ";",
       "const log = " + JSON.stringify(log) + ";",
+      "const activity = " + JSON.stringify(activity) + ";",
+      "const enablement = " + JSON.stringify(enablement) + ";",
       "const legacyInstall = " + JSON.stringify(legacyInstall) + ";",
       "const legacyState = " + JSON.stringify(legacyState) + ";",
       "const legacyLauncher = " + JSON.stringify(legacyLauncher) + ";",
       "const legacyUnit = " + JSON.stringify(legacyUnit) + ";",
       'const locations = { home, installRoot: path.join(home, ".local", "share", "pontivus-order"), binDir, stateRoot: path.join(home, ".local", "state", "pontivus-order"), bind: "127.0.0.1:7347", userConfigHome: configHome };',
-      'const environment = { ...process.env, HOME: home, PATH: fakeBin + ":" + (process.env.PATH ?? ""), SYSTEMCTL_LOG: log };',
-      "const first = installer.migrateLegacyGateweftInstallation(locations, environment);",
+      'const environment = { ...process.env, HOME: home, PATH: fakeBin + ":" + (process.env.PATH ?? ""), SYSTEMCTL_LOG: log, SYSTEMCTL_ACTIVITY: activity, SYSTEMCTL_ENABLEMENT: enablement };',
+      'const blocked = []; for (const mode of ["stuck", "unknown"]) { fs.writeFileSync(activity, "active\\n"); try { installer.migrateLegacyGateweftInstallation(locations, {...environment, SYSTEMCTL_STOP_MODE: mode}); blocked.push(false); } catch { blocked.push(fs.existsSync(legacyInstall) && fs.existsSync(legacyState) && !fs.existsSync(locations.installRoot) && !fs.existsSync(locations.stateRoot) && fs.readFileSync(path.join(legacyState,"gateweft.sqlite3"),"utf8") === "db"); } }',
+      'fs.writeFileSync(activity, "active\\n");',
+      'fs.writeFileSync(path.join(legacyState, "order.sqlite3-wal"), "conflict");',
+      'let partialMoveRestored = false; try { installer.migrateLegacyGateweftInstallation(locations, environment); } catch { partialMoveRestored = fs.readFileSync(path.join(legacyState,"gateweft.sqlite3"),"utf8") === "db" && fs.readFileSync(path.join(legacyState,"gateweft.sqlite3-wal"),"utf8") === "wal" && fs.readFileSync(path.join(legacyState,"order.sqlite3-wal"),"utf8") === "conflict" && !fs.existsSync(path.join(legacyState,"order.sqlite3")) && fs.existsSync(legacyInstall) && !fs.existsSync(locations.installRoot) && !fs.existsSync(locations.stateRoot); }',
+      'fs.unlinkSync(path.join(legacyState, "order.sqlite3-wal"));',
+      'const first = installer.migrateLegacyGateweftInstallation(locations, {...environment, SYSTEMCTL_STOP_MODE: "failed-inactive"});',
+      'const inactiveAfterStop = fs.readFileSync(activity, "utf8").trim();',
       'const migrated = { detected:first.detected, installMoved:first.installMoved, stateMoved:first.stateMoved, serviceWasActive:first.serviceWasActive, legacyInstallGone:!fs.existsSync(legacyInstall), legacyStateGone:!fs.existsSync(legacyState), marker:fs.readFileSync(path.join(locations.installRoot,"marker"),"utf8"), db:fs.readFileSync(path.join(locations.stateRoot,"order.sqlite3"),"utf8"), wal:fs.readFileSync(path.join(locations.stateRoot,"order.sqlite3-wal"),"utf8"), launcherRetained:fs.existsSync(legacyLauncher), unitRetained:fs.existsSync(legacyUnit) };',
       "installer.rollbackLegacyGateweftMigration(first, locations, environment);",
       'const rolledBack = { orderInstallGone:!fs.existsSync(locations.installRoot), orderStateGone:!fs.existsSync(locations.stateRoot), marker:fs.readFileSync(path.join(legacyInstall,"marker"),"utf8"), db:fs.readFileSync(path.join(legacyState,"gateweft.sqlite3"),"utf8") };',
       "const second = installer.migrateLegacyGateweftInstallation(locations, environment);",
       "installer.retireLegacyGateweftArtifacts(second, locations, environment);",
       'const retired = { launcherGone:!fs.existsSync(legacyLauncher), unitGone:!fs.existsSync(legacyUnit), orderInstallExists:fs.existsSync(locations.installRoot), orderStateExists:fs.existsSync(locations.stateRoot) };',
-      'console.log(JSON.stringify({migrated, rolledBack, retired, log:fs.readFileSync(log,"utf8")}));',
+      'console.log(JSON.stringify({blocked, partialMoveRestored, inactiveAfterStop, migrated, rolledBack, retired, activity:fs.readFileSync(activity,"utf8").trim(), enablement:fs.readFileSync(enablement,"utf8").trim(), log:fs.readFileSync(log,"utf8")}));',
     ]);
 
     const evidence = result.stdout.trim().split("\n").at(-1);
     if (!evidence) throw new Error("migration proof emitted no JSON evidence");
     const parsed = JSON.parse(evidence);
+    expect(parsed.blocked).toEqual([true, true]);
+    expect(parsed.partialMoveRestored).toBe(true);
+    expect(parsed.inactiveAfterStop).toBe("inactive");
+    expect(parsed.activity).toBe("inactive");
+    expect(parsed.enablement).toBe("disabled");
     expect(parsed.migrated).toEqual({
       detected: true,
       installMoved: true,
@@ -126,6 +166,7 @@ describe("Order predecessor cutover boundary", () => {
       orderStateExists: true,
     });
     expect(parsed.log).toContain("--user stop gateweft.service");
+    expect(parsed.log).toContain("--user show --property=ActiveState --value gateweft.service");
     expect(parsed.log).toContain("--user restart gateweft.service");
     expect(parsed.log).toContain("--user disable gateweft.service");
   });

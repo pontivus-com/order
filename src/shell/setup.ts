@@ -2,6 +2,9 @@ import { existsSync, lstatSync, readFileSync } from "node:fs";
 import { isAbsolute, join, relative, sep } from "node:path";
 
 import {
+  InstallationReadinessSchema,
+  OrderConfigSchema,
+  type InstallationReadiness,
   type LegacyOrderConfigV2,
   type OrderConfig,
   type RepositoryPath,
@@ -15,7 +18,10 @@ import {
 import {
   buildOrderConfig,
   readOrderConfig,
-  readOrderConfigForUpgradeIfPresent,
+  proveConfiguredDirectoryRoots,
+  readInstallerConfigForUpgrade,
+  type InstallerConfigPublication,
+  type InstallerConfigSnapshot,
   readOrderConfigIfPresent,
   writeOrderConfig,
 } from "./config.ts";
@@ -26,12 +32,14 @@ import {
 import {
   loadConfiguredProjects,
   prepareProjectRootForInstall,
+  type InstallerManifestCustody,
+  type InstallerManifestEffects,
 } from "./project.ts";
 import {
   createWorkingTreeFileExclusive,
   readWorkingTreeFile,
 } from "./repository.ts";
-import { resolveStateRoot, sha256 } from "./runtime.ts";
+import { loadDaemonToken, resolveStateRoot, sha256 } from "./runtime.ts";
 import {
   migrateOrderDatabaseV2ToV3,
   readLegacyWorkItemRepositoryRootsForInstall,
@@ -41,6 +49,12 @@ import {
   readWorkItemArchived,
   scanLegacyV2WorkItemSourcesForInstall,
 } from "./work-item-source.ts";
+
+// The installed setup boundary exposes the existing config owner’s rollback effects.
+export { captureInstallerConfigSnapshot, releaseInstallerConfigSnapshot, restoreInstallerConfig, requireInstallerConfigPublication } from "./config.ts";
+export type { InstallerConfigPublication, InstallerConfigSnapshot } from "./config.ts";
+export { requireInstallerManifest, restoreInstallerManifest } from "./project.ts";
+export type { InstallerManifestCustody, InstallerManifestEffects } from "./project.ts";
 
 export type SetupQuestion = (prompt: string) => Promise<string>;
 
@@ -54,8 +68,9 @@ const byteEqual = (left: Uint8Array, right: Uint8Array): boolean => {
 
 export const readLegacyOrderConfigV2ForInstall = (
   stateRoot: string,
+  snapshot: InstallerConfigSnapshot,
 ): LegacyOrderConfigV2 | null => {
-  const config = readOrderConfigForUpgradeIfPresent(stateRoot);
+  const config = readInstallerConfigForUpgrade(stateRoot, snapshot);
   return config?.version === 2 ? config : null;
 };
 
@@ -290,13 +305,13 @@ const pathIsWithin = (parent: string, candidate: string): boolean => {
 const exactProjectRootForUpgrade = async (
   candidate: string,
   writeStdout: (value: string) => void,
-  projectManifestCreated: (path: string) => void,
+  projectManifestCreated: (custody: InstallerManifestCustody) => void,
+  manifestEffects?: InstallerManifestEffects,
 ): Promise<string | null> => {
-  const prepared = await prepareProjectRootForInstall(candidate);
+  const prepared = await prepareProjectRootForInstall(candidate, projectManifestCreated, manifestEffects);
   if (prepared === null) return null;
   const [repositoryRoot, createdManifestPath] = prepared;
   if (createdManifestPath !== null) {
-    projectManifestCreated(createdManifestPath);
     writeStdout(
       "Order installer — created missing project manifest at " +
         createdManifestPath +
@@ -312,9 +327,11 @@ const legacyTargetRootsForUpgrade = async (
   stateRoot: string,
   configuredRoots: readonly string[],
   writeStdout: (value: string) => void,
-  projectManifestCreated: (path: string) => void,
+  projectManifestCreated: (custody: InstallerManifestCustody) => void,
+  onIncompleteDatabaseInspection: () => void,
+  manifestEffects?: InstallerManifestEffects,
 ): Promise<readonly string[]> => {
-  const observedRoots = readLegacyWorkItemRepositoryRootsForInstall(stateRoot);
+  const observedRoots = readLegacyWorkItemRepositoryRootsForInstall(stateRoot, onIncompleteDatabaseInspection);
   for (const observed of observedRoots) {
     if (!configuredRoots.some((configured) => pathIsWithin(configured, observed))) {
       throw new TypeError(
@@ -329,6 +346,7 @@ const legacyTargetRootsForUpgrade = async (
       configured,
       writeStdout,
       projectManifestCreated,
+      manifestEffects,
     );
     if (exact !== null) migrated.add(exact);
   }
@@ -337,6 +355,7 @@ const legacyTargetRootsForUpgrade = async (
       observed,
       writeStdout,
       projectManifestCreated,
+      manifestEffects,
     );
     if (exact === null) return [];
     migrated.add(exact);
@@ -349,16 +368,20 @@ const legacyTargetRootsForUpgrade = async (
 
 const runGuidedSetupInternal = async (
   reconfigure: boolean,
-  allowLegacyUpdate: boolean,
   environment: NodeJS.ProcessEnv,
   writeStdout: (value: string) => void,
   question: SetupQuestion,
-  projectManifestCreated: (path: string) => void,
+  projectManifestCreated: (custody: InstallerManifestCustody) => void,
+  publication?: InstallerConfigPublication,
+  established = false,
+  onIncompleteDatabaseInspection: () => void = () => {},
+  manifestEffects?: InstallerManifestEffects,
 ): Promise<number> => {
+  const allowLegacyUpdate = publication !== undefined;
   const stateRoot = resolveStateRoot(environment);
   const home = requireSetupHome(environment);
-  const configured = allowLegacyUpdate
-    ? readOrderConfigForUpgradeIfPresent(stateRoot)
+  const configured = publication !== undefined
+    ? readInstallerConfigForUpgrade(stateRoot, publication.snapshot)
     : readOrderConfigIfPresent(stateRoot);
 
   let existing = configured?.version === 4 ? configured : null;
@@ -370,6 +393,8 @@ const runGuidedSetupInternal = async (
       configured.repositoryRoots,
       writeStdout,
       projectManifestCreated,
+      onIncompleteDatabaseInspection,
+      manifestEffects,
     );
 
     if (repositoryRoots.length === 0) {
@@ -411,35 +436,132 @@ const runGuidedSetupInternal = async (
   }
 
   if (allowLegacyUpdate && configured?.version === 3) {
-    existing = buildOrderConfig(
-      configured.model,
-      configured.repositoryRoots,
-      configured.referenceRoots,
-    );
+    existing = OrderConfigSchema.parse({ ...configured, version: 4 });
     upgrading = true;
   }
 
-  if (allowLegacyUpdate && configured?.version === 4 && !reconfigure) {
-    writeOrderConfig(stateRoot, configured);
-    const concerns = [
-      ...(configured.repositoryRoots.length === 0 ? ["repository"] : []),
-      ...(configured.model === null ? ["model"] : []),
-    ];
-    writeStdout("Order configuration version 4 retained unchanged.\n");
-    if (concerns.length > 0) {
-      writeStdout(
-        "requires operator action: complete " + concerns.join(" and ") +
-        " setup in browser Settings.\n",
-      );
+  if (publication !== undefined && established) {
+    const retained = existing ?? OrderConfigSchema.parse({
+      version: 4, model: null, repositoryRoots: [], referenceRoots: [],
+    });
+    writeOrderConfig(stateRoot, retained, publication);
+    writeStdout(upgrading
+      ? "Order configuration upgraded to version 4; existing provider/model/repository/reference choices retained.\n"
+      : configured === null
+        ? "Order configuration version 4 initialized for established recovery.\n"
+        : "Order configuration version 4 retained unchanged.\n");
+    if (retained.repositoryRoots.length === 0 || retained.model === null) {
+      writeStdout("requires operator action: complete setup in browser Settings.\n");
     }
     return 0;
   }
 
-  const workspace = existing?.repositoryRoots[0] ?? home;
+  // Fresh or unproven installation must establish exact roots before provider work.
+  let installerRoots: Pick<OrderConfig, "repositoryRoots" | "referenceRoots"> | null = null;
+  const repairInstallerRoots = async (
+    initial: Pick<OrderConfig, "repositoryRoots" | "referenceRoots">,
+    askOptionalReference: boolean,
+  ): Promise<Pick<OrderConfig, "repositoryRoots" | "referenceRoots">> => {
+    const accepted: string[] = [];
+    const repairRoots = async (roots: readonly string[], target: boolean): Promise<string[]> => {
+      const result: string[] = [];
+      const prove = async (path: string, retained: boolean): Promise<string> => {
+        if (!isAbsolute(path)) throw new TypeError("configured root must be absolute");
+        const exact = proveConfiguredDirectoryRoots([path])[0]!;
+        if (retained && exact !== path) throw new TypeError("stored root identity changed");
+        if ([stateRoot, ...accepted].some(root => pathIsWithin(root, exact) || pathIsWithin(exact, root))) {
+          throw new TypeError("configured roots must remain path-disjoint");
+        }
+        if (target) await loadConfiguredProjects([exact]);
+        return exact;
+      };
+      for (const root of roots) {
+        let candidate = root;
+        let retained = true;
+        while (candidate !== "") {
+          try {
+            const exact = await prove(candidate, retained);
+            result.push(exact);
+            accepted.push(exact);
+            break;
+          } catch (error) {
+            writeStdout("Root requires attention: " + candidate + ": " + String(error) + "\n");
+            candidate = (await question("Replacement for " + root + " (blank removes): ")).trim();
+            retained = false;
+          }
+        }
+      }
+      return result;
+    };
+    let repositoryRoots = await repairRoots(initial.repositoryRoots, true);
+    while (repositoryRoots.length === 0) {
+      const first = (await question("Target repository root: ")).trim();
+      if (first === "") throw new TypeError("an exact target repository root is required");
+      repositoryRoots = await repairRoots(await collectAdditionalRoots(first, "target repository", question), true);
+    }
+    let referenceRoots = await repairRoots(initial.referenceRoots, false);
+    if (askOptionalReference && initial.referenceRoots.length === 0) {
+      const first = (await question("STAGE reference root (blank for none): ")).trim();
+      if (first !== "") referenceRoots = await repairRoots(await collectAdditionalRoots(first, "reference", question), false);
+    }
+    // Keep the exact paths admitted by repairRoots. Another prompt or
+    // filesystem observation can invalidate an earlier choice; a live
+    // builder here would silently adopt its new realpath before reproof.
+    return {
+      repositoryRoots: [...repositoryRoots].sort(),
+      referenceRoots: [...referenceRoots].sort(),
+    };
+  };
 
+  if (publication !== undefined) {
+    installerRoots = await repairInstallerRoots(existing ?? { repositoryRoots: [], referenceRoots: [] }, true);
+  }
+  const reproveInstallerRoots = async (): Promise<boolean> => {
+    if (installerRoots === null) return true;
+    try {
+      const roots = installerRoots;
+      const pathsStillExact = (): boolean => {
+        const exact = buildOrderConfig(null, roots.repositoryRoots, roots.referenceRoots);
+        return JSON.stringify(exact.repositoryRoots) === JSON.stringify(roots.repositoryRoots) &&
+          JSON.stringify(exact.referenceRoots) === JSON.stringify(roots.referenceRoots);
+      };
+      if (!pathsStillExact()) return false;
+      await loadConfiguredProjects(roots.repositoryRoots);
+      return pathsStillExact();
+    } catch { return false; }
+  };
+  const repairStartupDrift = async (): Promise<boolean> => {
+    if (installerRoots === null || await reproveInstallerRoots()) return false;
+    writeStdout("Configured roots changed before provider startup; repair the exact roots.\n");
+    installerRoots = await repairInstallerRoots(installerRoots, false);
+    return true;
+  };
+  const providerOperation = async <T>(
+    operation: (workspace: string) => Promise<T>,
+    onProviderFailure?: () => T,
+  ): Promise<T> => {
+    for (;;) {
+      // A correction can itself be invalidated while answering another
+      // root question. Re-prove the complete repaired set before using it.
+      while (await repairStartupDrift()) { /* repeat guided correction */ }
+      const workspace = installerRoots?.repositoryRoots[0] ?? existing?.repositoryRoots[0] ?? home;
+      try {
+        return await operation(workspace);
+      } catch (error) {
+        if (await repairStartupDrift()) continue;
+        if (onProviderFailure !== undefined) return onProviderFailure();
+        throw error;
+      }
+    }
+  };
   let models = existing === null
     ? []
-    : await listAvailableOpenCodeModels(stateRoot, workspace, environment).catch(() => []);
+    : await providerOperation(workspace => listAvailableOpenCodeModels(stateRoot, workspace, environment), () => []);
+  if (installerRoots !== null && models.length > 0) {
+    const choice = (await question("Retain saved OpenCode credentials or login again? [retain/login]: ")).trim().toLowerCase();
+    if (choice === "login") models = [];
+    else if (choice !== "" && choice !== "retain") throw new TypeError("choose retain or login");
+  }
   const existingModelIndex = existing?.model === null || existing?.model === undefined
     ? -1
     : models.findIndex((model) =>
@@ -451,7 +573,7 @@ const runGuidedSetupInternal = async (
     existing.model !== null &&
     existing.repositoryRoots.length > 0 &&
     existingModelIndex >= 0 &&
-    !reconfigure
+    !reconfigure && publication === undefined
   ) {
     await loadConfiguredProjects(existing.repositoryRoots);
     if (upgrading) {
@@ -466,14 +588,14 @@ const runGuidedSetupInternal = async (
   }
 
   if (models.length === 0) {
-    const login = await loginOpenCodeProviderInteractive(
+    const login = await providerOperation(workspace => loginOpenCodeProviderInteractive(
       stateRoot,
       workspace,
       environment,
-    );
+    ));
     if (login.cancelled) return 130;
     if (login.exitCode !== 0) return login.exitCode;
-    models = await listAvailableOpenCodeModels(stateRoot, workspace, environment);
+    models = await providerOperation(workspace => listAvailableOpenCodeModels(stateRoot, workspace, environment));
   }
   if (models.length === 0) {
     throw new TypeError("no enabled OpenCode models are available after provider authentication");
@@ -502,7 +624,13 @@ const runGuidedSetupInternal = async (
 
   let repositoryRoots: readonly string[];
   let referenceRoots: readonly string[];
-  if (existing !== null && !reconfigure) {
+  if (installerRoots !== null) {
+    if (!await reproveInstallerRoots()) {
+      throw new TypeError("configured root identity changed after model selection; retry guided installation");
+    }
+    repositoryRoots = installerRoots.repositoryRoots;
+    referenceRoots = installerRoots.referenceRoots;
+  } else if (existing !== null && !reconfigure) {
     repositoryRoots = existing.repositoryRoots;
     referenceRoots = existing.referenceRoots;
   } else if (existing !== null) {
@@ -533,13 +661,16 @@ const runGuidedSetupInternal = async (
       : await collectAdditionalRoots(reference, "STAGE reference", question);
   }
 
-  await loadConfiguredProjects(repositoryRoots);
-  const config = buildOrderConfig(
-    selectedModel,
-    repositoryRoots,
-    referenceRoots,
-  );
-  writeOrderConfig(stateRoot, config);
+  // Installer roots were just re-proven after model selection. Persist
+  // those exact admitted paths through the existing stored-config writer;
+  // do not run a second canonicalizing builder that could substitute them.
+  if (installerRoots === null) await loadConfiguredProjects(repositoryRoots);
+  const config = installerRoots === null
+    ? buildOrderConfig(selectedModel, repositoryRoots, referenceRoots)
+    : OrderConfigSchema.parse({
+        version: 4, model: selectedModel, repositoryRoots, referenceRoots,
+      });
+  writeOrderConfig(stateRoot, config, publication);
   writeStdout(
     upgrading
       ? "Order configuration upgraded to version 4.\n"
@@ -556,7 +687,6 @@ export const runGuidedSetup = async (
 ): Promise<number> =>
   runGuidedSetupInternal(
     reconfigure,
-    false,
     environment,
     writeStdout,
     question,
@@ -567,13 +697,72 @@ export const runInstallerGuidedSetup = async (
   environment: NodeJS.ProcessEnv,
   writeStdout: (value: string) => void,
   question: SetupQuestion,
-  projectManifestCreated: (path: string) => void = () => {},
+  established: boolean,
+  publication: InstallerConfigPublication,
+  projectManifestCreated: (custody: InstallerManifestCustody) => void,
+  onIncompleteDatabaseInspection: () => void = () => {},
+  manifestEffects?: InstallerManifestEffects,
 ): Promise<number> =>
   runGuidedSetupInternal(
     false,
-    true,
     environment,
     writeStdout,
     question,
     projectManifestCreated,
+    publication,
+    established,
+    onIncompleteDatabaseInspection,
+    manifestEffects,
   );
+
+const observeInstalledReadiness = async (
+  environment: NodeJS.ProcessEnv,
+): Promise<InstallationReadiness> => {
+  // Credential transport is restricted to the exact installed loopback bind.
+  const bind = environment.PONTIVUS_ORDER_BIND;
+  if (bind === undefined || !/^(?:127\.0\.0\.1|\[::1\]):[0-9]+$/.test(bind)) {
+    throw new TypeError("installed daemon bind is not a valid loopback endpoint");
+  }
+  try {
+    const origin = new URL("http://" + bind);
+    const token = loadDaemonToken(resolveStateRoot(environment));
+    const response = await fetch(new URL("/api/settings/readiness", origin), {
+      method: "GET",
+      headers: { Authorization: "Bearer " + token },
+      redirect: "error",
+      signal: AbortSignal.timeout(180_000),
+    });
+    if (response.status !== 200) {
+      await response.body?.cancel();
+      throw new TypeError("readiness HTTP observation failed");
+    }
+    return InstallationReadinessSchema.parse(await response.json());
+  } catch {
+    // Never propagate a raw response, authorization header or transport detail.
+    throw new TypeError("canonical installed readiness could not be confirmed");
+  }
+};
+
+export const requireFreshInstallerReadiness = async (
+  environment: NodeJS.ProcessEnv,
+): Promise<void> => {
+  const readiness = await observeInstalledReadiness(environment);
+  if (!readiness.ready) {
+    throw new TypeError("fresh installation is not productively ready: " +
+      readiness.blockers.join(", ") + "; retry guided installation after correcting these blockers");
+  }
+};
+
+export const reportEstablishedInstallerReadiness = async (
+  environment: NodeJS.ProcessEnv,
+  writeStdout: (value: string) => void,
+): Promise<void> => {
+  try {
+    const readiness = await observeInstalledReadiness(environment);
+    writeStdout(readiness.ready
+      ? "Productive readiness confirmed.\n"
+      : "Requires operator action in browser Settings: " + readiness.blockers.join(", ") + "\n");
+  } catch {
+    writeStdout("Productive readiness could not be confirmed; inspect browser Settings.\n");
+  }
+};

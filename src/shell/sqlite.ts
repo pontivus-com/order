@@ -1,10 +1,12 @@
 import { Database } from "bun:sqlite";
-import { copyFileSync, existsSync, renameSync, unlinkSync } from "node:fs";
+import { closeSync, constants, existsSync, fstatSync, fsyncSync, lstatSync, mkdtempSync, openSync, readSync, realpathSync, renameSync, rmSync, unlinkSync, writeSync } from "node:fs";
 import { join } from "node:path";
 
 import {
   ApprovalIdSchema,
   ApprovalSchema,
+  CandidateReviewEventSchema,
+  type CandidateReviewEvent,
   ArtifactRefIdSchema,
   ArtifactRefSchema,
   ExecutionTaskIdSchema,
@@ -42,6 +44,18 @@ import { canonicalJson } from "../core/canonical.ts";
 import { parseSignedTaskBlockFromPlan } from "../core/execution.ts";
 import { workItemSourcePathForId } from "../core/work-item-source.ts";
 import { ensureSupportedStateRoot, sha256, statePaths } from "./runtime.ts";
+
+const candidateReviewSchemaSql = `
+CREATE TABLE candidateReviewEvents (
+  id TEXT PRIMARY KEY,
+  approvalId TEXT NOT NULL REFERENCES approvals(id),
+  sequence INTEGER NOT NULL CHECK (sequence >= 1),
+  occurredAt TEXT NOT NULL,
+  actor TEXT CHECK (actor IS NULL OR length(trim(actor)) > 0),
+  eventJson TEXT NOT NULL CHECK (json_valid(eventJson)),
+  UNIQUE (approvalId, sequence)
+) STRICT;
+`;
 
 const schemaSql = `
 CREATE TABLE workItems (
@@ -138,6 +152,7 @@ CREATE TABLE runEvents (
   eventJson TEXT NOT NULL CHECK (json_valid(eventJson)),
   UNIQUE (runId, sequence)
 ) STRICT;
+${candidateReviewSchemaSql}
 `;
 
 const recordRow = (value: unknown): Readonly<Record<string, unknown>> => {
@@ -229,33 +244,31 @@ const verifyCapabilities = (database: Database): void => {
 const userVersion = (database: Database): number =>
   queryIntegerScalar(database, "PRAGMA user_version;", "user_version");
 
-const ensureV3ArchivedProjection = (database: Database): void => {
-  const columns = database.query("PRAGMA table_info(workItems);").all()
-    .map((row) => recordRow(row).name);
-  if (columns.includes("archived")) return;
-  database.exec(
-    "ALTER TABLE workItems ADD COLUMN archived INTEGER NOT NULL DEFAULT 0 CHECK (archived IN (0, 1));",
-  );
+const requireV4ReviewSchema = (database: Database): void => {
+  const row = database.query("SELECT sql FROM sqlite_master WHERE type='table' AND name='candidateReviewEvents';").get();
+  if (row === null) throw new TypeError("Order SQLite v4 review table is missing");
+  const actual = recordRow(row).sql;
+  if (typeof actual !== "string" ||
+      actual.replace(/\s+/g, " ").trim().replace(/;$/, "") !== candidateReviewSchemaSql.replace(/\s+/g, " ").trim().replace(/;$/, "")) {
+    throw new TypeError("Order SQLite v4 review table contract is inconsistent");
+  }
 };
 
 const initializeSchema = (database: Database): void => {
   const version = userVersion(database);
-  if (version === 3) {
-    ensureV3ArchivedProjection(database);
+  if (version === 4) {
+    requireV4ReviewSchema(database);
     return;
   }
   if (version !== 0) {
-    throw new TypeError(`unsupported Order SQLite schema version: ${version}`);
+    throw new TypeError(`unsupported Order SQLite schema version: ${version}; installer migration required`);
   }
-
   database.transaction(() => {
     database.exec(schemaSql);
-    database.exec("PRAGMA user_version = 3;");
+    requireV4ReviewSchema(database);
+    database.exec("PRAGMA user_version = 4;");
   })();
-
-  if (userVersion(database) !== 3) {
-    throw new TypeError("Order SQLite schema initialization did not set user_version=3");
-  }
+  if (userVersion(database) !== 4) throw new TypeError("Order SQLite schema initialization did not set user_version=4");
 };
 
 const removeSqliteFiles = (path: string): void => {
@@ -304,29 +317,119 @@ export const verifyWalLocking = (stateRoot: string): void => {
   }
 };
 
-export type LegacyDatabaseArchive = Readonly<{
+type InstallerDatabaseFileIdentity = Readonly<{ device: bigint; inode: bigint }>;
+type InstallerDatabaseCandidate = InstallerDatabaseFileIdentity & Readonly<{ quiescedDigest?: string }>;
+
+type InstallerDatabaseRootIdentity = InstallerDatabaseFileIdentity & Readonly<{ canonicalPath: string }>;
+
+const installerDatabaseRootIdentity = (stateRoot: string): InstallerDatabaseRootIdentity => {
+  const canonicalPath = realpathSync(stateRoot);
+  const entry = lstatSync(canonicalPath, { bigint: true });
+  if (!entry.isDirectory()) throw new TypeError("installer database state root is not a directory: " + stateRoot);
+  return { canonicalPath, device: entry.dev, inode: entry.ino };
+};
+
+const requireInstallerDatabaseRoot = (archive: InstallerDatabaseCustody): void => {
+  const observed = installerDatabaseRootIdentity(archive.stateRoot);
+  if (observed.canonicalPath !== archive.rootIdentity.canonicalPath ||
+      observed.device !== archive.rootIdentity.device || observed.inode !== archive.rootIdentity.inode) {
+    throw new TypeError("installer database state root identity changed: " + archive.stateRoot);
+  }
+};
+
+// Invocation-local filesystem custody is independent of rollback-archive
+// policy. A current v4 or absent database has no archive to restore.
+export type InstallerDatabaseCustody = Readonly<{
   stateRoot: string;
+  rootIdentity: InstallerDatabaseRootIdentity;
+  suffix: string | null;
+  originals: readonly Readonly<{ path: string; identity: InstallerDatabaseFileIdentity | null; digest: string | null }>[];
+  preparedCandidates: ReadonlyMap<string, InstallerDatabaseFileIdentity>;
+}>;
+
+export type LegacyDatabaseArchive = InstallerDatabaseCustody & Readonly<{
   suffix: string;
   archiveDatabase: string;
 }>;
+
+const inspectInstallerDatabaseFile = (path: string): InstallerDatabaseFileIdentity | null => {
+  const entry = lstatSync(path, { bigint: true, throwIfNoEntry: false });
+  if (entry === undefined) return null;
+  if (!entry.isFile()) throw new TypeError("installer database path is not a regular file: " + path);
+  const descriptor = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
+  try {
+    const stat = fstatSync(descriptor, { bigint: true });
+    const after = lstatSync(path, { bigint: true });
+    if (!stat.isFile() || !after.isFile() || stat.dev !== entry.dev || stat.ino !== entry.ino ||
+        stat.dev !== after.dev || stat.ino !== after.ino) {
+      throw new TypeError("installer database path changed during inspection: " + path);
+    }
+    return { device: stat.dev, inode: stat.ino };
+  } finally { closeSync(descriptor); }
+};
+
+const sameInstallerDatabaseFile = (
+  observed: InstallerDatabaseFileIdentity | null,
+  expected: InstallerDatabaseFileIdentity | null,
+): boolean => observed === null || expected === null ? observed === expected :
+  observed.device === expected.device && observed.inode === expected.inode;
+
+const requireInstallerDatabaseFile = (path: string, expected: InstallerDatabaseFileIdentity | null): void => {
+  if (!sameInstallerDatabaseFile(inspectInstallerDatabaseFile(path), expected)) {
+    throw new TypeError("installer database identity changed or missing: " + path);
+  }
+};
+
+// Hash through the no-follow descriptor, not a pathname reopened after proof.
+const installerDatabaseDigest = (path: string, expected: InstallerDatabaseFileIdentity | null): string | null => {
+  requireInstallerDatabaseFile(path, expected);
+  if (expected === null) return null;
+  const descriptor = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
+  try {
+    const before = fstatSync(descriptor, { bigint: true });
+    if (!before.isFile() || before.dev !== expected.device || before.ino !== expected.inode) {
+      throw new TypeError("installer database changed before reading: " + path);
+    }
+    const hash = new Bun.CryptoHasher("sha256");
+    const buffer = Buffer.allocUnsafe(64 * 1024);
+    for (;;) {
+      const count = readSync(descriptor, buffer, 0, buffer.length, null);
+      if (count === 0) break;
+      hash.update(buffer.subarray(0, count));
+    }
+    const after = fstatSync(descriptor, { bigint: true });
+    if (after.size !== before.size || after.mtimeNs !== before.mtimeNs || after.ctimeNs !== before.ctimeNs) {
+      throw new TypeError("installer database changed while reading: " + path);
+    }
+    requireInstallerDatabaseFile(path, expected);
+    return hash.digest("hex");
+  } finally { closeSync(descriptor); }
+};
+
+const requireArchivedDatabaseOriginal = (
+  path: string,
+  original: LegacyDatabaseArchive["originals"][number],
+): void => {
+  if (installerDatabaseDigest(path, original.identity) !== original.digest) {
+    throw new TypeError("installer database archive bytes changed: " + path);
+  }
+};
 
 const orderDatabaseFiles = (path: string): readonly string[] =>
   [path, `${path}-wal`, `${path}-shm`];
 
 export const readLegacyWorkItemRepositoryRootsForInstall = (
   stateRoot: string,
+  onIncompleteRestore: () => void = () => {},
 ): readonly string[] => {
-  const path = statePaths(stateRoot).database;
-  if (!existsSync(path)) return [];
+  const originals = captureInstallerDatabaseOriginals(stateRoot, onIncompleteRestore);
+  if (originals[0]!.identity === null) return [];
 
-  const database = new Database(path, {
-    readonly: true,
-    create: false,
-    strict: true,
-  });
-  try {
+  // This query precedes archive preparation during legacy guided setup.
+  // Opening the original directly, even readonly, can mutate its WAL index.
+  return probeInstallerDatabase(stateRoot, originals, database => {
     const version = userVersion(database);
-    if (version === 3 || version === 2) return [];
+    if (version === 4 || version === 3 || version === 2) return [];
     if (version !== 1) {
       throw new TypeError(
         `unsupported Order SQLite schema version during update: ${version}`,
@@ -342,71 +445,406 @@ export const readLegacyWorkItemRepositoryRootsForInstall = (
         }
         return repositoryRoot;
       });
+  }, onIncompleteRestore);
+};
+
+// Invocation-local filesystem boundary shared by prepare and restore.
+// Production always uses the same filesystem operations; tests can fail an exact effect.
+type InstallerDatabaseEffects = Readonly<{
+  rename: typeof renameSync;
+  copy: (source: number, target: number, sourcePath: string, targetPath: string) => void;
+  unlink: typeof unlinkSync;
+}>;
+const installerDatabaseEffects: InstallerDatabaseEffects = {
+  rename: renameSync,
+  copy: (source, target) => {
+    const buffer = Buffer.allocUnsafe(64 * 1024);
+    for (;;) {
+      const count = readSync(source, buffer, 0, buffer.length, null);
+      if (count === 0) break;
+      let offset = 0;
+      while (offset < count) {
+        const written = writeSync(target, buffer, offset, count - offset);
+        if (written === 0) throw new Error("installer database copy made no progress");
+        offset += written;
+      }
+    }
+    fsyncSync(target);
+  },
+  unlink: unlinkSync,
+};
+
+const copyInstallerDatabaseOriginal = (
+  original: LegacyDatabaseArchive["originals"][number],
+  from: string,
+  to: string,
+  effects: InstallerDatabaseEffects,
+  onCreated: (identity: InstallerDatabaseFileIdentity) => void,
+): void => {
+  requireArchivedDatabaseOriginal(from, original);
+  if (original.identity === null) throw new TypeError("cannot copy absent installer database file: " + from);
+  const source = openSync(from, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
+  let targetIdentity: InstallerDatabaseFileIdentity;
+  try {
+    const opened = fstatSync(source, { bigint: true });
+    if (!opened.isFile() || opened.dev !== original.identity.device || opened.ino !== original.identity.inode) {
+      throw new TypeError("installer database source changed before copy: " + from);
+    }
+    // Keep the exclusive target descriptor open through the copy.
+    const target = openSync(to, constants.O_WRONLY | constants.O_CREAT | constants.O_EXCL | constants.O_NOFOLLOW, 0o600);
+    try {
+      const stat = fstatSync(target, { bigint: true });
+      targetIdentity = { device: stat.dev, inode: stat.ino };
+      onCreated(targetIdentity);
+      effects.copy(source, target, from, to);
+    } finally { closeSync(target); }
+  } finally { closeSync(source); }
+  requireArchivedDatabaseOriginal(from, original);
+  if (installerDatabaseDigest(to, targetIdentity) !== original.digest) {
+    throw new TypeError("installer database copy differs from original: " + to);
+  }
+};
+
+const probeInstallerDatabase = <T>(
+  stateRoot: string,
+  originals: LegacyDatabaseArchive["originals"],
+  read: (database: Database) => T,
+  onIncompleteRestore: () => void,
+): T => {
+  let result: T;
+  try {
+    result = readIsolatedInstallerDatabase(stateRoot, originals, read);
+  } catch (error) {
+    const failures: unknown[] = [];
+    for (const original of originals) {
+      try { requireArchivedDatabaseOriginal(original.path, original); }
+      catch (failure) { failures.push(failure); }
+    }
+    if (failures.length > 0) {
+      onIncompleteRestore();
+      throw new AggregateError([error, ...failures], String(error) + "; original database custody incomplete: " + failures.map(String).join("; "));
+    }
+    throw error;
+  }
+  try {
+    for (const original of originals) requireArchivedDatabaseOriginal(original.path, original);
+  } catch (error) {
+    onIncompleteRestore();
+    throw error;
+  }
+  return result;
+};
+
+const readIsolatedInstallerDatabase = <T>(
+  stateRoot: string,
+  originals: LegacyDatabaseArchive["originals"],
+  read: (database: Database) => T,
+): T => {
+  // Even a readonly SQLite connection can update its WAL index or create
+  // sidecars. Read the schema version from an isolated, invocation-owned copy
+  // so the exact admitted original namespace never participates in that open.
+  const probe = mkdtempSync(join(stateRoot, ".installer-sqlite-probe."));
+  let primary: unknown;
+  try {
+    const target = join(probe, "order.sqlite3");
+    const paths = orderDatabaseFiles(target);
+    for (const [index, original] of originals.entries()) {
+      if (original.identity !== null) {
+        copyInstallerDatabaseOriginal(original, original.path, paths[index]!, installerDatabaseEffects, () => {});
+      }
+    }
+    const database = new Database(target, { readonly: true, create: false, strict: true });
+    try { return read(database); } finally { database.close(); }
+  } catch (error) {
+    primary = error;
+    throw error;
   } finally {
-    database.close();
+    try { rmSync(probe, { recursive: true }); }
+    catch (failure) {
+      const message = "installer database probe cleanup incomplete at " + probe + ": " + String(failure);
+      if (primary !== undefined) throw new AggregateError([primary, failure], String(primary) + "; " + message);
+      throw new Error(message, { cause: failure });
+    }
+  }
+};
+
+const captureInstallerDatabaseOriginals = (
+  stateRoot: string,
+  onIncompleteRestore: () => void,
+): LegacyDatabaseArchive["originals"] => {
+  const path = statePaths(stateRoot).database;
+  try {
+    const originals = orderDatabaseFiles(path).map(candidate => {
+      const identity = inspectInstallerDatabaseFile(candidate);
+      return { path: candidate, identity, digest: installerDatabaseDigest(candidate, identity) };
+    });
+    if (originals[0]!.identity === null && originals.some(original => original.identity !== null)) {
+      throw new TypeError("installer database sidecars exist without the primary database: " + path);
+    }
+    for (const [index, original] of originals.entries()) {
+      if (original.identity !== null && originals.slice(0, index).some(previous =>
+          previous.identity !== null && sameInstallerDatabaseFile(previous.identity, original.identity))) {
+        throw new TypeError("installer original database paths alias one physical object: " + original.path);
+      }
+    }
+    return originals;
+  } catch (error) {
+    // No mutation was performed here, but the prior namespace cannot be
+    // admitted for dependent restart when its exact original is unprovable.
+    onIncompleteRestore();
+    throw error;
   }
 };
 
 export const prepareOrderDatabaseForInstall = (
   stateRoot: string,
+  onIncompleteRestore: () => void = () => {},
+  effects: InstallerDatabaseEffects = installerDatabaseEffects,
+  onUnarchived: (custody: InstallerDatabaseCustody) => void = () => {},
 ): LegacyDatabaseArchive | null => {
   const path = statePaths(stateRoot).database;
-  if (!existsSync(path)) return null;
-
-  const database = new Database(path, {
-    readonly: true,
-    create: false,
-    strict: true,
-  });
-  let version: number;
+  // A missing state root has no database to archive. A dangling or
+  // uninspectable root must not be misclassified as proven absence.
+  if (lstatSync(stateRoot, { throwIfNoEntry: false }) === undefined) return null;
+  let rootIdentity: InstallerDatabaseRootIdentity;
+  try { rootIdentity = installerDatabaseRootIdentity(stateRoot); }
+  catch (error) { onIncompleteRestore(); throw error; }
+  const originals = captureInstallerDatabaseOriginals(stateRoot, onIncompleteRestore);
+  const version = originals[0]!.identity === null ? null : probeInstallerDatabase(stateRoot, originals, userVersion, onIncompleteRestore);
   try {
-    version = userVersion(database);
-  } finally {
-    database.close();
+    const current = installerDatabaseRootIdentity(stateRoot);
+    if (current.canonicalPath !== rootIdentity.canonicalPath ||
+        !sameInstallerDatabaseFile(current, rootIdentity)) {
+      throw new TypeError("installer database state root changed during preparation: " + stateRoot);
+    }
+  } catch (error) { onIncompleteRestore(); throw error; }
+  if (version === null || version === 4) {
+    const preparedCandidates = new Map<string, InstallerDatabaseFileIdentity>();
+    for (const original of originals) {
+      if (original.identity !== null) preparedCandidates.set(original.path, original.identity);
+    }
+    const custody: InstallerDatabaseCustody = {
+      stateRoot, rootIdentity, suffix: null, originals, preparedCandidates,
+    };
+    onUnarchived(custody);
+    try { requireInstallerDatabaseCandidates(custody, observeInstallerDatabaseCandidates(custody, false), true); }
+    catch (error) { onIncompleteRestore(); throw error; }
+    return null;
   }
-
-  if (version === 3) return null;
-  if (version !== 1 && version !== 2) {
+  if (version !== 1 && version !== 2 && version !== 3) {
     throw new TypeError(`unsupported Order SQLite schema version during update: ${version}`);
   }
 
   const suffix = `.legacy-v${version}.${crypto.randomUUID()}`;
-  const moved: string[] = [];
+  const moved: LegacyDatabaseArchive["originals"][number][] = [];
+  const copies = new Map<string, InstallerDatabaseFileIdentity>();
+  const archive: LegacyDatabaseArchive = {
+    stateRoot, rootIdentity, suffix, archiveDatabase: path + suffix, originals, preparedCandidates: copies,
+  };
   try {
-    for (const candidate of orderDatabaseFiles(path)) {
-      if (!existsSync(candidate)) continue;
-      renameSync(candidate, candidate + suffix);
-      moved.push(candidate);
+    for (const original of originals) {
+      requireInstallerDatabaseRoot(archive);
+      requireArchivedDatabaseOriginal(original.path, original);
+      requireInstallerDatabaseFile(original.path + suffix, null);
+      if (original.identity === null) continue;
+      effects.rename(original.path, original.path + suffix);
+      moved.push(original);
     }
-    if (version === 2) {
-      for (const candidate of moved) {
-        copyFileSync(candidate + suffix, candidate);
+    if (version === 2 || version === 3) {
+      for (const original of moved) {
+        requireInstallerDatabaseRoot(archive);
+        copyInstallerDatabaseOriginal(original, original.path + suffix, original.path,
+          effects, identity => { copies.set(original.path, identity); });
       }
     }
+    requireInstallerDatabaseCandidates(archive, observeInstallerDatabaseCandidates(archive, false), true);
   } catch (error) {
-    for (const candidate of moved) {
-      if (existsSync(candidate)) unlinkSync(candidate);
+    const failures: unknown[] = [];
+    for (const original of [...moved].reverse()) {
+      try {
+        // Never destroy a candidate unless the exact archived original survives.
+        requireInstallerDatabaseRoot(archive);
+        requireArchivedDatabaseOriginal(original.path + suffix, original);
+        const candidate = inspectInstallerDatabaseFile(original.path);
+        if (candidate !== null) {
+          const owned = copies.get(original.path);
+          if (owned === undefined || !sameInstallerDatabaseFile(candidate, owned)) {
+            throw new TypeError("ambiguous installer database candidate retained: " + original.path);
+          }
+        }
+        effects.rename(original.path + suffix, original.path);
+        requireArchivedDatabaseOriginal(original.path, original);
+      } catch (failure) {
+        failures.push(new Error("database compensation incomplete at " + original.path +
+          "; archive path: " + original.path + suffix + "; " + String(failure), { cause: failure }));
+      }
     }
-    for (const candidate of moved.reverse()) {
-      const archived = candidate + suffix;
-      if (existsSync(archived)) renameSync(archived, candidate);
+    // Paths not moved by this invocation must still match their pre-effect
+    // original membership; a failed precondition is not proof of restoration.
+    for (const original of originals) {
+      if (moved.includes(original)) continue;
+      try { requireInstallerDatabaseRoot(archive); requireArchivedDatabaseOriginal(original.path, original); }
+      catch (failure) {
+        failures.push(new Error("untouched database path cannot be proven: " + original.path +
+          "; " + String(failure), { cause: failure }));
+      }
+    }
+    if (failures.length > 0) {
+      onIncompleteRestore();
+      throw new AggregateError([error, ...failures], "installer database prepare failed: " + String(error) + "; incomplete restoration at " + failures.map(String).join("; "));
     }
     throw error;
   }
+  return archive;
+};
 
-  return { stateRoot, suffix, archiveDatabase: path + suffix };
+// Observe the invocation's candidate namespace before stopping its service.
+// A missing map entry is intentionally unproven, distinct from proven absence.
+export const observeInstallerDatabaseCandidates = (
+  archive: InstallerDatabaseCustody,
+  candidateEffectsStarted: boolean,
+  priorCandidates?: ReadonlyMap<string, InstallerDatabaseCandidate | null>,
+  quiesced = false,
+): ReadonlyMap<string, InstallerDatabaseCandidate | null> => {
+  const observed = new Map<string, InstallerDatabaseCandidate | null>();
+  try { requireInstallerDatabaseRoot(archive); }
+  catch { return observed; }
+  for (const original of archive.originals) {
+    const prepared = archive.preparedCandidates.get(original.path) ?? null;
+    if (!candidateEffectsStarted) {
+      observed.set(original.path, prepared === null ? null : { ...prepared, quiescedDigest: original.digest ?? undefined });
+      continue;
+    }
+    try {
+      // A failed earlier custody observation never grants a later writer
+      // permission to adopt an unknown path.
+      if (priorCandidates !== undefined && !priorCandidates.has(original.path)) continue;
+      const candidate = inspectInstallerDatabaseFile(original.path);
+      // The v2 copy and any primary established by a previous admitted
+      // writer must remain the same object. Only the initial absent primary
+      // and WAL/SHM may evolve under the admitted maintenance writer.
+      if (original.path === statePaths(archive.stateRoot).database) {
+        const expectedPrimary = priorCandidates === undefined ? prepared : priorCandidates.get(original.path) ?? null;
+        if (expectedPrimary !== null && !sameInstallerDatabaseFile(candidate, expectedPrimary)) continue;
+      }
+      if (archive.suffix !== null && candidate !== null && archive.originals.some(entry =>
+          entry.identity !== null && sameInstallerDatabaseFile(candidate, entry.identity))) continue;
+      const digest = quiesced && candidate !== null ? installerDatabaseDigest(original.path, candidate) : null;
+      observed.set(original.path, candidate === null ? null : digest === null ? candidate : { ...candidate, quiescedDigest: digest });
+    } catch { /* An unprovable pathname must not prevent independent compensation. */ }
+  }
+  // One physical object cannot be attributed to two distinct DB/WAL/SHM
+  // paths. Do not compensate either member of an ambiguous alias.
+  const aliases = new Set<string>();
+  for (const [path, candidate] of observed) {
+    if (candidate === null) continue;
+    for (const [otherPath, other] of observed) {
+      if (path !== otherPath && other !== null && sameInstallerDatabaseFile(candidate, other)) {
+        aliases.add(path);
+        aliases.add(otherPath);
+      }
+    }
+  }
+  for (const path of aliases) observed.delete(path);
+  return observed;
+};
+
+// At each admitted writer boundary, prove the expected namespace before
+// permitting migration or startup to acquire it. Unexpected paths never gain
+// custody merely because a later service observation finds them.
+export const requireInstallerDatabaseCandidates = (
+  archive: InstallerDatabaseCustody,
+  expected: ReadonlyMap<string, InstallerDatabaseCandidate | null>,
+  preparedOnly: boolean,
+): void => {
+  requireInstallerDatabaseRoot(archive);
+  for (const original of archive.originals) {
+    if (archive.suffix !== null) requireArchivedDatabaseOriginal(original.path + archive.suffix, original);
+    const candidate = expected.get(original.path);
+    if (candidate === undefined || !expected.has(original.path)) {
+      throw new TypeError("installer database candidate custody unavailable: " + original.path);
+    }
+    requireInstallerDatabaseFile(original.path, candidate);
+    const expectedDigest = candidate?.quiescedDigest ?? (preparedOnly ? original.digest : null);
+    if (candidate !== null && expectedDigest !== null &&
+        installerDatabaseDigest(original.path, candidate) !== expectedDigest) {
+      throw new TypeError("installer database candidate changed before admitted effects: " + original.path);
+    }
+  }
+};
+
+// The same post-quiescence custody test protects both destructive legacy
+// compensation and non-mutating v4/fresh restart admission.
+const requireInstallerDatabaseCompensationCandidate = (
+  path: string,
+  candidates: ReadonlyMap<string, InstallerDatabaseCandidate | null>,
+  allowDisappearance: boolean,
+): InstallerDatabaseFileIdentity | null => {
+  const candidate = inspectInstallerDatabaseFile(path);
+  const observed = candidates.get(path);
+  if (!candidates.has(path) ||
+      (candidate !== null && (observed === undefined || !sameInstallerDatabaseFile(candidate, observed))) ||
+      (candidate === null && observed !== null && !allowDisappearance)) {
+    throw new TypeError("ambiguous installer database candidate retained: " + path);
+  }
+  if (candidate !== null && observed?.quiescedDigest !== undefined &&
+      installerDatabaseDigest(path, candidate) !== observed.quiescedDigest) {
+    throw new TypeError("ambiguous installer database candidate bytes retained: " + path);
+  }
+  return candidate;
+};
+
+export const requireUnarchivedInstallerDatabaseForRestart = (
+  custody: InstallerDatabaseCustody,
+  candidates: ReadonlyMap<string, InstallerDatabaseCandidate | null>,
+  serviceStopped: boolean,
+): void => {
+  if (custody.suffix !== null) throw new TypeError("expected unarchived installer database custody");
+  requireInstallerDatabaseRoot(custody);
+  for (const original of custody.originals) {
+    requireInstallerDatabaseCompensationCandidate(original.path, candidates,
+      serviceStopped && original.path !== statePaths(custody.stateRoot).database);
+  }
 };
 
 export const restoreOrderDatabaseAfterFailedInstall = (
   archive: LegacyDatabaseArchive,
+  effects: InstallerDatabaseEffects = installerDatabaseEffects,
+  // Existing direct callers own the entire quiesced prepare/use/restore sequence.
+  candidates = observeInstallerDatabaseCandidates(archive, true),
+  allowSidecarDisappearance = true,
 ): void => {
-  const path = statePaths(archive.stateRoot).database;
-  for (const candidate of orderDatabaseFiles(path)) {
-    if (existsSync(candidate)) unlinkSync(candidate);
+  requireInstallerDatabaseRoot(archive);
+  const expectedPaths = orderDatabaseFiles(statePaths(archive.stateRoot).database);
+  if (archive.originals.length !== expectedPaths.length ||
+      expectedPaths.some((path, index) => archive.originals[index]?.path !== path)) {
+    throw new TypeError("installer database archive membership is inconsistent");
   }
-  for (const candidate of orderDatabaseFiles(path)) {
-    const archived = candidate + archive.suffix;
-    if (existsSync(archived)) renameSync(archived, candidate);
+  const failures: unknown[] = [];
+  for (const original of [...archive.originals].reverse()) {
+    const archived = original.path + archive.suffix;
+    try {
+      requireInstallerDatabaseRoot(archive);
+      requireArchivedDatabaseOriginal(archived, original);
+      const candidate = requireInstallerDatabaseCompensationCandidate(original.path, candidates,
+        allowSidecarDisappearance && original.path !== expectedPaths[0]);
+      // A previously observed WAL/SHM may disappear on verified service stop.
+      if (original.identity === null) {
+        if (candidate !== null) effects.unlink(original.path);
+        requireInstallerDatabaseFile(original.path, null);
+      } else {
+        // Atomic replacement keeps the archived original available until
+        // the restore succeeds; a missing archive never deletes a candidate.
+        effects.rename(archived, original.path);
+        requireArchivedDatabaseOriginal(original.path, original);
+      }
+    } catch (error) {
+      failures.push(new Error("database restoration incomplete at " + original.path +
+        "; archive path: " + archived + "; " + String(error), { cause: error }));
+    }
+  }
+  if (failures.length > 0) {
+    throw new AggregateError(failures, "installer database restoration incomplete: " + failures.map(String).join("; "));
   }
 };
 
@@ -420,6 +858,8 @@ export const openOrderDatabase = (stateRoot: string): Database => {
   });
 
   try {
+    const version = userVersion(database);
+    if (version !== 0 && version !== 4) throw new TypeError(`unsupported Order SQLite schema version: ${version}; installer migration required`);
     configureDatabase(database);
     verifyCapabilities(database);
     initializeSchema(database);
@@ -647,6 +1087,53 @@ export const migrateOrderDatabaseV2ToV3 = (
   }
 };
 
+// Installer-only v3→v4 migration. Existing archive/copy custody remains the
+// sole owner of original bytes; never migrate the only original database.
+export const migrateOrderDatabaseV3ToV4 = (
+  archive: LegacyDatabaseArchive,
+  candidates: ReadonlyMap<string, InstallerDatabaseCandidate | null>,
+): void => {
+  const path = statePaths(archive.stateRoot).database;
+  if (!archive.preparedCandidates.has(path) ||
+      (!archive.suffix.startsWith(".legacy-v2.") && !archive.suffix.startsWith(".legacy-v3."))) {
+    throw new TypeError("v3→v4 requires an archived original and verified migration candidate");
+  }
+  requireInstallerDatabaseCandidates(archive, candidates, false);
+  const database = new Database(path, { create: false, strict: true });
+  try {
+    configureDatabase(database);
+    verifyCapabilities(database);
+    if (userVersion(database) !== 3) throw new TypeError("v3→v4 requires exact schema version 3");
+    const originalTables = database.query("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name;")
+      .all().map(row => recordRow(row).name);
+    if (originalTables.some(name => typeof name !== "string") ||
+        !["workItems", "workItemSources", "artifactRefs", "artifactDependencies", "approvals", "executionTasks", "runs", "runEvents"].every(name => originalTables.includes(name)) ||
+        originalTables.includes("candidateReviewEvents")) throw new TypeError("v3 schema table membership is inconsistent");
+    // All old table rows, not merely counts, must be identical inside the
+    // additive schema transaction. No historical completion is synthesized.
+    const snapshot = (): string => canonicalJson(originalTables.map(name => {
+      if (typeof name !== "string") throw new TypeError("invalid table name");
+      const quoted = '"' + name.replaceAll('"', '""') + '"';
+      const rows = database.query("SELECT * FROM " + quoted).all().map(row => canonicalJson(recordRow(row))).sort();
+      return [name, rows];
+    }));
+    database.transaction(() => {
+      const before = snapshot();
+      database.exec(candidateReviewSchemaSql);
+      requireV4ReviewSchema(database);
+      if (snapshot() !== before) throw new TypeError("v3→v4 altered historical rows");
+      if (database.query("PRAGMA foreign_key_check;").all().length !== 0 ||
+          queryTextScalar(database, "PRAGMA integrity_check;", "integrity_check") !== "ok") {
+        throw new TypeError("v3→v4 integrity verification failed");
+      }
+      database.exec("PRAGMA user_version = 4;");
+      if (userVersion(database) !== 4) throw new TypeError("v3→v4 failed to establish schema version");
+    })();
+  } finally {
+    database.close();
+  }
+};
+
 export const loadWorkItems = (
   database: Database,
 ): readonly WorkItem[] =>
@@ -850,6 +1337,44 @@ export const storeRunEvent = (
       value.occurredAt,
       canonicalJson(value.event),
     );
+};
+
+export const loadCandidateReviewEvents = (
+  database: Database, approvalId: ApprovalId,
+): readonly CandidateReviewEvent[] => {
+  const id = ApprovalIdSchema.parse(approvalId);
+  const rows = database.query(
+    "SELECT id, approvalId, sequence, occurredAt, actor, eventJson FROM candidateReviewEvents WHERE approvalId=?1 ORDER BY sequence;",
+  ).all(id);
+  return rows.map((value, index) => {
+    const row = recordRow(value);
+    const event = CandidateReviewEventSchema.parse({
+      id: row.id, approvalId: row.approvalId, sequence: row.sequence, occurredAt: row.occurredAt,
+      actor: row.actor, event: persistedJson(row.eventJson),
+    });
+    if (event.approvalId !== id || event.sequence !== index + 1 || event.actor !== row.actor ||
+        canonicalJson(event.event) !== row.eventJson) {
+      throw new TypeError("persisted CandidateReviewEvent stream is not canonical");
+    }
+    return event;
+  });
+};
+
+// Call inside the existing owning WorkItem transaction. The append checks
+// sequence and exact canonical carrier; FK and UNIQUE remain enforced by SQL.
+export const storeCandidateReviewEvent = (
+  database: Database, input: CandidateReviewEvent,
+): void => {
+  const event = CandidateReviewEventSchema.parse(input);
+  const history = loadCandidateReviewEvents(database, event.approvalId);
+  if (event.sequence !== history.length + 1 ||
+      (history.length === 0) !== (event.event.tag === "OPENED") ||
+      history.some(entry => entry.id === event.id || entry.event.tag === "ACCEPT" || entry.event.tag === "REANALYSIS_REQUESTED")) {
+    throw new TypeError("CandidateReviewEvent append identity or sequence conflict");
+  }
+  database.query(
+    "INSERT INTO candidateReviewEvents(id, approvalId, sequence, occurredAt, actor, eventJson) VALUES (?1,?2,?3,?4,?5,?6);",
+  ).run(event.id, event.approvalId, event.sequence, event.occurredAt, event.actor, canonicalJson(event.event));
 };
 
 export const storeRun = (

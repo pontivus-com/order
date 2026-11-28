@@ -183,6 +183,7 @@ The derivation uses evidence of actual entry:
 - each accepted `STAGE_COMPLETED` proves its owning stage and destination were reached;
 - R3 `READY_FOR_SIGNOFF` proves AWAITING_SIGNOFF was reached;
 - materialized signed execution tasks or an EXECUTION Run prove AWAITING_SIGNOFF and EXECUTION were reached;
+- current AWAITING_ACCEPTANCE and durable admitted QA review events prove Acceptance reach; historical pre-feature COMPLETE never proves Acceptance reach;
 - current COMPLETE proves COMPLETE, while prior-stage reach remains evidence-derived so an R1-terminal investigation/audit does not falsely appear to have traversed R2..EXECUTION.
 
 A lifecycle `ArtifactRef` **does not prove stage entry**. Repository-native deterministic lifecycle Markdown may exist as a rediscovered draft before its owner stage is reached. Treating that material fact as reach evidence would fabricate lifecycle history.
@@ -232,10 +233,17 @@ The daemon is authoritative for mutation admission. The browser uses the same pu
 | Save lifecycle document | editable already-reached owner; no active Run; expected hash current | return/remain at artifact owner |
 | Resume pre-signoff blocker | same stage / BLOCKED; blocker proven resolved; no active Run | same stage / ACTIVE |
 | Sign off | AWAITING_SIGNOFF / ACTIVE; exact displayed package still current; no competing mutation | EXECUTION / ACTIVE + Approval/tasks |
-| Reconcile stale approval authority | AWAITING_SIGNOFF / ACTIVE; package inspection reports exact STALE(owner); submitted expected owner still matches; no competing mutation | return lifecycle ownership to that exact upstream owner / ACTIVE; no repository bytes are changed |
-| Resume execution | EXECUTION / BLOCKED; exactly current blocked task; approval current; blocker resolved | EXECUTION / ACTIVE; blocked task becomes eligible |
+| Reconcile stale approval authority | AWAITING_SIGNOFF or AWAITING_ACCEPTANCE / ACTIVE; exact material STALE(owner), expected owner and (Acceptance only) Approval/sequence still match; no competing mutation | return exact owner / ACTIVE via P6 §11; no source or repository-byte mutation |
+| Reconcile stale Acceptance source | current Acceptance / ACTIVE; pure source recovery decision and exact Approval/sequence, semantic source drift rechecked; no competing mutation | existing source reconciliation command under P6 §38.3; R1 / ACTIVE, no invalid source adoption or other WorkItem mutation |
+| Resume execution | EXECUTION / BLOCKED; exactly current blocked task; approval current; blocker resolved | EXECUTION / ACTIVE; ordinary task becomes eligible; QA-linked task resumes exact linked review/repair, never unrelated BUILDER |
 | Start current implementation task | EXECUTION / ACTIVE; submitted WorkItem/task identifies the exact derived `ExecutionOwner.CURRENT_TASK`; task TODO/eligible; approval current; no running task/coordinator execution | exact task RUNNING + exact BUILDER Run; existing coordinator continues that task asynchronously |
-| Archive/restore | existing archive policy; no active Run; no competing mutation | archive projection only; lifecycle unchanged |
+| Archive/restore | existing archive policy; no active Run; no active signed Acceptance; no competing mutation | archive projection only; lifecycle unchanged |
+| Report | current coherent Acceptance; exact current member/hash/sequence; no queued work | REPORT, same stage |
+| Submit | open/retest-failed reports of one current candidate-producing task, exact current identity | SUBMIT, same stage until scheduler admission |
+| Retest/disposition | exact current member/finding and P6 retest or withdrawal predicates; no queued work | RETEST_FAILED or DISPOSITION, same stage |
+| Reanalysis | current Acceptance, exact Approval/sequence; current no-op challenge with matching set hash or rechecked unavailable proof with null expected hash; no active correction | durable REANALYSIS_REQUESTED, return PLAN; queued submission becomes historical |
+| Accept | exact verified current set, no unresolved reports/queued work, current authority | ACCEPT and COMPLETE atomically |
+| Prepare test copy | current candidate-producing member, no queued work | isolated replay copy, no state change |
 
 A selected historical material item never satisfies a current-action precondition merely because it contains an old control. Action ownership always resolves from the current canonical WorkItem/Run/task/proposal/input facts.
 
@@ -332,6 +340,27 @@ Malformed or contradictory canonical histories do not produce a guessed variant.
 
 `ObservationCoherence` is also closed: it is `CONVERGING` only when already-loaded canonical facts expose a controlling reaction not yet reflected by its dependent owner (for example STAGE completion before the selected WorkItem stage changes, STAGE block before WorkItem status changes, or execution Run terminalization before task/WorkItem reaction is visible). Otherwise those canonical facts are `COHERENT`. Browser query-pending/refetch state may additionally suppress controls as transport behavior, but it does not create another workflow semantic state and never authorizes the UI to synthesize the missing transition.
 
+Acceptance-specific decisions derive in the existing pure lifecycle owner from canonical P6 review events, current Approval/task/Run and candidate members. No exported WorkflowState aggregate or browser-owned status. Apply P3 §§14.8A/21.9 attention precedence; queued submission -> PROCESSING, actionable submit/retest/accept -> ACTIONABLE, missing proof -> BLOCKER, stale authority -> STALE_AUTHORITY. Correction uses ExecutionOwner. Observation coherence covers OPENED/REVIEW_STARTED/REVIEW_COMPLETED/ACCEPT versus dependent WorkItem/task/Run facts; suppress mutation until coherent.
+
+#### Acceptance action decision
+
+The existing pure lifecycle owner derives the following closed current-decision discriminants from canonical values, not a stored state or transport representation:
+
+```ts
+type AcceptanceDecision =
+  | { readonly tag: "NONE" }
+  | { readonly tag: "RECONCILE_AUTHORITY"; readonly owner: UpstreamReturnStage }
+  | { readonly tag: "RECONCILE_SOURCE" }
+  | { readonly tag: "REANALYSE_PROOF_UNAVAILABLE" }
+  | { readonly tag: "QUEUED"; readonly submissionId: CandidateReviewEventId }
+  | { readonly tag: "REANALYSE_NO_OP"; readonly findingIds: readonly CandidateReviewEventId[] }
+  | { readonly tag: "SUBMIT_FINDINGS"; readonly findingIds: readonly CandidateReviewEventId[] }
+  | { readonly tag: "RETEST"; readonly findingIds: readonly CandidateReviewEventId[] }
+  | { readonly tag: "ACCEPT" };
+```
+
+The type is a pure policy result only; P6 event shapes and command ingress remain canonical. Derive in the exact order of P3 §14.8A.2 after coherence/conflict and current stage/Approval checks. NONE for noncurrent stage or noncoherent observation; a selected historical object does not change the current decision, but cannot exercise it. Resolve actual stale authority before unavailable proof (the latter is a blocker only for current authority). The existing pure lifecycle owner consumes the typed P6 §34.5 current-observation result: actual semantic source conflict or SOURCE_AUTHORITY_STALE -> RECONCILE_SOURCE; STALE_AUTHORITY with exact material owner -> RECONCILE_AUTHORITY(owner), even if owner is R1; CANDIDATE_PROOF_UNAVAILABLE with proven current authority -> REANALYSE_PROOF_UNAVAILABLE. Pending, unmatched, operational or conflict observations do not assert proof or enable ordinary actions. Both stale branches project the existing STALE_AUTHORITY attention/rail and recovery meaning; the AcceptanceDecision alone determines the command route. The UI binds identity and invokes that route, never derives it from owner R1, message text or a competing policy. No persisted status or transport carrier. QUEUED suppresses ordinary QA, except the two higher recovery decisions. For SUBMIT_FINDINGS, return the entire eligible set; the selected nonempty subset must belong to one exact current candidate-producing task. RETEST returns all currently eligible report ids; select exactly one. No-op reanalysis covers all outstanding no-op challenges. Derive Report, Withdraw, Retest, Prepare-test-copy admissibility separately from P6 per-action predicates; UI cannot assume eligibility from the primary decision tag. No action grants historical mutation. Existing CurrentAttentionTag, RecoveryDisposition, RailMarker and ObservationCoherence are unchanged; map the decision by P3 §14.8A.2, proof-unavailable/no-op reanalysis being explicit decisions rather than generic Retry/Resume. Reject inconsistent canonical histories rather than guessing a tag.
+
 ### 4.9 Closed lifecycle transition-cause language
 
 Every mutation of `WorkItem.stage/status/outcome` is attributable to exactly one semantic transition cause:
@@ -356,17 +385,18 @@ type WorkItemTransitionCause =
       readonly tag: "EXECUTION_RETURN";
       readonly owner: UpstreamReturnStage;
     }
-  | {
-      readonly tag: "EXECUTION_COMPLETED";
-      readonly outcome: "CANDIDATE_DONE" | "ALREADY_SATISFIED";
-    };
+  | { readonly tag: "EXECUTION_COMPLETED"; readonly outcome: "CANDIDATE_DONE" | "ALREADY_SATISFIED" }
+  | { readonly tag: "QA_REVIEW_STARTED" }
+  | { readonly tag: "CANDIDATE_ACCEPTED" };
 ```
 
 This is an internal pure decision union, not a persisted event stream. Existing canonical RunEvents/commands remain the durable causes/evidence. Shell/daemon code maps an admitted canonical command/event/classification into one cause, then `lifecycle.ts` returns the next lifecycle tuple. An unlisted cause cannot mutate lifecycle state.
 
 Existing specialized transition helpers may remain where they are the minimum clear implementation, but every one is exhaustively traceable to one variant above and no daemon module assigns an alternate lifecycle tuple.
 
-`RECONCILE_AUTHORITY(owner)` is the explicit pre-signoff stale-authority return used only from `AWAITING_SIGNOFF / ACTIVE` after observational package inspection has produced that exact owner. It changes only the canonical lifecycle tuple to `owner / ACTIVE / null`; it does not rewrite repository bytes, fabricate conformance or replace source reconciliation. Source-boundary conflicts continue to use the existing source reconciliation path.
+`RECONCILE_AUTHORITY(owner)` is the explicit stale-authority return used from `AWAITING_SIGNOFF / ACTIVE` or `AWAITING_ACCEPTANCE / ACTIVE` after observational package inspection has produced that exact owner. It changes only the canonical lifecycle tuple to `owner / ACTIVE / null`; it does not rewrite repository bytes, fabricate conformance or replace source reconciliation. Source-boundary conflicts continue to use the existing source reconciliation path. SOURCE_AUTHORITY_CHANGED owns the R1 tuple for the explicitly admitted P6 §38.3 source return, including invalid-source lifecycle-only invalidation; the daemon source owner does not assign an alternate tuple.
+
+`EXECUTION_COMPLETED(CANDIDATE_DONE)` derives AWAITING_ACCEPTANCE/ACTIVE/null with atomic OPENED or REVIEW_COMPLETED; ALREADY_SATISFIED derives COMPLETE only for all-no-op. `QA_REVIEW_STARTED` derives EXECUTION/ACTIVE/null only with admitted queued submission and exact task Run. `CANDIDATE_ACCEPTED` derives COMPLETE/COMPLETE/CANDIDATE_DONE only with admitted ACCEPT from Acceptance. `EXECUTION_RETURN` also admits explicit no-op PLAN challenge or irrecoverable proof reanalysis from Acceptance; actual stale authority uses RECONCILE_AUTHORITY, changed source uses explicit source reconciliation. Recheck exact diagnostic even when candidate identity is unavailable; queued admission cannot progress through stale/missing proof, and recovery remains reachable. Reject unlisted stage/status combinations.
 
 ### 4.10 Proposal, recovery and execution derivation
 
@@ -404,14 +434,14 @@ selected stage (presentation-local only)
 deriveWorkflowRail(...)
         |
         v
-nine ordered rail items:
+ten ordered rail items:
   stage
   reach = CURRENT | REACHED_HISTORICAL | UNREACHED
   selected
   marker = current-stage RailMarker | null
 ```
 
-The nine items always follow the canonical `stageOrder`. Exactly one item is CURRENT for a non-corrupt WorkItem. Only that item may carry a marker.
+The ten items always follow the canonical `stageOrder`. Exactly one item is CURRENT for a non-corrupt WorkItem. Only that item may carry a marker.
 
 Marker mapping is exactly the P3 §21.11 law. Historical/unreached cells carry `marker = null`; old Run failures/blockers do not become current markers.
 
@@ -543,7 +573,7 @@ Sign-off is the only AWAITING_SIGNOFF -> EXECUTION command and executes under th
 
 The command computes the exact package read-only, compares the submitted expected hash, and immediately before storing Approval/tasks rechecks that the WorkItem is still AWAITING_SIGNOFF / ACTIVE and the exact package/currentness preconditions still hold.
 
-The distinct `reconcile-authority` command is valid only for `AWAITING_SIGNOFF / ACTIVE` when the observational package query has returned typed `STALE(owner)`. It runs under the same per-WorkItem operator-mutation guard, re-inspects the package/currentness before commit, requires the submitted expected owner to equal the still-current stale owner, then applies `RECONCILE_AUTHORITY(owner)`. It never performs source reconciliation and never changes repository bytes.
+The distinct `reconcile-authority` command follows P6 §§11/34.5/38.3: AWAITING_SIGNOFF / ACTIVE consumes the existing observed material owner; AWAITING_ACCEPTANCE / ACTIVE additionally binds exact current Approval and review sequence. Both recheck under the per-WorkItem mutation guard before applying RECONCILE_AUTHORITY(owner). Source-specific Acceptance recovery invokes the existing source reconciliation owner, not this command. See the pure decision in §4.8. Neither command writes repository bytes.
 
 Resume never performs source reconciliation implicitly. If source/authority drift prevents safe resume, Resume rejects with the owning reconciliation/blocker reason and leaves canonical state unchanged.
 
@@ -575,7 +605,7 @@ explicit reconcile
   -> materialize deterministic lifecycle drafts as needed
 ```
 
-Productive commands may perform the same inspection as a precondition but must reject when reconciliation is required; they do not silently apply the reconciliation and then report their own command as failed. Full/manual reconciliation is itself an authority mutation and cannot apply changes to a WorkItem while that WorkItem has an active Run.
+Productive commands may perform the same inspection as a precondition but must reject when reconciliation is required; they do not silently apply the reconciliation and then report their own command as failed. Full/manual reconciliation is itself an authority mutation and cannot apply changes to a WorkItem while that WorkItem has an active Run. For Acceptance, apply the precise bulk/startup/targeted split in P6 §38.3: read-only diagnostics remain available; ordinary bulk/startup/configuration cannot apply the signed return; explicit selected source recovery uses SOURCE_AUTHORITY_CHANGED under exact identity and source-classification recheck.
 
 ### 6.3 Lifecycle artifact inspection
 
@@ -669,7 +699,7 @@ workflow rail
 primary task surface [ + explicit Context when opened ]
 ```
 
-The first three rows are structurally stable. Their geometry is owned by the Workbench shell, not by the selected workflow material. The step summary/current-attention band also has a stable height within each responsive class: blocker/failure/input/proposal state changes replace content inside that band rather than inserting a new structural header row that shifts the primary surface.
+The first three rows are structurally stable. Their geometry is owned by the Workbench shell, not by the selected workflow material. No generic step-summary/current-attention band exists. When the selected interaction has genuine current human attention, that interaction composes the exact bounded attention/action treatment authorized by §8.4-§8.8; absent attention adds no structural row or reserved height.
 
 No step component may insert another persistent outer navigation column into that topology merely because its local collection grows.
 
@@ -699,43 +729,64 @@ Wide:
 grid-template-columns: repeat(9, minmax(0, 1fr));
 ```
 
-All nine stage cells occupy one stable rail. State/current markers render inside the cell and never change border/width metrics.
+All ten stage cells occupy one stable rail. State/current markers render inside the cell and never change border/width metrics.
 
 Medium/narrow layout keeps one horizontal rail with stable item geometry and horizontal overflow. It never wraps into multiple lifecycle-navigation rows.
 
 Responsive scrolling is confined to the workflow rail; the page itself must not require horizontal scrolling to identify the current step or primary action.
 
-### 8.4 Generic step frame boundary
+### 8.4 Interaction-class composition boundary
 
-The generic `WorkflowStepFrame` owns only:
+There is **no generic workflow-step frame** in the target architecture.
 
-- step summary/current-attention band;
-- one primary material region.
+`WorkflowStepFrame`, `WorkflowStepSummary`, `WorkflowStepIndex` and the generic `PrimaryMaterialFrame` composition are superseded responsibilities and must be absent from production. They are not narrowed compatibility owners.
 
-It does **not** own an optional `start`/side-index slot, content-count-dependent rail, or generic master/detail behavior.
+Canonical workflow state first selects exactly one primary interaction class — Document, Dialogue, Review, Evidence, Implementation master/detail, Terminal result, or a specifically authorized empty/pending state — and the owning screen composes that class directly. A current-attention region exists only when that interaction class and canonical state have one genuine operator-attention owner.
 
-This is the key layout boundary: interaction classes choose their own secondary-navigation treatment without allowing an object count to alter the outer frame.
+The workflow rail already supplies lifecycle orientation. Stage name, lifecycle status, material status, purpose text and action availability therefore may not be serialized into a generic top band. Canonical state is input to composition selection and human-facing copy; it is not itself a UI layout.
+
+Historical inspection may coexist with one concise return-to-current-work affordance when another current task owns attention. That affordance communicates the human consequence/action (for example, “Approval needs your review” → “Return to Approval”), not a tuple of internal workflow labels/statuses.
 
 ### 8.5 Pre-signoff document/dialogue steps
 
-Research/Requirements/Design/Plan use no persistent step-local side rail.
+Research/Requirements/Design/Plan use no persistent step-local side rail and no generic workflow-material selector.
 
-Runs/documents/proposals/evidence are selected through one `WorkbenchSelector` inside the primary surface. Its exact substrate is Astryx `Selector` with the secondary variant and adaptive presentation; Astryx owns the anchored-pointer versus compact-touch bottom-sheet behavior. The same control occupies the same structural slot whether it contains one item or many, and feature code does not choose Drawer/Popover/BottomSheet alternatives.
+Each selected/current canonical state resolves directly to one primary composition:
 
-Adding a second attempt/document changes selector contents only. The primary surface x-position and width are invariant for the same viewport/Context state.
+- current governed material -> Document;
+- current or selected Run -> Dialogue;
+- pending proposal -> direct Review;
+- explicit evidence inspection -> Evidence;
+- explicit supporting-document inspection -> the selected read-only Document with a bounded return affordance;
+- unreached/ready-without-material -> the specifically authorized State presentation.
 
-Supporting context is subordinate material, not another navigation rail and not the first row before current work. Access to source/upstream documents belongs in the compact material selector or an explicitly secondary disclosure after the current attention/material, so it cannot push a blocker/failure/dialogue down the page.
+Attempts, upstream documents and evidence remain subordinate to the owning interaction and are exposed only through the interaction-specific resource/timeline/action treatment defined by DESIGN. They are not flattened into one heterogeneous “workflow material” selector.
+
+Adding another attempt or upstream document may change subordinate content only. It may not insert another persistent top band, selector rail, generic disclosure lane or outer wrapper before the primary task.
+
+A current document is primary without a duplicate generic stage/document heading. Document status/action may be composed in the Document's own section/header treatment. Technical identity remains Context/Evidence-owned.
 
 ### 8.6 Readiness
 
-Readiness is Review-class first.
+Readiness is one direct Review-class primary composition.
 
-Its stable primary region contains verdict/currentness, findings/defective owner and the governed R3 review material. Attempts/package/evidence use the same compact subordinate selector pattern as secondary review material.
+Its stable primary hierarchy is:
 
-Readiness does not use the generic persistent side-index treatment.
+```text
+readiness verdict/currentness
+findings / exact return owner when applicable
+supporting package/evidence/history access
+```
 
-A real REQUIRED_INPUT state may temporarily own the current action/composer without changing the surrounding Review layout class.
+The typed R3 outcome drives the human verdict but the raw outcome enum is not ordinary UI copy.
 
+The complete R3 Markdown document is **not** embedded wholesale under a “Findings” region. Readiness maps the canonical verdict, findings/return-owner content and supporting package/history into their declared Review regions so headings/verdicts are not duplicated.
+
+Readiness has no generic material selector and is never wrapped by a generic workflow frame or outer attention surface.
+
+When an exact REQUIRED_INPUT interaction is current, Dialogue becomes the current primary interaction for that turn; it replaces Review for the interaction rather than being nested inside Review.
+
+### 8.7 Approval
 ### 8.7 Approval
 
 Approval is one coherent Review surface.
@@ -775,6 +826,18 @@ Before validation evidence exists, the detail shows a compact validation state s
 On medium/narrow widths the `WorkbenchMasterDetail` master is a temporary Astryx `Drawer` from the inline start edge with `hasScrim={false}`, caller-owned open state and a visible close action; the detail remains the primary canvas behind it. It never switches to an alternate stacked master/detail topology.
 
 Historical task/attempt selection never displaces the independently derived current-attention owner.
+
+### 8.8A Final Acceptance
+
+`WorkItemWorkspace` maps current or selected `AWAITING_ACCEPTANCE` to one direct `WorkbenchReview`, using existing ReviewVerdict, ReviewSection, Facts, ResourceList/Row and decision region. A cohesive AcceptanceWorkspace owns only candidate/finding content projection and command binding; existing TaskPanel/form mechanics own human QA input as one modal interaction with inert underlying Review, and Evidence/Document replace the primary composition during inspection. No feature-local layout, second rail, arbitrary body slot, nested primary or STAGE Dialogue. Reuse existing confirmation/identity and dirty-navigation behavior. The core derives the exact candidate set, current acceptance/finding action and eligibility from canonical Approval, task, Run/event and human QA facts; the browser never infers acceptance from a candidate label. During queued review show actionable progress without offering Accept; when correction starts the current stage is EXECUTION and selected Acceptance is historical/read-only. Technical IDs belong in Context/Evidence. Terminal Result consumes final human decision provenance (or legacy not recorded) without changing historical technical results. P6 §38 owns the carrier and admission; the current DESIGN exhaustive SURF-STEP-ACCEPTANCE-001 owns exact section/datum/action placement and dependent surface mapping.
+
+#### 8.8A.1 Selection and component contract
+
+Use the existing closed WorkbenchReview title/description/verdict/sections/decisions API. Each named DESIGN section uses WorkbenchReviewSection id/title/content; ordered repeated items use WorkbenchResourceList over WorkbenchResourceRow id/label/detail/meta/action, with Status and WorkbenchAction in the authorized item slots. No new primitive prop, route-sized peer index or feature CSS topology. Select candidate task and finding by canonical identities in the owning content collection; use the existing workspace selected-material owner for exact Approval/round, Document/Evidence/Implementation navigation and return. Selected finding detail is a same-Review content substitution within its Findings section; do not instantiate another primary Review. Keep current owner action independently reachable; if selected material is historical, the only decision-region action is the P3 §14.8A.1 return navigation (current review, current step, or final result), not a hidden current-candidate mutation.
+
+Human input is WorkbenchTaskPanel (existing Dialog with WorkbenchForm body, footer, feedback and submit handler). Use existing form fields/actions and dirty-navigation safety; exactly one active modal, no nested modal or duplicate primary controls. While a dirty confirmation is needed, suspend the form and preserve draft/return focus; cancel confirmation restores it. Review remains inert while form is active; on Save success reobserve canonical facts, dismiss to owning selection, then restore focus to invoking action or nearest still-valid current action. On command rejection retain draft with owning feedback; stale identity disables Save until explicit return/reinspection. No automatic retry. Explicit evidence inspection from a form preserves the local draft under the existing material-navigation/dirty rules, never changes the candidate bound to it. Human final Accept/Submit/Return-to-planning use the same TaskPanel/Form anatomy with confirmation meaning and human identity, not an additional nested confirmation. Existing safety confirmation owns actor-free stale/source reconciliation and discard. Current Acceptance decision is never stored in browser state; only selection, draft, pending and focus are local.
+
+At every width the same ordered Review sections and decision region remain in one canvas. Narrow wraps fields/resources within primitive layout; no master/detail or feature-local responsive hook. Context is the existing dock/drawer only. Use the same semantic tokens in all themes; no new CSS state palette.
 
 ### 8.9 Context
 
@@ -817,49 +880,117 @@ Permanent architecture fitness treats duplicate base structural selectors and pr
 
 The Workbench vocabulary is closed for **Order-owned screen structure, recurring interaction mechanics and visual semantics**. Feature/service modules map canonical state and domain content into this vocabulary; they do not create competing shell, navigation, selection, form, dialogue, review, master/detail, Context, notice, timeline, overlay or confirmation mechanics directly from Astryx, raw HTML/CSS or feature-local styling.
 
-This closure is intentionally not a wrapper around every leaf widget. Complete coverage has two layers:
+This closure is intentionally not a wrapper around every leaf widget. Complete coverage has three layers:
 
-1. **Order Workbench primitives** own every recurring structure, interaction mechanic and semantic visual role that must remain consistent.
-2. **Approved foundation leaves / specialized renderers** may render content inside those primitive slots only under §8.19. They cannot establish another Workbench grammar.
+1. **Structural/interaction primitives** own application/work-item topology, interaction-class mechanics, responsive ownership, overlays and action/state behavior.
+2. **Semantic composition components** own recurring information anatomy inside those interaction classes: bounded sections, facts, review verdict/sections, document composition, resource collections and terminal-result composition. These components are deliberately smaller than a screen and deliberately more semantic than raw layout.
+3. **Approved foundation leaves / specialized renderers** render content inside those owned compositions only under §8.19. They cannot establish another Workbench grammar.
 
-The target Order-local primitive vocabulary under `ui/src/primitives/` is:
+A feature renderer may project domain data into these layers, but it may not invent a recurring information grouping, section anatomy, collection grammar, review hierarchy or responsive composition in feature-local JSX/CSS. A structural slot typed as arbitrary content is legal only at an explicitly leaf-level content boundary; it is not a license to delegate the component hierarchy back to the feature.
+
+The canonical Workbench primitive-responsibility vocabulary is:
+
+The table defines **canonical target responsibilities and semantic APIs**, independent of release/campaign migration state or current implementation bytes. A responsibility is instantiated as a production module only when an authorized current DESIGN has a consumer for it; no speculative component file is required merely because the responsibility is part of the closed vocabulary. Current implementation remains evidence only.
 
 | Primitive | Sole Order-owned responsibility | Deliberately absent flexibility |
 |---|---|---|
-| `WorkbenchLayout` | one application topology over one Astryx `AppShell`; toolbar + primary destination, with selected WorkItem mode additionally owning identity, workflow rail and optional Context; named internal regions use `Layout`/stack primitives rather than raw grid recreation | no SideNav merely because AppShell supports it; no arbitrary sidebar/column slots; no caller breakpoint/width values; no domain/query logic |
-| `WorkbenchToolbar` | application/local toolbar grouping, search and compact utilities | no workflow policy; no arbitrary structural row creation |
+| `WorkbenchAppShell` | the one application-global topology over one Astryx `AppShell`; mounted once at the application root and owns the global toolbar plus exactly one current destination slot | no WorkItem-specific identity/rail/context logic; no SideNav merely because AppShell supports it; no arbitrary caller shell geometry; no domain/query logic |
+| `WorkbenchWorkItemShell` | selected-WorkItem structural composition inside `WorkbenchAppShell`: identity, workflow rail, primary workflow destination and optional Context placement | no second AppShell/toolbar; no feature-owned sidebar/columns; no caller breakpoint/width values; no workflow/domain policy |
+| `WorkbenchToolbar` | the closed application-global orientation/context/utility composition mounted by the application shell | no arbitrary `start`/`end` ReactNode regions; no workflow policy; no specialist editor/search responsibilities; no arbitrary structural row creation |
 | `WorkbenchUtilityLink` | compact toolbar navigation affordance over Astryx `Link`, with primary label + optional secondary state for destinations such as Settings/account management | navigation only; no command mutation semantics; no feature-owned button chrome or popover/drawer geometry |
 | `WorkbenchIdentity` | stable three-group WorkItem identity row: navigation, identity/status, utilities | no fourth placeholder/action column; no content-driven topology |
 | `WorkbenchRail` | stable equal-cell workflow navigation with constrained-width scrolling | no content/status-derived widths; no wrapping/multi-row lifecycle navigation |
-| `WorkbenchSurface` | current-attention region + one primary material region + optional compact selector | no persistent side/master slot; no caller responsive topology choice |
-| `WorkbenchAttention` | stable current-attention presentation: title/purpose/status, one blocker/feedback region and one current action region | no lifecycle/current-attention derivation; no competing action owner |
-| `WorkbenchSectionHeader` | consistent material/subsection heading, description and local action alignment | no independent page/surface topology |
-| `WorkbenchSelector` | compact subordinate single-material selection over Astryx `Selector`; uses the `secondary` visual variant and `presentation="adaptive"` so the same control owns anchored-pointer versus compact-touch bottom-sheet presentation | item count never changes surrounding columns; no persistent rail mode; no feature-selected Drawer/Popover/BottomSheet substrate |
-| `WorkbenchDialogue` | transcript scrolling, anchored composer region, focus/keyboard continuity and empty/pending slots | no Run/RunEvent/query ownership; no input-admission policy |
-| `WorkbenchReview` | review hierarchy: currentness/verdict, substantive body, decision actions and subordinate technical detail | no generic persistent navigation column; no domain-specific package/task semantics |
+| `WorkbenchSurface` | one primary material region plus an optional genuine current-attention region | no selector/material-navigation slot; no persistent side/master slot; no generic heading/top-content slot; no caller responsive topology choice |
+| `WorkbenchAttention` | one human-facing condition that presently requires operator awareness/action: headline, optional explanation/feedback, and at most one current action region | no `Current attention:` taxonomy prefix; no generic stage purpose; no workflow/material status tuple or badge stack; no lifecycle/current-attention derivation; no competing action owner |
+| `WorkbenchSectionHeader` | heading/description/local-action atom used by an owning semantic section or specialist renderer | no independent section boundary, page/surface topology or feature-local spacing system |
+| `WorkbenchSection` | one bounded semantic content section: optional heading/description/local action plus one leaf-content region, with canonical section spacing/boundary behavior | no arbitrary panel variants, caller geometry, nested section system or competing primary-action owner |
+| `WorkbenchFacts` | compact structured label/value facts whose visibility/classification has already been decided by P3/DESIGN; owns shared fact rhythm, wrapping and emphasis rules | no domain derivation, no technical-detail promotion, no arbitrary card chrome, no use as a substitute for Context/Evidence |
+| `WorkbenchDocument` | complete Document-class composition: document identity/currentness/action, exactly one governed document/editor content owner, and an optional specifically named same-task details disclosure after the primary content | no generic workflow summary/material selector; no always-open metadata/facts slab before content; no second outer document heading; no technical-inspection lane; no caller-defined side layout; editor controls remain owned by the specialist editor |
+| `WorkbenchResult` | complete Terminal-result composition: product-facing outcome/status, optional summary, ordered semantic sections/resources and permitted result action | no synthetic attention wrapper, generic container-taxonomy headings, internal enum/event identity or caller-defined result topology |
+| `WorkbenchSelector` | bounded subordinate single-selection only where the owning interaction DESIGN explicitly requires peer selection; uses Astryx `Selector` with the declared secondary/adaptive treatment | no generic workflow-material/history role; no Review currentness/navigation role; no stage-orientation role; no speculative consumer; item count never changes surrounding topology; every production consumer is allowlisted by the renderer matrix |
+| `WorkbenchDialogue` | transcript scrolling, one bounded supporting-activity region, anchored composer region, focus/keyboard continuity and empty/pending slots | no generic header/technical-detail slots; no Run/RunEvent/query ownership; no input-admission policy |
+| `WorkbenchReview` | Review-class outer composition over one `WorkbenchReviewVerdict`, optional concise summary, an ordered set of `WorkbenchReviewSection` children and one decision region | no arbitrary `body` escape slot; no selector/material-navigation slot; no attention slot; no technical-details slot; no generic persistent navigation column |
+| `WorkbenchReviewVerdict` | dominant human review verdict/currentness presentation with one semantic tone, label and optional explanation/currentness detail | no raw lifecycle/result enum rendering, no document body, no package/history collection and no decision action |
+| `WorkbenchReviewSection` | one named Review-body responsibility such as findings, rationale, governed proposal content, supporting package or evidence access; owns section hierarchy and spacing | no whole-review topology, no duplicate verdict/summary, no generic technical-inspection content, no feature-local card grammar |
 | `WorkbenchMasterDetail` | the one legal operational master/detail topology: fixed docked master on wide; medium/narrow master uses Astryx `Drawer side="start" hasScrim={false}` with visible close/focus return while detail remains primary | no caller master width/presentation choice; no collection-count activation; no stacked alternative |
-| `WorkbenchContextPanel` | secondary metadata/diagnostic body + explicit close; wide mode is a docked `LayoutPanel`-class region, constrained mode is an Astryx `Drawer` with caller-owned open state/focus return | no current-action/blocker ownership; no Drawer when content is meant to reflow wide layout; no independent responsive/sidebar behavior |
-| `WorkbenchTaskPanel` | one bounded operator Form/configuration task over Astryx `Dialog` with fixed `purpose="form"`; caller owns open state/content, foundation owns focus/dismissal mechanics | no Drawer fallback in the current grammar; no caller-selected Dialog purpose; no persistent navigation; no arbitrary width/breakpoint; no use as Context substitute; no nested modal stack; a future full-height side task requires DESIGN rather than a hidden variant |
+| `WorkbenchContextPanel` | the one selected-WorkItem technical-inspection/secondary-context region: selected document/Run/proposal/approval/task/execution identity is projected here with explicit close; wide mode is a docked `LayoutPanel`-class region, constrained mode is an Astryx `Drawer` with caller-owned open state/focus return | no current-action/blocker ownership; no auto-open; no feature-local technical accordion substitute; no Drawer when content is meant to reflow wide layout; no independent responsive/sidebar behavior |
+| `WorkbenchTaskPanel` | one bounded operator Form/configuration task over Astryx `Dialog` with fixed `purpose="form"` and mandatory **header → scrollable body → footer** anatomy. Header owns title/purpose/dismissal, body owns fields/supporting task content/feedback, footer owns Cancel + the one primary task command. Foundation owns focus/dismissal/elevation mechanics | no Drawer fallback; no caller-selected Dialog purpose; no action buttons rendered as arbitrary body children; no generic Technical-details disclosure in the body; no persistent navigation/arbitrary width/breakpoint/Context substitution/nested modal stack; a future full-height side task requires DESIGN |
 | `WorkbenchSettingsLayout` | Settings-only navigation/content composition with primitive-owned wide/constrained geometry | no generic application sidebar primitive; no domain/query ownership |
-| `WorkbenchForm` | consistent field stack, form spacing, submission/error region and action alignment | no validation/admission policy |
+| `WorkbenchForm` | consistent non-modal field stack, form spacing, feedback and action alignment; when composed inside `WorkbenchTaskPanel`, fields/feedback are supplied to the body and TaskPanel remains the sole modal footer/action-region owner | no validation/admission policy; no second modal action row; no technical-inspection ownership |
 | `WorkbenchField` | low-level field shell only for native/custom/third-party controls that do not already own Astryx field semantics; delegates label/description/status wiring to Astryx `Field` | no wrapping of Astryx `TextInput`/`TextArea`/`Selector`/`Typeahead` or another field-owning Astryx control; no domain validation; no arbitrary feature control styling |
 | `WorkbenchStatus` | semantic neutral/info/success/warning/danger state using readable text first, optional Astryx `StatusDot`, and `Badge` only for exceptional/actionable states where added emphasis is justified | no badge for ordinary healthy/common state or metadata; no clickable badge; no domain-state derivation; no raw color selection |
 | `WorkbenchNotice` | persistent inline/page/section feedback over Astryx `Banner`; status text remains explicit and async announcement is owned exactly once by the transition/notice boundary | no stacked duplicate banners; no auto-dismissing workflow-critical feedback; no color/icon-only meaning; no duplicate live announcement; no arbitrary color |
 | `WorkbenchState` family | empty/loading/error/pending whole-region presentation inside an owning composition | no lifecycle-state derivation; no persistent layout ownership |
 | `WorkbenchTable` | Astryx `Table`-backed uniform row/column grammar with compact/balanced density selected by the owning interaction, dividers, stable row identity, selection/focus and overflow behavior; only required table capabilities/plugins are enabled | no heterogeneous content forced into columns; no plugin accumulation; no domain columns; no dashboard/card substitution |
 | `WorkbenchTimeline` | chronological event-list rhythm, event heading/meta/action alignment and evidence attachment region | no RunEvent meaning/derivation |
-| `WorkbenchDisclosure` | consistent collapsed/on-demand technical/supporting-detail mechanic | no primary action ownership; no nested navigation axis |
-| `WorkbenchConfirmation` | Astryx `AlertDialog` only for destructive/irreversible confirmation: specific action label, consequence description, least-destructive initial focus, loading state retained until the mutation settles, then explicit close | no AlertDialog for ordinary/non-destructive decisions; no early close while confirm mutation is pending; no mutation/admission policy; no domain-specific decision semantics |
+| `WorkbenchDisclosure` | bounded semantic expansion of the **same operator task** when the expanded content has a specific product meaning (for example a complete validation matrix) and persistent display would compete with that task | not a Technical-details, Supporting-material/history or generic metadata owner; no primary action ownership; no nested/adjacent disclosure stack; no substitute for Context, material selection or Evidence |
+| `WorkbenchConfirmation` | the one modal Safety/exception confirmation owner. `kind="destructive"` uses Astryx `AlertDialog` for destructive/irreversible consent; `kind="safety"` uses Astryx `Dialog` for an explicitly DESIGN-authorized non-destructive mutation that requires exact facts for informed consent. Both own specific action/consequence copy, pending-state containment and explicit close | caller cannot choose Dialog versus AlertDialog or an arbitrary action variant; `kind` comes only from the P3/DESIGN interaction classification; no ordinary decision modal, early close while pending, mutation/admission policy or domain-specific decision semantics |
 | `WorkbenchAction` | **command-only** semantic wrapper over Astryx `Button`; `IconButton` is used for dedicated icon-only commands; one primary command per view, specific action labels, foundation loading/disabled/focus behavior | no pure navigation; no multiple primary commands in one view; no destructive irreversible action without Confirmation; no authorization/admission/current-action policy |
-| `WorkbenchResourceRow` | scan-efficient resource identity/detail/open-action row; repeated heterogeneous-but-related resources use Astryx `List`/`ListItem` semantics where they fit, without nested interactive targets | no resource query/mutation ownership; no interactive child inside an interactive row; no single-item pseudo-list or nested card system |
+| `WorkbenchResourceRow` | one scan-efficient resource item with identity, optional detail/meta and at most one explicit resource action; it is the item primitive consumed by `WorkbenchResourceList` | no collection heading/layout ownership; no resource query/mutation ownership; no interactive child inside an interactive row; no caller-selected card/button chrome |
+| `WorkbenchResourceList` | one repeated related-resource collection over Astryx `List`/`ListItem` semantics, including collection label/empty treatment and consistent item/action affordance | no single-item pseudo-list, no heterogeneous workflow-material selector, no query/mutation ownership, no nested card system |
 | `WorkbenchIcon` | canonical icon mapping, size and decorative/accessibility handling | no action/domain semantics |
 
-The vocabulary is complete at the level that must be shared to prevent UI drift. Cohesive content owners such as `MarkdownEditor`, `MarkdownSourceEditor`, Markdown/CodeBlock rendering, proposal diff content and domain-specific data projection remain feature/content mechanisms only. They are still fully governed by the primitive composition and visual language below.
+The vocabulary is complete only when the structural/interaction primitives and the semantic composition components above are both present. This intermediate composition layer is mandatory: a screen may not replace `WorkbenchSection`, `WorkbenchFacts`, Review verdict/section anatomy, `WorkbenchResourceList`, `WorkbenchDocument` or `WorkbenchResult` with feature-local recurring JSX/CSS. Cohesive content owners such as `MarkdownEditor`, `MarkdownSourceEditor`, Markdown/CodeBlock rendering, the approved document-change specialist and domain-specific data projection remain content mechanisms only. They are fully governed by the composition and visual language below.
 
 The exact filenames may be combined only when two rows remain one independently testable responsibility. Their semantic APIs/invariants may not be collapsed into a generic "panel/layout/slots" mega-primitive.
 
 Adding a new Order-owned Workbench primitive is an architecture change. It requires an upstream DESIGN amendment proving that the mechanic is not already expressible by this vocabulary and that it represents a reusable interaction responsibility rather than feature convenience.
 
+### 8.12A Information-visibility, inspection and composition ownership
+
+This section technically realizes `GW-DOC-WORKBENCH-UX-V2 §11.4A/§12`. It does not create another semantic classification.
+
+| P3 class / decision | Canonical technical owner | Technical constraint |
+|---|---|---|
+| Primary task information | owning primary interaction composition: `WorkbenchSurface`, `WorkbenchDialogue`, `WorkbenchReview`, `WorkbenchMasterDetail`, `WorkbenchSettingsLayout`, `WorkbenchTaskPanel`, Evidence or Terminal result as applicable | reachable without technical inspection; no inspector is the only owner of a current blocker/action |
+| Supporting operator information | `WorkbenchFacts`, `WorkbenchResourceList`, `WorkbenchTimeline`, `WorkbenchReviewSection` or another specifically named bounded supporting region inside the owning primary composition | one semantic owner only; attempts/upstream material do not also produce a generic Supporting-material/history bar; repeated resources use the collection owner rather than screen-local row stacks |
+| Operational detail | same semantic supporting owners, selected/expanded only when persistent display would compete with the task | may use `WorkbenchDisclosure` only for a specifically named expansion of the same task; never as generic technical/supporting storage |
+| WorkItem-scoped Technical detail | the explicitly opened `WorkbenchContextPanel` populated by selection-aware `WorkItemContext` | absent from productive screen composition; grouped by the currently selected document/Run/proposal/approval/task/execution object; no local Technical-details accordion |
+| Application/Settings Technical detail | one explicit Settings diagnostics/technical-inspection section under `WorkbenchSettingsLayout` | no per-Settings-section Technical-details accordions; exact values are Primary only while an explicit configuration task requires them |
+| Diagnostic/console detail | Context/Settings diagnostics or Evidence only when intentional inspection requires the raw value | raw diagnostic/event/provider payloads remain absent from ordinary UI even when the human-readable condition blocks progress |
+| Exact evidence identity/bytes | Evidence composition after intentional selection | becomes primary only while Evidence is the selected task |
+| Mutation-consent exact facts | `WorkbenchConfirmation` only when exact facts are necessary for informed consent | bounded to the confirmation lifetime; not a general technical-inspection escape hatch |
+
+When a technical/diagnostic condition owns attention, domain/presentation policy supplies a human-readable blocker/recovery description to `WorkbenchAttention`, `WorkbenchNotice` or the owning primary state. The primitive layer does not derive that meaning from raw codes.
+
+**Composition law:**
+
+- technical/supporting classification never creates a UI band by itself;
+- adjacent/nested generic “Technical details”, “Supporting material”, “History”, “Details” or equivalent disclosure bars are structurally nonconforming;
+- material/history selection has one selector/resource owner;
+- WorkItem technical identity has one Context owner;
+- editor controls remain adjacent to the source/preview canvas they control;
+- repeated semantic facts/resources/Review sections use their canonical composition owner rather than feature-local section/list/card systems;
+- `WorkbenchTaskPanel` actions live in its footer, not in arbitrary body flow;
+- responsive recomposition may move Context or selectors, but cannot change classification, auto-open technical inspection or insert new disclosure bands.
+
+`WorkbenchDisclosure` is therefore a narrow semantic-expansion primitive, not an inspection lane. `WorkbenchContextPanel` is the WorkItem technical-inspection boundary. Evidence owns exact evidence inspection. These responsibilities are not interchangeable by feature preference.
+
+### 8.12A Closed design-bearing APIs and anti-compatibility law
+
+Design-bearing Workbench primitives are intentionally **closed and non-backward-compatible** when their superseded API permits an invalid composition.
+
+For a destructive replacement or required-absent owner:
+
+- no deprecated prop alias, old-to-new prop translation, compatibility wrapper, temporary adapter, hidden legacy DOM, always-false legacy branch, feature flag, dual structural path or CSS override may preserve the superseded responsibility;
+- no removed JSX/CSS/API is copied into the replacement as an implementation template;
+- compile/type failures in old consumers after removal are a desired compliance signal and must be resolved by rewriting the consumer to its canonical interaction class;
+- a consuming screen may not widen a primitive API merely to restore its previous layout;
+- a new recurring semantic slot/consumer requires DESIGN/P4 authority before implementation;
+- if no current authorized consumer remains for a primitive after migration, the primitive is deleted rather than retained speculatively.
+
+A design-bearing owner is dispositioned by current DESIGN/P7 evidence, never by file age or LOC:
+
+- `CONFORMING_NO_EDIT` when responsibility, API, topology and physical cohesion already conform;
+- `BOUNDED_RESIDUAL` only when the owner/API/topology already conform and the remaining defect is strictly local (for example accessibility wiring or a bounded token/geometry defect);
+- `DECOMPOSE_REFACTOR` when the semantic responsibility remains valid but multiple independently testable presentation responsibilities have accumulated in one production owner and must be split into the canonical same-layer components without preserving a catch-all API;
+- `DESTRUCTIVE_REPLACEMENT` when ownership, topology, interaction grammar, semantic slots or public API freedom materially contradict this authority; the old implementation is purged before fresh authorship;
+- `REQUIRED_NEW` for a canonical responsibility with an authorized current consumer and no conforming production owner;
+- `REQUIRED_ABSENT` when a responsibility/API is forbidden or has no authorized current consumer.
+
+A refactor/decomposition may reuse conforming leaf logic, but may not preserve a superseded structural API through aliases, wrappers or compatibility props.
+
+Permanent architecture fitness must enforce both primitive API shape and the allowed production-consumer set. Unauthorized imports/usages are architecture failures.
 ### 8.12.1 Astryx foundation-conformance law
 
 Order's semantic primitive boundary does not authorize rebuilding behavior that the pinned foundation already owns. For every §8.12 primitive, P7 first resolves the exact `@astryxdesign/core@0.7.13` component documentation recorded by `GW-DOC-EXTERNAL-FACTS`, then applies this precedence:
@@ -882,7 +1013,7 @@ Pinned Astryx guidance is incorporated as follows:
 
 | Order concern | Pinned Astryx realization / best-practice consequence |
 |---|---|
-| application shell | `WorkbenchLayout` composes one outer `AppShell`; it does not recreate the viewport shell/skip-to-content/responsive app-frame mechanics in raw containers |
+| application shell | `WorkbenchAppShell` composes the one outer `AppShell`; `WorkbenchWorkItemShell` composes selected-WorkItem identity/rail/primary/Context beneath it; neither recreates viewport shell/skip-to-content/responsive app-frame mechanics in raw containers |
 | named sub-page regions | use `Layout` for genuine named header/start/content/end/footer regions; use HStack/VStack/Grid-style layout primitives for simple stacking rather than a five-slot layout |
 | action | `WorkbenchAction` delegates to `Button` or `IconButton`; one primary action per view, explicit verb/object labels, loading state for asynchronous actions, accessible label/tooltip for icon-only actions |
 | navigation | pure navigation uses Astryx `Link`/native link semantics in the owning Toolbar/Identity/content slot; application history interception may preserve SPA behavior, but the rendered affordance is not a command Button |
@@ -893,7 +1024,8 @@ Pinned Astryx guidance is incorporated as follows:
 | meaningful resource collection | prefer `List`/`ListItem` semantics to a button styled as a card/row; never place interactive descendants inside an interactive row |
 | contextual overlay detail | constrained Context uses `Drawer`, with caller-owned `isOpen`, visible close action and focus return; a wide Context that must consume layout width is docked, not Drawer |
 | bounded task/form | `WorkbenchTaskPanel` always uses `Dialog purpose="form"`; backdrop dismissal therefore cannot discard task input; do not nest Dialogs; Drawer is not a generic form container |
-| destructive confirmation | `AlertDialog` only; specific consequence/action copy, Cancel remains least-destructive focus target, and pending confirm remains open/loading until the effect settles |
+| non-destructive safety confirmation | `WorkbenchConfirmation kind="safety"` owns an Astryx `Dialog`; use only when P3/DESIGN explicitly requires exact facts for informed consent to the pending non-destructive mutation; confirm is the one primary command and Cancel remains secondary |
+| destructive confirmation | `WorkbenchConfirmation kind="destructive"` owns Astryx `AlertDialog`; specific consequence/action copy, Cancel remains least-destructive focus target, and pending confirm remains open/loading until the effect settles |
 | persistent feedback | `Banner` semantics under `WorkbenchNotice`; combine related same-status feedback, keep actionable errors present, and do not infer a live region from visual status |
 | status emphasis | ordinary/common state is readable text/StatusDot; `Badge` is sparse emphasis for exceptional/actionable status, not metadata or every healthy row |
 | spacing/layout | container owns padding; child margins do not recreate the inset; token spacing is used inside regions; one control size per row; density matches use frequency |
@@ -904,7 +1036,7 @@ Pinned Astryx guidance is incorporated as follows:
 Astryx is the interaction foundation, not product authority. Generic library advice is rejected where it would violate the higher-level Order contract:
 
 - **No AppShell SideNav.** The Workbench P3 contract has one workflow rail and no second persistent outer navigation axis. AppShell is used without adding navigation merely because the slot exists.
-- **No Astryx Stepper for the lifecycle rail.** Pinned Stepper guidance says to use another pattern above seven steps; Order has nine immutable lifecycle stages and grouping them would change canonical workflow meaning. `WorkbenchRail` therefore remains a custom semantic primitive with its own ordered, accessible navigation behavior.
+- **No Astryx Stepper for the lifecycle rail.** Pinned Stepper guidance says to use another pattern above seven steps; Order has ten lifecycle stages and grouping them would change canonical workflow meaning. `WorkbenchRail` therefore remains a custom semantic primitive with its own ordered, accessible navigation behavior.
 - **No SegmentedControl for lifecycle navigation.** Astryx defines it as a small mutually-exclusive mode/value input, not page/workflow navigation.
 - **No Drawer for wide docked Context/master-detail.** Pinned Drawer guidance explicitly distinguishes floating detail from content that should reflow the page; wide docked surfaces use the owning layout composition instead.
 - **No Badge saturation.** Order's dense professional language and Astryx guidance agree that common/default states and metadata remain ordinary text.
@@ -913,61 +1045,102 @@ A library recommendation cannot silently change P3 information hierarchy, lifecy
 
 ### 8.13 Target primitive API shapes
 
-The primitive APIs are intentionally narrow. P7 may adjust React typing syntax without adding another structural or interaction degree of freedom.
+The primitive APIs are intentionally narrow. These shapes define semantic slots and structural degrees of freedom; implementation may adjust React typing syntax only where that does not add, remove or reinterpret a semantic slot. A vocabulary responsibility with no authorized consumer need not have a production module.
 
 ```ts
-WorkbenchLayout({
-  toolbar,
+WorkbenchAppShell({ toolbar, destination })
+WorkbenchWorkItemShell({
+  identity,
+  workflowRail,
   primary,
-  workItemChrome: {
-    identity,
-    workflowRail,
-    context: { open, onOpenChange, content } | null,
-  } | null,
+  context: { open, onOpenChange, content } | null,
 })
 ```
 
-Queue and Settings are application destinations in `primary`; selected WorkItem mode additionally enables the named WorkItem chrome. There is no generic `children` shell, `start`, `left`, `sidebar` or caller-defined grid.
+`WorkbenchAppShell` is mounted exactly once by `app.tsx`; Queue, Settings and the selected WorkItem workspace are destinations inside that one application frame. `WorkbenchWorkItemShell` is mounted only for a selected WorkItem and owns the recurring WorkItem chrome beneath the application shell. Neither API exposes generic `children`, `start`, `left`, `sidebar`, caller-defined columns, width or breakpoint configuration.
 
 ```ts
-WorkbenchToolbar({ start, end })
+WorkbenchToolbar({
+  orientation: { productLabel, destinationLabel },
+  projectContext?: {
+    value: string,
+    options: readonly string[],
+    onChange?: (projectId: string) => void,
+  },
+  account?: {
+    label: string,
+    readiness?: { label: string, tone: "neutral" | "success" | "warning" | "danger" },
+    href: string,
+    onNavigate?,
+  },
+  navigation: { label: "Settings" | "Work queue", href: string, onNavigate? },
+  theme: { value: "system" | "light" | "dark", onChange },
+})
 WorkbenchUtilityLink({ label, detail?, icon?, href, onNavigate? })
 WorkbenchIdentity({ navigation, identity, utilities })
 WorkbenchRail({ items })
 ```
 
-Toolbar/identity/rail geometry is primitive-owned. `WorkbenchUtilityLink` is navigation-only and renders link semantics; it never converts Settings/account navigation into a command button. `WorkbenchRail.items` carries only generic id/label/state/selected/onSelect presentation; callers cannot set cell width.
+Toolbar/identity/rail geometry is primitive-owned. `WorkbenchToolbar` receives only the P3-authorized orientation, optional Project context and exact global utilities; it exposes no generic content slots through which a caller can rebuild another header. `projectContext.value/options` are opaque presentation strings whose caller-supplied values must be exact canonical `ProjectId` values from the configured Project catalog; the primitive imports no Project/domain contract; when `options.length > 1` and `onChange` is present the primitive owns the compact Project selector, otherwise it renders orientation-only Project context without inventing another choice. The selected WorkItem may provide static Project context with no `onChange`, so inspecting a WorkItem can never retarget it across Projects. `account.readiness` is already-humanized status presentation only. `navigation` is the single application utility that is `Settings` outside Settings and `Work queue` inside Settings. `WorkbenchUtilityLink` is navigation-only and renders link semantics; it never converts Settings/account navigation into a command button. `WorkbenchToolbar` is application-global only. The Markdown source editor's compact editor-control region is specialist content owned by `GW-DOC-MARKDOWN-WORKBENCH`; it may compose approved atomic actions/formatting controls but must not consume `WorkbenchToolbar` or emulate application orientation/Project/account/theme utilities. `WorkbenchRail.items` carries only generic id/label/state/selected/onSelect presentation; callers cannot set cell width.
 
 ```ts
-WorkbenchSurface({ attention, selector?, material })
-WorkbenchAttention({ title, purpose?, status?, blocker?, action? })
+WorkbenchSurface({ attention?, material })
+WorkbenchAttention({ title, description?, feedback?, action? })
 WorkbenchSectionHeader({ title, description?, action? })
+WorkbenchSection({ title?, description?, action?, content })
+WorkbenchFacts({
+  label?,
+  items: [{ id, label, value, emphasis?: "normal" | "strong" }],
+})
+WorkbenchDocument({
+  title,
+  description?,
+  status?,
+  action?,
+  content,
+  details?: { label, content },
+})
+WorkbenchResult({
+  title,
+  status,
+  summary?,
+  sections?,
+  resources?,
+  action?,
+})
 WorkbenchSelector({
   label,
   groups: [{ label?, items: [{ id, label, detail?, selected, onSelect }] }],
 })
 ```
 
-`WorkbenchSurface` exposes no persistent start/aside/master/columns/breakpoint props. `WorkbenchSelector` is single-selection presentation: exactly one item may be selected when a current selection exists, item `onSelect` is the only selection action, groups are labeling/organization only, and item count never selects topology.
+`WorkbenchSurface` exposes no selector/start/aside/master/columns/breakpoint props. Its `attention` slot is optional and semantic: when present it contains the one owning `WorkbenchAttention` composition for an interaction class that explicitly owns genuine current attention. It is not a generic heading/top-content/status slot, and absent attention creates no wrapper or geometry. `WorkbenchAttention` receives already-humanized attention meaning; it cannot serialize stage/status/material tuples. `WorkbenchSectionHeader`, document status/action, result headers/status and Evidence identity belong to the owning material composition. `WorkbenchSelector` is only a bounded peer-selection primitive for consumers explicitly allowlisted by P4; it is never generic workflow-material navigation.
 
 ```ts
-WorkbenchDialogue({ transcript, composer?, state? })
+WorkbenchDialogue({ transcript, activity?, composer?, state? })
+WorkbenchReviewVerdict({ label, description?, tone, currentness? })
+WorkbenchReviewSection({ title, description?, content })
 WorkbenchReview({
-  currentness,
-  summary,
-  body,
+  title,
+  description?,
+  verdict,
+  sections,
   decisions,
-  technicalDetails?,
-  selector?,
 })
-WorkbenchMasterDetail({ master, detail, masterLabel })
+WorkbenchMasterDetail({
+  master: {
+    label,
+    items: [{ id, label, detail?, state?, selected, onSelect }],
+  },
+  detail,
+})
 ```
 
-Dialogue owns transcript/composer mechanics but not send eligibility. Review technical detail uses the shared disclosure behavior. Master/detail exposes no master width/collapse/count configuration.
+Dialogue owns transcript/supporting-activity/composer mechanics but not send eligibility. Its narrow API has no generic header, workflow-state summary or technical-detail slot. OPEN/REQUIRED_INPUT/PROCESSING are interaction classifications used to select transcript/composer/state behavior, not ordinary taxonomy labels to print as primary copy. Raw technical identity routes to explicit WorkItem Context/Evidence. Review owns the outer hierarchy and accepts only its named verdict/section/decision responsibilities; it has no arbitrary `body` slot, selector, attention or technical-detail escape. A Review section may contain approved leaf content or a canonical supporting composition such as `WorkbenchFacts`/`WorkbenchResourceList`, but cannot create another Review hierarchy. Master/detail exposes no arbitrary master-content slot and no master width/collapse/count configuration. The master is a scan-efficient item list only; task objective/state and subordinate attempt selection are allowed there, while task contract, blocker/action, validation, chronology, evidence and resources remain detail-owned.
 
 ```ts
-WorkbenchContextPanel({ title, onClose, children })
-WorkbenchTaskPanel({ open, title, onOpenChange, content })
+WorkbenchContextPanel({ title, onClose, sections })
+WorkbenchTaskPanel({ open, title, description?, onOpenChange, body, feedback?, footer, onSubmit? })
 WorkbenchSettingsLayout({ navigation, content })
 ```
 
@@ -986,8 +1159,11 @@ WorkbenchState({ kind, title, description?, action? })
 ```ts
 WorkbenchTable({ label, columns, rows, selection? })
 WorkbenchTimeline({ label, items })
+WorkbenchResourceRow({ id, label, detail?, meta?, action? })
+WorkbenchResourceList({ label?, items, empty? })
 WorkbenchDisclosure({ label, content })
 WorkbenchConfirmation({
+  kind,
   open,
   title,
   description,
@@ -998,9 +1174,9 @@ WorkbenchConfirmation({
 })
 ```
 
-Table/timeline data remains feature-owned; the primitives own visual rhythm and interaction mechanics. Confirmation owns modal accessibility, not the decision to open or mutation executed.
+Table/timeline data remains feature-owned; the primitives own visual rhythm and interaction mechanics. Confirmation owns modal accessibility and the fixed substrate/action role implied by the P3/DESIGN `kind`, not the decision to open or mutation executed. `kind="safety"` is primary-action Dialog consent; `kind="destructive"` is destructive-action AlertDialog consent. Callers never pass an arbitrary visual action tone.
 
-The existing `WorkbenchAction`, `WorkbenchResourceRow`, `WorkbenchIcon` and toolbar groups remain narrow atoms under these contracts.
+`WorkbenchAction`, `WorkbenchResourceRow`, `WorkbenchIcon`, `WorkbenchSectionHeader` and toolbar groups remain narrow atoms under these contracts. `WorkbenchResourceRow` is not a feature-level collection owner: repeated resources are supplied through `WorkbenchResourceList`.
 
 ### 8.14 Primitive API laws
 
@@ -1022,6 +1198,8 @@ All Order-owned Workbench primitives obey the applicable laws:
 14. **Foundation-leaf containment:** approved leaves from §8.19 may render only inside the primitive slot that gives them context; they cannot create outer topology or a parallel visual grammar.
 15. **Specialized renderer containment:** CodeMirror/Markdown/raw evidence renderers own content mechanics only and consume the same design tokens/theme.
 16. **Closed extension:** a new reusable primitive, visual role or semantic tone requires DESIGN authority and permanent fitness coverage.
+17. **No structural escape hatch:** generic `ReactNode`/children content is permitted only at explicitly leaf-level content boundaries. A component that owns a hierarchy may not expose an unconstrained slot that lets a feature recreate that hierarchy, section system, collection grammar or responsive topology locally.
+18. **Physical cohesion:** when one production renderer owns multiple independently testable semantic presentation responsibilities, P7 decomposes it into the minimum same-layer component modules authorized by this P4 vocabulary instead of preserving a route-sized catch-all.
 
 ### 8.15 Canonical screen-construction grammar
 
@@ -1030,9 +1208,10 @@ The functional interaction classes in `GW-DOC-WORKBENCH-UX-V2 §13` map exactly:
 ```text
 Operational scan
   -> WorkbenchSurface
-     + WorkbenchSectionHeader as needed
-     + WorkbenchTable
-     + WorkbenchStatus / WorkbenchNotice / WorkbenchAction
+     attention = absent
+     material = WorkbenchSectionHeader as needed
+              + WorkbenchTable
+              + WorkbenchStatus / WorkbenchNotice / WorkbenchAction
 
 Form / configuration
   -> WorkbenchForm
@@ -1041,42 +1220,55 @@ Form / configuration
      + WorkbenchNotice / WorkbenchStatus / WorkbenchAction
 
 Document
-  -> WorkbenchSurface
-     attention = WorkbenchAttention
-     selector = optional WorkbenchSelector
-     material = specialized document/editor renderer
-     secondary detail = optional WorkbenchDisclosure
+  -> WorkbenchDocument as the one primary material
+     + document identity/currentness/action owned by WorkbenchDocument
+     + DESIGN-authorized supporting facts use WorkbenchFacts
+     + specialized document/editor renderer is the one content leaf
+     + optional genuine WorkbenchAttention only when the exact Document interaction owns current human attention
+     + repeated subordinate resources use WorkbenchResourceList; a single resource uses an explicit Action/link treatment rather than a one-item pseudo-list
+     + exact technical identity routes to WorkItem Context / Evidence
+     + no generic WorkbenchSelector / WorkbenchDisclosure / outer workflow wrapper
 
 Dialogue
-  -> WorkbenchSurface
-     attention = WorkbenchAttention
-     selector = optional WorkbenchSelector
-     material = WorkbenchDialogue(transcript, composer, state)
+  -> WorkbenchDialogue(transcript, activity?, composer?, state?)
+     + no outer WorkbenchSurface / WorkbenchAttention wrapper
+     + current human input, processing/open continuation and bounded activity remain Dialogue-owned
+     + historical current-owner return is an explicit surrounding action treatment only when required by the exact historical-inspection contract
 
 Review
   -> WorkbenchReview
-     + optional WorkbenchSelector
-     + WorkbenchStatus / WorkbenchNotice
-     + WorkbenchDisclosure for technical detail
+     outer WorkbenchSurface / WorkbenchAttention = absent
+     + one WorkbenchReviewVerdict
+     + ordered WorkbenchReviewSection children for the DESIGN-declared review responsibilities
+     + WorkbenchFacts / WorkbenchResourceList / approved specialist leaves only inside the section that owns them
+     + WorkbenchStatus / WorkbenchNotice as semantic content inside the declared Review regions
      + WorkbenchAction for already-derived decisions
+     + exact technical identity routes to WorkItem Context / Evidence
+     + no arbitrary review-body hierarchy, selector/material-navigation or generic WorkbenchDisclosure slot
 
 Operational master/detail
   -> WorkbenchMasterDetail
      master = WorkbenchTable or compact scan
-     detail = WorkbenchSurface + WorkbenchAttention + selected material
+     detail = WorkbenchSurface
+              attention = WorkbenchAttention for the current task
+              material = selected task/attempt material
 
 Evidence
   -> WorkbenchSurface
-     + WorkbenchSectionHeader / WorkbenchAttention
-     + approved CodeBlock/raw-content leaf
+     attention = absent
+     material = WorkbenchSectionHeader + approved CodeBlock/raw-content leaf
 
 Terminal result
   -> WorkbenchSurface
-     + WorkbenchStatus
-     + result content/evidence/resources
+     attention = absent
+     material = WorkbenchResult
+                + product-facing result status/outcome
+                + ordered WorkbenchSection content
+                + WorkbenchResourceList where repeated resources exist
+                + permitted result action
 
 Compact context
-  -> WorkbenchContextPanel hosted only by WorkbenchLayout
+  -> WorkbenchContextPanel hosted only by WorkbenchWorkItemShell
 
 Task panel
   -> WorkbenchTaskPanel
@@ -1091,19 +1283,19 @@ Canonical application services resolve as:
 
 | Service/material | Required primitive composition |
 |---|---|
-| Work queue | `WorkbenchLayout -> WorkbenchSurface -> WorkbenchTable`; readiness/source diagnostics use `WorkbenchNotice` |
-| Create WorkItem/remediation | `WorkbenchTaskPanel -> WorkbenchForm` + Astryx field-owning controls; `WorkbenchField` only for a control without its own field shell |
-| Settings | `WorkbenchLayout -> WorkbenchSettingsLayout -> WorkbenchForm` + Astryx field-owning controls / `WorkbenchField` fallback + Status/Notice/Confirmation |
-| WorkItem shell | `WorkbenchLayout -> WorkbenchIdentity + WorkbenchRail + one primary composition + optional WorkbenchContextPanel` |
-| Work request/lifecycle document | `WorkbenchSurface -> WorkbenchAttention + optional WorkbenchSelector + document renderer` |
-| Active/historical STAGE Run | `WorkbenchSurface -> WorkbenchAttention + optional WorkbenchSelector + WorkbenchDialogue` |
-| Proposal / Readiness / Approval | `WorkbenchReview` (+ selector/disclosure/field where explicitly required) |
+| Work queue | `WorkbenchAppShell -> WorkbenchSurface(attention absent, material SectionHeader + WorkbenchTable)`; readiness/source diagnostics use `WorkbenchNotice` |
+| Create WorkItem/remediation | `WorkbenchAppShell` hosts the current destination and `WorkbenchTaskPanel -> WorkbenchForm` contains the transient creation/configuration task; Astryx field-owning controls are leaves and `WorkbenchField` is only for a control without its own field shell |
+| Settings | `WorkbenchAppShell -> WorkbenchSettingsLayout -> WorkbenchForm` + Astryx field-owning controls / `WorkbenchField` fallback + Status/Notice/Confirmation |
+| WorkItem shell | `WorkbenchAppShell -> WorkbenchWorkItemShell -> WorkbenchIdentity + WorkbenchRail + one primary composition + optional WorkbenchContextPanel` |
+| Work request/lifecycle document | direct `WorkbenchDocument` composition with DESIGN-authorized `WorkbenchFacts` and one specialized document/editor content leaf; where the selected/current Document interaction has genuine human attention, the Document owner may compose the one optional `WorkbenchAttention` region defined by its exact interaction contract; no generic `WorkbenchSelector` or outer workflow wrapper |
+| Active/historical STAGE Run | direct `WorkbenchDialogue`; current human-action feedback/composer/state remains Dialogue-owned, while historical current-owner return uses the one explicitly authorized attention/action treatment outside the transcript only when that return is genuinely current |
+| Proposal / Readiness / Approval / Acceptance | one direct `WorkbenchReview` primary composition built from one `WorkbenchReviewVerdict` plus DESIGN-declared `WorkbenchReviewSection` children; structured facts use `WorkbenchFacts`, repeated package/history/evidence access uses `WorkbenchResourceList`, Proposal mutation content uses the approved document-change specialist, exact technical identity routes to WorkItem Context/Evidence, and REQUIRED_INPUT in Readiness replaces Review with Dialogue for that turn; no arbitrary body hierarchy, selector/disclosure/outer `WorkbenchSurface`/`WorkbenchAttention` wrapper |
 | Implementation | `WorkbenchMasterDetail(master scan, detail WorkbenchSurface)` |
 | Run chronology | `WorkbenchTimeline` |
-| Evidence/raw material | `WorkbenchSurface` + approved raw-content leaf |
-| Complete/result | `WorkbenchSurface + WorkbenchStatus + result content` |
-| Context | `WorkbenchContextPanel` only through `WorkbenchLayout` |
-| Dirty/destructive confirmation | `WorkbenchConfirmation` |
+| Evidence/raw material | one `WorkbenchSurface` with attention absent and `WorkbenchSectionHeader + approved raw-content leaf` in material; it replaces rather than nests inside the owning primary composition |
+| Complete/result | one `WorkbenchSurface` with attention absent and one `WorkbenchResult` in material; repeated resources use `WorkbenchResourceList` and semantic subsections use `WorkbenchSection` |
+| Context | `WorkbenchContextPanel` only through `WorkbenchWorkItemShell` |
+| Safety/confirmation | `WorkbenchConfirmation` with P3/DESIGN-derived `kind="safety" | "destructive"` |
 
 A feature/service therefore classifies its interaction under P3, chooses the fixed composition above, maps canonical state into generic primitive values, then supplies domain content. It does not design a new UI grammar.
 
@@ -1127,50 +1319,51 @@ DOM/CSS
 
 Examples:
 
-- `app.tsx` supplies application destination state to `WorkbenchLayout`, creation to `WorkbenchTaskPanel`, dirty navigation to `WorkbenchConfirmation` and toolbar utility state to `WorkbenchUtilityLink`; it does not import Drawer/AlertDialog directly.
+- `app.tsx` mounts the one `WorkbenchAppShell`, supplies its global toolbar and current application destination, routes creation to `WorkbenchTaskPanel`, dirty navigation to `WorkbenchConfirmation` and toolbar utility state to `WorkbenchUtilityLink`; no destination mounts another AppShell or application toolbar.
 - `WorkItemIdentityRow.tsx` maps identity/status/utilities to `WorkbenchIdentity`.
 - `WorkflowRail.tsx` maps reached/current presentation into `WorkbenchRail`.
-- `WorkflowStepFrame.tsx` maps already-derived attention into `WorkbenchAttention + WorkbenchSurface`.
-- `WorkflowMaterialSelector.tsx` maps Run/document/proposal/evidence choices into `WorkbenchSelector`.
+- `WorkflowStepFrame.tsx`, `WorkflowStepSummary`, `WorkflowStepIndex`, `PrimaryMaterialFrame` and `WorkflowMaterialSelector.tsx` are absent. Screen owners select and compose the canonical interaction class directly; no generic workflow-state/material adapter survives.
 - `ActivityWorkspace.tsx` / `ActivityComposer.tsx` map transcript/composer content into `WorkbenchDialogue`.
 - `RunEventTimeline.tsx` maps canonical event presentation into `WorkbenchTimeline`.
 - `ProposalReview.tsx`, `ReadinessWorkspace.tsx`, `SignoffReview.tsx` map review content into `WorkbenchReview`.
-- `ExecutionWorkspace.tsx` maps task/attempt scan into `WorkbenchMasterDetail`, detail into `WorkbenchSurface`, validation scan into `WorkbenchTable`, chronology into `WorkbenchTimeline`.
+- `ExecutionWorkspace.tsx` maps task/attempt scan into `WorkbenchMasterDetail`, current-task detail into one `WorkbenchSurface` with genuine current attention, validation scan into `WorkbenchTable`, and chronology into `WorkbenchTimeline`; explicit Evidence selection replaces the detail primary composition instead of nesting another surface.
 - `WorkItemContext.tsx` supplies content to `WorkbenchContextPanel`.
 - `CreateWorkItem.tsx`, `SettingsWorkspace.tsx` and `OpenCodeAccountSettings.tsx` map form/configuration semantics into `WorkbenchForm`; they render Astryx field-owning controls directly and use `WorkbenchField` only for a native/custom/third-party control without its own field shell.
-- technical/supporting detail uses `WorkbenchDisclosure`; semantic feedback uses `WorkbenchNotice`; semantic state uses `WorkbenchStatus`.
+- specifically named same-task expansion may use `WorkbenchDisclosure`; WorkItem technical inspection routes through `WorkItemContext` → `WorkbenchContextPanel`; Settings technical diagnostics route through one Settings inspection section; semantic feedback uses `WorkbenchNotice`; semantic state uses `WorkbenchStatus`.
 
 No feature/service adapter owns CSS establishing a primitive-owned layout/mechanic or chooses visual values outside `GW-DOC-WORKBENCH-THEME-V1`.
 
 ### 8.17 Complete production-renderer coverage audit
 
-The following matrix is exhaustive for the production TSX renderers present on the PR #59 design baseline. `main.tsx` is bootstrap only and is not a renderer contract. `http.ts`, `query-keys.ts`, `workbench-presentation.ts` and `markdown-source-formatting.ts` are non-rendering modules.
+The following matrix is exhaustive for the production TSX renderers present on the PR #59 design baseline after applying current DESIGN dispositions. `main.tsx` is bootstrap only and is not a renderer contract. `http.ts`, `query-keys.ts`, `workbench-presentation.ts`, `markdown-source-formatting.ts` and the bounded `OpenCodeAccountControl.tsx` account query/presentation adapter are non-rendering modules.
 
 | Production renderer | Target UI-language coverage | Current mechanism specifically superseded where applicable |
 |---|---|---|
 | `app.tsx` | Layout, Toolbar, UtilityLink, TaskPanel, Confirmation, Notice/State + approved theme choice leaf | direct Drawer/AlertDialog and bespoke theme/account utility chrome |
-| `OpenCodeAccountControl.tsx` | UtilityLink + Status | native feature-styled button |
 | `SettingsWorkspace.tsx` | SettingsLayout + Form + Astryx field-owning controls / Field fallback + SectionHeader + Status/Notice + Confirmation + Action | bespoke settings sidebar/buttons/cards/form controls |
 | `OpenCodeAccountSettings.tsx` | Form + Astryx field-owning controls / Field fallback + SectionHeader + Status/Notice + Confirmation + Action/ResourceRow | bespoke account rows/input styling and direct AlertDialog |
-| `CreateWorkItem.tsx` | Form + Astryx field-owning controls / Field fallback + Status/Notice + Action inside TaskPanel | raw feature-styled select/input/form spacing |
+| `CreateWorkItem.tsx` | TaskPanel header/body/footer + Astryx field-owning controls / Field fallback + Status/Notice | raw feature-styled select/input/form spacing; Form actions inside Dialog body; local Technical-details disclosure |
 | `WorkItemQueue.tsx` | Surface + Table + Status + Action | direct table grammar plus feature-owned responsive row styling |
 | `WorkItemWorkspace.tsx` | Identity + Rail + Confirmation + canonical primary composition | native workflow buttons, identity grid and direct AlertDialog |
-| `WorkflowStepFrame.tsx` | Attention + Surface only | generic side-index Layout/Drawer |
-| `PreSignoffStageWorkspace.tsx` | Selector + canonical Document/Dialogue/Review/Evidence composition | count-selected side index and bespoke supporting-context disclosure |
-| `ActivityWorkspace.tsx` | Dialogue + Status/Notice + Disclosure + Timeline + Action | bespoke dialogue heading/composer geometry and technical details |
+| `WorkItemIdentityRow.tsx` | thin identity adapter -> `WorkbenchIdentity` | no independent identity grid/chrome; adapter remains state/policy-free |
+| `WorkflowRail.tsx` | thin workflow-navigation adapter -> `WorkbenchRail` | no independent rail geometry/status styling or responsive ownership |
+| `PreSignoffStageWorkspace.tsx` | direct canonical Document/Dialogue/Review/Evidence/State selection and composition; subordinate attempts/upstream/evidence use interaction-specific resources/actions only | generic workflow-step frame/summary; heterogeneous workflow-material selector; count-selected side index; duplicate Supporting-material/history disclosure |
+| `ActivityWorkspace.tsx` | Dialogue + Status/Notice + Timeline + Action; selected technical identity routes to Context | bespoke dialogue heading/composer geometry; local Technical-details disclosure |
 | `ActivityComposer.tsx` | Dialogue composer slot + approved Chat leaf + Notice/State | feature-level composer layout |
-| `RunEventTimeline.tsx` | Timeline + Status + Disclosure + ResourceRow/Action | bespoke ordered-list/event layout |
-| `DocumentWorkspace.tsx` | Surface + SectionHeader + Notice/State + Disclosure + Confirmation + MarkdownEditor | direct AlertDialog and bespoke technical state layout |
-| `MarkdownEditor.tsx` | specialized renderer inside Document composition; SectionHeader + Toolbar/Action + Disclosure + Status/Notice; approved Markdown/segmented leaves | bespoke toolbar/technical-details/dirty-state visual grammar |
+| `RunEventTimeline.tsx` | Timeline + Status + ResourceRow/Action; raw event identity routes to Context/Evidence | bespoke ordered-list/event layout; Timeline technical-details disclosure |
+| `DocumentWorkspace.tsx` | WorkbenchDocument + Facts + Notice/State + Confirmation + MarkdownEditor; technical identity routes to Context; no feature-local document-facts/aside composition | direct AlertDialog; bespoke local technical disclosure/state layout; screen-local fact/aside grammar |
+| `MarkdownEditor.tsx` | specialized renderer inside WorkbenchDocument content; one compact editor-control region + Status/Notice + approved Markdown/segmented leaves; overflow-before-wrap formatting composition and direct control→canvas adjacency | bespoke multi-row toolbar; local Technical-details strip; unrelated band between editor controls and canvas |
 | `MarkdownSourceEditor.tsx` | specialized CodeMirror renderer consuming canonical tokens | editor-local colors/geometry outside token contract prohibited |
-| `ProposalReview.tsx` | Review + Status/Notice + Action + approved CodeBlock leaf | bespoke review headings/state blocks |
-| `ReadinessWorkspace.tsx` | Review + optional Selector + Status/Notice | generic WorkflowStepFrame composition |
-| `SignoffReview.tsx` | Review + Astryx field-owning approver control / Field fallback only if required + Status/Notice + Disclosure + Action + approved MetadataList leaf | generic side index and bespoke approval action/form layout |
-| `ExecutionWorkspace.tsx` | MasterDetail + Surface/Attention + Table + Timeline + Status/Notice + Disclosure + ResourceRow/Action | generic side index, bespoke validation matrix/task detail layout |
+| `ProposalReview.tsx` | Review + ReviewVerdict + ReviewSection + approved DocumentChangeView + Facts/Status/Notice + Action; raw unified diff is not the primary human review surface | bespoke review headings/state blocks; raw CodeBlock diff as the Review body |
+| `DocumentChangeView.tsx` | approved Proposal Review specialist: governed proposed-document content with visibly marked changed regions and secondary exact-diff inspection only | raw unified-diff primary body; independent Review shell; persistent proposal state/model |
+| `ReadinessWorkspace.tsx` | direct Review + ReviewVerdict + ReviewSection + Facts/ResourceList/Status/Notice; REQUIRED_INPUT replaces Review with Dialogue for that turn | generic WorkflowStepFrame composition; generic Readiness material selector; screen-local readiness section/grid grammar |
+| `AcceptanceWorkspace.tsx` | direct Review + ReviewVerdict + ReviewSection + Facts/ResourceList + existing TaskPanel/report/retest + exact acceptance commands; technical identity routes to Context/Evidence | nested Review, generic selector, local state authority, synthetic validation or delivery |
+| `SignoffReview.tsx` | direct Review + ReviewVerdict + ReviewSection + Facts/ResourceList + approver control + Status/Notice + Action; technical identity routes to Context | generic side index; local/package/task Technical-details disclosures; bespoke approval section/card/action layout |
+| `ExecutionWorkspace.tsx` | MasterDetail + Surface/Attention + Table + Timeline + Status/Notice + ResourceList/Action; same-task validation expansion may use Disclosure; technical identity routes to Context/Evidence | generic side index; generic Technical-details disclosure; bespoke validation matrix/task detail layout |
 | `EvidenceViewer.tsx` | Surface + SectionHeader + State + approved CodeBlock leaf | bespoke section heading |
-| `TerminalResult.tsx` | Surface + Status + SectionHeader + ResourceRow + approved Markdown/CodeBlock/peer-view leaves | bespoke result status/heading grammar |
-| `WorkItemContext.tsx` | ContextPanel + Status/Notice + Disclosure + approved MetadataList leaf | bespoke context panel/technical disclosure |
-| existing `ui/src/primitives/*.tsx` | migrate/expand to exactly the closed §8.12 contracts | current primitive set is incomplete and WorkbenchLayout exports feature-visible responsive policy |
+| `TerminalResult.tsx` | Surface + WorkbenchResult + Section + ResourceList + Status + approved Markdown/CodeBlock/peer-view leaves | bespoke result status/heading/section/resource grammar |
+| `WorkItemContext.tsx` | ContextPanel + Section + Facts + Status/Notice + approved MetadataList leaf; selection-aware technical projection for document/Run/proposal/approval/task/execution identities | nested WorkItem Technical-details disclosure; feature-local technical inspector outside Context |
+| existing `ui/src/primitives/*.tsx` | implementation evidence only. The §8.12 responsibility vocabulary and closed APIs are authority; production modules exist only for responsibilities with authorized current consumers. | current primitive implementation may reveal useful capability or defects but may not define topology, geometry, responsive behavior, component API shape or preservation targets |
 
 Every production renderer added later must be added to this matrix (or its canonical successor) in the same DESIGN/P7 authority that introduces it. An unclassified production renderer is an architecture failure.
 
@@ -1198,14 +1391,16 @@ The closed primitive system does not require pointless one-line wrappers. The fo
 | Astryx `Link` | pure application/document/external navigation inside the owning Toolbar/Identity/content slot | use link semantics for navigation rather than `WorkbenchAction`/Button; external-link safety/accessible labeling remain foundation-owned |
 | Astryx `SegmentedControl` / `TabList` | SegmentedControl for 2-5 peer modes such as theme or Edit/Preview/Split; TabList only where true tab/page navigation semantics are required | SegmentedControl is never workflow navigation; neither may alter outer topology |
 | Astryx `Selector` | exact substrate of `WorkbenchSelector` for subordinate single-material selection | owned only by `WorkbenchSelector` for this mechanic; `presentation="adaptive"` is fixed and feature code cannot substitute another overlay |
-| Astryx field-owning controls (`TextInput`, `TextArea`, `Selector`, `Typeahead`, `RadioList`, `MultiSelector`, etc.) | ordinary Form/configuration fields inside `WorkbenchForm` | use their native label/description/status contract; do **not** wrap them in `WorkbenchField`/`Field` |
+| Astryx `TextInput` | ordinary Form/configuration text fields inside `WorkbenchForm`; additionally, a DESIGN-declared text search/filter leaf inside an Operational-scan composition such as `SURF-QUEUE-001` | use native label/description/status semantics; operational search remains a leaf and cannot create toolbar/application chrome or filtering policy |
+| other Astryx field-owning controls (`TextArea`, `Selector`, `Typeahead`, `RadioList`, `MultiSelector`, etc.) | ordinary Form/configuration fields inside `WorkbenchForm` | use their native label/description/status contract; do **not** wrap them in `WorkbenchField`/`Field` |
 | Astryx `Field` via `WorkbenchField` | label/help/status shell around a native/custom/third-party control that has no field shell | exact label/description/status accessibility wiring remains foundation-owned |
 | native control where no suitable Astryx control exists | control slot inside `WorkbenchField` only | use only when native semantics are required or the catalog has no fit; no feature-owned styling |
 | Astryx `Markdown` | document/result rendering | readable measure/theme inherited from content owner |
-| Astryx `CodeBlock` | evidence/diff/raw code | bounded scrolling/theme inherited |
+| Astryx `CodeBlock` | evidence/raw code and optional secondary exact-diff inspection | bounded scrolling/theme inherited; raw diff is not the primary Proposal Review information design |
 | Astryx `MetadataList` | secondary/technical structured metadata | not primary workflow hierarchy |
 | Astryx `ChatLayout`, `ChatMessage`, `ChatMessageMetadata` and `ChatComposer` leaves | only inside `WorkbenchDialogue` | dialogue geometry/input policy remain Workbench-owned; provider-native/raw tool records are not rendered as Chat tool-call content |
 | CodeMirror via `MarkdownSourceEditor` | exact Markdown source editing | consumes canonical editor/color/type/focus tokens; no independent palette |
+| `DocumentChangeView` specialist | Proposal Review mutation content: render the proposed governed document in document context with changed regions visibly marked and enough unchanged context to understand the mutation; may expose the exact unified diff only as secondary inspection | consumes canonical Markdown/content tokens; derives no proposal authority/acceptance policy; does not create another Review shell or persistent document model |
 | semantic HTML (`section`, `p`, `dl`, `code`, lists, `a`) | content semantics and true external/document links inside primitive slots | no independent layout/color/type system; links use accent/link token + underline/focus grammar |
 
 Direct feature/service use of Astryx `Button/IconButton`, reusable status `Badge/Banner`, structural `AppShell/Layout/Drawer/Dialog`, material-selection `Selector`, or `AlertDialog` is not approved when the corresponding mechanic is owned by a Workbench primitive. Those Astryx components are the preferred **substrates inside the owning primitive**, not an alternate feature-level UI language. Field-owning controls and other §8.19 leaves remain direct leaves only within their authorized composition.
@@ -1247,7 +1442,7 @@ Run/provider plumbing is not a parallel primary information block. The Dialogue 
 2. **Agent activity** — coordinator-owned bounded `AGENT_ACTIVITY_RECORDED` observations, rendered as supporting activity rather than chat;
 3. **Workflow/system** — proposals, conformance, completion/block/failure, evidence and other canonical workflow events.
 
-`WorkbenchDialogue` owns that composition. On wide layouts it keeps a stable conversation region plus a bounded supporting-activity region and an anchored composer. Medium/narrow layouts recompose activity subordinately without creating another navigation rail or hiding the conversation/composer. Provider session id, baseline/context hash and ordinary provider-process status remain inside Technical details. A provider admission/failure appears in primary only as the canonical human-facing blocker/failure.
+`WorkbenchDialogue` owns that composition. On wide layouts it keeps a stable conversation region plus a bounded supporting-activity region and an anchored composer. Medium/narrow layouts recompose activity subordinately without creating another navigation rail or hiding the conversation/composer. Provider session id, baseline/context hash and ordinary provider-process status remain inside the selected WorkItem's explicit Context inspection. A provider admission/failure appears in primary only as the canonical human-facing blocker/failure.
 
 A free-form composer is rendered only for OPEN interaction backed by a visible substantive agent message from that turn. An exact required-input question is itself the reply anchor.
 
@@ -1321,7 +1516,7 @@ Extend the existing browser-safe owner with the complete closed workflow languag
 - recovery-disposition derivation using existing bounded execution policy/history;
 - canonical-observation coherence detection over the loaded canonical facts;
 - closed current-attention derivation;
-- the sole nine-stage workflow-rail projection.
+- the sole ten-stage workflow-rail projection.
 
 These are pure functions over canonical types/facts. No Zod schema, transport/persistence model, browser store or generic aggregate `WorkflowState` is added for any derived decision.
 
@@ -1415,8 +1610,7 @@ The target ownership is:
 - `WorkItemWorkspace.tsx` — selected WorkItem workflow composition, subordinate canonical queries, dirty-buffer selection guard and step dispatch;
 - `WorkItemIdentityRow.tsx` — pure WorkItem adapter over `WorkbenchIdentity`; title/status/utilities and mutations/state are supplied by the parent, while three-group geometry remains primitive-owned;
 - `WorkflowRail.tsx` — pure adapter from the canonical `deriveWorkflowRail(...)` projection into `WorkbenchRail`; it owns labels/accessibility wiring only and contains no reach/current-marker policy;
-- `WorkflowStepFrame.tsx` — thin workflow adapter over `WorkbenchAttention` + `WorkbenchSurface`, with no independent structural layout behavior;
-- `WorkflowMaterialSelector.tsx` — thin domain adapter over `WorkbenchSelector` for Run/document/proposal/evidence material;
+- `WorkflowStepFrame.tsx` / `WorkflowMaterialSelector.tsx` — required absent; their generic workflow-summary/material-selection responsibilities are superseded and may not be recreated under another name;
 - `ActivityWorkspace.tsx` / `ActivityComposer.tsx` — dialogue content/policy adapters over `WorkbenchDialogue`; transcript/composer geometry remains primitive-owned;
 - `RunEventTimeline.tsx` — RunEvent presentation adapter over `WorkbenchTimeline`;
 - Queue/Settings/Create/Account renderers remain cohesive feature/service adapters, but all structure/forms/status/notices/tables/overlays resolve through the §8.12 primitives and §8.17 matrix.
@@ -1427,15 +1621,13 @@ This is not a new UI framework or controller layer. These modules remain ordinar
 
 `WorkItemIdentityRow.tsx` becomes a thin adapter over `WorkbenchIdentity`; feature CSS no longer owns the identity grid.
 
-`WorkflowStepFrame.tsx` loses the optional generic side-index/drawer responsibility and becomes a thin adapter over `WorkbenchAttention` + `WorkbenchSurface`.
+`WorkflowStepFrame.tsx`, `WorkflowStepSummary`, `WorkflowStepIndex`, `PrimaryMaterialFrame` and `WorkflowMaterialSelector.tsx` are deleted and remain absent. There is no compatibility replacement. Pre-signoff screen owners select Document/Dialogue/Review/Evidence/State directly from canonical material/interaction state; supporting attempts/upstream material use only the specifically authorized subordinate resource/timeline/action treatment. Active/historical dialogue uses `WorkbenchDialogue`; feature code supplies transcript/composer content but does not own anchored-composer geometry or responsive dialogue mechanics.
 
-Pre-signoff/Readiness use `WorkflowMaterialSelector` -> `WorkbenchSelector`; item count cannot alter primary columns. Active/historical dialogue uses `WorkbenchDialogue`; feature code supplies transcript/composer content but does not own anchored-composer geometry or responsive dialogue mechanics.
-
-Proposal, Readiness and Approval map into `WorkbenchReview`; they do not reuse a generic side-index simply because documents/tasks exist. Secondary technical/supporting detail uses `WorkbenchDisclosure`.
+Proposal, Readiness and Approval map into `WorkbenchReview`; they do not reuse a generic side-index simply because documents/tasks exist. Supporting package/history access uses the Review interaction’s explicit `WorkbenchResourceList`/Action treatment; exact technical identity routes through selected WorkItem Context/Evidence. `WorkbenchDisclosure` remains limited to specifically named same-task semantic expansion and is not a Review material-navigation or technical-inspection owner.
 
 Implementation maps into `WorkbenchMasterDetail`; feature code does not create its own persistent grid columns.
 
-`WorkbenchLayout` owns responsive outer topology/Context hosting; `WorkbenchContextPanel` owns the Context body/close affordance. `App.tsx` owns only the open/close boolean and supplies a true toggle.
+`WorkbenchAppShell` owns application-global outer topology. `WorkbenchWorkItemShell` owns selected-WorkItem identity/rail/primary/Context placement and consumes the single responsive-class owner; `WorkbenchContextPanel` owns only the Context body/close affordance. `WorkItemWorkspace.tsx` owns the Context open/close boolean and supplies a true toggle. No deleted `WorkbenchLayout` responsibility survives as a hidden compatibility owner.
 
 Dirty/destructive navigation confirmation uses `WorkbenchConfirmation`; the navigation guard owns the policy/state while the primitive owns modal interaction mechanics.
 
@@ -1443,11 +1635,11 @@ Queue uses `WorkbenchTable` and `WorkbenchNotice`; Create WorkItem uses `Workben
 
 ### UI attention/presentation cleanup
 
-The current `Supporting context` disclosure is removed from the leading primary position in pre-signoff activity/document surfaces and is represented through the subordinate material selector/secondary access defined in §8.5.
+The current `Supporting context` disclosure is removed from the leading primary position in pre-signoff activity/document surfaces and is represented only through the interaction-specific subordinate resource/timeline/action access defined in §8.5; no generic material selector or disclosure lane is created.
 
-The current prominent `OpenCode session` block in `ActivityWorkspace` is removed from primary composition. Canonical workflow interaction state owns the visible status; provider diagnostics remain Technical details/evidence unless they are the active blocker.
+The current prominent `OpenCode session` block in `ActivityWorkspace` is removed from primary composition. Canonical workflow interaction state owns the visible status; provider diagnostics remain Context/Evidence-owned unless their human-readable condition is the active blocker.
 
-`WorkflowStepSummary` renders one current action owner only. A retryable failed Run must not simultaneously expose both generic Start and Retry controls for the same stage.
+The owning interaction renders at most one current mutation action. A retryable failed Run must not simultaneously expose both generic Start and Retry controls for the same stage, and no deleted workflow-summary owner may be recreated to arbitrate those actions.
 
 Implementation validation presentation is sparse/current-state-first as defined in §8.8; a full empty V0–V7 matrix is not rendered before validation begins.
 
@@ -1485,7 +1677,8 @@ A lower step must not compensate for a missing higher step.
 The following current mechanisms are superseded and must disappear from the compliant implementation:
 
 - content-count-driven `meaningfulObjectCount >= 2` selection of a persistent step rail;
-- the optional persistent `start`/side-index slot and associated drawer responsibility in the generic `WorkflowStepFrame`;
+- the complete generic `WorkflowStepFrame` / `WorkflowStepSummary` / `WorkflowStepIndex` / `PrimaryMaterialFrame` composition family;
+- the generic `WorkflowMaterialSelector` heterogeneous Run/document/proposal/evidence adapter;
 - use of the queue-list WorkItem snapshot as the selected WorkItem's current canonical observation;
 - ordinal `selectedStage < currentStage` reached-history logic;
 - `Run.status`-only human-input/continuation admission;
@@ -1514,7 +1707,9 @@ P7 must not solve these failures by:
 - adding `useEffect` synchronization between competing workflow-state derivations;
 - adding duplicate queries whose purpose is to reconcile disagreement between UI owners;
 - weakening or deleting browser assertions that expose geometry, action-ownership or state-convergence defects;
-- retaining two composition systems and selecting between them by stage/status/content count.
+- retaining two composition systems and selecting between them by stage/status/content count;
+- preserving a removed design-bearing API through deprecated props, translation adapters, compatibility wrappers, hidden DOM, feature flags, always-false branches or CSS shims;
+- widening a primitive API because a legacy consumer no longer compiles after the superseded responsibility is removed.
 
 If implementation discovers that the target ownership/topology in §§4–12 cannot be realized without changing canonical state meaning, public contracts or dependency direction, execution returns to DESIGN. It does not invent an implementation-layer workaround.
 
@@ -1635,9 +1830,9 @@ The UI remediation is structurally complete only when all of the following are t
 
 **Realizes:** `GW-FR-218-SPACE-CLASS-CONSISTENCY`, `GW-FR-220-PRESIGNOFF-CONTINUITY`, `GW-FR-221-READINESS-REVIEW-HIERARCHY`, `GW-FR-222-APPROVAL-REVIEW-HIERARCHY`, `GW-FR-223-IMPLEMENTATION-MASTER-DETAIL`, `GW-FR-225-RESPONSIVE-SEMANTIC-CONTINUITY`, `GW-FR-230-CLOSED-WORKBENCH-INTERACTION-GRAMMAR`.
 
-**Required behavior:** every rendered Order Workbench service is built from the complete closed primitive vocabulary in §8.12 according to §8.15. Feature/content owners may supply domain content and §8.19 leaves inside primitive slots, but reusable Workbench structure/interaction/visual semantics remain primitive-owned.
+**Required behavior:** every rendered Order Workbench service is built from the complete closed primitive vocabulary in §8.12 according to §8.15. Feature/content owners may supply domain content and §8.19 leaves inside primitive slots, but reusable Workbench structure/interaction/visual semantics remain primitive-owned. Semantic slots retain their declared meaning: `WorkbenchSurface.attention` is optional and may contain only the interaction class's genuine current-attention composition.
 
-**Acceptance:** architecture fitness rejects bypass of shell/toolbar/utility/identity/rail/surface/attention/form/selector/dialogue/review/master-detail/Context/task-panel/settings/status/notice/table/timeline/disclosure/confirmation mechanics, rejects undeclared screen grammars, and requires any new primitive to arrive with DESIGN authority plus permanent fitness coverage.
+**Acceptance:** architecture fitness rejects bypass of shell/toolbar/utility/identity/rail/surface/attention/form/selector/dialogue/review/master-detail/Context/task-panel/settings/status/notice/table/timeline/disclosure/confirmation mechanics, rejects undeclared screen grammars, rejects a primary interaction composition nested inside another primary composition, rejects use of the optional attention slot as a generic heading/top-content slot, and additionally rejects generic local Technical-details/Supporting-material-history disclosure owners, adjacent/nested disclosure stacks, TaskPanel implementations without header/body/footer action ownership, and Markdown editor compositions that insert unrelated bands between controls and canvas. Queue/Review/Evidence/Terminal-result renderers must remain free of an outer attention band unless P3 is explicitly amended to give that interaction class such ownership. Review verdict/currentness, ordered `WorkbenchReviewSection` content and decisions remain inside `WorkbenchReview`, with no arbitrary body hierarchy; Proposal Review, Readiness and Approval may not be wrapped in `WorkflowStepFrame -> WorkbenchSurface -> WorkbenchAttention`. Any new primitive requires DESIGN authority plus permanent fitness coverage.
 
 ### GW-TR-095-WORKBENCH-RENDERER-COVERAGE
 
@@ -1653,7 +1848,7 @@ The UI remediation is structurally complete only when all of the following are t
 
 **Required behavior:** every closed §8.12 primitive and §8.19 approved leaf/specialist consumes the canonical visual/theme language owned by `GW-DOC-WORKBENCH-THEME-V1`; feature/service adapters cannot recreate primitive styling or bypass the canonical theme owner.
 
-**Acceptance:** renderer coverage plus theme/component-parity fitness proves one visual language across all services and themes; a new component responsibility or visual role cannot be introduced in feature/P7 code without the owning P4 authority being amended.
+**Acceptance:** renderer coverage plus theme/component-parity fitness proves one visual language across all services and themes; technical inspection resolves through the singular Context/Settings-diagnostics owners; modal anatomy and editor-toolbar composition are invariant across consumers; a new component responsibility, disclosure lane or visual role cannot be introduced in feature/P7 code without the owning P4 authority being amended.
 
 ### GW-TR-097-CLOSED-WORKFLOW-STATE-ALGEBRA
 
@@ -1667,7 +1862,7 @@ The UI remediation is structurally complete only when all of the following are t
 
 **Realizes:** `GW-FR-205-MONOTONIC-REACH-HISTORY`, `GW-FR-206-CURRENT-ATTENTION-PRECEDENCE`, `GW-FR-215-STABLE-WORKFLOW-RAIL`, `GW-FR-224-TERMINAL-RESULT-PRIMACY`, `GW-FR-233-CANONICAL-WORKFLOW-RAIL-PROJECTION`.
 
-**Required behavior:** one pure `deriveWorkflowRail` projection produces all nine ordered rail states from canonical reach/current-attention/recovery facts plus presentation-local selection. UI code may format but cannot reinterpret reach/current markers; rail output is never consumed by command admission.
+**Required behavior:** one pure `deriveWorkflowRail` projection produces all ten ordered rail states from canonical reach/current-attention/recovery facts plus presentation-local selection. UI code may format but cannot reinterpret reach/current markers; rail output is never consumed by command admission.
 
 **Acceptance:** fixtures covering forward progress, R3/execution return, required input, proposal decision/adoption, processing, block/recovery, stale authority and completion produce exactly one CURRENT item and exactly one current-stage marker; historical/unreached items never carry current operational markers.
 
@@ -1678,7 +1873,7 @@ The UI remediation is structurally complete only when all of the following are t
 
 **Required behavior:** every Order-owned primitive follows §8.12.1 against the exact pinned Astryx contract recorded in `GW-DOC-EXTERNAL-FACTS`: a suitable Astryx component owns its low-level interaction/accessibility/state/theme mechanics, Order owns the narrower product-semantic wrapper/composition, and supported props/public tokens are exhausted before custom CSS or raw mechanics.
 
-**Acceptance:** the primitive-to-foundation mapping is mechanically covered; architecture/browser tests reject feature bypass of the semantic owner, raw reimplementation of a suitable foundation mechanic, private/internal Astryx selector/token dependencies, Button-for-navigation misuse, nested/incorrect modal-drawer patterns, Field double-wrapping, multiple-primary-command views, badge saturation, and feature-selected overlay substitution for `WorkbenchSelector`, and misuse of SegmentedControl/Stepper for the nine-stage workflow rail. Intentional Order divergences in §8.12.1 remain explicit and tested.
+**Acceptance:** the primitive-to-foundation mapping is mechanically covered; architecture/browser tests reject feature bypass of the semantic owner, raw reimplementation of a suitable foundation mechanic, private/internal Astryx selector/token dependencies, Button-for-navigation misuse, nested/incorrect modal-drawer patterns, Field double-wrapping, multiple-primary-command views, badge saturation, and feature-selected overlay substitution for `WorkbenchSelector`, and misuse of SegmentedControl/Stepper for the ten-stage workflow rail. Intentional Order divergences in §8.12.1 remain explicit and tested.
 
 
 ## 14. Permanent verification
@@ -1745,13 +1940,13 @@ Browser tests prove all `GW-DOC-WORKBENCH-UX-V2 §23` certification scenarios, i
 - Light/Dark/System certification follows `GW-DOC-WORKBENCH-THEME-V1` and verifies normal/current/selected/info/success/warning/danger/focus roles without state meaning changing;
 - form labels/help/errors, status/notices, operational tables, timeline rows, disclosure and task-panel/confirmation interaction are visually and keyboard consistent across representative services;
 - Astryx-backed primitives preserve the pinned foundation behavior: one primary action, focus-retaining loading/disabled actions, correct field ownership, visible Drawer close/focus return, Dialog form-dismissal safety, AlertDialog pending-action behavior, sparse Badge use and non-duplicated Banner announcements;
-- lifecycle rail certification proves it is neither SegmentedControl nor Stepper and still exposes all nine canonical stages accessibly;
+- lifecycle rail certification proves it is neither SegmentedControl nor Stepper and still exposes all ten canonical stages accessibly;
 - typography/readable measures, compact control/row density and focus indicators remain within `GW-DOC-WORKBENCH-THEME-V1` token roles at wide/medium/narrow widths;
 - responsive continuity with no page-level horizontal overflow for current action/identity.
 
 ### 14.6 Architecture fitness
 
-For the Workbench V2 P7 transition, `tests/architecture.test.ts` is immutable `VERIFICATION_MATERIAL` because `pontivus-order.toml [verification.architecture].materialRefs` includes that exact path. The signed candidate must not modify it. The existing `architecture` gate continues to execute that baseline sensor unchanged. The required **new** Workbench-specific dependency-map registration, primitive/renderer completeness and forbidden-mechanic assertions below are implemented in the already-existing `tests/certification.test.ts` and exercised by the required `test` gate in the same cumulative implementation. This satisfies the architecture-preserving module-registration requirement of `GW-DOC-TECHNICAL-ARCHITECTURE` without treating a signed verification source as candidate change surface. Neither gate may be removed, waived or weakened; tests must reject omissions/bypasses rather than merely assert that new files exist.
+`tests/architecture.test.ts` is `VERIFICATION_MATERIAL` because `pontivus-order.toml [verification.architecture].materialRefs` includes that exact path. When Approval binds those exact bytes, implementation under that Approval must not mutate the sensor it is judged by. Before sign-off, package-fitness correction may update a self-contradictory sensor only to conform it to current canonical authority; the corrected bytes then become part of the exact package later reviewed and signed. Workbench-specific dependency-map registration, primitive/renderer completeness and forbidden-mechanic assertions may additionally live in the existing `tests/certification.test.ts` under the ordinary `test` gate. Bound verification material may not be weakened merely to make a candidate pass. Neither gate may be removed, waived or weakened; tests must reject omissions/bypasses rather than merely assert that new files exist.
 
 Permanent sensors prove:
 
@@ -1764,7 +1959,7 @@ Permanent sensors prove:
 - rail reach/current-marker semantics are referenced only from the authorized `deriveWorkflowRail` projection; UI adapters do not recalculate them;
 - GET handlers cannot call known reconcile/materialization mutation functions;
 - ordinal reached-history comparison is absent from production Workbench code;
-- the generic step frame has no content-count-dependent persistent side-index slot;
+- the generic `WorkflowStepFrame` / `WorkflowStepSummary` / `WorkflowStepIndex` / `PrimaryMaterialFrame` and `WorkflowMaterialSelector` owners are absent, and permanent fitness rejects any renamed/aliased equivalent or persistent generic side-index/material-navigation responsibility;
 - one dedicated selected WorkItem query (not the queue list) owns current WorkItem observation; shared-query secondary consumers cannot become competing workflow-policy/current-attention owners;
 - Workbench responsive structural breakpoints are singular/consistent across JS and CSS;
 - Workbench feature/service renderers do not import foundation mechanics already owned by §8.12; the owning primitive is the only reusable bridge to `AppShell/Layout/Drawer/Dialog/AlertDialog/Button/IconButton/Banner/Badge/Table/List` mechanics, while explicitly approved field/content leaves remain allowed under §8.19;
@@ -1798,15 +1993,15 @@ This design does not authorize:
 The minimum implementation is to make the existing canonical state and event stream actually obey the P3 state machine and to make the Workbench derive from that state consistently.
 
 
-## 16. Authority-driven 0.6.0 Workbench closure
+## 16. Permanent Workbench closure constraints
 
-This section records the P4 consequences of the fresh 0.6.0 functional package without replacing the closed Workbench architecture above.
+This section records binding P4 consequences that remain invariant across releases. Release/campaign migration state, current-file dispositions and execution sequencing belong to the governed WorkItem DESIGN/PLAN/campaign artifacts and must not be projected into this canonical architecture owner.
 
 ### 16.1 Current attention survives historical/supporting selection
 
 The canonical current-attention owner remains the pure resolver defined by `GW-TR-089-CURRENT-ATTENTION-OWNERSHIP`. Explicit workflow/document/history selection affects inspected material only.
 
-When an explicit selection is not the current attention owner, the step summary must retain one compact current-attention block containing the exact current owner, human-facing reason/question/status and direct action to return to that owner. Selecting that action changes only inspection selection; it does not invent workflow state.
+When an explicit selection is not the current attention owner and current work genuinely requires human action, the selected interaction must preserve one concise visible signal containing the human-facing reason/question and a direct action to return to the exact current owner. Document may use its authorized optional `WorkbenchAttention`; Dialogue keeps current interaction state inside `WorkbenchDialogue` and uses only the explicitly authorized surrounding return treatment for historical inspection; Review remains a direct Review composition. No generic step-summary owner or status tuple is recreated. Selecting the return action changes only inspection selection; it does not invent workflow state.
 
 The browser must not clear legitimate explicit selection merely because polling discovers new attention. It must also never make the new attention unreachable.
 
@@ -1838,10 +2033,36 @@ A new exact required-input request receives one focus transition keyed by its `R
 
 The canonical renderer-to-primitive matrix in §8 remains the sole renderer classification.
 
-Because `tests/architecture.test.ts` is itself the `architecture` gate's signed verification material, 0.6.0 does not authorize an implementation task to mutate that file. Permanent exhaustive renderer coverage is added to the ordinary `test` gate through `tests/certification.test.ts`: it enumerates production Workbench renderers and proves bidirectional coverage against the canonical matrix/successor, including `ActivityComposer.tsx`.
+Because `tests/architecture.test.ts` is itself the `architecture` gate's verification material, a signed implementation package that binds those bytes must not mutate that sensor while being judged by it. Before sign-off, package-fitness correction may update a self-contradictory sensor only to conform it to current canonical authority; the corrected bytes then become part of the exact package later reviewed and signed. Permanent exhaustive renderer coverage additionally lives in the ordinary `test` gate through `tests/certification.test.ts`, which proves bidirectional production-renderer coverage against the canonical matrix/successor, including `ActivityComposer.tsx`.
 
 Browser certification extends the existing scenario matrix rather than creating a second UX test system:
 - scenario 41 proves kind-specific Research information for CHANGE/DEFECT/INVESTIGATION/AUDIT and preserved Change-vs-Defect downstream obligations;
 - scenarios 26 and 33-36 exercise representative Queue/Create/Settings/document/dialogue/review/Execution/evidence/result/Context/overlay semantic roles under System, Light and Dark activation.
 
 No feature-local visual baseline or screenshot-as-authority mechanism is introduced.
+
+### 16.6 Canonical foundation ownership boundary
+
+The §8.12 responsibility vocabulary, §8.13 closed semantic APIs and the renderer matrix are canonical authority. Files under `ui/src/primitives/**`, shared stylesheet declarations and consuming JSX are implementation evidence only; they never become preservation targets by existence.
+
+The foundation has three invariant ownership classes:
+
+- **design-bearing composition responsibilities** — primitives whose APIs/markup choose topology, hierarchy, density, responsive form, recurring alignment, interaction mechanics or whole-region state. Their consumers are explicitly allowlisted and their semantic slots remain closed;
+- **narrow semantic adapters** — Action, Disclosure, Field, Icon, Notice and Status remain narrow adapters over the pinned foundation and may not acquire screen, workflow, technical-inspection or responsive ownership;
+- **specialized content leaves** — Markdown, code/evidence and other §8.19 leaves render content only inside the owning composition and cannot establish another Workbench grammar.
+
+No responsibility is instantiated speculatively. When no current authorized consumer exists, the corresponding production module may be absent. Reintroducing a module for a responsibility with no authorized consumer, adding a new semantic slot, or creating another recurring responsibility requires upstream DESIGN/P4 authority rather than a compatibility or convenience implementation.
+
+The application foundation has exactly one `WorkbenchAppShell`, one selected-WorkItem `WorkbenchWorkItemShell` and one structural responsive-class owner. Generic workflow frame/summary/index/material-selector responsibilities remain absent. A consuming screen composes directly into its authorized Document / Dialogue / Review / Evidence / State / MasterDetail / Terminal interaction class and may not recreate deleted generic ownership under another name.
+
+Conformance is permanent rather than migration-specific:
+
+1. architecture fitness proves the closed primitive API shape, required-absent generic responsibilities, exact production-consumer allowlists and singular shell/responsive/technical-inspection owners;
+2. compile/type failures caused by a removed invalid API are compliance signals and must be corrected in the consumer rather than hidden by aliases, wrappers, prop translators, hidden DOM, dual paths, feature flags or CSS shims;
+3. recurring primitive/token/shell/hierarchy/disclosure/theme/responsive defects are corrected at the canonical foundation owner rather than patched locally in one screen;
+4. browser/certification assertions encode authority-defined semantics and negative invariants, not historical implementation copy or source-string literals;
+5. rendered evidence is acceptance evidence only and never becomes screenshot-as-authority or a preservation baseline.
+
+The application-global shell owns the globally visible active saved OpenCode-account status/quick-access affordance required by `GW-FR-073-OPENCODE-ACCOUNT-VISIBILITY`. That affordance routes management to the one Settings owner; it is not itself account-management UI. Full repository/account/model configuration remains in Settings.
+
+`RunEventTimeline.tsx` is the one shared chronology presentation adapter over `WorkbenchTimeline`; consuming workflow surfaces do not create or claim a second chronology implementation owner.

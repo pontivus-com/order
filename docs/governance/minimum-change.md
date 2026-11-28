@@ -146,6 +146,15 @@ Required tests prove the changed behavior and protect relevant existing behavior
 
 Required documentation changes update authoritative contracts whose meaning changed.
 
+### Impact-bounded verification and revalidation
+
+Apply minimum-sufficient change to verification and revalidation as well as implementation. Establish the actual delta against the applicable verified baseline, identify the changed propositions and follow their material dependencies through canonical producers, carriers, consumers and effect boundaries. Include transitive consumers, upstream assumptions actually relied upon, shared invariants and observable side effects, including failure, recovery and no-effect paths where applicable. Stop expanding the review when the remaining propositions and their dependencies are demonstrably unaffected; an artifact-wide hash change alone does not establish semantic impact.
+
+- Mechanically decidable propositions must be checked with deterministic evidence using the existing verification owners. Reuse adequate current tests and fitness checks; add or amend focused tests only where the changed behavior, dependent behavior or side effects are not already proven. A mechanical result proves only the proposition it exercises.
+- Retain independently established conclusions for demonstrably unaffected propositions. Rebind their evidence to the current package where required; do not repeat semantic reviews or reconstruct documentation solely because an identity or unrelated input changed. Semantic judgment is reserved for changed or unproven propositions that cannot be decided mechanically.
+- A local defect within existing authority is corrected and regression-tested within the authorized implementation boundary. Return upstream only when the correction requires an upstream decision or exceeds that boundary. Block affected progression only for a material failed or unresolved obligation, an unbounded/unknown material impact, or a mandatory admission condition; unrelated work may continue where the existing authorization and actual dependencies permit. Non-blocking observations do not acquire blocking status merely by being recorded.
+- This rule does not waive exact signed authority freshness, hard scope/exclusions, mandatory validation, independent review or final acceptance under `GW-DOC-LIFECYCLE-CONTEXT` and the applicable P6/P7 contracts. Preserve required final integrated certification; targeted checks govern intermediate correction and evidence reuse, not a replacement for explicitly required final proof. Use existing review records and verification gates; introduce no separate gate, approval, audit ledger or repetitive review cycle for this rule.
+
 Order does not reward test count, comment count, documentation volume, or generated summaries.
 
 ## 10. Metric prohibition

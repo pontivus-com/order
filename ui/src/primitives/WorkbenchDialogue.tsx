@@ -18,12 +18,14 @@ export const WorkbenchDialogueMessage = ({
   timestamp: string;
   name?: string;
 }>) => (
-  <ChatMessage sender={sender} name={name}>
-    <ChatMessageBubble variant={sender === "assistant" ? "ghost" : undefined}>
-      {children}
-    </ChatMessageBubble>
-    <ChatMessageMetadata timestamp={timestamp} />
-  </ChatMessage>
+  <div className="order-workbench-dialogue-message" data-sender={sender}>
+    <ChatMessage sender={sender} name={name}>
+      <ChatMessageBubble>
+        {children}
+      </ChatMessageBubble>
+      <ChatMessageMetadata timestamp={timestamp} />
+    </ChatMessage>
+  </div>
 );
 
 export const WorkbenchDialogueMessages = ({
@@ -39,36 +41,43 @@ export const WorkbenchDialogue = ({
   activity,
   composer,
   state,
-  header,
-  technical,
 }: Readonly<{
   transcript: ReactNode;
   activity?: ReactNode;
   composer?: ReactNode;
   state?: ReactNode;
-  header?: ReactNode;
-  technical?: ReactNode;
-}>) => (
-  <section className="order-workbench-dialogue">
-    <div className="order-workbench-dialogue-main">
-      {header ? <div className="order-workbench-dialogue-header">{header}</div> : null}
-      <ChatLayout
-        density="compact"
-        composer={composer ? <div className="order-workbench-dialogue-composer">{composer}</div> : null}
-        scrollButton={null}
-        emptyState={null}
-      >
-        {transcript}
-      </ChatLayout>
-      {state ? <div className="order-workbench-dialogue-state">{state}</div> : null}
-    </div>
-    {activity ? (
-      <aside className="order-workbench-dialogue-activity" aria-label="Agent activity">
-        {activity}
-      </aside>
-    ) : null}
-    {technical ? (
-      <div className="order-workbench-dialogue-technical">{technical}</div>
-    ) : null}
-  </section>
-);
+}>) => {
+  const className = activity === undefined
+    ? "order-workbench-dialogue"
+    : "order-workbench-dialogue order-workbench-dialogue-has-activity";
+
+  return (
+    <section className={className}>
+      <div className="order-workbench-dialogue-conversation">
+        <ChatLayout
+          density="compact"
+          composer={
+            composer === undefined && state === undefined
+              ? null
+              : <div className="order-workbench-dialogue-composer">
+                  {state === undefined ? null : (
+                    <div className="order-workbench-dialogue-state">{state}</div>
+                  )}
+                  {composer}
+                </div>
+          }
+          scrollButton={null}
+          emptyState={null}
+        >
+          {transcript}
+        </ChatLayout>
+
+      </div>
+      {activity === undefined ? null : (
+        <aside className="order-workbench-dialogue-activity" aria-label="Agent activity">
+          {activity}
+        </aside>
+      )}
+    </section>
+  );
+};

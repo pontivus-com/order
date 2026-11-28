@@ -58,6 +58,7 @@ Order-generated ids use a fixed prefix plus UUIDv4:
 - Execution task: `task_<uuid>`;
 - Run: `run_<uuid>`;
 - Run event: `event_<uuid>`;
+- Candidate review event: `review_<uuid>` (distinct canonical CandidateReviewEventId; §38);
 
 Other scalar contracts:
 
@@ -119,6 +120,7 @@ type WorkStage =
   | "R3"
   | "AWAITING_SIGNOFF"
   | "EXECUTION"
+  | "AWAITING_ACCEPTANCE"
   | "COMPLETE";
 
 type WorkStatus = "ACTIVE" | "BLOCKED" | "COMPLETE";
@@ -152,7 +154,7 @@ type WorkItem = Readonly<{
 
 Invariants:
 
-- `EXECUTION` and `COMPLETE` are WorkItem aggregate storage phases, not additional decision-making lifecycle stages; post-signoff task execution remains owned by `ExecutionTask` and [GW-DOC-VALIDATION-STANDARD-V1](../requirements/validation-standard.md);
+- `EXECUTION`, `AWAITING_ACCEPTANCE` and `COMPLETE` are WorkItem aggregate phases; Acceptance is the distinct human decision boundary; post-signoff task execution remains owned by `ExecutionTask` and [GW-DOC-VALIDATION-STANDARD-V1](../requirements/validation-standard.md);
 - `status === "COMPLETE"` iff `stage === "COMPLETE"`;
 - `outcome !== null` only when complete;
 - `AWAITING_SIGNOFF` has no current Approval;
@@ -233,6 +235,8 @@ type SignoffPackage = Readonly<{
 ```
 
 `SignoffPackage` is derived from the same current R3 closure and canonical package hash used by the sign-off command. It exists only to let the operator inspect the exact baseline/hash/task records that will be submitted back as `expectedPackageHash`.
+
+For post-sign-off document inspection, the exact Approval is the sole owner of signed membership. A read-only current Approval query returns the existing `Approval | null`; a read-only Approval history query returns the existing `Approval[]` in canonical approvedAt/id order; a read-only exact Approval artifact query returns the existing `ArtifactRef[]` consisting of its PLAN and R3 roots plus their complete signed transitive material closure, with no duplicate IDs. Its criterion-filtered observation under §§18/38.1 returns the same canonical ArtifactRef array restricted to the exact signed task/reference member. These are existing canonical carriers, not a new aggregate, DTO or persisted membership index. At every pre-sign-off position, including AWAITING_SIGNOFF after an upstream return, the current query returns null. In EXECUTION and AWAITING_ACCEPTANCE the canonical latest Approval is the current execution/review owner; absence of that required Approval is an inconsistent canonical state, not an unsigned fallback. In COMPLETE the query is strictly final provenance, never execution authorization: new candidate completion requires exact valid ACCEPT; historical completion retains original provenance. an admitted terminal R1 completion (the actual completed STAGE Run with matching STAGE_COMPLETED and CONFORMANCE_PASSED evidence) yields null, independently of any retained Approval/task history. For an execution-origin COMPLETE, the exact latest Approval's complete task set must match its signed PLAN and the existing §7 aggregate completion must be successful with the exact stored WorkOutcome. This includes all-task ALREADY_SATISFIED as well as CANDIDATE_DONE. ALREADY_SATISFIED alone cannot distinguish R1 terminal completion from execution-origin completion. Missing, incomplete or contradictory canonical completion evidence fails through the existing typed observation/error boundary; do not infer provenance from task count, historical reach or outcome alone. The history query retains every persisted Approval independently of currentness or task count. Explicit historical selection uses an exact ApprovalId belonging to the same WorkItem. Historical task presence, currentness, stage and role never substitute for membership. The originating WorkItem source remains separately bound by `sourceSha256`.
 
 The signed package reuses the existing conformance dependency graph instead of copying authority into Approval fields. The originating WorkItem source is bound separately by exact source SHA-256 because it is not a repository ArtifactRef. New v2 approvals require non-null `sourceSha256`; preserved v1 approvals remain null-bound historical provenance and cannot authorize v2 execution.
 
@@ -357,9 +361,9 @@ The owning WorkItem is derived through `approvalId`; ExecutionTask does not dupl
 Aggregate completion rules:
 
 - a dependency is satisfied only when its task state is `CANDIDATE_DONE` or `ALREADY_SATISFIED`;
-- when every task under the current Approval is in one of those successful terminal states, the WorkItem becomes `COMPLETE`;
+- when every task under current Approval succeeds, all-no-op completes; otherwise enter AWAITING_ACCEPTANCE/ACTIVE/null with atomic OPENED or REVIEW_COMPLETED;
 - if every task is `ALREADY_SATISFIED`, WorkItem outcome is `ALREADY_SATISFIED`;
-- otherwise WorkItem outcome is `CANDIDATE_DONE`;
+- otherwise outcome remains null until exact admitted human ACCEPT atomically sets COMPLETE/COMPLETE/CANDIDATE_DONE;
 - a `BLOCKED` task never counts as completion.
 
 ## 8. Run
@@ -418,12 +422,12 @@ Rules:
 
 - pre-signoff interactive Runs use `role = STAGE`, have no ExecutionTask, `triggerEventId = null`, and operate at their owning lifecycle stage;
 - post-signoff Runs use `stage = EXECUTION`, reference an ExecutionTask and have role `BUILDER`, `REVIEWER` or `REMEDIATOR`;
-- `BUILDER.triggerEventId = null`; `REVIEWER.triggerEventId` identifies the exact `CANDIDATE_STATE_RECORDED` event it replays; `REMEDIATOR.triggerEventId` identifies the exact repairable `VALIDATION_FAILED`/`REVIEW_FAILED` event it is authorized to correct;
+- `BUILDER.triggerEventId = null`; `REVIEWER.triggerEventId` identifies exact CANDIDATE_STATE_RECORDED or prior CANDIDATE_RECORDED for admitted QA submission linked by REVIEW_STARTED; `REMEDIATOR.triggerEventId` identifies the exact repairable `VALIDATION_FAILED`/`REVIEW_FAILED` event it is authorized to correct;
 - the candidate parent of a REMEDIATOR is derived through the triggering failure Run's reviewer trigger; it is not copied into another field;
 - `WAITING_FOR_INPUT` is valid only for `INTERACTIVE/STAGE`;
 - `providerSessionId` is the currently active OpenCode session pointer, never workflow authority;
 - every post-signoff Run has its own derived workspace `<order-state>/workspaces/<runId>/` and fresh checkout at the Approval baseline; candidate state crosses Runs only through evidence replay;
-- `contextHash` changes only through controlled re-resolution and requires provider-session replacement before the next productive prompt;
+- `contextHash` changes only through controlled re-resolution and requires provider-session replacement before the next productive prompt; QA-linked post-signoff Runs bind the exact immutable submission/report/retest input under §38.3 before admission, and must reconstruct that same input from admitted lineage before invoking the provider;
 - terminal statuses require `endedAt`.
 
 `attempt` is a durable Run ordinal, not a retry budget: post-signoff it is one plus the maximum prior Run attempt for the ExecutionTask; pre-signoff it is one plus the maximum prior attempt for the WorkItem/stage. Retry entitlement is computed from Run history under §21 rather than persisted as another counter.
@@ -563,15 +567,17 @@ type RunEventPayload =
       minimumChange: "MINIMUM_SUFFICIENT" | "CHANGE_BLOAT";
       minimumChangeSummary: string | null;
       evidence: readonly EvidenceRef[];
+      qaAssessments?: readonly QaFindingAssessment[]; // required exactly for QA-linked reviewer, forbidden otherwise (§38)
     }
   | { tag: "TASK_ALREADY_SATISFIED"; summary: string }
-  | { tag: "REVIEW_FAILED"; classification: "REVIEW_FAILURE"; summary: string; evidence: readonly EvidenceRef[] }
+  | { tag: "REVIEW_FAILED"; classification: "REVIEW_FAILURE"; summary: string; evidence: readonly EvidenceRef[]; qaAssessments?: readonly QaFindingAssessment[] }
   | {
       tag: "REVIEW_FAILED";
       classification: "BLOCKED_FOR_REANALYSIS";
       returnTo: "R1" | "R2" | "DESIGN" | "PLAN";
       summary: string;
       evidence: readonly EvidenceRef[];
+      qaAssessments?: readonly QaFindingAssessment[];
     }
   | { tag: "VALIDATION_PASSED"; stage: ValidationStage; evidence: readonly EvidenceRef[] }
   | {
@@ -618,7 +624,7 @@ RunEvent invariants:
 - V4 reviewer `FAIL_REPAIRABLE` maps to `REVIEW_FAILED / REVIEW_FAILURE`; `BLOCKED_SPEC_OR_DESIGN` maps to `REVIEW_FAILED / BLOCKED_FOR_REANALYSIS` with an exact `returnTo` owning stage. A current productive `REVIEW_PASSED` also carries the reviewer's structured minimum-change proposition: `MINIMUM_SUFFICIENT` with null summary, or `CHANGE_BLOAT` with a non-empty removable-surface summary. This proposition is evidence only; scope, governance and change-bloat classifications remain coordinator-owned V2/V5/V6 results;
 - `VALIDATION_FAILED / PRECONDITION_FAILED` is the durable owner of the blocking fact: it uses the applicable V0/V1 stage, a non-empty `summary`, and supporting EvidenceRefs where available before the Run/task block reaction;
 - `CANDIDATE_STATE_RECORDED` is coordinator-only and may be emitted only after its patch EvidenceRef has been durably written/read-back/hash-verified; `changedPaths` is unique and canonically sorted;
-- `CANDIDATE_RECORDED` is coordinator-only and may be emitted only in the final `REVIEWER` Run; `candidateStateEventId` must equal that Run's `triggerEventId`; `validationEventIds` must reference exactly one `VALIDATION_PASSED` event for each V0-V7 stage in V0→V7 order, and all eight pass events must have been emitted in that same final REVIEWER Run after its candidate replay was verified. No validation pass from an earlier candidate or Run is reusable;
+- `CANDIDATE_RECORDED` is coordinator-only and may be emitted only in the final `REVIEWER` Run; `candidateStateEventId` equals ordinary Run trigger or exact prior CANDIDATE_RECORDED's candidateStateEventId for direct QA replay; `validationEventIds` must reference exactly one `VALIDATION_PASSED` event for each V0-V7 stage in V0→V7 order, and all eight pass events must have been emitted in that same final REVIEWER Run after its candidate replay was verified. No validation pass from an earlier candidate or Run is reusable;
 - `VALIDATION_PASSED / V4` additionally requires a preceding `REVIEW_PASSED` event in that same REVIEWER Run; `VALIDATION_FAILED / V4` is derived from that Run's `REVIEW_FAILED` result rather than invented independently. After V5 passes, the coordinator maps that same `REVIEW_PASSED.minimumChange`: `MINIMUM_SUFFICIENT` permits `VALIDATION_PASSED / V6`, while `CHANGE_BLOAT` requires `VALIDATION_FAILED / V6 / CHANGE_BLOAT` carrying the review evidence and removable-surface summary;
 - `TASK_ALREADY_SATISFIED` is provider-emittable only by a BUILDER. The coordinator accepts it as the V1 semantic no-op result only when the BUILDER workspace has zero changed paths. A zero-diff BUILDER Run without this explicit event is invalid provider output and must not become `ALREADY_SATISFIED`;
 - provider output authorization is additionally constrained by Run role in §25; a valid-shaped but role-forbidden event is invalid provider output;
@@ -769,8 +775,11 @@ Exact schema:
 - optional `refs`: a map from `AuthorityRef` keys to literal `RepositoryPath` values; absent is equivalent to an empty map;
 - each `refs.<AuthorityRef>` source path must resolve through at least one `authority.p1`–`authority.p6` source set;
 - `refs` is an identity-to-source index only: semantic requirement/ADR/spec content remains owned by the referenced source file and is never copied into the manifest;
+- optional `stageAuthorityRefs`: a strict map whose only keys are `R1`, `R2`, `DESIGN`, `PLAN`, `R3`, each value a unique array of existing `AuthorityRef` keys. This is an additive project declaration of further mandatory material for the named current-v2 stage, not a second ref registry or source selector. Absent map or stage entry is canonically equivalent to an empty additional set; it does not suppress the pinned template's required refs, existing stage policy, source, effective P1 rules, concern authority, admitted upstream explicit refs or dependencies. The project owns the completeness of its additional mandatory declarations; a missing or unresolved required ref/dependency from any applicable source remains an incomplete-context failure before provider invocation. An explicit empty list provides no stronger evidence of semantic completeness than the canonical empty default. Never infer additional mandatory refs by scanning prose or by including every reachable layer. Retained v1 schema admission keeps the exact historical pin/policy and does not consume this current-v2 addition. The existing manifest v1 grammar remains loadable; no blanket current-v2 migration or automatic project-authority rewrite is required.
+- optional `refDependencies`: a map from existing `AuthorityRef` keys to unique arrays of existing `AuthorityRef` keys (default empty). It owns explicit authority-map dependency edges; it does not duplicate source content or create semantic precedence. Both ends must resolve in `refs`; invalid or unmapped edges are `SPEC_INVALID`. A visited-set transitive closure includes each reachable dependency once, including when a declared dependency cycle is encountered; cycles alone do not define precedence. Resolve each exact ref through the same validated `refs` map; do not admit an unrelated retained version because it shares a layer or source family.
 - canonical documentation concern references follow `GW-P1-DOC-CANONICALITY`: stable/versioned `GW-DOC-*` identifiers resolve through `refs`, while the referenced document remains the sole semantic owner;
 - task `acceptanceRefs` and `authorityRefs` resolve by exact key lookup in `refs`; no filename search, full-text scan, nearest-match rule, or P7-local alias inference is permitted;
+- current-v2 lifecycle Markdown uses its existing first-line `<!-- Order template: ...; authority: ... -->` declaration as the explicit reference carrier. The template identity is exactly the pinned schema/stage template; the comma-separated authority list contains every pinned required reference plus additional governing references used by that artifact. Ref tokens use canonical `encodeURIComponent` encoding (existing alphanumeric/hyphen/underscore keys remain unchanged), decoded once before exact lookup. Reject malformed, duplicate, missing pinned or unresolved declarations; no inference from narrative mentions or historical provenance. R2 REFERENCE/DELTA canonical-owner fields and PLAN signed-task acceptance/authority arrays are additionally extracted through their existing canonical parsers. These structured sources are united before lookup, not filtered against known refs first. The existing semantic conformance owner verifies that all material governing references are declared; structural admission does not determine semantic relevance. Missing declarations on a current-v2 artifact return to its owning stage for correction. Retained v1 artifacts keep the published v1 template/authoring semantics; do not rewrite their historical bytes.
 - a referenced source becomes material context/approval input when the task/stage uses that ref, so its exact ArtifactRef participates in conformance dependency/freshness handling;
 - optional `precedence.p1` through `precedence.p6`: arrays of literal RepositoryPath values, highest authority first, declaring same-layer precedence only among the listed sources;
 - every precedence path must resolve from the matching `authority.<layer>` set;
@@ -875,11 +884,11 @@ No ORM is used.
 
 Order uses SQLite `PRAGMA user_version` as the productive schema marker:
 
-- `0`: create the current v3 schema directly for a fresh database and set `user_version = 3`;
-- `3`: use the database;
+- `0`: create current v4 schema and set `user_version = 4`;
+- `4`: use the database;
 - any other value: ordinary runtime startup fails before mutation.
 
-The productive installer is the sole bounded version-transition owner. It may migrate the immediately preceding schema v2 only under §32.10 while the old daemon is stopped. Ordinary daemon/CLI opening never interprets v2 source-path semantics and never chooses between v2/v3 at runtime.
+The productive installer is the sole bounded version-transition owner. It migrates stopped v3 to v4 under §38; supported earlier versions follow existing bounded predecessor migration to v3 then v4. Ordinary runtime opens only v4.
 
 ## 16. SQLite schema
 
@@ -997,19 +1006,20 @@ The daemon additionally owns one process-local per-WorkItem operator-mutation gu
 These are one SQLite transaction:
 
 - register/reconcile a WorkItem projection after the canonical Markdown source already exists and has been read/hash/parse verified;
-- source reconciliation projection updates whose source state is unambiguous;
+- source reconciliation projection updates whose source state is unambiguous, or explicit Acceptance source-authority invalidation under §38.3 without adopting an invalid source;
 - lifecycle state transition;
 - successful stage conformance: append `CONFORMANCE_PASSED`, insert its artifact dependency edges, and perform the resulting promotion;
 - append RunEvent plus Run-state update when one reaction requires both;
 - successful STAGE provider-turn finalization: after the complete provider-result array, evidence and current context have been validated outside the transaction, reload the Run/WorkItem, prove the turn is still current/not cancelled, append the entire provider-result batch plus any coordinator-owned conformance/reaction events, and update Run/WorkItem state in one transaction; no partial provider-result batch is externally visible;
 - accepted STAGE human input: reload Run/events, prove OPEN free-form or exact REQUIRED_INPUT admission, append one `HUMAN_INPUT_RECEIVED`, and perform any `WAITING_FOR_INPUT -> RUNNING` update in one transaction before the next provider turn is scheduled asynchronously;
-- post-signoff task start: prove no other task is `RUNNING`, select one eligible `TODO`, set it to `RUNNING`, and create its `BUILDER` Run;
+- ordinary post-signoff task start: prove no other task is `RUNNING`, select one eligible `TODO`, set it to `RUNNING`, and create its `BUILDER` Run;
+- queued Acceptance correction start: under §23 and §38.3 recheck exact current Approval, queued SUBMIT, member, sequence, authority/proof and global exclusion; atomically change the exact candidate-producing task from `CANDIDATE_DONE` to `RUNNING`, create its direct `REVIEWER` Run, append REVIEW_STARTED and return the WorkItem to EXECUTION / ACTIVE. No intermediate TODO or BUILDER;
 - post-signoff continuation Run start: while exactly one ExecutionTask remains `RUNNING` and no Run for it is active, load the last durable controlling event, validate the unique required continuation role/trigger/lineage/semantic-or-operational budget, and create exactly one `REVIEWER`, `REMEDIATOR`, or permitted replacement Run; no second task may start;
 - create Approval plus all materialized ExecutionTasks;
 - persist `ARTIFACT_PROPOSAL_ADOPTION_REQUESTED` before the corresponding repository patch effect; for lifecycle proposals the post-effect ArtifactRef/disposition/conformance invalidation keeps the WorkItem at the same current owning stage and is a later SQLite transaction reconciled from repository facts if persistence fails;
 - mutating Run candidate publication: append `CANDIDATE_STATE_RECORDED` and mark the producing Run `COMPLETED` after patch evidence has already been safely persisted/read-back/hashed;
 - post-signoff terminal/no-op reaction: append the controlling validation/provider evidence where applicable, terminalize the Run, and update ExecutionTask/WorkItem according to the reaction matrix, including the atomic `ALREADY_SATISFIED`, `SPEC_INVALID` and `PRECONDITION_FAILED` branches;
-- final candidate success: after the final REVIEWER Run has replay-verified its trigger candidate and produced its own current V0-V7 pass set (including REVIEW_PASSED-backed V4), append `CANDIDATE_RECORDED`, terminalize that REVIEWER Run as `COMPLETED / CANDIDATE_DONE`, set the ExecutionTask `CANDIDATE_DONE`, and perform aggregate WorkItem completion when applicable.
+- final candidate success: after the final REVIEWER Run has replay-verified its trigger candidate and produced its own current V0-V7 pass set (including REVIEW_PASSED-backed V4), append `CANDIDATE_RECORDED`, terminalize that REVIEWER Run as `COMPLETED / CANDIDATE_DONE`, set the ExecutionTask `CANDIDATE_DONE`, and apply the §38 aggregate transition to Acceptance with atomic OPENED/REVIEW_COMPLETED when applicable; no direct candidate-producing terminal completion.
 
 Filesystem/Git effects cannot be part of a SQLite transaction. For those: verify precondition -> perform one safe effect -> hash/read back -> persist result. If persistence fails, the next coordinator pass reconciles from repository facts instead of blindly repeating mutation.
 
@@ -1049,6 +1059,10 @@ GET /api/work-items/:workItemId/lifecycle-artifacts -> ArtifactRef[]
 GET /api/work-items/:workItemId/artifacts       -> ArtifactRef[]
 GET /api/work-items/:workItemId/tasks           -> ExecutionTask[]
 GET /api/work-items/:workItemId/signoff-package -> SignoffPackage
+GET /api/work-items/:workItemId/signoff-package/artifacts?expectedPackageHash=<Sha256> -> ArtifactRef[]
+GET /api/work-items/:workItemId/current-approval -> Approval | null
+GET /api/work-items/:workItemId/approvals        -> Approval[]
+GET /api/work-items/:workItemId/approvals/:approvalId/artifacts -> ArtifactRef[]
 GET /api/work-items/:workItemId/runs            -> Run[]
 GET /api/runs/:runId/events?afterSequence=<n>   -> RunEvent[]
 GET /api/runs/:runId/evidence?path=<EvidencePath> -> raw evidence bytes
@@ -1074,7 +1088,7 @@ body {}
 
 `POST /api/tick` is the global scheduler/operational command. It is admitted only through daemon/CLI Bearer authentication; the Workbench browser does not use it as a task-local action.
 
-`NO_WORK` requires both ids null. `STARTED` requires both ids non-null. One tick starts at most one eligible task; subsequent eligible tasks are started by later ticks.
+`NO_WORK` requires both ids null. `STARTED` requires both ids non-null. One tick admits at most one eligible ordinary task or queued Acceptance correction, or continues the existing RUNNING task under §§17/23; subsequent admissions occur on later ticks.
 
 If any coordinator tick is already active, the command returns HTTP 409 with error code `TICK_ALREADY_ACTIVE`. It does not queue another tick.
 
@@ -1111,7 +1125,7 @@ body { projectId, schemaId, title, concernIds, derivedFromWorkItemId? }
 -> WorkItem
 
 POST /api/work-item-sources/reconcile
-body {}
+body {} (ordinary reconciliation) or { workItemId, expectedApprovalId, expectedReviewSequence } (exact current Acceptance source return, §38.3)
 -> WorkItemSourceReconciliation
 
 Reconciliation is an explicit authority mutation. Before applying any changed projection/lifecycle plan, the daemon proves no affected WorkItem has an active Run and no affected WorkItem operator-mutation guard is held. If that cannot be proven, the reconciliation command is rejected without applying a partial changed-source lifecycle transition; it is not allowed to move authority underneath an active Run.
@@ -1134,7 +1148,7 @@ body { mode: "INTERACTIVE" | "UNATTENDED" }
 
 This command is valid only when the WorkItem is at IDEA, R1, R2, DESIGN, PLAN or R3 and has no other active Run.
 
-When the WorkItem is at IDEA, the command transactionally performs the valid IDEA -> R1 transition and creates an R1 Run. At R1/R2/DESIGN/PLAN/R3 it creates a Run for that exact current stage. It is rejected at AWAITING_SIGNOFF, EXECUTION and COMPLETE and cannot skip a lifecycle stage.
+When the WorkItem is at IDEA, the command transactionally performs the valid IDEA -> R1 transition and creates an R1 Run. At R1/R2/DESIGN/PLAN/R3 it creates a Run for that exact current stage. It is rejected at AWAITING_SIGNOFF, EXECUTION, AWAITING_ACCEPTANCE and COMPLETE and cannot skip a lifecycle stage.
 
 POST /api/runs/:runId/input
 body { text, requestEventId: "event_<uuid>" | null }
@@ -1156,7 +1170,7 @@ POST /api/work-items/:workItemId/resume
 body {}
 -> WorkItem
 
-Resume is valid only for a currently blocked WorkItem whose blocker has been resolved. For pre-signoff work it changes only `status: BLOCKED -> ACTIVE` and leaves the owning lifecycle stage unchanged. For `EXECUTION / BLOCKED`, it additionally changes the unique blocked task under the still-current Approval from `BLOCKED -> TODO`; it does not create a Run, reuse a workspace or reset prior operational-loss history. A later exact manual Start current task command or an automatic coordinator tick creates the fresh baseline BUILDER Run. No optimistic-concurrency version token is persisted.
+Resume is valid only for a currently blocked WorkItem whose blocker has been resolved. For pre-signoff work it changes only `status: BLOCKED -> ACTIVE` and leaves the owning lifecycle stage unchanged. For ordinary `EXECUTION / BLOCKED`, it changes the unique blocked task under current Approval from `BLOCKED -> TODO`; a later exact ordinary manual start or automatic tick creates a fresh baseline BUILDER Run. For a QA-linked blocked task, Resume instead atomically readmits the exact linked REVIEWER/REMEDIATOR continuation under §38, with fresh workspace/session, no reset of any budget, and no unrelated BUILDER. If continuation cannot be admitted, use governed upstream return. No historical workspace reuse. No optimistic-concurrency version token is persisted.
 
 POST /api/work-items/:workItemId/signoff
 body { expectedPackageHash, approvedBy }
@@ -1164,11 +1178,18 @@ body { expectedPackageHash, approvedBy }
 
 `GET /api/work-items/:workItemId/signoff-package` is valid only for an ACTIVE WorkItem at `AWAITING_SIGNOFF`. It inspects current R3 conformance, the complete current resolved material set, exact working-tree/baseline byte identity, signed task validity and the canonical package hash without applying reconciliation or lifecycle mutation. It returns the baseline/hash/task block only when currentness is proven; stale/precondition failure is reported through the stable typed HTTP error contract and leaves WorkItem state unchanged. It does not create execution authority.
 
+`GET /api/work-items/:workItemId/signoff-package/artifacts?expectedPackageHash=<Sha256>` is an observational prospective-package inspection read, not signed Approval membership. Require exactly one query value parsed by the existing Sha256 schema (missing, repeated or malformed: HTTP 400). Admit only the same ACTIVE/AWAITING_SIGNOFF preconditions and exact recomputation as the signoff-package read. Return the existing persisted conformed R3 root and complete transitive ArtifactRef dependency closure (including the exact conformed PLAN), de-duplicated by id and ordered by id. The recomputed package must prove the same material identities (WorkItem, path, role, authority layer and content hash) and baseline bytes as those persisted snapshots. Never expose ephemeral rematerialized ids or create snapshots during the GET. If recomputation succeeds with a different hash, return HTTP 409/CURRENT_STATE_CONFLICT; propagate actual stale-authority owner and other typed errors unchanged. No partial success, authority reconciliation, lifecycle transition, Approval, task, persistence or change to the canonical package hash. Use existing exact-id artifact-content reads: bytes that no longer match the ArtifactRef are unavailable, never substituted. Browser queries are bound to WorkItemId and expected package hash; discard superseded results and require a successful matching package/closure before enabling Sign off, whose command still recomputes authority independently. WorkItem source remains separately bound by sourceSha256. No change to existing current/final/historical Approval queries or the SignoffPackage carrier.
+
+
+`GET /api/work-items/:workItemId/current-approval` returns the current execution Approval for the exact WorkItem or null according to §6 and the canonical lifecycle/completion evidence, not a task-count approximation or the latest historical row at a pre-sign-off position. `GET /api/work-items/:workItemId/approvals` returns the persisted Approval history for that exact WorkItem in canonical approvedAt/id order, including historical approvals without task rows; it does not manufacture an Approval from reached stage or a prospective signoff package. `GET /api/work-items/:workItemId/approvals/:approvalId/artifacts` validates both IDs and same-WorkItem ownership and returns the exact immutable signed root-plus-dependency ArtifactRefs through the existing approval closure and baseline-byte verification owner. Missing/foreign Approval, missing closure or inconsistent baseline/hash fails via the existing typed HTTP error boundary; do not return partial membership or a prospective signoff package. All three queries are observational, valid for current/historical inspection including EXECUTION/AWAITING_ACCEPTANCE/COMPLETE, and perform no reconciliation, writes, lifecycle transition or authorization. The UI parses responses with existing ApprovalSchema/ArtifactRefSchema compositions, queries by exact WorkItem/Approval identity, and treats loading/error as unresolved rather than claiming signed or unsigned membership. Current and historical selections remain independent; signed membership is independent of currentness/editability.
+
+The existing exact Approval artifacts GET also admits a closed criterion-filtered query: exactly one `taskId` (canonical ExecutionTaskId) and exactly one `acceptanceRef` (canonical AuthorityRef), both required together, with no other query key. With no query parameters retain the full closure read above unchanged. Reject duplicate, missing-half, unknown or malformed query input as HTTP 400 / INVALID_REQUEST. Resolve WorkItem and selected Approval ownership and the exact persisted task against that Approval's signed PLAN using the existing canonical task/closure owner. Missing or foreign WorkItem/Approval/task returns the existing not-found boundary; an otherwise valid reference not in that task's signed acceptanceRefs is a current-state conflict, not permission to inspect another task's authority. Use the same exact signed manifest and authority ArtifactRef verification as §38.1. Success is the existing `ArtifactRef[]` carrier with exactly one element: the matching signed ArtifactRef from the verified closure, with original id/path/hash/baseline, never a synthesized artifact or a path/string projection. Absent/ambiguous/corrupt signed resolution rejects through the existing observational error boundary; never return an empty or unrelated success. Operational failures retain their existing classification. The filtered read is valid for exact historical Approval/task as well as current inspection; it requires neither current sequence nor current source/authority freshness and cannot grant current proof or mutation. It creates no material, Run, approval or state. The browser binds it to exact WorkItemId/ApprovalId/ExecutionTaskId/AuthorityRef query identity, parses the existing canonical array and requires exactly one matching returned member before navigating by ArtifactRefId through existing signed document inspection; loading/error/mismatch is unresolved. No manifest parser, new route, aggregate response, DTO or persisted association. The sequence-bound current QA observation and command admission independently enforce §38.3 and retain its semantic proof diagnostics.
+
 POST /api/work-items/:workItemId/reconcile-authority
-body { expectedOwner }
+body { expectedOwner } (AWAITING_SIGNOFF) or { expectedOwner, expectedApprovalId, expectedReviewSequence } (AWAITING_ACCEPTANCE)
 -> WorkItem
 
-`expectedOwner` is the exact `UpstreamReturnStage` previously observed from a `STALE_AUTHORITY` package failure. The command is valid only for `AWAITING_SIGNOFF / ACTIVE`. Under the per-WorkItem mutation guard it re-inspects package currentness, rejects if authority is now current or if the stale owner differs from `expectedOwner`, then applies the canonical `RECONCILE_AUTHORITY(expectedOwner)` lifecycle transition. It changes no repository bytes and creates no ArtifactRef/conformance. Source-boundary conflicts remain owned by the existing source reconciliation command and are not accepted by this endpoint.
+`expectedOwner` is the exact `UpstreamReturnStage` previously observed from a `STALE_AUTHORITY` package failure. The command is valid for `AWAITING_SIGNOFF / ACTIVE` (existing expectedOwner body) or `AWAITING_ACCEPTANCE / ACTIVE` (strict body { expectedOwner, expectedApprovalId, expectedReviewSequence }). Under the per-WorkItem mutation guard it re-inspects the exact current package/Approval and sequence, rejects if authority is now current or if the stale owner differs from `expectedOwner`, then applies the canonical `RECONCILE_AUTHORITY(expectedOwner)` lifecycle transition. It changes no repository bytes and creates no ArtifactRef/conformance. Source-boundary conflicts remain owned by the existing source reconciliation command and are not accepted by this endpoint. Parse the strict union in §34.5 and enforce exact stage/branch correspondence; missing Acceptance identity or surplus pre-signoff identity rejects before effects.
 
 `approvedBy` is a non-empty human-readable local operator identity confirmed by the user. The UI submits the exact currently displayed `SignoffPackage.packageHash`; the hash is not an editable browser-owned field. If the package changes between display and mutation, sign-off fails and the UI must refetch/review the new package.
 
@@ -1284,7 +1305,7 @@ The bounded automatic replacement/remediation entitlement below remains executio
 
 Post-signoff validation routing is deterministic:
 
-- `ALREADY_SATISFIED` at V1 is accepted only when the BUILDER explicitly emits `TASK_ALREADY_SATISFIED` after inspecting the fresh baseline and the coordinator independently proves the workspace changed-path set is empty. That result atomically terminalizes the current BUILDER Run as `COMPLETED / ALREADY_SATISFIED`, sets the ExecutionTask `ALREADY_SATISFIED`, and performs aggregate WorkItem completion if all tasks are now successful terminals. Zero diff without the explicit semantic result is provider-output failure, not successful no-op;
+- `ALREADY_SATISFIED` at V1 is accepted only when the BUILDER explicitly emits `TASK_ALREADY_SATISFIED` after inspecting the fresh baseline and the coordinator independently proves the workspace changed-path set is empty. That result atomically terminalizes the current BUILDER Run as `COMPLETED / ALREADY_SATISFIED`, sets the ExecutionTask `ALREADY_SATISFIED`, and, if all tasks are now successful terminals, applies §38.1: all-no-op enters COMPLETE/ALREADY_SATISFIED; a mixed set with any CANDIDATE_DONE enters AWAITING_ACCEPTANCE/ACTIVE with null outcome and atomic OPENED, including when the last task finishes as no-op. Zero diff without the explicit semantic result is provider-output failure, not successful no-op;
 - `SPEC_INVALID` is not worker-repairable: it invalidates current execution authority and returns the WorkItem to `PLAN / ACTIVE` with remaining tasks under the old Approval blocked historical;
 - `PRECONDITION_FAILED` blocks the current ExecutionTask and WorkItem without automatic retry; explicit resume is allowed only after the external/precondition blocker is resolved under the existing Approval;
 - one repairable `TEST_FAILURE`, `REVIEW_FAILURE` or `CHANGE_BLOAT` may create one REMEDIATOR Run for that failure class; recurrence after that repair blocks;
@@ -1356,11 +1377,12 @@ v1 has one fixed schedule:
 - after that tick settles, arm one `setTimeout` for exactly 3600 seconds;
 - after every timer-originated tick settles, arm the next 3600-second `setTimeout`;
 - at most one coordinator tick and one future timer are active at a time;
-- each coordinator pass reconciles an existing `RUNNING` ExecutionTask first: if its durable state requires a continuation Run and no Run is active, create that continuation under §17 before selecting any `TODO` task;
+- each coordinator pass reconciles an existing `RUNNING` ExecutionTask first: if its durable state requires a continuation Run and no Run is active, create that continuation under §17 before admitting any new ordinary task or queued Acceptance correction;
 - a timer callback never queues a second timer-originated tick while a coordinator tick is active; the next timer is armed only after the active tick settles;
 - manual daemon/CLI `POST /api/tick` is rejected with a stable conflict response while a tick is already active; the Workbench browser never uses this global command as its task-local Start action;
 - the browser task-scoped Start current task command creates only the exact canonical current task/BUILDER Run, then enters the same coordinator execution loop asynchronously; it does not alter global eligible-task ordering for automatic ticks;
-- timer firing itself never creates an OpenCode Run; only an eligible task atomically moved from `TODO` to `RUNNING` may do so.
+- with no globally RUNNING task, use the one existing global scan of current Approvals for admitted repository roots, ordered by approvedAt then Approval id. For EXECUTION / ACTIVE, select the first eligible ordinary task in canonical planTaskId then task id order; for AWAITING_ACCEPTANCE / ACTIVE, the sole outstanding queued SUBMIT identifies the exact candidate-producing task. These are alternative eligibility branches of that scan, not separate queues or priorities. Skip historical Approvals and ineligible work; a queued submission with proven stale authority/source or unavailable proof remains queued for explicit recovery under §38.3 and cannot block unrelated eligible Approvals. Operational and coherence failures retain existing typed failure handling; never infer proof loss or admit a Run from them. Recheck the selected identity and eligibility under the existing admission guard/transaction; a rejected final admission creates no Run and does not switch to a different task in that attempt;
+- timer firing itself never creates an OpenCode Run. Only the admitted ordinary TODO-to-RUNNING BUILDER, admitted queued CANDIDATE_DONE-to-RUNNING REVIEWER under §38.3, or exact RUNNING-task continuation under §17 may do so. No eligible work produces NO_WORK.
 
 Scheduler state is not another durable domain concept. Durable execution/task/Run state remains sufficient to recover after daemon restart.
 
@@ -1513,7 +1535,7 @@ An external upgrade invalidating any certification item is P4/P6 material.
 
 ## 30. Implementation contract
 
-A P7 implementation plan may decompose these contracts into repository changes, but it may not alter the semantic field names/types/invariants, HTTP mutation/query semantics, current SQLite schema-v3 contract, source/approval binding, code-layout dependency direction, local-only host boundary, no-OOP/no-DTO rule or technology families and external integration contracts locked in [GW-DOC-TECHNICAL-ARCHITECTURE](../architecture/technical-architecture.md).
+A P7 implementation plan may decompose these contracts into repository changes, but it may not alter the semantic field names/types/invariants, HTTP mutation/query semantics, current SQLite schema-v4 contract, source/approval binding, code-layout dependency direction, local-only host boundary, no-OOP/no-DTO rule or technology families and external integration contracts locked in [GW-DOC-TECHNICAL-ARCHITECTURE](../architecture/technical-architecture.md).
 
 Any required change to those items returns to DESIGN/P6.
 
@@ -1818,7 +1840,7 @@ The `registered`, `updated`, `moved` and `unchanged` sets are pairwise disjoint.
 
 A duplicate id detected by startup/explicit full reconciliation prevents either duplicate source from updating/materializing that WorkItem until resolved and remains a visible blocking queue diagnostic. Productive-boundary inspection is deliberately different: conforming to `GW-FR-013-PORTABLE-QUEUE-RECONCILIATION` and `GW-DOC-TECHNICAL-ARCHITECTURE`, it reads only the WorkItem's recorded source path and does not rescan the queue to discover another path, a moved source or a newly introduced duplicate. Invalid, missing, unresolved or valid-but-changed state of that recorded source is a source-boundary precondition/reconciliation-required condition for the attempted productive command: Order preserves the WorkItem's existing stage/status/outcome and rejects that command. A missing/moved/changed source becomes a lifecycle transition only through explicit reconciliation/save. No `SOURCE_INVALID`/`SOURCE_MISSING` WorkStatus variant is introduced.
 
-For a known non-terminal WorkItem, explicit source reconciliation applies valid external source changes to title/body/concern ids. If the WorkItem is still an unprogressed IDEA, reconciliation keeps it IDEA / ACTIVE; once it has progressed beyond IDEA, a material source change invokes the canonical return to R1 / ACTIVE. Changes to `schemaId` or `projectId` are accepted only for an unprogressed IDEA with no STAGE Run. Any change to `derivedFromWorkItemId` after creation, or any later schema/project reclassification, emits `SOURCE_RECLASSIFICATION_BLOCKED` and leaves the prior projection/lifecycle state unchanged. A read or productive precondition inspection may detect these conditions but does not apply the reconciliation implicitly. For `COMPLETE`, [GW-DOC-TECHNICAL-ARCHITECTURE §29 source-freshness rules](../architecture/technical-architecture.md) terminal-integrity rules apply.
+For a known non-terminal WorkItem, explicit source reconciliation applies valid external source changes to title/body/concern ids. If the WorkItem is still an unprogressed IDEA, reconciliation keeps it IDEA / ACTIVE; once it has progressed beyond IDEA, a material source change invokes the canonical return to R1 / ACTIVE. Changes to `schemaId` or `projectId` are accepted only for an unprogressed IDEA with no STAGE Run. Any change to `derivedFromWorkItemId` after creation, or any later schema/project reclassification, emits `SOURCE_RECLASSIFICATION_BLOCKED` and leaves the prior source projection/lifecycle state unchanged during ordinary reconciliation. The exact signed Acceptance source-authority invalidation in §38.3 is the sole explicit exception to leaving lifecycle unchanged: it returns R1 while retaining the rejected source projection, identity, classification and exact diagnostic; it never admits the rejected reclassification. Ordinary/startup reconciliation follows §38.3 for an Acceptance item. A read or productive precondition inspection may detect these conditions but does not apply the reconciliation implicitly. For `COMPLETE`, [GW-DOC-TECHNICAL-ARCHITECTURE §29 source-freshness rules](../architecture/technical-architecture.md) terminal-integrity rules apply.
 
 #### Source create/update mutation
 
@@ -1850,7 +1872,7 @@ For `/api/work-items/:id/source`, the daemon:
 
 1. inspects the current source bytes/projection without applying reconciliation;
 2. requires current source hash == `expectedSha256`;
-3. rejects direct UI source mutation when the WorkItem is `EXECUTION` or `COMPLETE`;
+3. rejects direct UI source mutation when the WorkItem is `EXECUTION`, `AWAITING_ACCEPTANCE` or `COMPLETE`;
 4. rejects direct source mutation while any Run for the WorkItem is active;
 5. parses the proposed Markdown before writing and requires the stable id to remain the same;
 6. permits `schemaId` and `projectId` changes only while the WorkItem is an unprogressed IDEA with no STAGE Run; `derivedFromWorkItemId` and stable id are immutable after creation; `concernIds` and title/body changes may occur pre-signoff;
@@ -1892,7 +1914,7 @@ For `/api/artifacts/:artifactId/content`, PUT is accepted only for the editable 
 The daemon:
 
 1. loads the canonical ArtifactRef and owning WorkItem;
-2. rejects direct editing while the owning WorkItem is `EXECUTION` or `COMPLETE`;
+2. rejects direct editing while the owning WorkItem is `EXECUTION`, `AWAITING_ACCEPTANCE` or `COMPLETE`;
 3. rejects direct editing while any Run for the WorkItem is active;
 4. proves the role is directly editable, the artifact owner is the current stage or an already-reached upstream stage, and path ends in `.md`;
 5. proves current repository bytes hash to `expectedSha256` and the selected ArtifactRef hash;
@@ -2099,7 +2121,7 @@ body: { projectId, schemaId, title, concernIds, derivedFromWorkItemId? }
 -> WorkItem
 
 POST /api/work-item-sources/reconcile
-body: {}
+body: {} or { workItemId, expectedApprovalId, expectedReviewSequence } (see §38.3)
 -> WorkItemSourceReconciliation
 
 GET /api/work-item-sources/diagnostics
@@ -2291,7 +2313,7 @@ At the v3 cutover, ordinary productive runtime accepted only config v3 and v2 wa
 
 ### 32.5 SQLite schema v3
 
-`PRAGMA user_version = 3` is the productive schema marker.
+`PRAGMA user_version = 3` is the historical predecessor marker; productive v4 is owned by §38.
 
 The physical `workItemSources` columns remain:
 
@@ -2309,7 +2331,7 @@ The semantic change is that `sourcePath` is repository-relative and validated ag
 
 The unique constraint on source path alone is removed because two distinct target repositories may legitimately contain the same relative WorkItem path; WorkItem ids remain globally unique and reconciliation rejects duplicate ids across configured repositories.
 
-Fresh initialization creates schema v3 directly.
+Historical fresh initialization created v3 directly; productive initialization is v4.
 
 Installer migration from schema v2:
 
@@ -2523,7 +2545,7 @@ Permanent integration tests must prove:
 - a failing commit hook produces no commit and cleanup does not disturb pre-existing unrelated index entries;
 - stale expected HEAD/document hashes reject without Git mutation;
 - ignored/unmerged/missing governed documents reject;
-- active Run, Implementation/Complete, detached HEAD and active merge/rebase/cherry-pick/revert/bisect/sequencer states reject without mutation;
+- active Run, Implementation/Acceptance/Complete, detached HEAD and active merge/rebase/cherry-pick/revert/bisect/sequencer states reject without mutation;
 - missing repository-local Git identity rejects before mutation and successful commits use the exact local identity for author/committer;
 - Git save never pushes or changes branches;
 - migration refuses active execution, materializes current lifecycle drafts at deterministic paths, and never rebinds a v2 Approval;
@@ -2855,7 +2877,7 @@ body { expectedSourceSha256, title }
 The daemon:
 
 1. inspects the deterministic Work request without applying reconciliation;
-2. rejects `EXECUTION`/`COMPLETE`;
+2. rejects `EXECUTION`/`AWAITING_ACCEPTANCE`/`COMPLETE`;
 3. rejects title mutation while any Run for the WorkItem is active;
 4. requires current source hash equal `expectedSourceSha256`;
 5. calls the canonical pure source-title rewrite;
@@ -2932,9 +2954,23 @@ const UpstreamReturnStageSchema = z.enum([
   "R3",
 ]);
 
-const ReconcileWorkItemAuthoritySchema = z.strictObject({
-  expectedOwner: UpstreamReturnStageSchema,
-});
+const ReconcileWorkItemAuthoritySchema = z.union([
+  z.strictObject({ expectedOwner: UpstreamReturnStageSchema }),
+  z.strictObject({
+    expectedOwner: UpstreamReturnStageSchema,
+    expectedApprovalId: ApprovalIdSchema,
+    expectedReviewSequence: z.number().int().nonnegative(),
+  }),
+]);
+
+const ReconcileWorkItemSourcesCommandSchema = z.union([
+  z.strictObject({}),
+  z.strictObject({
+    workItemId: WorkItemIdSchema,
+    expectedApprovalId: ApprovalIdSchema,
+    expectedReviewSequence: z.number().int().nonnegative(),
+  }),
+]);
 
 const StableHttpErrorCodeSchema = z.string()
   .regex(/^[A-Z][A-Z0-9_]*$/);
@@ -2961,7 +2997,7 @@ A source-boundary 409 sets `sourceDiagnostic` to the exact diagnostic and `stale
 
 A known approval/material-currentness conflict uses `code = "STALE_AUTHORITY"`, `sourceDiagnostic = null`, and sets `staleAuthorityOwner` to the exact earliest canonical upstream owner in `R1 | R2 | DESIGN | PLAN | R3`. `STALE_AUTHORITY` requires a non-null owner; every other error code requires `staleAuthorityOwner = null`. Consumers use this field to derive `MaterialCurrentness.STALE(owner)`; parsing `message` for workflow semantics is forbidden.
 
-All other errors set both optional semantic detail fields to null.
+For the exact current Acceptance observation and its rechecked recovery/mutation boundaries (§38.3), `SOURCE_AUTHORITY_STALE` is a known HTTP 409 for a valid recorded source whose bytes differ from the signed source. An actual source-boundary diagnostic retains `WORK_ITEM_SOURCE_CONFLICT` and its exact `sourceDiagnostic`; both source-stale branches identify R1 through the existing source owner, not by parsing the message. `CANDIDATE_PROOF_UNAVAILABLE` is a known HTTP 409 only after current signed source/material authority is proven and exact required candidate/member/criterion evidence is absent or corrupt. Both new stable codes retain the existing error shape with null semantic detail fields. The pure Acceptance recovery decision uses the source-specific classification, not the upstream owner alone: source drift and material drift may both return R1 but invoke different commands. Transport failures, operational filesystem inability, inconsistent review-stream identity, and query/sequence conflicts do not assert candidate-proof loss or a stale source. All other errors set both optional semantic detail fields to null.
 
 The outer server API catch must classify rather than converting every exception to 400. Unexpected 500 responses use a stable generic public message and do not expose stack traces/secrets; full safe diagnostic detail may be retained in daemon/provider evidence where governed.
 
@@ -3133,7 +3169,7 @@ const InstallationReadinessSchema = z.strictObject({
 `ready === true` iff `blockers.length === 0`.
 
 
-The daemon is the single readiness-policy owner. The browser does not reconstruct readiness from separate repository/account/model queries.
+The daemon is the single readiness-policy owner. The browser and installer do not reconstruct readiness from separate repository/account/model queries. The existing `GET /api/settings/readiness` returns the same canonical `InstallationReadiness` to an authenticated browser session or a valid daemon Bearer header for the installed local process/installer read. Missing or invalid authentication is rejected; no other Settings endpoint gains Bearer admission. Public `/api/health` remains liveness/version only. The installer uses the already-proven loopback bind, existing owner-only daemon token and no redirects; it parses the canonical schema and requires `ready === true` and zero blockers. Inconsistent/malformed bytes, unavailable response or any blocker fail fresh installation. This read performs no lifecycle, configuration, account or repository mutation and exposes no credential values.
 
 ### 35.4 Focused Settings commands
 
@@ -3200,7 +3236,7 @@ Disconnecting a repository removes it from the current productive configuration 
 
 Ordinary active-work queries project only WorkItems whose exact `repositoryRoot` remains in current `OrderConfig.repositoryRoots`. Historical records are retained in SQLite and become visible again when the same repository is validly reconnected/reconciled.
 
-Disconnect is rejected while any active Run belongs to a WorkItem in that repository.
+Disconnect is rejected while any active Run belongs to a WorkItem in that repository or a WorkItem in that repository is in EXECUTION or AWAITING_ACCEPTANCE, even with no active Run or queued review. Recheck the exact removed repository roots and their WorkItems at the existing serialized configuration-activation admission boundary (§35.5) before preflight, scheduler/configuration/runtime mutation; retain the broader existing active-Run/account guards. The denial does not change configuration, repository bytes, WorkItem/Approval/history, or scheduler state. Other repositories and completed historical work do not independently trigger this signed-work restriction.
 
 ### 35.7 Repository document-root migration contract
 
@@ -3219,7 +3255,7 @@ Migration admission requires:
 - matching `expectedManifestSha256`;
 - target path is repository-contained, non-Git and valid under the existing project-manifest contract;
 - no active Run for any WorkItem in the repository;
-- no WorkItem in the repository is in `EXECUTION`;
+- no WorkItem in the repository is in `EXECUTION` or `AWAITING_ACCEPTANCE`, including queued review or retest without an active Run; recheck within the existing serialized migration admission boundary before filesystem, manifest, database or scheduler mutation;
 - destination contains no conflicting governed WorkItem bytes;
 - no Git operation or filesystem condition makes the move untrustworthy.
 
@@ -3279,7 +3315,7 @@ The existing full-source parser remains the authority for externally edited repo
 
 Existing OpenCode account endpoints and `OpenCodeAccountState` remain canonical. Settings reuses them; no settings-specific account shape/endpoints duplicate that owner.
 
-New authenticated same-origin Settings endpoints are limited to canonical queries/commands for:
+Authenticated same-origin Settings endpoints are limited to canonical queries/commands for (the existing readiness GET also admits the bounded local installer Bearer read specified in §35.3):
 
 - config state;
 - installation readiness;
@@ -3352,7 +3388,7 @@ A configuration-capable daemon/recovery flow may persist:
 }
 ```
 
-as a valid non-productive configuration so authenticated Settings can expose and repair readiness blockers. The productive fresh installer may use the same canonical shape only as an intermediate rollback-safe state while guided setup is still in progress; **it must not treat that state as successful installation or defer mandatory first-run repository/OpenCode-account/model choices to the browser.** Successful productive installation exits only after the installer-owned guided setup has established the required choices and the normal installer health proof passes.
+as a valid non-productive configuration so authenticated Settings can expose and repair readiness blockers. Fresh installation may use this shape only as an intermediate rollback-safe state, subject to `GW-FR-007-GUIDED-PRODUCTIVE-BOOTSTRAP` and `GW-FR-079-PRODUCTIVE-INSTALLATION-READINESS`. Its required readiness observation is §35.3; installation classification, commit, rollback and finalization are owned by `GW-DOC-TECHNICAL-ARCHITECTURE` §§2/34.13. An established update/recovery may remain configuration-capable; neither config validity nor retained bytes constitute proof of prior successful installation.
 
 Daemon startup under incomplete v4 configuration:
 
@@ -3590,3 +3626,59 @@ The §37.6 checkpoint protocol and §37.7 forecast-variance validator are coordi
 
 Because same-Approval task dependencies do not transport candidate bytes and every Run starts from `Approval.baselineCommit`, a task cannot implement or modify the execution-control capability that determines whether that same task may continue. When the current baseline lacks a required capability, that correction is separately governed and integrated first; the dependent WorkItem is then freshly reconstructed/revalidated against the new exact baseline before sign-off.
 
+
+
+## 38. Candidate acceptance canonical contracts (productive SQLite v4)
+
+Authority: GW-DOC-WORK-LIFECYCLE §§2.2–2.4, GW-DOC-WORKBENCH-UX §14.8A, GW-DOC-VALIDATION-STANDARD §11.1 and GW-DOC-EXECUTION-CONTROL-PLANE. This section owns the carrier and command grammar; historical v3 records remain immutable.
+
+### 38.1 Exact membership and stage invariants
+
+Use one new WorkStage AWAITING_ACCEPTANCE, ordinary human label Acceptance. Existing WorkStatus and WorkOutcome unchanged. After all exact current Approval tasks are successful, all-no-op -> COMPLETE/ALREADY_SATISFIED, otherwise -> AWAITING_ACCEPTANCE/ACTIVE/outcome null. Task CANDIDATE_DONE is technical success. Final accept -> COMPLETE/COMPLETE/CANDIDATE_DONE. Only this transition completes new candidate-producing work. Existing persisted historical COMPLETE is never reopened or assigned fabricated acceptance. A later bug after accepted completion is separate governed work. Current Approval is available for EXECUTION and AWAITING_ACCEPTANCE, final provenance only at COMPLETE. Source/authority freshness is rechecked before QA review admission and final acceptance; actual drift routes to earliest existing owner and invalidates current Approval. Reads never reconcile/mutate. Historical selections never control current mutation.
+
+For each signed task select its unique latest admitted successful terminal Run: CANDIDATE_RECORDED (with exact same reviewer V0-V7 evidence and replayed patch) or admitted TASK_ALREADY_SATISFIED (zero diff, exact completed BUILDER). Derive an ordered array of (ExecutionTaskId, RunEventId) sorted by task id, covering exactly all signed tasks under ApprovalId. Canonical candidate-set hash is the existing Sha256 value over canonicalJson([ApprovalId, ordered array of [ExecutionTaskId, RunEventId]]). Core owns pure ordered membership and canonical string construction using the existing canonicalJson function, plus exact hash comparison; the daemon composes those pure values with the existing shell sha256Text adapter (§3) and passes verified typed hashes into the pure fold/admission decisions. The same boundary verifies every historical replacement hash before selection/command admission. The browser uses only admitted OPENED/REVIEW_COMPLETED hashes and never computes a candidate hash; no new hash function or shell import in core; no path/role/hash alias, browser-created identity, partial membership or candidate aggregate persistence. Recompute on each mutation. No-op entries are evidence only; no fabricated candidate or acceptance action for all-no-op. Multiple independent task patches remain separate; any cross-task integrated behavior must be authorized as a cumulative task; never merge them implicitly.
+
+
+**Historical round reconstruction.** The initial OPENED round is reconstructed from the one admitted original (non-QA-linked) successful terminal event per signed task under this Approval; all tasks were successful at entry, and a terminal task cannot receive another ordinary Builder attempt without a new Approval. Reject absent/duplicate/contradictory original membership rather than choosing by timestamp. Sort the exact initial tuples and verify OPENED.candidateHash. Fold subsequent REVIEW_COMPLETED events in CandidateReviewEvent.sequence order: resolve submissionId to SUBMIT, its REPORT ids to the one owning task, and candidateEventId to the admitted successful reviewer event for that exact QA lineage. Replace only that task's member in the prior round, recompute and verify candidateHash. Other members are unchanged. Validate each round's hash, member ownership and lineage; missing proof is unavailable, not latest-candidate substitution. No timestamp correlation, combinatorial search, extra persisted membership or browser-derived hash. ACCEPT must equal the final reconstructed membership. Historical inspection derives exact member/round facts from existing immutable carriers.
+
+**Signed criterion and evidence inspection.** The signed task's acceptanceRefs are the authoritative criterion identities. Resolve them only through the exact project-manifest ArtifactRef in the selected Approval's signed R3 closure (§6, §14), and the corresponding exact authority ArtifactRef/path at its baseline; never a live manifest, nearest heading, source scan or current working-tree text. The exact signed reference key itself is the criterion label where no structured criterion text is available; open the matching existing read-only signed document for its normative content. The acceptance surface must not parse or invent a separate criterion model. Reuse the existing Approval artifact/content and RunEvent/EvidenceRef read boundaries, including the exact criterion-filtered artifact observation in §18. The same authoritative manifest/closure resolution is used by the current proof owner and filtered read, not duplicated. No new criterion DTO or route. Whole-member validation proof does not assert a separate test for every ref. A missing/ambiguous signed resolution or corrupt required candidate evidence is unavailable proof, not positive criterion evidence. Historical read unavailability remains observational.
+
+### 38.2 Review event contract
+
+One canonical append-only CandidateReviewEvent domain stream per Approval (not a DTO or second execution state machine). CandidateReviewEventId uses the exact `review_<uuid>` scalar in §3, parsed by the canonical schema, and is distinct from RunEventId. The existing shell identity owner adds `newCandidateReviewEventId()` using its existing private UUID generator with prefix `review`; the daemon alone requests identity/time for event admission and supplies them to the pure transition/persistence boundaries; no browser/provider or alternate generator; strict outer fields are id, approvalId, sequence, occurredAt, actor and event (the discriminated payload below). Schema-first strict discriminated union in core; one SQLite table with id (CandidateReviewEventId per §3), approvalId FK, sequence integer >=1, occurredAt IsoDateTime, actor human identity normalized by trim, nonblank and no NUL as in §37.5 for human events / null for coordinator events, eventJson canonical validated union; unique (approvalId,sequence). Event id is finding id for REPORT and submission id for SUBMIT; no duplicate status columns or copied candidate/task fields beyond exact references. Variants:
+- OPENED { candidateHash } coordinator-only, atomic at initial entry to Acceptance; subsequent return records exact candidate hash via REVIEW_COMPLETED.
+- REPORT { candidateHash, taskId, candidateEventId, acceptanceRefs: AuthorityRef[], expected, observed, reproduction, impact, evidence: RunEventId[] } human. All text nonblank; criterion refs are subset of selected signed task refs (may be empty for an unclassified observation), evidence IDs must belong to exact same WorkItem's admitted candidate lineage and resolve through existing evidence authorization. Candidate-producing and no-op members in a mixed set are reportable; no arbitrary filesystem or external URL trust. Optional screenshots/manual test output can be described in the reproduction/report text; native file upload is not required by this delta.
+- SUBMIT { candidateHash, findingIds: nonempty unique ids } human; exact open or retest-failed reports on one current candidate-producing task/member (original REPORT remains immutable across successor candidates); one outstanding submission per Approval, all selected reports same current task. Other reports remain open; user may submit another after this round. Durable queued submission blocks Accept.
+- RETEST_FAILED { findingId, candidateHash, observed, rationale, evidence: RunEventId[] } human; exact current reviewed successor, nonblank observed/rationale, same admitted lineage; remains unresolved and resubmittable.
+- REANALYSIS_REQUESTED is human-only, with a strict nested reason discriminant: { reason: NO_OP_CHALLENGE, candidateHash: Sha256, findingIds: nonempty unique ids, owner: PLAN, rationale } or { reason: CANDIDATE_PROOF_UNAVAILABLE, candidateHash: null, findingIds: [], owner: PLAN, rationale }. The first requires exactly the complete unresolved no-op member finding set of the current Approval; the second requires exact current Approval/sequence and repeated current missing/corrupt candidate-proof observation, no active correction, and operator decision to return for fresh package verification rather than keep waiting for exact proof restoration. Both atomically return PLAN and retain old history. No fake repair.
+- REVIEW_STARTED { submissionId, runId } coordinator-only, atomically with the direct QA reviewer Run admission; direct QA reviewer operational replacements link their new runId to the same submission. Remediator and successor reviewer Runs inherit the submission through their exact candidate/failure Run trigger lineage, including operational replacements; no redundant start event, duplicate charge or second submission.
+- REVIEW_COMPLETED { submissionId, candidateHash, candidateEventId } coordinator-only after successful new V0-V7 proof and return to Acceptance; reference exact new candidate proof for submitted task. The submitted reports now require retest, not automatic resolution. A failure/blocked/upstream result is derived from linked Run/WorkItem reaction, not an artificial successful completion.
+- DISPOSITION { findingId, candidateHash, outcome: RESOLVED | WITHDRAWN, rationale, followupWorkItemId: WorkItemId | null, withdrawalAttestation: null | NOT_A_KNOWN_UNMET_OBLIGATION } human; RESOLVED requires null attestation; WITHDRAWN requires NOT_A_KNOWN_UNMET_OBLIGATION. RESOLVED requires retest against current candidate after successful correction/review, WITHDRAWN before submission requires rationale and explicit human attestation that observation is mistaken and not a known unmet obligation; after submission requires independent evidence that it is not an unmet signed obligation; optional separate same-project WorkItem reference for unrelated follow-up. This does not alter the existing Investigation/Audit-only portable derivedFromWorkItemId grammar. Never defer or waive a known binding defect. Later candidate change invalidates affected prior dispositions: findings for changed task require retest again, unrelated unchanged task decisions remain valid only if their exact candidate IDs are unchanged. On REVIEW_COMPLETED the submitted reports and formerly disposed reports for the replaced member become retest-required; other unsubmitted open/retest-failed reports remain open, never implicitly included in SUBMIT. For a formerly disposed report not submitted in this round, retest relies on the current member's complete fresh V0–V7 proof and any exact prior assessment identified as historical (or none for a pre-submit withdrawal), not an invented current finding assessment. RESOLVED is admissible on an exact retest-required report against that current proof; post-submission WITHDRAWN still requires independent supporting evidence for that finding and never waives a known unmet obligation.
+- ACCEPT { candidateHash, candidateMembers: ordered tuple array above } human; final exact attribution/timestamp and immutable membership. No accepted status field: derive from valid ACCEPT event, with WorkItem completion updated atomically. Unique successful ACCEPT per Approval; never accept a historical Approval or use original sign-off as final decision.
+
+All ordinary QA operator commands bind expected candidate hash and expected latest review sequence (0 if no events); proof-unavailable reanalysis binds expectedCandidateHash=null, exact Approval and sequence and rechecks the actual diagnostic; stale-authority reconciliation binds exact observed owner/Approval/sequence; per-WorkItem mutation guard plus transactional recheck. Exact stale, foreign, duplicate, missing/corrupt evidence, unavailable current candidate or active/queued correction -> existing typed 409/404/400 as applicable; no writes or automatic retries on conflict. Reads return existing entities/event arrays, no view DTO, no new workflow-state cache. Retain history across restart and upstream return; current pending state derived from events/current Approval. No provider can emit human/coordinator acceptance events. Do not append to a completed Run, synthesize REVIEW_FAILED, create a fake provider session or reuse the original Approval as final acceptance. SQLite migration: new additive event table requires new productive schema identity (v4, not config v4); preserve all v3 rows exactly and legacy COMPLETE semantics, fresh create latest, transactional migration while stopped, verify rollback custody under existing installer safety owner; historical v1/v2 migration continues via existing canonical v3 transformation then v4. Apply the v4 contract in §§15/16/32/38 and the existing P4 installer/migration owners; no dual productive schema interpretation.
+
+
+### 38.3 Admission and provider proof
+
+Original REPORT identity and evidence remain immutable; unsubmitted open reports survive replacement and can be submitted against the successor, and disposed reports on the replaced task require retest again. Failed retest records current observed behavior/rationale and leaves the finding unresolved and resubmittable. Before submission a mistaken observation can be withdrawn with rationale and explicit non-defect attestation; after assessment withdrawal requires independent supporting evidence. Never waive a demonstrated binding defect. A finding against a no-op member of a mixed set requires explicit PLAN reanalysis; all-no-op completion remains terminal.
+
+GET /api/work-items/:id/approvals/:approvalId/qa-events returns canonical CandidateReviewEvent[] in sequence order after exact WorkItem/Approval ownership. Without query parameters it is the observational history read, including stale or historical Approval, independent of current proof. With exactly one `expectedReviewSequence` query parameter (canonical nonnegative integer, no duplicate/unknown parameters), it is the current Acceptance proof observation over the same canonical response carrier. Admit only exact current ACTIVE/AWAITING_ACCEPTANCE and Approval, exact admitted review-stream sequence and coherent WorkItem/task/Run membership. Through the existing authority/source owner inspect the exact signed source and material freshness before testing candidate/criterion/evidence availability. Report actual source drift as `SOURCE_AUTHORITY_STALE` for a valid changed source or `WORK_ITEM_SOURCE_CONFLICT` for the exact semantic source diagnostic; other actual authority drift is `STALE_AUTHORITY` with earliest owner. Only after authority is current, verify exact ordered member lineage, every round hash, signed criterion resolution and required patch/validation evidence bytes through existing run/repository/authority readers. Missing or corrupt required proof is `CANDIDATE_PROOF_UNAVAILABLE`; malformed review-stream identity, incoherent state or changed sequence is `CURRENT_STATE_CONFLICT`, not proof loss. Unexpected/operational errors retain existing classification. A successful current observation returns the same canonical event array for the proven exact sequence; no hash/decision DTO, mutation, provider Run, checkout replay or state materialization. Recheck the canonical identity/sequence after asynchronous reads before returning success or a semantic diagnostic; mismatch is conflict. The browser binds the current observation to exact WorkItem/Approval/sequence independently from history, treats pending or unmatched observation as unresolved, and maps only the stable semantic codes to the existing pure Acceptance decision. Refresh on canonical observation/mutation changes; no text parsing, local hash computation, or history-only acceptance grant. Current command admission independently repeats the relevant checks under the existing mutation guard. POST .../qa/report, /qa/submit, /qa/retest-failed, /qa/disposition, /qa/reanalysis, /qa/accept and /qa/prepare-test-copy bind expectedCandidateHash and expectedReviewSequence; human decisions additionally bind canonical trimmed nonblank actor without NUL. Fields match corresponding events excluding server-owned fields; Accept membership is core-computed. The six event-producing POST routes report, submit, retest-failed, disposition, reanalysis and accept return the one newly committed canonical CandidateReviewEvent; reanalysis/accept return that event only after the associated WorkItem transition commits atomically. No combined response projection. The existing reconcile-authority command continues to return WorkItem. On success the client reobserves canonical WorkItem/Approval/task/Run/event queries. Test-copy takes taskId and candidateEventId, returns validated absolute path string. For human DISPOSITION, followupWorkItemId is null unless an existing same-project WorkItem is explicitly selected; RESOLVED requires withdrawalAttestation=null and WITHDRAWN requires NOT_A_KNOWN_UNMET_OBLIGATION. The human confirmation statement on Accept is UI meaning, not an additional persisted field; server admission derives exact membership and absence of unresolved findings. Actual stale signed authority/source takes precedence over unavailable proof: proof-unavailable reanalysis requires current authority. Current stage/Approval, coherent evidence, current source/authority, per-WorkItem lock and transaction recheck mandatory for ordinary QA operations; recovery commands recheck their exact diagnostic instead of asserting the unavailable precondition. GET never reconciles; stale identity rejects without writes. Extend existing expected-owner reconciliation route to Acceptance. Queued submission suppresses further ordinary QA mutations. Before REVIEW_STARTED, if authority is stale or exact proof unavailable, stop scheduler admission and expose the exact explicit stale-owner/source reconciliation or proof-unavailable reanalysis action; these sole recovery exceptions invalidate the queued submission by upstream return and preserve it as history. No provider Run is created. Historical reads allowed, mutations rejected. Both reanalysis branches use /qa/reanalysis rather than /qa/submit; proof-unavailable branch accepts expectedCandidateHash=null only with exact Approval/sequence and rechecked unavailable proof. Ordinary QA commands never bypass currentness. For actual stale source, use the existing POST /api/work-item-sources/reconcile with the strict exact Acceptance body in §34.5; only this branch may apply an Acceptance source-authority return. Under the exact WorkItem mutation guard, verify ACTIVE/AWAITING_ACCEPTANCE, current Approval and review sequence, absence of active correction Run, and re-inspect the canonical source with existing source owner and duplicate/identity rules. A valid changed source applies only that WorkItem's existing source projection plan and returns R1; an actually missing/invalid/unresolved source explicitly invalidates the signed lifecycle to R1 without adopting invalid bytes, path, classification or source hash, leaving the exact diagnostic to block further productive work. The latter is an explicit signed-authority invalidation, not acceptance of a source reclassification. For both, use the existing pure SOURCE_AUTHORITY_CHANGED transition under §31/38 (R1/ACTIVE/null), atomically invalidate current Approval ownership and make any outstanding old tasks BLOCKED under §21, preserving already successful task states and immutable QA/Run evidence. The queued submission is historical through old Approval ownership, not a synthetic event. Return the existing WorkItemSourceReconciliation with only that WorkItem in updated (its lifecycle projection changed) and any exact remaining diagnostics; no other WorkItem plans or artifact writes. Before effects recheck current Approval/sequence/stage and the selected source classification; a duplicate/forbidden reclassification is not a valid projection and cannot be adopted. If semantic invalidity is established, only the explicit lifecycle invalidation branch is permitted. Reject unchanged/restored source, foreign/stale sequence, operational read inability or active mutation without writes. Ordinary bulk operator reconciliation with `{}` rejects before applying any changed Acceptance plan; startup/configuration reconciliation leaves Acceptance source/lifecycle/artifact projections untouched and current proof observation exposes its drift. Neither is a substitute for exact targeted return. No direct signed-source edit, new endpoint or parallel source owner.
+
+`QaFindingAssessment` is the strict canonical nested value (not an event/DTO): `{ findingId: CandidateReviewEventId; verdict: SATISFIED | NOT_REPRODUCED | FAIL_REPAIRABLE | UPSTREAM; rationale: string; evidence: readonly EvidenceRef[] }`. QA-linked REVIEW_PASSED/REVIEW_FAILED carries a nonempty `qaAssessments` array; ordinary reviewer events omit it. The evidence uses the existing provider-admitted EvidenceRef carrier, not future coordinator-created RunEvent IDs; verify exact evidence scope before persisting the review event. The existing approvalContext owner in daemon/authority resolves the ordinary signed execution context plus the canonical immutable SUBMIT event and its exact REPORT events in SUBMIT.findingIds order (including their signed criterion refs and original member identity). For each submitted finding, also resolve its latest admitted RETEST_FAILED event strictly preceding that SUBMIT, if present, from the same Approval's immutable sequence; retain its observed behavior, rationale, evidence references and exact candidateHash/round alongside the original REPORT. Include no later event, foreign finding or unrelated report. A failed retest against an earlier member is identified as historical, not evidence against a different candidate; the current replay target is still the exact submitted member. Use the existing admitted evidence readers for referenced evidence; missing evidence is never represented as verified. The immutable ordered input is SUBMIT followed by each REPORT and its optional preceding RETEST_FAILED, using the existing canonical events rather than new fields or persisted projections. For QA-linked Runs the existing contextHash projection includes the exact role, triggerEventId, immutable task fields (all canonical ExecutionTask fields except the mutable state), ordinary resolved authority/material/source inputs and these exact canonical submission/report/retest values. Render those same immutable task and submission/report/retest values plus existing role/trigger evidence in the provider prompt. Task state changes at admission or recovery cannot change this hash. The exact trigger exists before each Run is created; do not include its own Run ID or future REVIEW_STARTED ID. Ordinary Runs retain their existing context behavior and omit QA input. This is a local canonical JSON/hash input in the existing owner, not a new exported task representation or stored field. The initial scheduler obtains the input from the admitted queued SUBMIT before computing contextHash and creating the fresh REVIEWER Run; the REVIEW_STARTED event and Run/task/lifecycle transition then commit atomically. After admission reconstruct from exact REVIEW_STARTED/direct trigger or successor candidate/failure lineage and verify the same canonical hash before provider invocation, never derive from future event IDs or current/latest unbound findings. Operational replacement uses the same immutable input, role and trigger; remediator/successor reviewer use their own role and trigger with the same submission/report/retest input. No second context store, hash owner or ambient chat. A failed finding requires a corresponding FAIL_REPAIRABLE or UPSTREAM assessment consistent with the existing failure class; mixed upstream/repairable findings route upstream, not a partial repair. Ordinary V4 may independently fail an obligation outside the submitted reports even when all submitted assessments are SATISFIED or NOT_REPRODUCED: in that case retain the ordinary REVIEW_FAILED classification, exact summary/evidence and complete assessment array; never invent a failing finding or convert ordinary V4 failure to PASS. A missing/invalid assessment is invalid provider output under existing bounded recovery, not a semantic failure or success. The coordinator continues to own V0–V7 and their existing failure reactions independently of finding assessments. Exact submitted IDs once each, same task and admitted lineage; PASS only SATISFIED/NOT_REPRODUCED plus ordinary V4 proof. Failure verdicts agree with existing failure classification/return owner. Coordinator atomically records REVIEW_STARTED with task RUNNING and EXECUTION; final successful reviewer records candidate and REVIEW_COMPLETED with return to Acceptance; blocked/upstream outcomes retain linked history. ACCEPT and terminal WorkItem update commit together. Human disposition never provider-authored.
+
+### 38.4 SQLite v4
+
+```sql
+CREATE TABLE candidateReviewEvents (
+  id TEXT PRIMARY KEY,
+  approvalId TEXT NOT NULL REFERENCES approvals(id),
+  sequence INTEGER NOT NULL CHECK (sequence >= 1),
+  occurredAt TEXT NOT NULL,
+  actor TEXT CHECK (actor IS NULL OR length(trim(actor)) > 0),
+  eventJson TEXT NOT NULL CHECK (json_valid(eventJson)),
+  UNIQUE (approvalId, sequence)
+) STRICT;
+```
+
+Fresh schema is v3 tables plus this table and user_version=4. Installer alone migrates stopped v3 transactionally, verifies exact v3 rows unchanged, sets version 4 only after checks. Legacy COMPLETE without events retains original provenance. Supported predecessor migration reaches v3 then v4 before activation. Failed migration/activation restores exact prior DB/config/daemon using existing rollback custody. No dual productive schema, no fabricated historical events; config schema unchanged.

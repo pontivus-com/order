@@ -1,39 +1,65 @@
 import type { Run, RunEvent } from "../../src/core/contracts.ts";
+import {
+  eventEvidence, proposalDispositionFor, runEventPresentation, workflowRunEvents,
+  type EvidenceSelection, type ProposalSelection,
+} from "./workbench-presentation.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
-import { WorkbenchDisclosure } from "./primitives/WorkbenchDisclosure.tsx";
-import { WorkbenchResourceRow } from "./primitives/WorkbenchResourceRow.tsx";
+import { WorkbenchResourceList } from "./primitives/WorkbenchResourceList.tsx";
 import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
 import { WorkbenchTimeline } from "./primitives/WorkbenchTimeline.tsx";
-import { eventEvidence, proposalDispositionFor, runEventPresentation, workflowRunEvents, type EvidenceSelection, type ProposalSelection } from "./workbench-presentation.ts";
 
-export const RunEventTimeline = ({ run, events, onOpenEvidence, onOpenProposalReview }: Readonly<{
-  run: Run; events: readonly RunEvent[]; onOpenEvidence: (selection: EvidenceSelection) => void; onOpenProposalReview?: (selection: ProposalSelection) => void;
-}>) => (
-  <div data-testid="run-event-timeline">
-    <WorkbenchTimeline
-      label="Workflow activity"
-      items={workflowRunEvents(events).map((event) => {
-        const presentation = runEventPresentation(event);
-        const evidence = eventEvidence(event);
-        const proposalState = event.event.tag === "ARTIFACT_PROPOSAL_CREATED" ? proposalDispositionFor(events, event.id) : null;
-        const tone = presentation.tone === "error" ? "danger" : presentation.tone === "neutral" ? "neutral" : presentation.tone;
-        return {
-          id: event.id,
-          heading: <WorkbenchStatus tone={tone} label={presentation.label} />,
-          meta: <time>{new Date(event.occurredAt).toLocaleString()}</time>,
-          body: <span data-event-tag={event.event.tag}>{presentation.detail}{proposalState ? " · " + proposalState : ""}</span>,
-          action: event.event.tag === "ARTIFACT_PROPOSAL_CREATED" && onOpenProposalReview
-            ? <WorkbenchAction label="Review proposed document change" tone="primary" onClick={() => onOpenProposalReview({ runId: run.id, eventId: event.id })} />
-            : undefined,
-          evidence: evidence.length > 0 ? <div>{evidence.map((reference) => (
-            <div key={reference.relativePath} data-evidence-path={reference.relativePath}><WorkbenchResourceRow label={reference.relativePath} detail="Run evidence" actionLabel={"Evidence: " + reference.relativePath} onOpen={() => onOpenEvidence({ kind: "EVIDENCE", runId: run.id, relativePath: reference.relativePath })} /></div>
-          ))}</div> : undefined,
-        };
-      })}
-    />
-    <WorkbenchDisclosure
-      label="Timeline technical details"
-      content={<div>{workflowRunEvents(events).map((event) => <details key={event.id}><summary><code>{event.event.tag}</code><span> · sequence {event.sequence}</span></summary><pre>{JSON.stringify(event.event, null, 2)}</pre></details>)}</div>}
-    />
-  </div>
-);
+export const RunEventTimeline = ({
+  run, events, onOpenEvidence, onOpenProposalReview,
+}: Readonly<{
+  run: Run; events: readonly RunEvent[];
+  onOpenEvidence: (selection: EvidenceSelection) => void;
+  onOpenProposalReview?: (selection: ProposalSelection) => void;
+}>) => {
+  const workflowEvents = workflowRunEvents(events);
+  return <section className="order-workflow-event-history" data-testid="run-event-timeline">
+    <WorkbenchTimeline label="Workflow activity" items={workflowEvents.map((event) => {
+      const presentation = runEventPresentation(event);
+      const evidence = eventEvidence(event);
+      const proposalState = event.event.tag === "ARTIFACT_PROPOSAL_CREATED"
+        ? proposalDispositionFor(events, event.id) : null;
+      return {
+        id: event.id,
+        heading: <WorkbenchStatus
+          tone={presentation.tone === "error" ? "danger" : presentation.tone}
+          label={presentation.label}
+        />,
+        meta: <time>{new Date(event.occurredAt).toLocaleString()}</time>,
+        body: <span data-event-tag={event.event.tag}>
+          {presentation.detail}{proposalState === null ? "" : " · " + proposalState}
+        </span>,
+        action: event.event.tag === "ARTIFACT_PROPOSAL_CREATED" && onOpenProposalReview !== undefined
+          ? <WorkbenchAction label="Review proposed document change" tone="primary"
+              onClick={() => onOpenProposalReview({ runId: run.id, eventId: event.id })} />
+          : undefined,
+        evidence: evidence.length === 0 ? undefined : (
+          <WorkbenchResourceList
+            items={evidence.map((reference) => ({
+              id: reference.relativePath,
+              label: reference.relativePath,
+              detail: "Run evidence",
+              action: (
+                <span data-evidence-path={reference.relativePath}>
+                  <WorkbenchAction
+                    label={"Evidence: " + reference.relativePath}
+                    tone="ghost"
+                    onClick={() =>
+                      onOpenEvidence({
+                        kind: "EVIDENCE",
+                        runId: run.id,
+                        relativePath: reference.relativePath,
+                      })}
+                  />
+                </span>
+              ),
+            }))}
+          />
+        ),
+      };
+    })} />
+  </section>;
+};

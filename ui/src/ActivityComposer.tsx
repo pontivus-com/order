@@ -1,56 +1,75 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { ChatComposer } from "@astryxdesign/core/Chat";
+import { TextInput } from "@astryxdesign/core/TextInput";
+import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import type { Run, RunEvent } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
 import { runIsActive } from "./workbench-presentation.ts";
 import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
 
-export const ActivityComposer = ({ run, pending, focusedRequiredInputEventId, mutationsDisabled = false, onRequiredInputFocused, onSubmitted, onError }: Readonly<{
-  run: Run;
-  pending: RunEvent | null;
+export const ActivityComposer = ({
+  run, pending, focusedRequiredInputEventId, mutationsDisabled = false,
+  onRequiredInputFocused, onSubmitted, onError,
+}: Readonly<{
+  run: Run; pending: RunEvent | null;
   focusedRequiredInputEventId: RunEvent["id"] | null;
   mutationsDisabled?: boolean;
   onRequiredInputFocused: (eventId: RunEvent["id"]) => void;
   onSubmitted: (event: RunEvent) => Promise<void>;
   onError?: (error: unknown) => void | Promise<void>;
 }>) => {
-  const composerRegionRef = useRef<HTMLDivElement>(null);
-  const requiredInputEventId =
-    pending?.event.tag === "HUMAN_INPUT_REQUESTED" ? pending.id : null;
+  const regionRef = useRef<HTMLDivElement>(null);
+  const [message, setMessage] = useState("");
+  const requestId = pending?.event.tag === "HUMAN_INPUT_REQUESTED" ? pending.id : null;
 
   useEffect(() => {
-    if (
-      requiredInputEventId === null ||
-      focusedRequiredInputEventId === requiredInputEventId
-    ) {
-      return;
-    }
-    composerRegionRef.current?.focus({ preventScroll: true });
-    onRequiredInputFocused(requiredInputEventId);
-  }, [focusedRequiredInputEventId, onRequiredInputFocused, requiredInputEventId]);
+    if (requestId === null || requestId === focusedRequiredInputEventId) return;
+    const region = regionRef.current;
+    if (region === null) return;
+    region.focus({ preventScroll: true });
+    onRequiredInputFocused(requestId);
+  }, [focusedRequiredInputEventId, onRequiredInputFocused, requestId]);
 
   const input = useMutation({
     mutationFn: (text: string) => {
-      if (run.role !== "STAGE" || !runIsActive(run)) throw new TypeError("selected Activity does not accept human input");
+      if (run.role !== "STAGE" || !runIsActive(run)) {
+        throw new TypeError("selected Activity does not accept human input");
+      }
       return api.submitRunInput(run.id, text.trim(), pending?.id ?? null);
     },
-    onSuccess: onSubmitted,
+    onSuccess: async (event) => {
+      setMessage("");
+      await onSubmitted(event);
+    },
     onError,
   });
-  return (
-    <div ref={composerRegionRef} tabIndex={-1} data-testid="activity-composer">
-      {input.error && onError === undefined ? <WorkbenchNotice tone="danger" title="Workflow action failed" description={input.error instanceof Error ? input.error.message : String(input.error)} /> : null}
-      <div className="order-dialogue-composer-copy">
-        <strong>{pending?.event.tag === "HUMAN_INPUT_REQUESTED" ? "Answer the question above" : "Continue current work"}</strong>
-        <span>{pending?.event.tag === "HUMAN_INPUT_REQUESTED" ? "Your reply is bound to the exact question shown in the conversation." : "Send the next instruction or answer for this interactive activity."}</span>
-      </div>
-      <ChatComposer
-        onSubmit={(value) => { if (!mutationsDisabled && value.trim().length > 0) input.mutate(value); }}
-        placeholder={pending?.event.tag === "HUMAN_INPUT_REQUESTED" ? "Answer and continue" : "Continue current work"}
-        isDisabled={mutationsDisabled || input.isPending}
-        elevation="none"
-      />
+  const required = pending?.event.tag === "HUMAN_INPUT_REQUESTED";
+  const durableDecision = pending?.event.tag === "HUMAN_INPUT_REQUESTED" &&
+    (pending.event.category === "STAGE_CHOICE" || pending.event.category === "AUTHORITY_DECISION" || pending.event.category === "AUTHORITY_CONFLICT");
+
+  return <div ref={regionRef} tabIndex={-1} data-testid="activity-composer" className="order-activity-composer">
+    {input.error && onError === undefined ? <WorkbenchNotice
+      tone="danger" title="Workflow action failed"
+      description={input.error instanceof Error ? input.error.message : String(input.error)}
+    /> : null}
+    <div className="order-activity-composer-context">
+      <strong>{required ? "Your response" : "Continue conversation"}</strong>
+      {required ? <span>Answer the current agent question to continue.</span> : null}
+      {durableDecision ? <span data-testid="durable-decision-guidance">Your reply is not itself durable authority. Progression requires adoption of the owning governed artifact or proposal.</span> : null}
     </div>
-  );
+    <form className="order-activity-message-form" onSubmit={(event) => {
+      event.preventDefault();
+      if (!mutationsDisabled && !input.isPending && message.trim().length > 0) {
+        input.mutate(message);
+      }
+    }}>
+      <TextInput label="Message input" isLabelHidden width="100%" size="sm"
+        value={message} onChange={setMessage}
+        placeholder={required ? "Answer and continue" : "Send a message"}
+        isDisabled={mutationsDisabled || input.isPending} />
+      <WorkbenchAction label="Send" type="submit" tone="primary"
+        disabled={mutationsDisabled || input.isPending || message.trim().length === 0}
+        loading={input.isPending} />
+    </form>
+  </div>;
 };

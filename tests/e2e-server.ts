@@ -2,11 +2,13 @@ import {
   chmodSync,
   existsSync,
   mkdirSync,
+  mkdtempSync,
   readFileSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
 import { isAbsolute, join } from "node:path";
+import { tmpdir } from "node:os";
 
 import {
   ApprovalSchema,
@@ -20,10 +22,14 @@ import {
   WorkItemIdSchema,
   WorkItemSchema,
   type RunEventPayload,
+  type CandidateReviewEventPayload,
+  type CandidateMembers,
   type RunId,
   type StageCompletion,
   type WorkItemId,
 } from "../src/core/contracts.ts";
+import { canonicalApprovalPackageJson } from "../src/core/canonical.ts";
+import { candidateMembershipCanonicalJson } from "../src/core/lifecycle.ts";
 import { renderWorkItemSourceMarkdown } from "../src/core/work-item-source.ts";
 import { startOrderDaemon } from "../src/daemon/server.ts";
 import { createCoordinatorRuntime } from "../src/daemon/runtime.ts";
@@ -32,6 +38,11 @@ import {
   getWorkItem,
   listExecutionTasks,
   resolveStageContext,
+  signOffWorkItem,
+  signoffPackageForWorkItem,
+  observeCurrentCandidateReview,
+  acceptanceObservationCodeForFailure,
+  staleAuthorityOwnerForFailure,
 } from "../src/daemon/authority.ts";
 import {
   appendRunEvent,
@@ -41,7 +52,7 @@ import {
   updateRun,
 } from "../src/daemon/run.ts";
 import { writeOrderConfig } from "../src/shell/config.ts";
-import { resolveHeadCommit } from "../src/shell/repository.ts";
+import { captureCandidate, createFreshCheckout, resolveHeadCommit } from "../src/shell/repository.ts";
 import {
   createWorkItemSourceFile,
   readWorkItemSource,
@@ -49,6 +60,7 @@ import {
 import {
   newApprovalId,
   newArtifactRefId,
+  newCandidateReviewEventId,
   newExecutionTaskId,
   newRunEventId,
   newRunId,
@@ -64,6 +76,7 @@ import {
   storeApproval,
   storeArtifact,
   storeArtifactDependency,
+  storeCandidateReviewEvent,
   storeExecutionTask,
   storeRun,
   storeRunEvent,
@@ -451,6 +464,14 @@ No unresolved defect blocks the exact governed package.
 ## Package judgment
 
 The current package is coherent and ready for Approval.
+
+## Adversarial findings
+
+The review assessed contradictory authority and missing verification evidence.
+
+## Evidence
+
+The exact conformed artifact identifies the reviewed package.
 `;
 const manifestText = `version = 1
 projectId = "order-e2e"
@@ -458,10 +479,26 @@ projectId = "order-e2e"
 [authority]
 p1 = []
 p2 = []
-p3 = []
-p4 = []
+p3 = ["docs/authority-p3.md"]
+p4 = ["docs/authority-p4.md"]
 p5 = []
-p6 = []
+p6 = ["docs/authority-p6.md"]
+
+[refs]
+GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1 = "docs/authority-p3.md"
+GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V2 = "docs/authority-p3.md"
+GW-DOC-WORK-LIFECYCLE-V1 = "docs/authority-p3.md"
+GW-DOC-LIFECYCLE-CONTEXT-V1 = "docs/authority-p3.md"
+GW-DOC-LIFECYCLE-CONTEXT-V2 = "docs/authority-p3.md"
+GW-DOC-SPECIFICATION-STANDARD-V1 = "docs/authority-p3.md"
+GW-DOC-SPECIFICATION-STANDARD-V2 = "docs/authority-p3.md"
+GW-DOC-VALIDATION-STANDARD-V1 = "docs/authority-p3.md"
+GW-FR-096-LIFECYCLE-AUTHORITY-DISPOSITION = "docs/authority-p3.md"
+GW-FR-098-READINESS-AUTHORITY-TOPOLOGY-REVIEW = "docs/authority-p3.md"
+GW-DOC-TECHNICAL-ARCHITECTURE-V1 = "docs/authority-p4.md"
+GW-DOC-TECHNICAL-ARCHITECTURE-V2 = "docs/authority-p4.md"
+GW-DOC-CANONICAL-CONTRACTS-V1 = "docs/authority-p6.md"
+GW-DOC-CANONICAL-CONTRACTS-V2 = "docs/authority-p6.md"
 
 [concerns.browser]
 authority = []
@@ -470,6 +507,18 @@ gates = []
 `;
 
 writeFileSync(join(repositoryRoot, "pontivus-order.toml"), manifestText);
+writeFileSync(
+  join(repositoryRoot, "docs", "authority-p3.md"),
+  "# Browser fixture lifecycle/specification authority\n",
+);
+writeFileSync(
+  join(repositoryRoot, "docs", "authority-p4.md"),
+  "# Browser fixture technical architecture authority\n",
+);
+writeFileSync(
+  join(repositoryRoot, "docs", "authority-p6.md"),
+  "# Browser fixture canonical contracts authority\n",
+);
 writeFileSync(join(repositoryRoot, "docs", "r1.md"), researchText);
 writeFileSync(join(repositoryRoot, "docs", "change-r1.md"), changeResearchText);
 writeFileSync(join(repositoryRoot, "docs", "defect-r1.md"), defectResearchText);
@@ -484,6 +533,11 @@ writeFileSync(join(repositoryRoot, "docs", "change-plan.md"), changePlanContract
 writeFileSync(join(repositoryRoot, "docs", "defect-plan.md"), defectPlanContractText);
 writeFileSync(join(repositoryRoot, "docs", "design.md"), designText);
 writeFileSync(join(repositoryRoot, "docs", "plan.md"), planText);
+const nativeAcceptancePlanText = planText.replace('"acceptanceRefs":[]','"acceptanceRefs":["GW-FR-098-READINESS-AUTHORITY-TOPOLOGY-REVIEW"]');
+writeFileSync(join(repositoryRoot, "docs", "native-acceptance-plan.md"), nativeAcceptancePlanText);
+writeFileSync(join(repositoryRoot, "docs", "native-acceptance-stale-plan.md"), nativeAcceptancePlanText);
+const nativeMixedPlanText=nativeAcceptancePlanText.replace('"concernIds":[]}]}','"concernIds":[]},{"id":"T2","objective":"Verify existing behavior needs no change","dependsOn":[],"scope":["src/b.ts"],"exclusions":[],"acceptanceRefs":[],"changeSurface":["src/b.ts"],"gateIds":[],"authorityRefs":[],"concernIds":[]}]}');
+writeFileSync(join(repositoryRoot,"docs","native-acceptance-mixed-plan.md"),nativeMixedPlanText);
 writeFileSync(
   join(repositoryRoot, "docs", "historical-selection-plan.md"),
   historicalSelectionPlanText,
@@ -639,6 +693,7 @@ const storePlanArtifacts = (
   });
   storeArtifact(database, plan);
   storeArtifact(database, r3);
+  storeArtifactDependency(database, r3.id, plan.id);
   return { plan, r3 };
 };
 
@@ -853,7 +908,7 @@ const seedConformance = async (
   item: ReturnType<typeof workItem>,
   stage: "R1" | "R2" | "DESIGN" | "PLAN" | "R3",
   output: Awaited<ReturnType<typeof currentFileArtifact>>,
-  completion?: StageCompletion,
+  completion: StageCompletion,
 ): Promise<void> => {
   const context = await resolveStageContext(seedRuntime, item, stage);
   const run = insertRun(seedRuntime, RunSchema.parse({
@@ -886,19 +941,17 @@ const seedConformance = async (
       }
     }
     appendRunEvent(seedRuntime, run.id, {
+      tag: "STAGE_COMPLETED",
+      completion,
+      artifactRefIds: [output.id],
+    });
+    appendRunEvent(seedRuntime, run.id, {
       tag: "CONFORMANCE_PASSED",
       stage,
       outputArtifactRefIds: [output.id],
       contextHash: context.contextHash,
       evidence: [],
     });
-    if (completion) {
-      appendRunEvent(seedRuntime, run.id, {
-        tag: "STAGE_COMPLETED",
-        completion,
-        artifactRefIds: [output.id],
-      });
-    }
   });
 };
 
@@ -907,6 +960,9 @@ const seedLifecycle = async (
   planPath:
     | "docs/plan.md"
     | "docs/stale-approval-plan.md"
+    | "docs/native-acceptance-plan.md"
+    | "docs/native-acceptance-stale-plan.md"
+    | "docs/native-acceptance-mixed-plan.md"
     | "docs/long-wide-plan.md"
     | "docs/long-narrow-plan.md" = "docs/plan.md",
 ) => {
@@ -1048,14 +1104,15 @@ const seedCurrentStageDocumentItem = async (
     await seedConformance(item, definition.stage, upstream, completion);
   }
   const current = definitions[currentIndex]!;
-  const output = await currentFileArtifact(
+  // Own-stage material is a draft, not an admitted promotion. Upstream
+  // stages above are the only conformed lifecycle inputs for this fixture.
+  await currentFileArtifact(
     seedRuntime,
     item,
     current.path,
     current.role,
     current.layer,
   );
-  await seedConformance(item, current.stage, output);
   return item;
 };
 
@@ -1103,16 +1160,16 @@ const seedReadinessOutcomeItem = async (
     contextHash,
   });
   appendRunEvent(seedRuntime, run.id, {
+    tag: "STAGE_COMPLETED",
+    completion: { stage: "R3", outcome },
+    artifactRefIds: [output.id],
+  });
+  appendRunEvent(seedRuntime, run.id, {
     tag: "CONFORMANCE_PASSED",
     stage: "R3",
     outputArtifactRefIds: [output.id],
     contextHash,
     evidence: [],
-  });
-  appendRunEvent(seedRuntime, run.id, {
-    tag: "STAGE_COMPLETED",
-    completion: { stage: "R3", outcome },
-    artifactRefIds: [output.id],
   });
 };
 
@@ -1156,16 +1213,16 @@ const seedBlockedReadinessItem = async (
       contextHash: priorContextHash,
     });
     appendRunEvent(seedRuntime, prior.id, {
+      tag: "STAGE_COMPLETED",
+      completion: { stage: "R3", outcome: "READY_FOR_SIGNOFF" },
+      artifactRefIds: [output.id],
+    });
+    appendRunEvent(seedRuntime, prior.id, {
       tag: "CONFORMANCE_PASSED",
       stage: "R3",
       outputArtifactRefIds: [output.id],
       contextHash: priorContextHash,
       evidence: [],
-    });
-    appendRunEvent(seedRuntime, prior.id, {
-      tag: "STAGE_COMPLETED",
-      completion: { stage: "R3", outcome: "READY_FOR_SIGNOFF" },
-      artifactRefIds: [output.id],
     });
   }
 
@@ -1193,6 +1250,11 @@ const seedBlockedReadinessItem = async (
     stage: "R3",
     mode: "INTERACTIVE",
     contextHash,
+  });
+  appendRunEvent(seedRuntime, run.id, {
+    tag: "STAGE_COMPLETED",
+    completion: { stage: "R3", outcome: "READY_FOR_SIGNOFF" },
+    artifactRefIds: [output.id],
   });
   appendRunEvent(seedRuntime, run.id, {
     tag: "STAGE_BLOCKED",
@@ -1595,9 +1657,189 @@ for (const [title, planPath] of [
   await seedLifecycle(item, planPath);
 }
 
+const nativeAcceptanceItem=workItem("Native Acceptance review","AWAITING_SIGNOFF","ACTIVE",null);
+storeWorkItem(database,nativeAcceptanceItem);
+await seedLifecycle(nativeAcceptanceItem,"docs/native-acceptance-plan.md");
+
+// Additional exact signed fixtures are needed only by the rendered Acceptance
+// matrix. Each fault affects a separate real WorkItem/Approval or evidence owner.
+const nativeFaultSpecs = [
+  ["SOURCE_AUTHORITY_STALE","Native Acceptance source drift","docs/native-acceptance-plan.md"],
+  ["STALE_AUTHORITY","Native Acceptance material drift","docs/native-acceptance-stale-plan.md"],
+  ["CANDIDATE_PROOF_UNAVAILABLE","Native Acceptance missing proof","docs/native-acceptance-plan.md"],
+] as const;
+type NativeFault = typeof nativeFaultSpecs[number][0];
+const nativeFaultItems: {fault:NativeFault;item:ReturnType<typeof workItem>}[]=[];
+const nativeRendered = process.env.PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR !== undefined &&
+  (process.env.PONTIVUS_ORDER_SIGNED_RENDERED_PHASE === undefined ||
+   ["IA38","IA39"].includes(process.env.PONTIVUS_ORDER_SIGNED_RENDERED_PHASE));
+if(nativeRendered){
+  for(const [fault,title,planPath] of nativeFaultSpecs){
+    const item=workItem(title,"AWAITING_SIGNOFF","ACTIVE",null);
+    storeWorkItem(database,item);
+    await seedLifecycle(item,planPath);
+    nativeFaultItems.push({fault,item});
+  }
+}
+const nativeHistoryItems=new Map<string,ReturnType<typeof workItem>>();
+if(nativeRendered){
+  for(const [kind,title] of [
+    ["queued","Native Acceptance queued correction"],
+    ["running","Native Acceptance running correction"],
+    ["blocked","Native Acceptance blocked correction"],
+    ["retest","Native Acceptance retest history"],
+    ["mixed","Native Acceptance mixed candidate"],
+    ["copy","Native Acceptance test copy"],
+    ["loading","Native Acceptance pending observation"],
+  ] as const){
+    const item=workItem(title,"AWAITING_SIGNOFF","ACTIVE",null);
+    storeWorkItem(database,item);
+    await seedLifecycle(item,kind==="mixed"?"docs/native-acceptance-mixed-plan.md":"docs/native-acceptance-plan.md");
+    nativeHistoryItems.set(kind,item);
+  }
+}
 git("add", "--", workItemsRoot);
 git("commit", "-q", "-m", "browser WorkItem sources");
 baselineCommit = await resolveHeadCommit(repositoryRoot);
+
+const seedNativeCandidate = async (item:ReturnType<typeof workItem>)=>{
+  const nativePackage=await signoffPackageForWorkItem(seedRuntime,item.id);
+  const nativeApproval=await signOffWorkItem(seedRuntime,item.id,nativePackage.packageHash,"browser-signoff");
+  const nativeTasks=await listExecutionTasks(seedRuntime,item.id);
+  if(nativeTasks.length<1||nativeTasks.length>2)throw new TypeError("Native Acceptance fixture requires one or two signed tasks");
+  const nativeTask=nativeTasks.find(task=>task.planTaskId==="T1")!;
+  if(nativeTask===undefined)throw new TypeError("Native Acceptance candidate task missing");
+  const noOpTask=nativeTasks.find(task=>task.planTaskId==="T2");
+  const nativeBuilder=RunSchema.parse({
+    id:newRunId(),workItemId:item.id,executionTaskId:nativeTask.id,stage:"EXECUTION",
+    mode:"UNATTENDED",role:"BUILDER",triggerEventId:null,status:"COMPLETED",attempt:1,
+    baselineCommit:nativeApproval.baselineCommit,contextHash:sha256Text("native-acceptance-builder"),
+    providerSessionId:null,terminalClassification:"CANDIDATE_DONE",startedAt:stamp,endedAt:stamp,
+  });
+  storeRun(database,nativeBuilder);
+  // Capture real patch bytes using the same canonical Git configuration as
+  // candidate replay. A hand-written diff omits the exact full-index identity.
+  const candidateDirectory=mkdtempSync(join(tmpdir(),"order-browser-candidate-"));
+  const candidate=await (async()=>{
+    try{
+      const workspace=join(candidateDirectory,"checkout");
+      await createFreshCheckout(repositoryRoot,workspace,nativeApproval.baselineCommit);
+      writeFileSync(join(workspace,"src","a.ts"),"export const a = 2;\n");
+      return await captureCandidate(workspace);
+    }finally{rmSync(candidateDirectory,{recursive:true,force:true});}
+  })();
+  const nativeState=persistEvent(nativeBuilder.id,1,{tag:"CANDIDATE_STATE_RECORDED",changedPaths:candidate.changedPaths,patch:{
+    relativePath:"candidate.patch",sha256:writeRunEvidenceBytes(stateRoot,nativeBuilder.id,"candidate.patch",candidate.patch),mediaType:"text/x-diff"
+  }});
+  const nativeReviewer=RunSchema.parse({...nativeBuilder,id:newRunId(),role:"REVIEWER",triggerEventId:nativeState.id,attempt:2,contextHash:sha256Text("native-acceptance-reviewer")});
+  storeRun(database,nativeReviewer);
+  const nativeValidationIds=[];
+  let nativeSequence=1;
+  for(const stage of ["V0","V1","V2","V3","V4","V5","V6","V7"] as const){
+    if(stage==="V4")persistEvent(nativeReviewer.id,nativeSequence++,{tag:"REVIEW_PASSED",minimumChange:"MINIMUM_SUFFICIENT",minimumChangeSummary:null,evidence:[]});
+    nativeValidationIds.push(persistEvent(nativeReviewer.id,nativeSequence++,{tag:"VALIDATION_PASSED",stage,evidence:[]}).id);
+  }
+  const nativeMember=persistEvent(nativeReviewer.id,nativeSequence,{tag:"CANDIDATE_RECORDED",candidateStateEventId:nativeState.id,validationEventIds:nativeValidationIds});
+  const members:CandidateMembers[number][]=[[nativeTask.id,nativeMember.id]];
+  let noOpMember:ReturnType<typeof persistEvent>|undefined;
+  if(noOpTask!==undefined){
+    const noOpRun=RunSchema.parse({...nativeBuilder,id:newRunId(),executionTaskId:noOpTask.id,terminalClassification:"ALREADY_SATISFIED"});
+    storeRun(database,noOpRun);
+    noOpMember=persistEvent(noOpRun.id,1,{tag:"TASK_ALREADY_SATISFIED",summary:"Existing behavior satisfies the signed task."});
+    members.push([noOpTask.id,noOpMember.id]);
+    setExecutionTaskState(database,noOpTask.id,"ALREADY_SATISFIED");
+  }
+  members.sort((left,right)=>left[0]<right[0]?-1:1);
+  const nativeHash=sha256Text(candidateMembershipCanonicalJson(nativeApproval.id,members));
+  withTransaction(database,()=>{
+    setExecutionTaskState(database,nativeTask.id,"CANDIDATE_DONE");
+    storeCandidateReviewEvent(database,{id:newCandidateReviewEventId(),approvalId:nativeApproval.id,sequence:1,occurredAt:stamp,actor:null,event:{tag:"OPENED",candidateHash:nativeHash}});
+    updateWorkItemLifecycle(database,item.id,{stage:"AWAITING_ACCEPTANCE",status:"ACTIVE",outcome:null});
+  });
+  await observeCurrentCandidateReview(seedRuntime,item.id,nativeApproval.id,1);
+  return {item, approval:nativeApproval, builder:nativeBuilder, reviewer:nativeReviewer, state:nativeState,
+    task:nativeTask, member:nativeMember, hash:nativeHash, noOpTask,noOpMember};
+};
+await seedNativeCandidate(nativeAcceptanceItem);
+const nativeFaultFixtures=new Map<WorkItemId,Awaited<ReturnType<typeof seedNativeCandidate>> & {fault:NativeFault}>();
+for(const {fault,item} of nativeFaultItems) nativeFaultFixtures.set(item.id,{...await seedNativeCandidate(item),fault});
+
+// Canonical persisted histories: use the real signed package and exact
+// builder/reviewer/event lineage, not mocked view models or atlas states.
+const liveCorrections:Readonly<{run:ReturnType<typeof RunSchema.parse>;approvalId:ReturnType<typeof newApprovalId>;submissionId:ReturnType<typeof newCandidateReviewEventId>;sequence:number}>[]=[];
+for(const [kind,item] of nativeHistoryItems){
+  const fixture=await seedNativeCandidate(item);
+  if(kind==="copy"||kind==="loading"||kind==="mixed")continue;
+  let sequence=1;
+  let currentHash=fixture.hash;
+  let currentMember=fixture.member;
+  let attempt=2;
+  const appendQa=(event:CandidateReviewEventPayload,actor:string|null)=>{
+    const entry={id:newCandidateReviewEventId(),approvalId:fixture.approval.id,sequence:++sequence,occurredAt:stamp,actor,event};
+    storeCandidateReviewEvent(database,entry);
+    return entry;
+  };
+  const report=(observed:string)=>appendQa({tag:"REPORT",candidateHash:currentHash,
+    taskId:fixture.task.id,candidateEventId:currentMember.id,acceptanceRefs:fixture.task.acceptanceRefs,
+    expected:"The signed candidate meets its acceptance criterion.",observed,reproduction:"Inspect the exact candidate checkout.",
+    impact:"The observation requires a human retest.",evidence:[fixture.state.id]},"Fixture operator");
+  const submit=(findingId:ReturnType<typeof newCandidateReviewEventId>)=>appendQa({tag:"SUBMIT",candidateHash:currentHash,findingIds:[findingId]},"Fixture operator");
+  const dispose=(findingId:ReturnType<typeof newCandidateReviewEventId>,outcome:"RESOLVED"|"WITHDRAWN")=>appendQa({
+    tag:"DISPOSITION",candidateHash:currentHash,findingId,outcome,rationale:"The fixture operator recorded the required disposition.",
+    followupWorkItemId:null,withdrawalAttestation:outcome==="WITHDRAWN"?"NOT_A_KNOWN_UNMET_OBLIGATION":null},"Fixture operator");
+  const correction=(findingId:ReturnType<typeof newCandidateReviewEventId>,mode:"COMPLETED"|"RUNNING"|"BLOCKED")=>{
+    const submission=submit(findingId);
+    if(kind==="queued")return;
+    const run=RunSchema.parse({...fixture.reviewer,id:newRunId(),attempt:++attempt,
+      triggerEventId:currentMember.id,status:mode,endedAt:mode==="RUNNING"?null:stamp,
+      terminalClassification:mode==="COMPLETED"?"CANDIDATE_DONE":mode==="RUNNING"?null:"REVIEW_FAILURE"});
+    if(mode==="RUNNING"){
+      // Active attempts must be inserted after daemon restart recovery, just
+      // like the existing live STAGE fixtures below.
+      liveCorrections.push({run,approvalId:fixture.approval.id,submissionId:submission.id,sequence:sequence+1});
+      return;
+    }
+    storeRun(database,run);
+    appendQa({tag:"REVIEW_STARTED",submissionId:submission.id,runId:run.id},null);
+    if(mode==="BLOCKED"){
+      for(const [index,stage] of (["V0","V1","V2","V3"] as const).entries()){
+        persistEvent(run.id,index+1,{tag:"VALIDATION_PASSED",stage,evidence:[]});
+      }
+      persistEvent(run.id,5,{tag:"REVIEW_FAILED",classification:"REVIEW_FAILURE",
+        summary:"The submitted observation still requires repair.",evidence:[]});
+      persistEvent(run.id,6,{tag:"VALIDATION_FAILED",stage:"V4",classification:"REVIEW_FAILURE",
+        summary:"The submitted observation still requires repair.",evidence:[]});
+      setExecutionTaskState(database,fixture.task.id,mode);
+      updateWorkItemLifecycle(database,item.id,{stage:"EXECUTION",status:mode==="BLOCKED"?"BLOCKED":"ACTIVE",outcome:null});
+      return;
+    }
+    const bytes=encoder.encode("Independent assessment of the exact submitted finding.\n");
+    const proof={relativePath:"successor-review.txt",sha256:writeRunEvidenceBytes(stateRoot,run.id,"successor-review.txt",bytes),mediaType:"text/plain"};
+    let ordinal=1;
+    const validationIds=[];
+    for(const stage of ["V0","V1","V2","V3","V4","V5","V6","V7"] as const){
+      if(stage==="V4")persistEvent(run.id,ordinal++,{tag:"REVIEW_PASSED",minimumChange:"MINIMUM_SUFFICIENT",
+        minimumChangeSummary:null,evidence:[proof],qaAssessments:[{findingId,verdict:"NOT_REPRODUCED",rationale:"Independent reproduction did not reproduce the reported failure.",evidence:[proof]}]});
+      validationIds.push(persistEvent(run.id,ordinal++,{tag:"VALIDATION_PASSED",stage,evidence:[proof]}).id);
+    }
+    currentMember=persistEvent(run.id,ordinal,{tag:"CANDIDATE_RECORDED",candidateStateEventId:fixture.state.id,validationEventIds:validationIds});
+    currentHash=sha256Text(candidateMembershipCanonicalJson(fixture.approval.id,[[fixture.task.id,currentMember.id]]));
+    appendQa({tag:"REVIEW_COMPLETED",submissionId:submission.id,candidateHash:currentHash,candidateEventId:currentMember.id},null);
+  };
+  if(kind==="retest"){
+    const historical=report("Previously assessed finding");
+    const unassessed=report("Previously withdrawn finding");
+    dispose(unassessed.id,"WITHDRAWN");
+    correction(historical.id,"COMPLETED");
+    dispose(historical.id,"RESOLVED");
+    const newest=report("Current independently assessed finding");
+    correction(newest.id,"COMPLETED");
+  }else{
+    const finding=report("Submitted correction finding");
+    correction(finding.id,kind==="running"?"RUNNING":kind==="blocked"?"BLOCKED":"COMPLETED");
+  }
+  if(kind==="queued"||kind==="retest"||kind==="running")await observeCurrentCandidateReview(seedRuntime,item.id,fixture.approval.id,sequence);
+}
 
 writeFileSync(
   join(repositoryRoot, "docs", "stale-approval-plan.md"),
@@ -1659,8 +1901,8 @@ writeFileSync(
 
 const seedTerminalResult = async (
   item: ReturnType<typeof workItem>,
-  path: "docs/investigation-result.md" | "docs/audit-result.md",
-  outcome: "INVESTIGATION_COMPLETE" | "AUDIT_COMPLETE",
+  path: "docs/investigation-result.md" | "docs/audit-result.md" | "docs/r1.md",
+  outcome: "INVESTIGATION_COMPLETE" | "AUDIT_COMPLETE" | "DISPROVEN" | "DUPLICATE" | "ALREADY_SATISFIED",
 ): Promise<void> => {
   storeWorkItem(database, item);
   const output = await currentFileArtifact(seedRuntime, item, path, "R1", "P1");
@@ -1708,6 +1950,10 @@ await seedTerminalResult(
   "docs/investigation-result.md",
   "INVESTIGATION_COMPLETE",
 );
+// Persist a competing same-role snapshot for a dedicated Result-only fixture.
+const competingTerminalItem=workItem("Completed investigation with competing artifact","COMPLETE","COMPLETE","INVESTIGATION_COMPLETE","investigation-v1");
+await seedTerminalResult(competingTerminalItem,"docs/investigation-result.md","INVESTIGATION_COMPLETE");
+await currentFileArtifact(seedRuntime,competingTerminalItem,"docs/r1.md","R1","P1");
 
 const auditItem = workItem(
   "Completed audit",
@@ -1727,7 +1973,7 @@ for (const [title, outcome] of [
   ["Duplicate work", "DUPLICATE"],
   ["Already satisfied work", "ALREADY_SATISFIED"],
 ] as const) {
-  storeWorkItem(database, workItem(title, "COMPLETE", "COMPLETE", outcome));
+  await seedTerminalResult(workItem(title, "COMPLETE", "COMPLETE", outcome), "docs/r1.md", outcome);
 }
 
 const seedExecutionFeedback = (
@@ -1758,7 +2004,10 @@ const seedExecutionFeedback = (
     id: newApprovalId(),
     workItemId: item.id,
     baselineCommit,
-    packageHash: sha256Text(title + "-package"),
+    packageHash: sha256Text(canonicalApprovalPackageJson({
+      workItemId: item.id, baselineCommit, sourceSha256: item.sourceSha256,
+      plan: artifacts.plan, r3: artifacts.r3, materialArtifacts: [],
+    })),
     planArtifactRefId: artifacts.plan.id,
     r3ArtifactRefId: artifacts.r3.id,
     sourceSha256: item.sourceSha256,
@@ -1811,7 +2060,12 @@ const historicalSelectionApproval = ApprovalSchema.parse({
   id: newApprovalId(),
   workItemId: historicalSelectionItem.id,
   baselineCommit,
-  packageHash: sha256Text("implementation-historical-selection-package"),
+  packageHash: sha256Text(canonicalApprovalPackageJson({
+    workItemId: historicalSelectionItem.id, baselineCommit,
+    sourceSha256: historicalSelectionItem.sourceSha256,
+    plan: historicalSelectionArtifacts.plan, r3: historicalSelectionArtifacts.r3,
+    materialArtifacts: [],
+  })),
   planArtifactRefId: historicalSelectionArtifacts.plan.id,
   r3ArtifactRefId: historicalSelectionArtifacts.r3.id,
   sourceSha256: historicalSelectionItem.sourceSha256,
@@ -1901,12 +2155,12 @@ const failedBuilderRun = RunSchema.parse({
   mode: "UNATTENDED",
   role: "BUILDER",
   triggerEventId: null,
-  status: "FAILED",
+  status: "COMPLETED",
   attempt: 1,
   baselineCommit,
   contextHash: sha256Text("failed-builder-context"),
   providerSessionId: null,
-  terminalClassification: "TEST_FAILURE",
+  terminalClassification: null,
   startedAt: stamp,
   endedAt: stamp,
 });
@@ -1916,11 +2170,27 @@ persistEvent(failedBuilderRun.id, 1, {
   gateId: "typecheck",
   evidence: [],
 });
-const failedGateEvent = persistEvent(failedBuilderRun.id, 2, {
+persistEvent(failedBuilderRun.id, 2, {
   tag: "GATE_FAILED",
   gateId: "test",
   classification: "TEST_FAILURE",
   evidence: [],
+});
+
+// A failed signed checkpoint is not a reviewer trigger. The builder
+// corrects within scope and records an actual candidate for independent review.
+persistEvent(failedBuilderRun.id, 3, {
+  tag: "GATE_PASSED", gateId: "test", evidence: [],
+});
+const failedCandidatePatch = encoder.encode("diff --git a/src/a.ts b/src/a.ts\n");
+const failedCandidate = persistEvent(failedBuilderRun.id, 4, {
+  tag: "CANDIDATE_STATE_RECORDED",
+  patch: {
+    relativePath: "candidate.patch",
+    sha256: writeRunEvidenceBytes(stateRoot, failedBuilderRun.id, "candidate.patch", failedCandidatePatch),
+    mediaType: "text/x-diff",
+  },
+  changedPaths: ["src/a.ts"],
 });
 
 const failedReviewerRun = RunSchema.parse({
@@ -1930,9 +2200,9 @@ const failedReviewerRun = RunSchema.parse({
   stage: "EXECUTION",
   mode: "UNATTENDED",
   role: "REVIEWER",
-  triggerEventId: failedGateEvent.id,
+  triggerEventId: failedCandidate.id,
   status: "FAILED",
-  attempt: 1,
+  attempt: nextAttempt(seedRuntime, failedExecution.item.id, "EXECUTION", failedExecution.task.id),
   baselineCommit,
   contextHash: sha256Text("failed-reviewer-context"),
   providerSessionId: null,
@@ -1941,13 +2211,16 @@ const failedReviewerRun = RunSchema.parse({
   endedAt: stamp,
 });
 storeRun(database, failedReviewerRun);
-persistEvent(failedReviewerRun.id, 1, {
+for (const [index, stage] of (["V0", "V1", "V2", "V3"] as const).entries()) {
+  persistEvent(failedReviewerRun.id, index + 1, { tag: "VALIDATION_PASSED", stage, evidence: [] });
+}
+persistEvent(failedReviewerRun.id, 5, {
   tag: "REVIEW_FAILED",
   classification: "REVIEW_FAILURE",
   summary: "Independent review rejected the candidate.",
   evidence: [],
 });
-persistEvent(failedReviewerRun.id, 2, {
+persistEvent(failedReviewerRun.id, 6, {
   tag: "VALIDATION_FAILED",
   stage: "V4",
   classification: "REVIEW_FAILURE",
@@ -1978,11 +2251,17 @@ const candidateDesign = ArtifactRefSchema.parse({
 });
 storeArtifact(database, candidateRequirements);
 storeArtifact(database, candidateDesign);
+storeArtifactDependency(database, candidateArtifacts.r3.id, candidateRequirements.id);
+storeArtifactDependency(database, candidateArtifacts.r3.id, candidateDesign.id);
 const approval = ApprovalSchema.parse({
   id: newApprovalId(),
   workItemId: candidateItem.id,
   baselineCommit,
-  packageHash: sha256Text("candidate-package"),
+  packageHash: sha256Text(canonicalApprovalPackageJson({
+    workItemId: candidateItem.id, baselineCommit, sourceSha256: candidateItem.sourceSha256,
+    plan: candidateArtifacts.plan, r3: candidateArtifacts.r3,
+    materialArtifacts: [candidateRequirements, candidateDesign],
+  })),
   planArtifactRefId: candidateArtifacts.plan.id,
   r3ArtifactRefId: candidateArtifacts.r3.id,
   sourceSha256: candidateItem.sourceSha256,
@@ -2046,7 +2325,7 @@ const reviewerRun = RunSchema.parse({
   role: "REVIEWER",
   triggerEventId: candidateState.id,
   status: "COMPLETED",
-  attempt: 1,
+  attempt: nextAttempt(seedRuntime, candidateItem.id, "EXECUTION", task.id),
   baselineCommit,
   contextHash: sha256Text("reviewer-context"),
   providerSessionId: null,
@@ -2065,6 +2344,8 @@ const reviewRef = {
 };
 persistEvent(reviewerRun.id, 1, {
   tag: "REVIEW_PASSED",
+  minimumChange: "MINIMUM_SUFFICIENT",
+  minimumChangeSummary: null,
   evidence: [reviewRef],
 });
 const validationEventIds = [];
@@ -2119,7 +2400,15 @@ const environment: NodeJS.ProcessEnv = {
   PONTIVUS_ORDER_BIND: "127.0.0.1:17347",
 };
 const daemon = await startOrderDaemon(environment);
-
+for(const {run,approvalId,submissionId,sequence} of liveCorrections){
+  withTransaction(daemon.coordinator.database,()=>{
+    storeRun(daemon.coordinator.database,run);
+    storeCandidateReviewEvent(daemon.coordinator.database,{id:newCandidateReviewEventId(),approvalId,sequence,
+      occurredAt:nowIsoDateTime(),actor:null,event:{tag:"REVIEW_STARTED",submissionId,runId:run.id}});
+    setExecutionTaskState(daemon.coordinator.database,run.executionTaskId!,"RUNNING");
+    updateWorkItemLifecycle(daemon.coordinator.database,run.workItemId,{stage:"EXECUTION",status:"ACTIVE",outcome:null});
+  });
+}
 insertRun(daemon.coordinator, openContinuationRun);
 appendRunEvent(daemon.coordinator, openContinuationRun.id, {
   tag: "STAGE_STARTED",
@@ -2297,6 +2586,31 @@ const fixtureControl = Bun.serve({
         endedAt: null,
       });
       return Response.json(received);
+    }
+
+    if (url.pathname === "/acceptance-proof-fault") {
+      const workItemId=WorkItemIdSchema.parse(body.workItemId);
+      const fixture=nativeFaultFixtures.get(workItemId);
+      if(fixture===undefined||body.fault!==fixture.fault) return new Response("exact native fault fixture required",{status:409});
+      // First establish the signed candidate and exact current sequence. Change
+      // only the selected fixture's actual source, signed material or evidence.
+      await observeCurrentCandidateReview(daemon.coordinator,workItemId,fixture.approval.id,1);
+      if(fixture.fault==="SOURCE_AUTHORITY_STALE"){
+        const target=join(repositoryRoot,fixture.item.sourcePath);
+        writeFileSync(target,readFileSync(target,"utf8")+"\nFixture source changed after sign-off.\n");
+      } else if(fixture.fault==="STALE_AUTHORITY"){
+        const target=join(repositoryRoot,"docs","native-acceptance-stale-plan.md");
+        writeFileSync(target,readFileSync(target,"utf8")+"\nFixture material changed after sign-off.\n");
+      } else {
+        rmSync(join(statePaths(stateRoot).evidence,fixture.builder.id,"candidate.patch"));
+      }
+      try { await observeCurrentCandidateReview(daemon.coordinator,workItemId,fixture.approval.id,1); }
+      catch(error) {
+        const actual=staleAuthorityOwnerForFailure(error)!==null?"STALE_AUTHORITY":acceptanceObservationCodeForFailure(error);
+        if(actual!==fixture.fault) throw error;
+        return Response.json({code:actual,approvalId:fixture.approval.id});
+      }
+      throw new TypeError("fixture fault did not produce the exact typed observation");
     }
 
     if (url.pathname === "/tick") {

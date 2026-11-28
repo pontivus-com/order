@@ -455,6 +455,10 @@ Builder reasoning is not authoritative input. Builder reports may be available o
 - BLOCKED_SPEC_OR_DESIGN;
 - with findings and evidence.
 
+### ACCEPTANCE — human candidate decision
+
+Acceptance is not a STAGE provider turn or another Approval. Human owns observation, retest and final decision; independent reviewer assesses submitted findings under exact signed authority and candidate lineage. P6 §38 governs carrier and command grammar. Material upstream changes require fresh readiness/sign-off; no provider human disposition or automatic delivery.
+
 ### AUDIT
 
 **Purpose:** prove existing implementation upward against the pyramid.

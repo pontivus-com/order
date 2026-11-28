@@ -128,7 +128,7 @@ Use this when the reader needs to understand what kind of product Order is.
 
 ### Expanded description
 
-> Start with a feature, bug, change, audit, investigation, documentation task, infrastructure change, or other piece of repository-governed work. Order establishes what is true, carries explicit product intent into governed work, and makes implementation work ready only when the required outcome is already authorized. When implementation is required, Order requires explicit sign-off, runs coding agents against the authorized work, tests and reviews the result, performs bounded remediation where appropriate, and produces a verified candidate. Work that validly requires no implementation terminates with its verified non-candidate result.
+> Start with a feature, bug, change, audit, investigation, documentation task, infrastructure change, or other piece of repository-governed work. Order establishes what is true, carries explicit product intent into governed work, and makes implementation work ready only when the required outcome is already authorized. When implementation is required, Order requires explicit sign-off, runs coding agents against the authorized work, tests and reviews the result, performs bounded remediation where appropriate, and produces a verified candidate for interactive human QA/QC and explicit final acceptance. Work that validly requires no implementation terminates with its verified non-candidate result.
 
 ### Technical description
 
@@ -179,7 +179,7 @@ The following are supported product facts:
 - independent semantic review is required for candidate completion;
 - bounded remediation exists where permitted by validation policy;
 - investigations and audits may terminate without implementation;
-- Order terminates at a verified result; executed delivery work reaches a verified candidate, while valid no-code work may terminate with a non-candidate result;
+- Order produces a verified candidate autonomously for executed delivery work and supports final human QA/QC, defect reporting, correction/retest and explicit exact-candidate acceptance before completion; valid no-code work terminates with its verified non-candidate result. Acceptance does not perform delivery;
 - Order does not automatically commit implementation/candidate changes, push, merge, deploy, or mutate production as part of v1; explicit operator-triggered WorkItem documentation Git commits remain a governed documentation capability, not delivery automation.
 
 Do not present the following as measured facts without external evidence:

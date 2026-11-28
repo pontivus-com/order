@@ -18,6 +18,14 @@ FR-1 = "docs/requirements.md"
 ADR-2 = "docs/adr/0002.md"
 SPEC-3 = "docs/contracts/example.md"
 
+# Additional mandatory stage refs for current-v2 WorkItems.
+[stageAuthorityRefs]
+DESIGN = ["ADR-2"]
+
+# Exact dependency edges, not semantic precedence.
+[refDependencies]
+ADR-2 = ["SPEC-3"]
+
 [precedence]
 p4 = ["docs/architecture.md", "docs/legacy-architecture.md"]
 

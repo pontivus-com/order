@@ -33,6 +33,7 @@ Work request
   -> Readiness review
   -> Approval
   -> Implementation
+  -> Acceptance (candidate-producing delivery only)
   -> Complete
 ~~~
 
@@ -52,6 +53,7 @@ Ordinary operator-facing copy and product documentation use these workflow names
 - Readiness review;
 - Approval;
 - Implementation;
+- Acceptance;
 - Complete.
 
 Internal lifecycle codes remain valid in contracts, state models, schema/template identifiers, diagnostics and technical traceability, but they are not the ordinary labels used to explain workflow tasks or expected outputs to operators.
@@ -144,7 +146,7 @@ The Workbench uses one derived material-maturity vocabulary where the distinctio
 | **Current** | the material is current conformed authority for its owning workflow step |
 | **Stale** | upstream authority changed and this material can no longer authorize progression |
 | **Historical** | prior reached/superseded material retained for inspection |
-| **Signed & locked** | material belongs to the exact signed execution package and is inspection-only in Implementation/Complete |
+| **Signed & locked** | material belongs to the exact signed execution package and is inspection-only in Implementation/Acceptance/Complete |
 
 **Proposed change** and **Applying change** are interaction states around a material mutation, not document-maturity values.
 
@@ -167,6 +169,7 @@ The observable workflow language is closed. Every Workbench workflow condition i
 | validation boundary | `NONE | PASSED_THROUGH(Vn) | FAILED_AT(Vn, classification) | COMPLETE` | latest durable post-signoff validation boundary for the current task/candidate |
 | recovery route | `NONE | RETRY_CURRENT_STAGE | RESUME_CURRENT_OWNER | RECONCILE_AUTHORITY` | the single operator-facing recovery route, if any, for the current condition; automatic execution remediation/replacement remains execution policy and appears as ordinary processing/Run state |
 | observation coherence | `COHERENT | CONVERGING` | whether the browser has one self-consistent canonical observation or is waiting for dependent canonical facts to catch up |
+| Acceptance decision | derived from exact current Approval/candidate members and ordered review events | inspect/report, submit, queued, retest, accept, unavailable/stale or historical inspection; no persisted status |
 | current attention | the closed categories in §21.9 | the one current workflow condition/action that must dominate presentation |
 
 These values are a functional language, not a persistence model. They may be derived from fewer durable facts, but a downstream layer may not add a new semantic state, recovery category or precedence rule merely because the implementation needs a convenient label.
@@ -175,7 +178,7 @@ These values are a functional language, not a persistence model. They may be der
 
 The workflow rail is the persistent orientation projection of this state language. It is not another state machine and never owns mutation eligibility.
 
-For each of the nine lifecycle stages it presents:
+For each of the ten lifecycle stages it presents:
 
 - the exact stage identity;
 - reach state: CURRENT, REACHED/HISTORICAL or UNREACHED;
@@ -210,7 +213,7 @@ Opening or refreshing any of the following is non-mutating:
 - execution task;
 - evidence;
 - terminal result;
-- Context or Technical details.
+- explicit technical inspection (WorkItem Context for selected-work scope; Settings diagnostics for configuration scope).
 
 A read may report that reconciliation is required. It must not secretly perform a lifecycle transition and then report the read as failed.
 
@@ -446,7 +449,7 @@ After Save, the Workbench must orient to the resulting canonical owner and prese
 
 ### 7.4 Signed/execution boundary
 
-Once the WorkItem is in Implementation or Complete, signed lifecycle authority remains inspection-only in that state.
+Once the WorkItem is in Implementation, Acceptance or Complete, signed lifecycle authority remains inspection-only in that state.
 
 Changing it requires the governed upstream return path, not an in-place historical edit.
 
@@ -539,7 +542,19 @@ optional on-demand context
 
 No other persistent outer navigation layer is permitted.
 
-The reviewed wide-layout visual references derived from this owner and the 0.5.0 Phase 2A WorkItem are stored at `docs/references/workbench-ui/README.md`. They are implementation/reference material only: they illustrate this document's required hierarchy and look/feel but do not create a second semantic owner.
+Rendered comparison material is **derived evidence only**. It may demonstrate this owner's current requirements but may not constrain, supplement or override them. A comparison artifact is current only when it records the exact current authority versions it projects; superseded visual packs are historical evidence and must not remain an implementation or acceptance oracle.
+
+#### Application toolbar contract
+
+The application toolbar is the one application-global orientation and utility row. It presents only:
+
+- Order product identity and the current destination meaning;
+- current Project context and a compact Project-switch affordance when more than one configured Project is available;
+- the active OpenCode account entry;
+- Settings navigation; and
+- the application-global System / Light / Dark choice.
+
+These controls remain compact and non-wrapping and do not create another persistent navigation axis. Project switching changes only the selected application Project context; it does not fabricate lifecycle state, retarget a selected WorkItem across Projects, or expose repository roots/internal Project identifiers as ordinary header copy. Order has no separate Team/Workspace domain in current product authority; implementation must not invent one merely to populate the toolbar.
 
 ### 11.1 Stable geometry invariant
 
@@ -595,6 +610,7 @@ The rail shows ordinary-language stages:
 - Readiness review;
 - Approval;
 - Implementation;
+- Acceptance;
 - Complete.
 
 Step selection is non-mutating inspection.
@@ -609,9 +625,47 @@ Attempt history and material selection use one compact step-local selector/contr
 
 Supporting Work request/upstream documents are secondary context. They do not precede the current blocker, required input, proposal decision, active dialogue or current governed document in the primary reading order.
 
+On a Document-class surface, the governed Markdown/document canvas follows document identity/currentness/actions immediately and remains the dominant reading target. Work type, Project, Concerns, repository/document location and comparable source/document orientation facts are subordinate: where the operator may need them during the same document task they are grouped in one specifically named document-details disclosure, closed by default and placed after the primary document content. They may not form an always-open metadata slab ahead of the document. Exact technical identity remains Context-owned, and an individual supporting fact may be promoted only when the current blocker, decision or mutation requires that exact value.
+
 Provider/runtime mechanics such as OpenCode session identity/status are technical detail unless a provider failure is itself the current blocker; the ordinary primary surface uses user-facing workflow state such as Processing, Waiting for you, Failed or Blocked rather than provider-plumbing headings.
 
 This is a binding stability and information-hierarchy requirement.
+
+### 11.4A Information visibility, ownership and progressive disclosure
+
+Every datum/action available to a Workbench surface has exactly one **semantic presentation class**. Classification is determined by the operator task and canonical meaning; it is not inferred from current JSX, storage shape, transport convenience or whether a value happens to be easy to render.
+
+The class does **not** authorize a generic container. Progressive disclosure is an interaction rule for subordinate information, not permission to accumulate collapsed bars around primary work.
+
+| Class | Meaning | Default presentation |
+|---|---|---|
+| **Primary task information** | required to understand or perform the current operator task | visible in the owning primary interaction surface and allowed to dominate |
+| **Supporting operator information** | useful to judge or orient the current task but not itself the task | visible subordinately or reachable through the owning interaction-specific resource/timeline/action treatment; a selector is used only when peer selection is itself part of that interaction |
+| **Operational detail** | low-frequency operator-facing history, resource or status detail | subordinate and selected/inspected through the owning history/material/resource interaction when persistent display would compete with primary work |
+| **Technical detail** | exact implementation/audit identity such as UUIDs, hashes, commit/baseline identity, raw repository paths where a semantic label suffices, provider/session identity, schema/internal-role identity and comparable mechanics | absent from the productive task flow by default; available only through the explicit technical-inspection destination for the current scope |
+| **Diagnostic/console detail** | raw diagnostic codes, raw event tags/payloads, parser/provider mechanics and other implementation-facing failure evidence | absent from ordinary product presentation; available only through intentional technical/evidence inspection when legitimate operator inspection requires it |
+
+A normally subordinate technical condition may become the current blocker without promoting its raw representation. The primary surface promotes only the **human-readable meaning, consequence and valid action**. Raw code/hash/session/payload detail remains in its inspection owner. A raw path may become ordinary Supporting or decision-primary information only when the path itself is required to identify the object or consent to the exact mutation; that exception is surface-specific authority, not a general path rule.
+
+The ordinary ownership model is closed:
+
+- **material/history access** — attempts, upstream/current governed material and other operator-facing workflow history use the owning interaction-specific resource, timeline, action or explicitly justified peer selector. There is no generic workflow-material selector and no second generic **Supporting material/history** strip;
+- **technical inspection** — each application scope has at most one explicit technical-inspection destination. For a selected WorkItem/material this is **Context**. Technical identity is grouped there by the selected object/material rather than repeated as local **Technical details** bars throughout productive surfaces;
+- **Evidence** — exact evidence/resource identity and bytes become primary only after intentional Evidence inspection;
+- **Safety/confirmation** — exact facts required to consent safely to the pending mutation may become decision-primary only for the life of that confirmation.
+
+A productive surface therefore must not create a local generic **Technical details** accordion merely because technical fields exist. Nor may a feature create another persistent technical rail, diagnostics dashboard, metadata card stack or local disclosure system. Application/configuration diagnostics that are not WorkItem-scoped must have one explicit Settings/diagnostics inspection owner rather than per-section technical accordions.
+
+The following composition invariants are binding:
+
+1. **one semantic owner** — the same supporting/history information has one interaction-specific access owner and is not duplicated through a selector/navigation owner plus another disclosure/resource lane;
+2. **no disclosure accumulation** — adjacent or nested generic collapsed containers whose purpose is only “technical”, “supporting”, “history”, “details” or equivalent are prohibited;
+3. **primary adjacency** — controls that directly operate on primary content remain adjacent to that content. Unrelated technical/supporting inspection cannot be inserted between an editor toolbar and its canvas, between a task form body and its governed action region, or otherwise interrupt the active task relationship;
+4. **inspection is intentional** — technical/diagnostic content never auto-opens, never becomes persistent because viewport geometry changes and never becomes the only owner of a current blocker/action;
+5. **container count is not information architecture** — adding more collapsed containers cannot satisfy progressive disclosure. If information lacks an interaction-specific resource/timeline/action/inspection owner, the design returns upstream rather than inventing another accordion or generic selector;
+6. **decision exceptions are bounded** — Evidence and Safety/confirmation may temporarily elevate exact technical facts only because the operator intentionally selected the evidence or must consent to the exact mutation.
+
+Primary information may never be available **only** through Context, Evidence or technical inspection. Conversely, Technical/Diagnostic information may not occupy ordinary productive space merely because it is hidden inside a collapsed control.
 
 ### 11.5 Master/detail is reserved for real master/detail work
 
@@ -655,7 +709,7 @@ The Workbench does not use:
 - persistent elevation/shadow to create hierarchy that should be expressed structurally;
 - badges/chips as a substitute for ordinary readable labels.
 
-Persistent surfaces are separated primarily by spacing, 1px boundaries and information hierarchy. Elevation is reserved for temporary overlays.
+Semantic grouping is expressed primarily by spacing, typography and the bounded anatomy of the owning component. A horizontal rule is **not** a generic section/grouping primitive. A 1px line is permitted only where the canonical composition owns a real structural boundary (for example shell-region separation, table/resource-row separation, an input/control boundary or an overlay boundary). Repeated full-width `border-bottom`/`<hr>` treatment between ordinary semantic sections is prohibited. Elevation is reserved for temporary overlays.
 
 ### 11.8 Semantic color behavior
 
@@ -760,11 +814,11 @@ Every semantic role required to operate the Workbench must remain readable and d
 
 ## 12. Information hierarchy
 
-Every visible item belongs to one of three levels.
+The semantic presentation classes are the five classes in §11.4A. This section defines their **visual prominence bands**; it does not create a competing three-class taxonomy.
 
-### 12.1 Primary
+### 12.1 Primary prominence
 
-Primary information is necessary to understand or perform the current task.
+**Primary task information** is necessary to understand or perform the current task and dominates the owning interaction.
 
 Examples:
 
@@ -776,21 +830,22 @@ Examples:
 - current execution task and blocker;
 - terminal result.
 
-### 12.2 Secondary
+### 12.2 Secondary prominence
 
-Secondary information supports the current task without dominating it.
+**Supporting operator information** and **Operational detail** remain subordinate to the primary task. They use their semantic selector, resource, timeline or bounded supporting owner rather than generic container accumulation.
 
 Examples:
 
-- attempt selection;
+- attempt/material selection;
 - supporting upstream document;
-- evidence/resource links;
+- evidence/resource links before Evidence is explicitly opened;
 - compact source status;
-- current document Git state.
+- current document Git state;
+- bounded agent/workflow activity.
 
-### 12.3 Technical
+### 12.3 Inspection-only prominence
 
-Technical information is exact implementation/audit identity that ordinary operation does not require.
+**Technical detail** and **Diagnostic/console detail** are not ordinary productive hierarchy. They are absent by default and appear only after intentional entry into the authorized technical-inspection or Evidence surface, except for the exact bounded decision exceptions in §11.4A.
 
 Examples:
 
@@ -802,7 +857,7 @@ Examples:
 - raw RunEvent tags/payloads;
 - raw paths where ordinary labels suffice.
 
-Technical information is available on demand and does not occupy persistent premium space.
+Technical/Diagnostic information does not gain legitimacy merely by being placed in a collapsed bar inside the primary surface.
 
 ## 13. Interaction-space classes
 
@@ -814,7 +869,7 @@ Order uses a small closed set of interaction classes.
 | Form / configuration | Create WorkItem, Settings and bounded configuration tasks | explicit field hierarchy + action region; no card dashboard |
 | Document | Work request, Research, Requirements, Solution design and Implementation plan | wide primary authoring/reading surface |
 | Dialogue | active pre-signoff Run | remaining-height conversation with anchored composer |
-| Review | proposal, readiness, approval | wide comparison/judgment surface |
+| Review | proposal, readiness, approval, acceptance | wide comparison/judgment surface |
 | Operational master/detail | implementation | stable master + flexible detail |
 | Evidence | logs, patches, exact bytes | wide remaining-height raw viewer |
 | Terminal result | final outcome | concise classification + substantive result/evidence |
@@ -830,6 +885,14 @@ The set is closed for WorkItem Workbench screen construction:
 - **auxiliary interaction classes:** Compact context, Task panel and Safety/exception.
 
 Every rendered Order Workbench service has exactly one primary interaction class. A Task panel hosts exactly one bounded primary Form/configuration composition. Other auxiliary classes may appear only in support of the owning primary interaction and never become an independent persistent navigation/layout axis. A feature whose required behavior cannot be expressed by these classes returns to DESIGN and amends this canonical owner before implementation; implementation does not create a new geometry or interaction grammar by convenience.
+
+**Semantic-region ownership law.** A region that represents current attention is semantic, not a generic top-of-surface placement slot. A primary interaction class renders a current-attention region only where its class contract declares current attention as part of that composition. Operational scan, Review, Evidence and Terminal result must not manufacture an outer attention region merely to obtain heading/status/action placement. A heading, review currentness/verdict/decision, result classification or evidence identity is not current attention simply because it is visually prominent. Review owns one verdict/currentness presentation, ordered semantic sections and one decision region inside the single `WorkbenchReview` composition, with no arbitrary Review-body hierarchy; if the selected interaction truly becomes Dialogue or another primary class, that primary composition replaces Review rather than wrapping Review in a second Surface/Attention frame.
+
+**State-is-not-interface law.** Canonical stage, current-attention, Run-interaction and material-currentness values determine which interaction composition and human-facing message is rendered; they are not themselves a generic visible status tuple. The Workbench must not render a reusable stage-summary strip that concatenates stage identity, `Current`, Run/document status and stage purpose. Internal classifications such as `OPEN`, `REQUIRED_INPUT`, `PROCESSING`, `READY_FOR_SIGNOFF` or prose labels that merely restate those classifications are not ordinary operator copy unless an independent product-language requirement explicitly names that wording.
+
+Exactly one primary interaction composition may own the selected task/material at a time. Selecting Proposal Review or Evidence replaces the owning material composition for the duration of that explicit review/inspection; neither may be wrapped or nested inside another primary Workbench composition. Returning from the transient composition restores the recorded owning material and focus.
+
+For Complete, the terminal result itself is the current orientation. The final outcome classification, substantive result/evidence and permitted follow-up action are one Terminal-result composition; Complete does not add a separate current-attention band that repeats or re-labels the same terminal meaning.
 
 ## 14. Per-step screen contract
 
@@ -879,9 +942,9 @@ No Run-history rail exists here.
 
 **Primary when document selected and no more urgent current interaction owns attention:** Research document.
 
-Attempt/document selection is compact and does not alter canvas width.
+Attempt/history access is subordinate to the Dialogue/Document task and does not create a generic workflow-material selector or alter canvas width. A selector is permitted only when the specific interaction genuinely requires choosing among peer objects.
 
-Current required input, proposal or blocker remains visible even while historical Research material is inspected.
+Current required input, proposal or blocker remains visible even while historical Research material is inspected. Dialogue is continuous across reply → processing → another question/open continuation/proposal/block/completion; answering one required question does not visually imply closure of the Run or stage.
 
 ### 14.3 Requirements
 
@@ -921,11 +984,13 @@ If a legitimate required-input request exists, the current Run interaction tempo
 
 Readiness review material is read-only.
 
-Readiness does not default to a persistent master/navigation column. Package material, attempts and evidence use a compact subordinate selector unless the interaction is explicitly reclassified as genuine master/detail.
+The ordinary Readiness primary composition is one Review. Its verdict/currentness, findings, supporting package material and review actions remain inside that Review composition; Readiness does not receive a separate `WorkbenchSurface`/`WorkbenchAttention` wrapper merely because the workflow step is current. If an exact required-input interaction is promoted to another primary interaction class, that class replaces the selected primary composition for the duration of that interaction rather than nesting around or inside Review.
+
+Readiness does not default to a persistent master/navigation column and does not expose a generic `Readiness material` selector. Package material, attempts and evidence use Review-owned subordinate resources/actions/history treatment. A selector is used only when a specifically defined peer-selection interaction requires it; collection size or heterogeneous material availability is not sufficient justification.
 
 ### 14.7 Approval
 
-Approval is one coherent Review workspace.
+Approval is one coherent Review workspace. Its package currentness/readiness, task/material judgment and sign-off decision are owned inside that Review composition; Approval does not receive a separate `WorkbenchSurface`/`WorkbenchAttention` wrapper for generic workflow-step orientation.
 
 Primary hierarchy:
 
@@ -959,15 +1024,59 @@ Current blocker ownership overrides stale selection for attention while still pr
 
 The manual Implementation start action means exactly: **start the canonical current approved task for this WorkItem**.
 
-It does not mean “ask a global scheduler to run any eligible work.” If the operator is inspecting a historical or non-current task, that selection remains read-only and cannot retarget the current start action. Automatic/background scheduling may remain a separate system mechanism but is not represented by the task-local manual command.
+It does not mean “ask a global scheduler to run any eligible work.” If the operator is inspecting a historical or non-current task, that selection remains read-only and cannot retarget the current start action. Automatic/background scheduling is mandatory for normal signed progression and remains separate from the optional task-local manual command.
+
+### 14.8A Acceptance — interactive final QA/QC
+
+Only an admitted current verified candidate set enters Acceptance. It is one direct Review composition, not an implementation task or a second Approval screen. The verdict distinguishes verified/awaiting human review, findings open, correction queued, retest required, unavailable/stale evidence and accepted historical result. Primary: candidate review meaning, signed acceptance criteria and their exact evidence, structured findings with expected/observed/reproduction/impact, disposition and next action. Supporting: candidate summary, separate task candidates, changed-path/patch and validation/evidence access, prior review rounds, relevant signed documents. Technical: Approval, task, Run, event, baseline, hashes and evidence identities only in Context/Evidence. No fabricated aggregate workspace or pass from a partial candidate set.
+
+Report finding opens an existing task-panel/form interaction, bound to the selected exact candidate and zero or more signed criteria; explicit save durably records the report, cancel/dirty navigation retains existing form behavior. Submit findings requests independent evaluation and autonomous correction, never creates authority or approves a step. While queued, show its owner and disable acceptance; while repair executes, Implementation owns current attention and historical Acceptance is read-only. When candidate returns, show correction evidence and explicit retest outcome controls. A finding is resolved/withdrawn only by an explicit human disposition with rationale against the current candidate; unresolved findings or stale/missing evidence disable final acceptance. New-scope findings use governed upstream return or a separate WorkItem, not a hidden task. Review's one decision region offers the primary currently admissible action and subordinate Report finding/inspect/retest actions; final `Accept candidate` uses the exact verified set and attributable human confirmation. No implicit accept on navigation, CI, refresh or silence. No commit/push/merge/deploy. No free-form STAGE composer, synthetic outer attention or nested Review; evidence/document inspection replaces the primary composition with explicit return; a TaskPanel/Form or safety confirmation temporarily owns the interaction while the Review underneath is inert. Historical rounds are read-only; current attention remains reachable. Wide/medium/narrow and themes preserve all semantic and interaction roles.
+
+**Acceptance decision closure.** Original report identity and evidence remain immutable. Unsubmitted open reports for a replaced task remain actionable against its successor; disposed reports on that task require retest again, while unchanged member dispositions remain valid. Failed retest records current observed behavior/rationale and leaves the original report unresolved and resubmittable. Before submission a mistaken observation can be withdrawn with rationale and explicit attestation that it is not a known unmet signed obligation; after assessment withdrawal requires independent supporting evidence. Never waive a demonstrated binding defect. A finding against a no-op member of a mixed candidate set blocks acceptance and requires explicit PLAN reanalysis, not patch remediation of a nonexistent candidate. All-no-op terminal work remains terminal; later defects are separate work. Select one primary action in this order: unresolved no-op challenge -> Return to PLAN; otherwise open actionable reports -> Submit; otherwise outstanding retest -> Record retest; otherwise verified current set with no open findings -> Accept. Report/inspect are subordinate. Queued submission is PROCESSING even before Run admission; no competing ordinary mutations. If a higher-priority stale authority or unavailable proof diagnostic prevents admission, expose only the explicit reconciliation or proof-unavailable PLAN return; never keep the queue indefinitely processing with no recovery. Correction owns Implementation; historical Acceptance is read-only. Missing/corrupt current proof is BLOCKER with exact diagnostic and explicit governed reanalysis if irrecoverable. Actual stale authority is STALE_AUTHORITY with exact owner reconciliation. Current action remains reachable during historical inspection.
+
+#### 14.8A.1 Operator interaction closure
+
+The Review opens on the exact latest admitted round of the current Approval, or the explicitly selected historical Approval/round. Candidate resources and findings are grouped by signed task, in signed task order; within a task findings and review rounds use event sequence order. Every task is reachable without another persistent navigation column. Current member and round are not inferred from a historical selection. Selecting a task, finding, review round, criterion or evidence is observational; Back restores the exact prior selection and focus. Historical selection never offers report, test-copy, submit, retest, withdrawal or accept; return to the independently current owner is visible. Use Return to current review for an older round of the same current Acceptance, Return to current step for another lifecycle owner, and View final result for COMPLETE.
+
+Report finding is subordinate while ordinary current QA is admissible. On the overview no member is implicitly selected: the form first requires an explicit task choice (human objective and verified or no-change meaning). When opened from a selected member, preselect that exact member; changing task clears criterion/evidence selections before any new input is entered, and dirty task changes use existing discard protection. Then identify the exact chosen member; then optional multi-select signed criteria by exact reference key, with open access to the signed authority document (empty means unclassified), Expected behavior, Observed behavior, Reproduction, Impact, optional admitted same-lineage evidence, and human identity. The four text fields and identity are required nonblank. No upload or arbitrary path/URL evidence picker. Save records REPORT only; no automatic submission. Cancel and destination/material change use existing dirty-form safety. Errors retain entered data and are explained at the form; stale identity requires explicit return/reinspection and never automatic retry or rebinding a draft to different evidence.
+
+Submit findings opens a task-scoped selection form listing only eligible open/retest-failed reports of that current candidate-producing task. Choose one task and one or more eligible findings; no silent inclusion, cross-task selection or empty submission. Show selected findings and the consequence that independent review/correction is queued against this exact member, then human identity, Cancel and Submit findings. Other reports remain open. A no-op challenge takes precedence and returns to planning rather than submitting. No competing mutations while queued; inspection remains available.
+
+Record retest selects one retest-required finding and shows original expected/observed behavior, current successor and its exact independent proof. For a report assessed in the current round show that exact assessment/evidence; for a formerly disposed finding reopened by a later replacement without being submitted in that round, show any prior assessment as historical (or no assessment for a pre-submit withdrawal), never as current independent assessment. Human retest still judges the current verified member. Choose Correction confirmed or Defect still present. Both require human identity and rationale; failed retest additionally requires observed behavior and optionally admitted evidence. Success records RESOLVED via DISPOSITION, failure records RETEST_FAILED and remains open for submission. No automatic disposition. Withdraw finding is a separate subordinate form for an eligible report, showing original report and current assessment (where required); require rationale, explicit not-a-known-unmet-obligation attestation and human identity. Optional follow-up is an existing same-project WorkItem reference, not automatic creation or waiver. Withdrawal after submission requires independent evidence already admitted for that finding. Never permit withdrawal of a known binding defect.
+
+Prepare test copy is a subordinate task-specific action only for a current candidate-producing member while ordinary QA is admissible. Explain isolated replay and no automatic execution/delivery. Show the returned local path only in the explicit result, available for selection/copy; error remains in that action's feedback, no silent retry or overwrite. Closing the result does not change workflow state. Open patch, validation, signed document and correction attempt by exact identity in existing Evidence, Document or Implementation respectively, with return to the selected Acceptance material. No manual test outcome is independent gate evidence.
+
+Return to planning uses a form with the actual no-op findings or actual missing-proof reason, rationale and actor; no-op identifies the complete unresolved no-op challenge set; missing proof does not fabricate a candidate hash. Reconcile authority uses the existing exact owner confirmation; source drift invokes the source reconciliation owner and returns R1, while stale material invokes material-authority reconciliation to its exact owner. Both require exact current Acceptance identity; no implicit return or invalid-source adoption. Accept candidate opens the final decision form listing the exact current task objectives and verified/no-change membership, confirmation that no known signed obligations remain unmet, and human identity. Cancel does nothing. Explicit Accept candidate submits the current P6 expected hash/sequence; membership is computed by the core. The confirmation statement is UI meaning, not an extra persisted field. If any identity or eligibility changes, reject without acceptance and return to current inspection. No implicit approval or delivery.
+
+#### 14.8A.2 Acceptance interaction statechart
+
+Apply §21.9 precedence before the following current, coherent Acceptance cases. The exact P6 command admission still applies to every control. A historical or noncurrent selection is read-only regardless of the displayed verdict.
+
+| Current condition (ordered after coherence/conflict) | Current attention / rail | Primary decision | Other action availability |
+|---|---|---|---|
+| Actual stale signed authority/source | STALE_AUTHORITY / STALE | Reconcile authority; pure AcceptanceDecision selects exact source return or material owner return | inspection only; queued recovery exception |
+| Exact candidate proof unavailable, authority current | BLOCKER / BLOCKED | Return to planning after explicit reanalysis decision | inspection/refresh only; queued recovery exception |
+| Outstanding queued submission | PROCESSING / PROCESSING | none | inspect only; no ordinary mutations |
+| Unresolved no-op challenge | ACTIONABLE / ACTION_REQUIRED | Return to planning | inspect/report; eligible withdrawal/retest only when P6 admits |
+| Open or retest-failed actionable reports | ACTIONABLE / ACTION_REQUIRED | Submit findings | inspect/report; eligible retest/withdrawal and test-copy subordinate |
+| Outstanding retest, no higher action | ACTIONABLE / ACTION_REQUIRED | Record retest | inspect/report; eligible withdrawal and test-copy subordinate |
+| Current verified set, no unresolved findings | ACTIONABLE / ACTION_REQUIRED | Accept candidate | inspect/report/test-copy subordinate |
+| Correction admitted | EXECUTION owns attention/rail | existing Implementation action | historical Acceptance inspection/return only |
+| Exact ACCEPT recorded | COMPLETE / COMPLETE | no QA mutation | historical Acceptance inspection; final result |
+
+Loading/converging and rejected-command conflicts suppress ordinary mutations; show existing human-readable loading/conflict feedback and explicit refresh/return, never a synthetic stage. If stale authority and missing candidate proof coexist, actual stale authority must be reconciled first; missing proof alone is not stale authority. Retest failure returns to the open-report condition without losing the original report. REPORT, RETEST_FAILED and DISPOSITION stay in Acceptance; SUBMIT stays until REVIEW_STARTED atomically enters Implementation; REVIEW_COMPLETED returns with retest outstanding; REANALYSIS_REQUESTED returns PLAN; ACCEPT atomically enters Complete. Current action stays reachable when viewing other reached material.
 
 ### 14.9 Complete
 
-Complete presents the final governed outcome first.
+Complete presents one Terminal-result composition with the final governed outcome first.
+
+The outcome uses canonical product-facing language and is followed directly by the substantive governed result/evidence/resources applicable to that outcome. Architecture, governance and container-taxonomy phrases are not operator-facing headings merely because they appear in specifications; a renderer must not introduce labels such as generic "terminal outcome", "final governed outcome" or "governed result material" unless a canonical product-language owner explicitly requires that exact wording.
+
+Complete does not render a separate current-attention band for the terminal classification. The outcome label/explanation must not be duplicated in an attention region and again in the result body.
 
 Prior reached steps remain inspectable from the workflow rail.
 
-Investigation/audit remediation action appears only where canonically permitted and remains attached to the terminal result.
+Investigation/audit remediation action appears only where canonically permitted and remains attached to the terminal result. For candidate-producing work completed under the Acceptance contract, show the exact final human acceptance as result provenance, separate from technical verification; legacy completed candidates show acceptance not recorded, never inferred. No acceptance controls on a terminal result. Later defects use separate governed work.
 
 ## 15. Current-attention/action precedence
 
@@ -1110,9 +1219,13 @@ The following are non-compliant:
 17. changing workflow-cell width because current/status styling changes;
 18. stacking equal-weight cards/panels for primary and secondary information;
 19. exposing hashes/ids/paths as dominant persistent content;
-20. placing the only blocker/recovery action inside Context or Technical details;
+20. placing the only blocker/recovery action inside technical inspection;
 21. auto-opening Context or another rail because state changed;
-22. allowing stale/historical task selection to hide the current execution blocker.
+22. allowing stale/historical task selection to hide the current execution blocker;
+23. using a semantic region or primitive slot as generic placement merely because an API requires it;
+24. nesting one primary interaction-space composition inside another instead of replacing the selected primary material;
+25. presenting architecture, governance, internal container taxonomy or specification wording as ordinary operator copy without explicit product-language authority;
+26. rendering a terminal outcome as both current attention and terminal result, thereby duplicating the same classification/explanation.
 
 ## 21. Functional state-transition model
 
@@ -1328,7 +1441,7 @@ Implementation has one canonical current execution owner regardless of historica
 ```text
 EXECUTION / ACTIVE
       |
-      | manual action: start this WorkItem's canonical current approved task
+      | autonomous scheduling after sign-off; optional scoped Start current task
       | + create its required Run
       v
 CURRENT TASK RUNNING
@@ -1339,7 +1452,10 @@ CURRENT TASK RUNNING
       |       |
       |       +-- more eligible/incomplete tasks -------------> EXECUTION / ACTIVE
       |       |
-      |       +-- all approved tasks successful -------------> COMPLETE / COMPLETE
+      |       +-- all tasks no-op ---------------------------> COMPLETE / COMPLETE
+      |       +-- all tasks successful, candidate present ----> AWAITING_ACCEPTANCE / ACTIVE
+      |                +-- exact human acceptance --------------> COMPLETE / COMPLETE
+      |                +-- admitted QA correction -------------> EXECUTION / ACTIVE
       |
       +-- operational/precondition/environment blocker ------> EXECUTION / BLOCKED
       |
@@ -1358,7 +1474,7 @@ EXECUTION / BLOCKED
 
 The classified upstream-return mapping is owned by `GW-DOC-WORK-LIFECYCLE-V1 §2.2` together with `GW-DOC-VALIDATION-STANDARD-V1`. Historical task/Run selection never changes the current execution owner.
 
-Automatic/background scheduler selection, if used, is a separate system behavior. The task-local manual Workbench action must carry and honor the current WorkItem/task owner rather than invoking an unscoped global scheduler action.
+Automatic/background scheduling is mandatory for normal signed progression, including successor tasks and admitted QA submissions; scoped manual start is optional and never a serial approval. The task-local manual Workbench action must carry and honor the current WorkItem/task owner rather than invoking an unscoped global scheduler action.
 
 ### 21.7 Read, selection and rejected-command law
 
@@ -1403,10 +1519,10 @@ Exactly one current-attention category is selected from this ordered set:
 4. **PROPOSAL_DECISION** — one exact proposal awaits Adopt/Reject.
 5. **PROPOSAL_ADOPTION** — durable adoption intent exists and the exact proposal is being applied/reconciled.
 6. **BLOCKER** — a canonical current-stage/task blocker owns recovery.
-7. **STALE_AUTHORITY** — approval/material currentness is stale and progression is unavailable; its operator recovery route is `RECONCILE_AUTHORITY`.
+7. **STALE_AUTHORITY** — approval/material or signed source currentness is stale and progression is unavailable; the shared operator recovery presentation is `RECONCILE_AUTHORITY`. In Acceptance the pure decision in P4 §4.8 selects the source or material command; the recovery presentation does not select a command.
 8. **RECOVERY** — a retryable current failure or resumable current-owner condition owns the next action; stale-currentness reconciliation does not collapse into this category.
 9. **PROCESSING** — provider/automatic work is progressing and no higher category owns attention.
-10. **ACTIONABLE** — the current coherent owner exposes its ordinary Start/Continue/Sign-off/Resume-class action.
+10. **ACTIONABLE** — the current coherent owner exposes its ordinary Start/Continue/Sign-off/Resume-class action or exact Acceptance submit/retest/accept action. Acceptance ACTIONABLE projects ACTION REQUIRED; queued review projects PROCESSING, unavailable proof BLOCKER, stale authority STALE_AUTHORITY.
 11. **ORDINARY** — current material is inspectable with no workflow action requiring emphasis.
 
 A lower category never exposes a competing primary mutation action while a higher category applies.
@@ -1418,7 +1534,7 @@ Recovery is likewise closed. A current failure/block/currentness condition resol
 - `RESUME_CURRENT_OWNER`;
 - `RECONCILE_AUTHORITY`;
 
-When material currentness is `STALE(owner)`, current attention is `STALE_AUTHORITY` and the recovery route is `RECONCILE_AUTHORITY`. The recovery route supplies the exact action; it does not reclassify stale currentness as generic `RECOVERY`.
+For Acceptance, an actual stale authority observation takes precedence over unavailable candidate proof; a proof-unavailable blocker applies only when authority is current. When material currentness is `STALE(owner)`, current attention is `STALE_AUTHORITY` and the recovery route is `RECONCILE_AUTHORITY`. Outside Acceptance the recovery route supplies the exact action. Within Acceptance both stale branches share this recovery presentation; the pure AcceptanceDecision selects the exact source or material reconciliation command under §14.8A and P6 §38.3, even when both return to R1. Neither branch reclassifies stale currentness as generic `RECOVERY`.
 
 Automatic post-signoff replacement/remediation is not a Workbench recovery route. It remains governed by the execution policy; while it is running the Workbench observes canonical processing/Run state. A classified upstream return changes the canonical lifecycle owner and therefore does not remain as a separate recovery disposition.
 
@@ -1462,6 +1578,7 @@ The current stage receives exactly one summary marker:
 WorkItem COMPLETE                           -> COMPLETE
 current attention STALE_AUTHORITY                  -> STALE
 current attention BLOCKER                          -> BLOCKED
+current attention ACTIONABLE at AWAITING_ACCEPTANCE -> ACTION_REQUIRED
 current attention REQUIRED_INPUT
   or PROPOSAL_DECISION
   or MUTATION_CONFLICT
@@ -1556,11 +1673,15 @@ The detailed current-attention/recovery value remains owned by the primary mater
 
 ### GW-FR-217-PRIMARY-INFORMATION-ECONOMY
 
-**Required behavior:** primary task content dominates; secondary/technical information cannot create card/chrome accumulation.
+**Required behavior:** primary task content dominates; Supporting/Operational information uses one interaction-specific resource/timeline/action owner, with a selector only where peer selection is itself part of the task. A generic workflow-material selector is prohibited. Technical/Diagnostic information is removed from the productive task flow into the explicit inspection owner. Progressive disclosure cannot be satisfied by accumulating generic collapsed containers.
+
+**Acceptance:** required Primary information is visible without opening inspection; Technical/Diagnostic information is absent from the ordinary productive surface unless the active decision explicitly requires that exact value; no adjacent/nested generic technical/supporting/history disclosure bars exist; opening the authorized Context/technical-inspection or Evidence owner exposes only its owned information; closing/returning restores the ordinary hierarchy without losing current attention.
 
 ### GW-FR-218-SPACE-CLASS-CONSISTENCY
 
-**Required behavior:** equivalent Document, Dialogue, Review, Operational, Evidence and Result interactions use the same functional geometry.
+**Required behavior:** equivalent Document, Dialogue, Review, Operational, Evidence and Result interactions use the same functional geometry. Task Dialogs use a stable header/body/footer anatomy; Markdown authoring preserves editor-control→canvas adjacency; supporting/technical inspection cannot insert another structural band into those relationships.
+
+**Acceptance:** equivalent interaction classes preserve the same region order and action ownership across services; a feature cannot add a local disclosure row, action row or metadata band that changes the canonical task anatomy.
 
 ### GW-FR-219-EXPLICIT-CONTEXT
 
@@ -1584,7 +1705,9 @@ The detailed current-attention/recovery value remains owned by the primary mater
 
 ### GW-FR-224-TERMINAL-RESULT-PRIMACY
 
-**Required behavior:** Complete presents the governed final outcome first with prior reached history available through the workflow rail.
+**Required behavior:** Complete presents one Terminal-result composition with the governed final outcome first, substantive result/evidence directly subordinate to that outcome, permitted follow-up attached to the result, and prior reached history available through the workflow rail.
+
+**Acceptance:** Complete does not manufacture a separate current-attention region for a terminal outcome, does not repeat the same outcome label/explanation in multiple primary regions, and does not expose architecture/governance container terminology as product copy without explicit product-language authority.
 
 ### GW-FR-225-RESPONSIVE-SEMANTIC-CONTINUITY
 
@@ -1612,15 +1735,15 @@ The detailed current-attention/recovery value remains owned by the primary mater
 
 ### GW-FR-230-CLOSED-WORKBENCH-INTERACTION-GRAMMAR
 
-**Required behavior:** every rendered Order Workbench service is classified under exactly one primary interaction-space class from §13; subordinate selection, context, task-panel and safety/exception behavior use only the declared auxiliary classes and cannot create another persistent layout/navigation grammar.
+**Required behavior:** every rendered Order Workbench service is classified under exactly one primary interaction-space class from §13; subordinate selection, explicit technical inspection, task-panel and safety/exception behavior use only the declared auxiliary classes and cannot create another persistent layout/navigation/disclosure grammar. Semantic regions are used only for their declared meaning: current-attention content cannot be substituted with a generic heading/status block merely to satisfy a component API.
 
-**Acceptance:** adding a new feature, material type, Run/document/task count, configuration service or technical detail does not create a new screen geometry by implementation convenience. If none of the §13 classes can express the required user interaction, the change returns to DESIGN before implementation.
+**Acceptance:** adding a new feature, material type, Run/document/task count, configuration service or technical detail does not create a new screen geometry, generic workflow-summary/material selector or generic disclosure lane by implementation convenience. Supporting/history information retains one interaction-specific resource/timeline/action owner; technical information retains one explicit inspection owner. One selected task/material produces exactly one primary interaction composition: a primary interaction composition may not be wrapped or nested inside another primary composition, and transient Proposal Review/Evidence replace the owning material composition for the duration of explicit review/inspection. Operational scan, Review, Evidence and Terminal result do not fabricate an outer current-attention region when their class contract does not own one; Review verdict/currentness, ordered semantic sections and decisions remain inside `WorkbenchReview`, with no arbitrary Review body hierarchy. Canonical state classifications are not emitted as a generic status tuple or internal enum copy. If none of the §13 classes can express the required interaction, the change returns to DESIGN before implementation.
 
 ### GW-FR-231-CANONICAL-WORKBENCH-VISUAL-LANGUAGE
 
 **Required behavior:** every rendered Workbench service uses the single visual language in §11 for hierarchy, semantic color, typography, density, controls/forms, operational scanning, feedback, themes, focus and responsive continuity.
 
-**Acceptance:** equivalent UI meaning is rendered equivalently across queue, creation, Settings and every WorkItem workflow surface; no feature/service owns a competing palette, typography scale, form/control grammar, status treatment, notice treatment, table/list density, timeline grammar or overlay style.
+**Acceptance:** equivalent UI meaning is rendered equivalently across queue, creation, Settings and every WorkItem workflow surface; no feature/service owns a competing palette, typography scale, form/control grammar, status treatment, notice treatment, table/list density, timeline grammar, disclosure grammar or overlay style. Modal header/body/footer anatomy and editor control/canvas composition remain visually and structurally consistent wherever those interaction classes apply.
 
 ### GW-FR-232-CLOSED-WORKFLOW-STATE-LANGUAGE
 
@@ -1630,7 +1753,7 @@ The detailed current-attention/recovery value remains owned by the primary mater
 
 ### GW-FR-233-CANONICAL-WORKFLOW-RAIL-PROJECTION
 
-**Required behavior:** the nine-stage workflow rail is the one persistent lifecycle summary projection defined in §3.8/§21.11, derived from canonical stage/reach/current-attention state and never used as lifecycle or command-admission authority.
+**Required behavior:** the ten-stage workflow rail is the one persistent lifecycle summary projection defined in §3.8/§21.11, derived from canonical stage/reach/current-attention state and never used as lifecycle or command-admission authority.
 
 **Acceptance:** the same canonical workflow facts always produce the same reach/current marker for every rail cell; historical selection cannot create a false current marker, and no feature supplies an independent rail status.
 
@@ -1638,7 +1761,7 @@ The detailed current-attention/recovery value remains owned by the primary mater
 
 **Required behavior:** equivalent semantic UI roles use the same component presentation language everywhere in the application under §11.12.
 
-**Acceptance:** representative primary/secondary/destructive actions, fields, statuses, notices, operational rows, headings, disclosures and overlays are recognizably the same component family across Queue, Create, Settings and WorkItem workflow services; feature-local visual variants cannot redefine an already-owned role.
+**Acceptance:** representative primary/secondary/destructive actions, fields, statuses, notices, operational rows, headings, explicit inspection surfaces and overlays are recognizably the same component family across Queue, Create, Settings and WorkItem workflow services; feature-local visual variants cannot redefine an already-owned role. A generic local Technical-details or Supporting-material/history accordion is not an equivalent component role and fails this requirement.
 
 ### GW-FR-235-GLOBAL-THEME-PARITY
 
@@ -1737,6 +1860,8 @@ At minimum, downstream implementation must prove these scenarios end to end:
 43. Every free-form continuation fixture shows the preceding substantive agent message and prior accepted operator/agent turns in the same Dialogue surface; removing that conversational anchor makes the composer unavailable.
 44. Every required-input fixture shows the exact agent question inline with the selected attempt transcript and binds the composer to that question while preserving any additional agent explanation from the same turn.
 45. Agent/user messages remain visually distinguishable from workflow events, operational activity, evidence and technical diagnostics even when all are present for the same attempt.
+46. Every governed surface proves its §11.4A visibility contract in both directions: Primary information is visible by default; Technical/Diagnostic information is absent by default; the authorized WorkItem Context/Settings-diagnostics/Evidence/confirmation owner exposes the exact value only after explicit entry; a technical blocker promotes human-readable meaning/action without leaking raw diagnostic identity.
+47. Candidate-producing work enters Acceptance automatically after full technical proof; no-code and historical completions do not fabricate acceptance. Review exact candidates/criteria/evidence, report, submit, autonomous independent correction, return and human retest; acceptance is unavailable for unresolved findings, stale/missing evidence, queued or active correction, historical selection and mismatched identity. Prove exact actor/decision persistence, restart, duplicate/stale commands, upstream routing, multi-task independent candidates, terminal acceptance and no delivery effects; prove same interaction/visibility/theme/responsive requirements as existing Review/Form/Evidence.
 
 ## 24. Downstream technical-design obligations
 

@@ -11,6 +11,7 @@ import {
   WorkItemSourceSnapshotSchema,
   WorkItemSourceReconciliationSchema,
   type CreateWorkItemSource,
+  type ApprovalId,
   type ExpectedHashMarkdownWrite,
   type ExpectedHashWorkItemBodyWrite,
   type ExpectedHashWriteResult,
@@ -58,6 +59,7 @@ import {
   blockExecutionTasksForApproval,
   findArtifactSnapshot,
   loadCurrentApprovalForWorkItem,
+  loadCandidateReviewEvents,
   loadRunsForWorkItem,
   loadWorkItem,
   loadWorkItems,
@@ -65,6 +67,7 @@ import {
   storeWorkItem,
   updateWorkItemArchivedProjection,
   updateWorkItemSourceProjection,
+  updateWorkItemLifecycle,
   withTransaction,
 } from "../shell/sqlite.ts";
 import {
@@ -451,9 +454,13 @@ const withSourceMutationGuards = async <T>(
 export const reconcileWorkItemSources = async (
   runtime: CoordinatorRuntime,
   repositoryRoots: readonly string[] = runtime.config.repositoryRoots,
+  operator = false,
 ): Promise<WorkItemSourceReconciliation> => {
   const inspected = await inspectQueue(runtime, repositoryRoots);
-  const affectedIds = inspected.plans
+  const acceptance = new Set(loadWorkItems(runtime.database).filter(value=>value.stage==="AWAITING_ACCEPTANCE").map(value=>value.id));
+  if(operator&&inspected.plans.some(plan=>acceptance.has(plan.workItem.id)&&plan.disposition!=="UNCHANGED")) throw new TypeError("changed Acceptance source requires exact targeted reconciliation");
+  const plans=inspected.plans.filter(plan=>!acceptance.has(plan.workItem.id));
+  const affectedIds = plans
     .filter((plan) => plan.disposition !== "UNCHANGED")
     .map((plan) => plan.workItem.id)
     .sort();
@@ -472,9 +479,9 @@ export const reconcileWorkItemSources = async (
 
   return withSourceMutationGuards(runtime, affectedIds, async () => {
     withTransaction(runtime.database, () => {
-      for (const plan of inspected.plans) applyPlan(runtime, plan);
+      for (const plan of plans) applyPlan(runtime, plan);
     });
-    for (const plan of inspected.plans) {
+    for (const plan of plans) {
       const project = inspected.projects.get(plan.workItem.projectId);
       if (project !== undefined) {
         await materializeLifecycleDrafts(runtime, plan.workItem, project);
@@ -483,7 +490,7 @@ export const reconcileWorkItemSources = async (
     const byDisposition = (
       disposition: "REGISTERED" | WorkItemSourceDisposition,
     ): readonly WorkItemId[] =>
-      inspected.plans
+      plans
         .filter((plan) => plan.disposition === disposition)
         .map((plan) => plan.workItem.id)
         .sort();
@@ -629,6 +636,49 @@ const inspectWorkItemSource = async (
   };
 };
 
+export const reconcileAcceptanceSource = (
+  runtime: CoordinatorRuntime, workItemId: WorkItemId, approvalId: ApprovalId, sequence: number,
+): Promise<WorkItemSourceReconciliation> => withWorkItemOperatorMutation(runtime,workItemId,async()=>{
+  const requireIdentity=()=>{
+    const workItem=loadWorkItem(runtime.database,workItemId);
+    const approval=loadCurrentApprovalForWorkItem(runtime.database,workItemId);
+    const history=loadCandidateReviewEvents(runtime.database,approvalId);
+    if(workItem.stage!=="AWAITING_ACCEPTANCE"||workItem.status!=="ACTIVE"||approval?.id!==approvalId||history.length!==sequence||
+      history[0]?.event.tag!=="OPENED"||history.some(value=>value.event.tag==="ACCEPT"||value.event.tag==="REANALYSIS_REQUESTED")||
+      loadRunsForWorkItem(runtime.database,workItemId).some(run=>run.status==="RUNNING"||run.status==="WAITING_FOR_INPUT")) throw new TypeError("Acceptance source return identity changed");
+    return {workItem,approval,history};
+  };
+  const before=requireIdentity();
+  const inspect=async()=>{
+    let plan:QueuePlan|null=null;
+    let diagnostics:readonly WorkItemSourceDiagnostic[]=[];
+    try {
+      const source=await inspectWorkItemSource(runtime,workItemId);
+      const scanned=await inspectQueue(runtime);
+      diagnostics=scanned.diagnostics.filter(value=>value.workItemId===workItemId);
+      if(diagnostics.length===0&&source.source.sha256!==before.approval.sourceSha256&&source.plan.disposition==="UPDATED") plan=source.plan;
+    } catch(error) {
+      if(!isSourceBoundaryFailure(error)) throw error;
+      diagnostics=[error.sourceDiagnostic];
+    }
+    if(plan===null&&diagnostics.length===0) throw new TypeError("Acceptance source is current; reconciliation not admitted");
+    return {plan,diagnostics};
+  };
+  const first=await inspect();
+  const second=await inspect();
+  if(JSON.stringify(first)!==JSON.stringify(second)) throw new TypeError("Acceptance source classification changed");
+  return withTransaction(runtime.database,()=>{
+    const current=requireIdentity();
+    if(JSON.stringify(current)!==JSON.stringify(before)) throw new TypeError("Acceptance source return identity changed");
+    if(second.plan!==null) applyPlan(runtime,second.plan);
+    else {
+      blockExecutionTasksForApproval(runtime.database,approvalId);
+      updateWorkItemLifecycle(runtime.database,workItemId,transitionWorkItem(current.workItem,{tag:"SOURCE_AUTHORITY_CHANGED"}));
+    }
+    return WorkItemSourceReconciliationSchema.parse({registered:[],updated:[workItemId],unchanged:[],diagnostics:second.diagnostics});
+  });
+});
+
 export const revalidateWorkItemSource = async (
   runtime: CoordinatorRuntime,
   workItemId: WorkItemId,
@@ -727,7 +777,7 @@ const saveWorkItemSourceUnlocked = async (
   if (activeRunExists(runtime, existing.id)) {
     throw new TypeError("WorkItem source cannot change while a Run is active");
   }
-  if (existing.stage === "EXECUTION" || existing.stage === "COMPLETE") {
+  if (existing.stage === "EXECUTION" || existing.stage === "AWAITING_ACCEPTANCE" || existing.stage === "COMPLETE") {
     throw new TypeError("WorkItem source is read-only in EXECUTION/COMPLETE");
   }
 
@@ -827,7 +877,7 @@ const saveWorkItemSourceBodyUnlocked = async (
   }
 
   const existing = inspected.plan.workItem;
-  if (existing.stage === "EXECUTION" || existing.stage === "COMPLETE") {
+  if (existing.stage === "EXECUTION" || existing.stage === "AWAITING_ACCEPTANCE" || existing.stage === "COMPLETE") {
     throw new TypeError("WorkItem source is read-only in EXECUTION/COMPLETE");
   }
   const markdown = recomposeWorkItemSourceBody(
@@ -859,7 +909,7 @@ const updateWorkItemTitleUnlocked = async (
   const command = UpdateWorkItemTitleSchema.parse(input);
   const validated = await revalidateWorkItemSource(runtime, workItemId);
   if (
-    validated.workItem.stage === "EXECUTION" ||
+    validated.workItem.stage === "EXECUTION" || validated.workItem.stage === "AWAITING_ACCEPTANCE" ||
     validated.workItem.stage === "COMPLETE"
   ) {
     throw new TypeError("WorkItem title is read-only in EXECUTION/COMPLETE");
@@ -905,7 +955,7 @@ const setWorkItemArchivedUnlocked = async (
   if (command.archived === command.expectedArchived) {
     throw new TypeError("WorkItem archive command must change archive state");
   }
-  if (workItem.stage === "EXECUTION") {
+  if (workItem.stage === "EXECUTION" || workItem.stage === "AWAITING_ACCEPTANCE") {
     throw new TypeError("WorkItem may not be archived or restored during EXECUTION");
   }
   if (activeRunExists(runtime, workItem.id)) {

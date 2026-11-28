@@ -493,7 +493,7 @@ The WorkItem header may offer **Edit title** without forcing the operator to loc
 - every other source byte remains unchanged;
 - the resulting source is parsed/read-back/hash-verified through the normal source-write boundary;
 - title change follows the existing source-change lifecycle reaction; it does not create a second title field/owner;
-- it is unavailable in `EXECUTION` and `COMPLETE`, matching direct source editing.
+- it is unavailable in `EXECUTION`, `AWAITING_ACCEPTANCE` and `COMPLETE`, matching direct source editing.
 
 ### 14.2 Remove from active work / restore
 

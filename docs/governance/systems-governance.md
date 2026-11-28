@@ -75,6 +75,37 @@ For example:
 - a plan does not redefine a canonical contract;
 - an implementation agent does not invent a functional requirement.
 
+### Pyramid proposition placement, authority and derivation law
+
+Order applies the pyramid to individual governed propositions, not merely to document filenames.
+
+Place a normative proposition at the layer that owns the decision it makes:
+
+1. **P0** when it defines the integrity/governance rules by which Order-governed work operates;
+2. **P1** when it defines a stable system/project principle that must hold independently of one feature realization;
+3. **P2** when it defines a user/product problem, outcome, boundary or product constraint;
+4. **P3** when it defines observable functional behavior, acceptance, failure or negative behavior;
+5. **P4** when it defines a technical/non-functional constraint or project-architecture boundary;
+6. **P5** when it records a consequential architecture/technology choice made under P1-P4;
+7. **P6** when it makes governing semantics exact through canonical data/state, protocol, persistence, lifecycle or change specification;
+8. **P7** when it defines the exact repository transition, execution task or validation plan; and
+9. **P8** when it is implementation or verification evidence showing what was realized or observed.
+
+If a proposition cannot be justified at its claimed layer, it is either unjustified or belongs at a higher owning layer.
+
+Authority and derivation are distinct:
+
+```text
+higher-layer authority
+        |
+        v constrains
+lower-layer derivation / realization
+```
+
+A lower layer must be derivable from and consistent with all applicable higher authority. Lower-layer evidence may expose that higher authority is incomplete, contradictory or wrong, but it does not silently repair, replace or establish that authority. The defect returns to the layer that owns the missing or incorrect decision.
+
+A lower layer does not gain authority by repeating a higher-layer rule. Under `GW-P1-DOC-CANONICALITY`, it references the canonical owner and states only the local consequence, decision or realization that its own layer owns. A restatement that creates another normative owner is a governance defect even when the two copies currently agree.
+
 ## 3. P0 — Order governance kernel
 
 P0 defines what it means for work to be Order-governed.
@@ -86,7 +117,7 @@ P0 includes:
 - authority must be resolved before implementation;
 - product behavior cannot be invented from missing requirements;
 - material decisions must be closed before execution;
-- implementation authority requires explicit sign-off;
+- implementation authority requires explicit human authorization;
 - signed work must be traceable through the pyramid;
 - implementation cannot self-expand scope;
 - implementation cannot self-certify completion;
@@ -98,6 +129,25 @@ P0 includes:
 - unrelated discoveries return to the work-refinery lifecycle.
 
 A project that removes these controls is no longer operating under Order semantics.
+
+### Bounded acceptance-evidence realization
+
+Ordinary P7 implementation proceeds only after the normal lifecycle sign-off/Approval boundary. One narrower P0 control exists for work whose acceptance cannot be meaningfully judged from P1-P7 artifacts alone because the acceptance question depends on observing a realized P8 artifact.
+
+A **bounded acceptance-evidence realization** is permitted only when all of the following are true before mutation:
+
+- current authority and R3 have closed the product, requirements, architecture and implementation decisions needed for the tranche;
+- the current P7/control artifact declares the exact realization objective, exact mutable owners/surface, required evidence, failure routing and mandatory stop boundary;
+- the operator explicitly authorizes that exact tranche;
+- the tranche exists solely to produce evidence needed for the next human acceptance/sign-off decision;
+- the tranche cannot materialize or execute downstream post-sign-off tasks, merge/deliver/release, broaden scope, or treat its own implementation as authority;
+- any newly required product behavior, semantic owner, architecture, contract, dependency, validation rule or out-of-bound path returns upstream before mutation;
+- the activity stops when the declared evidence package exists, regardless of whether the evidence passes or fails.
+
+This control is **not** WorkItem lifecycle sign-off, an `Approval`, an `ExecutionTask`, candidate completion, or a second lifecycle. The WorkItem remains pre-sign-off. If the evidence is accepted, the later normal sign-off binds the exact then-current package/baseline and authorizes only the remaining governed execution. If the evidence is rejected, correction is limited to the declared realization boundary or routed to the owning upstream layer.
+
+Lower-layer campaign/PLAN documents may record only their local realization boundary, authorization provenance, evidence requirement and stop condition while citing this P0 owner; they may not redefine this control.
+
 
 ## 4. P1 — System / project first principles
 
@@ -129,8 +179,8 @@ Order supplies the following default engineering constitution unless explicitly 
 3. **GW-P1-SOC — Separation of concerns** — policy, transformation, orchestration, persistence, transport, presentation and external effects have clear responsibilities and dependency direction. A production module remains cohesive to one current architectural responsibility; when implementation evidence proves multiple independently testable responsibilities or distinct semantic/effect boundaries have accumulated, decomposition is required rather than allowing an orchestration or boundary module to become a catch-all.
 4. **GW-P1-DRY — DRY as semantic ownership** — one authoritative owner for a rule, state concept, contract or semantic fact; do not create parallel representations merely to satisfy layers.
 5. **GW-P1-STRICT-TYPING — Strict typing** — meaningful production boundaries use explicit static types; unchecked coercion and shape guessing do not substitute for contracts.
-6. **GW-P1-CANONICAL-OWNERSHIP — Canonical ownership** — state and boundary semantics have one canonical owner and one declared mutation path.
-7. **GW-P1-EXPLICIT-FLOW — Explicit data/control flow** — required dependencies and transitions are visible rather than hidden in object graphs, reflection, service locators or silent fallback.
+6. **GW-P1-CANONICAL-OWNERSHIP — Canonical ownership** — state, boundary semantics and material semantic facts have one canonical meaning owner and one declared mutation path. Ownership does not transfer merely because a fact is transported, projected, cached, rendered or available through a broader canonical carrier.
+7. **GW-P1-EXPLICIT-FLOW — Explicit data/control/semantic flow** — required dependencies, transitions and semantic uses are visible rather than hidden in object graphs, reflection, service locators or silent fallback. Every material producer, transformation/projection, lifecycle decision/consumer, presentation owner where applicable, and mutation/terminal owner is authorized by governing requirements/architecture/contracts; technical access to a field or type is not semantic authorization.
 8. **GW-P1-MINIMUM-CHANGE — Minimum sufficient change** — implement nothing unnecessary and omit nothing required.
 9. **GW-P1-AUTHORITY-BEFORE-INFERENCE — Authority before inference** — implementation evidence informs decisions but cannot silently replace governing product, architecture or contract authority.
 10. **GW-P1-DOC-CANONICALITY — Canonical document ownership** — each governed concern has exactly one canonical document owner; any other document that depends on that concern references the canonical owner by identifier rather than restating or redefining its normative semantics.
@@ -154,6 +204,29 @@ The `GW-P1-*` identifiers are stable Order default-rule ids used by the project 
 - the project authority/ref registry must reject duplicate concern/version identifiers and unresolved owner references.
 
 The Order canonical concern identifiers resolve through project-root `pontivus-order.toml [refs]`. The exact manifest mechanics remain owned by `GW-DOC-CANONICAL-CONTRACTS`.
+
+### Semantic lifecycle closure and noninterference
+
+`GW-P1-CANONICAL-OWNERSHIP` and `GW-P1-EXPLICIT-FLOW` jointly require material meaning to remain closed through its authorized lifecycle.
+
+Conceptually:
+
+```text
+canonical semantic fact / meaning owner
+    -> authorized producer
+    -> authorized transformation or projection
+    -> authorized lifecycle decision / consumer
+    -> authorized presentation owner, when presentation exists
+    -> declared mutation / terminal owner
+```
+
+Not every fact requires every step above. A fact may be technical-only, diagnostic-only, conditionally promoted, or never presented. The invariant is that every material use that does exist has an expressly governed owner and location.
+
+A canonical carrier may legitimately contain facts serving different concerns. Possession of that carrier, importability of its type, or technical access to one of its fields does not authorize another consumer to derive product meaning, make a decision, render the fact on an unrelated surface, mutate it, or persist a parallel semantic copy.
+
+A consumer-specific projection may narrow or translate already-authorized canonical meaning for its task, but it must not become another semantic owner. Where a consumer is not authorized to depend on a fact, changes to that fact must not alter the consumer's semantic result except through a separately authorized shared dependency.
+
+When implementation evidence shows that a semantic use has no governing owner/location, the defect is returned to the layer that owns that meaning. Lower layers must not legitimize the use by adding a convenience adapter, presentation condition, fallback or test that merely preserves the observed behavior.
 
 ### Default object-model posture
 

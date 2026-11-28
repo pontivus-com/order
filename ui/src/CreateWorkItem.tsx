@@ -2,93 +2,167 @@ import { MultiSelector } from "@astryxdesign/core/MultiSelector";
 import { RadioList, RadioListItem } from "@astryxdesign/core/RadioList";
 import { Selector } from "@astryxdesign/core/Selector";
 import { TextInput } from "@astryxdesign/core/TextInput";
-import type { FormEvent } from "react";
+import {
+  WorkItemSchemaIdSchema,
+  type ProjectManifest,
+  type WorkItem,
+  type WorkItemSchemaCatalogEntry,
+  type WorkItemSchemaId,
+} from "../../src/core/contracts.ts";
 
-import { WorkItemSchemaIdSchema, type ProjectManifest, type WorkItem, type WorkItemSchemaCatalogEntry, type WorkItemSchemaId } from "../../src/core/contracts.ts";
-import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
-import { WorkbenchForm } from "./primitives/WorkbenchForm.tsx";
-import { WorkbenchIcon } from "./primitives/WorkbenchIcon.tsx";
-import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
+const humanKindLabel = (
+  kind: WorkItemSchemaCatalogEntry["kind"] | undefined,
+): string =>
+  kind === undefined
+    ? "Work item"
+    : kind.charAt(0) + kind.slice(1).toLowerCase();
 
 export const CreateWorkItem = ({
-  projects, schemas, projectId, schemaId, title, concernIds, availableConcernIds,
-  derivedFromWorkItem, pending, error, onProjectChange, onSchemaChange,
-  onTitleChange, onConcernIdsChange, onSubmit, onCancel,
+  projects,
+  schemas,
+  projectId,
+  schemaId,
+  title,
+  concernIds,
+  availableConcernIds,
+  derivedFromWorkItem,
+  onProjectChange,
+  onSchemaChange,
+  onTitleChange,
+  onConcernIdsChange,
 }: Readonly<{
-  projects: readonly ProjectManifest[]; schemas: readonly WorkItemSchemaCatalogEntry[];
-  projectId: string; schemaId: WorkItemSchemaId | ""; title: string; concernIds: readonly string[];
-  availableConcernIds: readonly string[]; derivedFromWorkItem: WorkItem | null;
-  pending: boolean; error: string | null; onProjectChange: (value: string) => void;
-  onSchemaChange: (value: WorkItemSchemaId) => void; onTitleChange: (value: string) => void;
-  onConcernIdsChange: (value: readonly string[]) => void; onSubmit: () => void;
-  onCancel: () => void;
+  projects: readonly ProjectManifest[];
+  schemas: readonly WorkItemSchemaCatalogEntry[];
+  projectId: string;
+  schemaId: WorkItemSchemaId | "";
+  title: string;
+  concernIds: readonly string[];
+  availableConcernIds: readonly string[];
+  derivedFromWorkItem: WorkItem | null;
+  onProjectChange: (value: string) => void;
+  onSchemaChange: (value: WorkItemSchemaId) => void;
+  onTitleChange: (value: string) => void;
+  onConcernIdsChange: (value: readonly string[]) => void;
 }>) => {
   const eligibleSchemas = schemas.filter(
     (schema) =>
       schema.authoringDefault &&
-      (derivedFromWorkItem === null || schema.kind === "CHANGE" || schema.kind === "DEFECT"),
+      (
+        derivedFromWorkItem === null ||
+        schema.kind === "CHANGE" ||
+        schema.kind === "DEFECT"
+      ),
   );
-  const selectedProject = projects.find((project) => project.projectId === projectId) ?? null;
-  const submit = (event: FormEvent<HTMLFormElement>): void => {
-    event.preventDefault();
-    if (projectId.length > 0 && schemaId !== "" && title.trim().length > 0) onSubmit();
-  };
+  const selectedProject =
+    projects.find((project) => project.projectId === projectId) ?? null;
+  const parentKind = derivedFromWorkItem === null
+    ? null
+    : humanKindLabel(
+      schemas.find((schema) => schema.schemaId === derivedFromWorkItem.schemaId)
+        ?.kind,
+    );
 
   return (
-    <WorkbenchForm
-      onSubmit={submit}
-      content={<>
-        {derivedFromWorkItem === null ? (
-          <Selector
-            label="Project"
-            options={projects.map((project) => ({ value: project.projectId, label: project.projectId }))}
-            value={projectId}
-            onChange={onProjectChange}
-            isRequired
-            width="100%"
-          />
-        ) : (
-          <div className="order-create-derived" data-testid="linked-remediation-project">
+<div className="order-create-form-fields">
+      {derivedFromWorkItem === null ? (
+        <Selector
+          label="Project"
+          options={projects.map((project) => ({
+            value: project.projectId,
+            label: project.projectId,
+          }))}
+          value={projectId}
+          onChange={onProjectChange}
+          isRequired
+          width="100%"
+        />
+      ) : (
+        <>
+          <section
+            className="order-create-context"
+            aria-label="Linked remediation parent"
+          >
+            <strong>Parent</strong>
+            <span>{derivedFromWorkItem.title}</span>
+            <small>{"Completed parent " + parentKind + " · same project"}</small>
+          </section>
+          <section
+            className="order-create-context"
+            data-testid="linked-remediation-project"
+            aria-label="Linked remediation project"
+          >
             <strong>Project</strong>
             <span>{derivedFromWorkItem.projectId}</span>
-            <small>Fixed to the parent WorkItem project.</small>
-          </div>
-        )}
-        {selectedProject ? <div className="order-create-location" data-testid="create-work-item-location"><span>Repository documentation root</span><code>{selectedProject.workItems.root}</code></div> : null}
-        <RadioList
-          label="Work item type"
-          value={schemaId}
-          onChange={(value) => { const parsed = WorkItemSchemaIdSchema.safeParse(value); if (parsed.success) onSchemaChange(parsed.data); }}
-          orientation="horizontal"
-          size="sm"
-          isRequired
+            <small>Fixed to the completed parent WorkItem.</small>
+          </section>
+        </>
+      )}
+
+      {selectedProject === null ? null : (
+        <div
+          className="order-create-supporting"
+          data-testid="create-work-item-location"
         >
-          {eligibleSchemas.map((schema) => (
-            <RadioListItem key={schema.schemaId} value={schema.schemaId} label={schema.kind} startContent={<WorkbenchIcon name={schema.kind === "CHANGE" ? "change" : schema.kind === "DEFECT" ? "defect" : schema.kind === "INVESTIGATION" ? "investigation" : "audit"} />} />
-          ))}
-        </RadioList>
-        <TextInput label="Title" value={title} onChange={onTitleChange} isRequired width="100%" />
-        <MultiSelector label="Concerns" options={[...availableConcernIds]} value={[...concernIds]} onChange={(value) => onConcernIdsChange(value)} hasSearch size="sm" placeholder="Select concerns" width="100%" />
-        {derivedFromWorkItem !== null ? (
-          <div className="order-create-derived">
-            <strong>Canonical lineage</strong>
-            <span>Parent {schemas.find((schema) => schema.schemaId === derivedFromWorkItem.schemaId)?.kind ?? derivedFromWorkItem.schemaId}</span>
-            <span>{derivedFromWorkItem.title}</span>
-            <code>{derivedFromWorkItem.id}</code>
-            <small>Parent linkage is system-owned and cannot be edited here.</small>
-          </div>
-        ) : (
-          <div className="order-create-derived">
-            <strong>Derived fields are not editable</strong>
-            <span>WorkItem identity, lifecycle stage/status and governed artifact roles are assigned from canonical contracts after creation.</span>
-          </div>
-        )}
-      </>}
-      actions={<>
-        <WorkbenchAction label="Cancel" disabled={pending} onClick={onCancel} />
-        <WorkbenchAction type="submit" label={derivedFromWorkItem === null ? "Create work item" : "Create linked remediation"} tone="primary" loading={pending} disabled={projectId.length === 0 || schemaId === "" || title.trim().length === 0} />
-      </>}
-      feedback={error ? <WorkbenchNotice tone="danger" title="Work item could not be created" description={error} /> : undefined}
-    />
+          <strong>Repository documentation root</strong>
+          <code>{selectedProject.workItems.root}</code>
+        </div>
+      )}
+
+      <RadioList
+        label="Work item type"
+        value={schemaId}
+        onChange={(value) => {
+          const parsed = WorkItemSchemaIdSchema.safeParse(value);
+          if (parsed.success) onSchemaChange(parsed.data);
+        }}
+        orientation="horizontal"
+        size="sm"
+        isRequired
+      >
+        {eligibleSchemas.map((schema) => (
+          <RadioListItem
+            key={schema.schemaId}
+            value={schema.schemaId}
+            label={humanKindLabel(schema.kind)}
+          />
+        ))}
+      </RadioList>
+
+      <TextInput
+        label="Title"
+        value={title}
+        onChange={onTitleChange}
+        isRequired
+        width="100%"
+      />
+
+      <MultiSelector
+        label="Concerns"
+        options={[...availableConcernIds]}
+        value={[...concernIds]}
+        onChange={(value) => onConcernIdsChange(value)}
+        hasSearch
+        size="sm"
+        placeholder="Select concerns"
+        width="100%"
+      />
+
+      {derivedFromWorkItem === null ? (
+        <section className="order-create-context" aria-label="Derived WorkItem fields">
+          <strong>Derived fields are not editable</strong>
+          <span>
+            WorkItem identity, schema version, lifecycle stage/status and
+            artifact roles are assigned from canonical contracts after creation.
+          </span>
+        </section>
+      ) : (
+        <section className="order-create-context" aria-label="Canonical lineage">
+          <strong>Canonical lineage</strong>
+          <span>
+            Parent linkage is system-owned and cannot be changed to another WorkItem.
+          </span>
+        </section>
+      )}
+    </div>
   );
 };

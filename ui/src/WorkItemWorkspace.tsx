@@ -3,10 +3,12 @@ import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/rea
 import { Link } from "@astryxdesign/core/Link";
 import { TextInput } from "@astryxdesign/core/TextInput";
 
-import type { ArtifactRef, Run, RunEvent, Sha256, WorkItem } from "../../src/core/contracts.ts";
+import type { ArtifactRef, Run, RunEvent, Sha256, SignoffPackage, WorkItem, WorkItemSchemaCatalogEntry } from "../../src/core/contracts.ts";
 import {
   artifactHasCurrentStageConformance,
   deriveCurrentAttention,
+  deriveAcceptanceDecision,
+  reconstructCandidateRounds,
   deriveExecutionOwner,
   deriveObservationCoherence,
   deriveValidationBoundary,
@@ -23,22 +25,23 @@ import {
 import * as api from "./http.ts";
 import { invalidateWorkbenchMutation, workbenchQueryKeys } from "./query-keys.ts";
 import {
-  materialPresentationStateLabel,
+  bindProspectiveApprovalSelection,
+  prospectiveApprovalIsSuperseded,
   resolveWorkflowMaterial,
-  workOutcomeProductLabel,
   runIsActive,
-  runStatusLabel,
+  workflowStepState,
   workflowMaterialIdentity,
   workflowPresentation,
-  workflowStepState,
   workflowSteps,
   type EvidenceSelection,
   type ProposalSelection,
   type WorkflowMaterial,
 } from "./workbench-presentation.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
+import { WorkbenchAttention } from "./primitives/WorkbenchAttention.tsx";
 import { WorkbenchConfirmation } from "./primitives/WorkbenchConfirmation.tsx";
-import { WorkbenchLayout } from "./primitives/WorkbenchLayout.tsx";
+import { WorkbenchWorkItemShell } from "./primitives/WorkbenchWorkItemShell.tsx";
+import { WorkbenchSurface } from "./primitives/WorkbenchSurface.tsx";
 import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
 import { WorkItemIdentityRow } from "./WorkItemIdentityRow.tsx";
 import { WorkflowRail } from "./WorkflowRail.tsx";
@@ -48,11 +51,6 @@ import {
   WorkbenchErrorState,
   WorkbenchState,
 } from "./primitives/WorkbenchState.tsx";
-import {
-  PrimaryMaterialFrame,
-  WorkflowStepFrame,
-  WorkflowStepSummary,
-} from "./WorkflowStepFrame.tsx";
 
 const SourceDocumentMaterial = lazy(() =>
   import("./DocumentWorkspace.tsx").then((module) => ({ default: module.SourceDocumentMaterial })));
@@ -68,6 +66,7 @@ const ExecutionWorkspace = lazy(() =>
   import("./ExecutionWorkspace.tsx").then((module) => ({ default: module.ExecutionWorkspace })));
 const EvidenceViewer = lazy(() =>
   import("./EvidenceViewer.tsx").then((module) => ({ default: module.EvidenceViewer })));
+const AcceptanceWorkspace = lazy(() => import("./AcceptanceWorkspace.tsx").then(module => ({default: module.AcceptanceWorkspace})));
 const TerminalResult = lazy(() =>
   import("./TerminalResult.tsx").then((module) => ({ default: module.TerminalResult })));
 
@@ -85,37 +84,6 @@ type WorkspaceSelection = Readonly<{
   material: WorkflowMaterial | null;
 }>;
 
-const materialTitle = (
-  material: WorkflowMaterial,
-  stepLabel: string,
-): string => {
-  switch (material.kind) {
-    case "SOURCE_DOCUMENT":
-      return "Work request";
-    case "STAGE_RUN":
-      return stepLabel + " activity";
-    case "STAGE_DOCUMENT":
-      return stepLabel + " document";
-    case "SUPPORTING_DOCUMENT":
-      return "Supporting document";
-    case "PROPOSAL":
-      return "Proposal review";
-    case "READINESS_REVIEW":
-      return "Readiness review";
-    case "APPROVAL_PACKAGE":
-      return "Approval package";
-    case "EXECUTION_TASK":
-      return "Implementation task";
-    case "EVIDENCE":
-      return "Evidence";
-    case "TERMINAL_RESULT":
-      return "Final outcome";
-    case "STEP_STATE":
-    case "UNREACHED":
-      return stepLabel;
-  }
-};
-
 const startLabelForStage = (stage: WorkItem["stage"]): string =>
   stage === "IDEA"
     ? "Start Research"
@@ -125,10 +93,10 @@ const startLabelForStage = (stage: WorkItem["stage"]): string =>
 
 export const WorkItemWorkspace = ({
   workItem,
+  schemas,
   selectedWorkItemFetching,
   selectedWorkItemUpdatedAt,
   selectedWorkItemError,
-  toolbar,
   contextOpen,
   onContextOpenChange,
   contextContent,
@@ -139,10 +107,10 @@ export const WorkItemWorkspace = ({
   onDirtyChange,
 }: Readonly<{
   workItem: WorkItem;
+  schemas: readonly WorkItemSchemaCatalogEntry[];
   selectedWorkItemFetching: boolean;
   selectedWorkItemUpdatedAt: number;
   selectedWorkItemError: unknown;
-  toolbar: ReactNode;
   contextOpen: boolean;
   onContextOpenChange: (open: boolean) => void;
   contextContent: ReactNode;
@@ -151,7 +119,7 @@ export const WorkItemWorkspace = ({
     step: WorkItem["stage"],
     material: WorkflowMaterial,
   ) => void;
-  onContextDocumentChange: (path: string | null, sha256: Sha256 | null) => void;
+  onContextDocumentChange: (path: string | null, sha256: Sha256 | null, artifactId?: ArtifactRef["id"] | null) => void;
   onCreateRemediation: (workItem: WorkItem) => void;
   onDirtyChange: (dirty: boolean) => void;
 }>) => {
@@ -159,6 +127,7 @@ export const WorkItemWorkspace = ({
   const [selectedStep, setSelectedStep] = useState<WorkItem["stage"]>(workItem.stage);
   const [explicitMaterial, setExplicitMaterial] = useState<WorkflowMaterial | null>(null);
   const [dirty, setDirty] = useState(false);
+  const [acceptanceDiscardVersion,setAcceptanceDiscardVersion]=useState(0);
   const [pendingSelection, setPendingSelection] = useState<WorkspaceSelection | null>(null);
   const [pendingReturnSelection, setPendingReturnSelection] =
     useState<WorkspaceSelection | null>(null);
@@ -189,22 +158,51 @@ export const WorkItemWorkspace = ({
     queryKey: workbenchQueryKeys.lifecycleArtifacts(workItem.id),
     queryFn: () => api.listLifecycleArtifacts(workItem.id),
   });
+  const historicalPreSignoffSelected =
+    selectedStep !== workItem.stage &&
+    (
+      selectedStep === "R1" ||
+      selectedStep === "R2" ||
+      selectedStep === "DESIGN" ||
+      selectedStep === "PLAN" ||
+      selectedStep === "R3"
+    );
   const historicalArtifactsRequired =
+    historicalPreSignoffSelected ||
+    selectedStep === "R3" ||
     selectedStep === "AWAITING_SIGNOFF" ||
     workItem.stage === "AWAITING_SIGNOFF" ||
-    selectedStep === "EXECUTION" ||
+    selectedStep === "EXECUTION" || selectedStep === "AWAITING_ACCEPTANCE" ||
     selectedStep === "COMPLETE" ||
-    workItem.stage === "EXECUTION" ||
+    workItem.stage === "EXECUTION" || workItem.stage === "AWAITING_ACCEPTANCE" ||
     workItem.stage === "COMPLETE";
   const allArtifactsQuery = useQuery({
     queryKey: workbenchQueryKeys.artifacts(workItem.id),
     queryFn: () => api.listArtifacts(workItem.id),
     enabled: historicalArtifactsRequired,
   });
+  const currentApprovalRequired = workItem.stage === "EXECUTION" || workItem.stage === "AWAITING_ACCEPTANCE" || workItem.stage === "COMPLETE";
+  const currentApprovalQuery = useQuery({
+    queryKey: workbenchQueryKeys.currentApproval(workItem.id),
+    queryFn: () => api.getCurrentApproval(workItem.id),
+    enabled: currentApprovalRequired,
+  });
+  const currentApproval = currentApprovalRequired ? currentApprovalQuery.data : undefined;
+  const signedArtifactsQuery = useQuery({
+    queryKey: workbenchQueryKeys.approvalArtifacts(workItem.id, currentApproval?.id ?? null),
+    queryFn: () => {
+      if (currentApproval == null) throw new TypeError("current Approval identity required");
+      return api.listApprovalArtifacts(workItem.id, currentApproval.id);
+    },
+    enabled: currentApproval != null,
+  });
+  const approvalMembershipUnresolved = currentApprovalRequired &&
+    (currentApprovalQuery.isPending || currentApprovalQuery.isError ||
+      (currentApproval != null && (!signedArtifactsQuery.isSuccess || signedArtifactsQuery.isFetching)));
   const tasksRequired =
     selectedStep === "AWAITING_SIGNOFF" ||
-    selectedStep === "EXECUTION" ||
-    workItem.stage === "EXECUTION" ||
+    selectedStep === "EXECUTION" || selectedStep === "AWAITING_ACCEPTANCE" ||
+    workItem.stage === "EXECUTION" || workItem.stage === "AWAITING_ACCEPTANCE" ||
     workItem.stage === "COMPLETE";
   const tasksQuery = useQuery({
     queryKey: workbenchQueryKeys.tasks(workItem.id),
@@ -223,6 +221,49 @@ export const WorkItemWorkspace = ({
     queryKey: workbenchQueryKeys.signoffPackage(workItem.id),
     queryFn: () => api.getSignoffPackage(workItem.id),
     enabled: workItem.stage === "AWAITING_SIGNOFF",
+  });
+  // A cached package is inspection evidence, not a fresh current-package observation.
+  // Wait for the current identity before binding an unselected package or requesting its closure.
+  const packageHash = workItem.stage === "AWAITING_SIGNOFF" && signoffPackageQuery.isSuccess && !signoffPackageQuery.isFetching
+    ? signoffPackageQuery.data.packageHash : null;
+  useEffect(() => {
+    if (!signoffPackageQuery.isSuccess || signoffPackageQuery.isFetching || signoffPackageQuery.data === undefined) return;
+    const observed = signoffPackageQuery.data;
+    // Retain the canonical response by exact identity for read-only inspection
+    // after the current package changes. This cache never authorizes sign-off.
+    queryClient.setQueryData(workbenchQueryKeys.observedSignoffPackage(workItem.id, observed.packageHash), observed);
+  }, [queryClient, workItem.id, signoffPackageQuery.data, signoffPackageQuery.isSuccess, signoffPackageQuery.isFetching]);
+  const prospectiveArtifactsQuery = useQuery({
+    queryKey: workbenchQueryKeys.signoffPackageArtifacts(workItem.id, packageHash),
+    queryFn: () => {
+      if (packageHash === null) throw new TypeError("prospective package hash required");
+      return api.listSignoffPackageArtifacts(workItem.id, packageHash);
+    },
+    enabled: packageHash !== null,
+    retry: false,
+  });
+  const approvalsQuery = useQuery({
+    queryKey: workbenchQueryKeys.approvals(workItem.id),
+    queryFn: () => api.listApprovals(workItem.id),
+    enabled: selectedStep === "AWAITING_SIGNOFF" || tasksRequired,
+  });
+  const qaApprovals = approvalsQuery.data ?? [];
+  const qaHistories = useQueries({queries: qaApprovals.map(approval => ({queryKey: workbenchQueryKeys.qaHistory(workItem.id,approval.id), queryFn: () => api.listCandidateReviewEvents(workItem.id,approval.id), retry:false, refetchInterval: workItem.stage === "AWAITING_ACCEPTANCE" ? 2000 : false}))});
+  const allReviewEvents = qaHistories.flatMap(query => query.data ?? []);
+  const explicitApproval = explicitMaterial?.kind === "APPROVAL_PACKAGE" ? explicitMaterial : null;
+  const selectedApproval = explicitApproval?.approvalId === undefined
+    ? workItem.stage === "AWAITING_SIGNOFF" || explicitApproval?.packageHash !== undefined ? null : currentApproval ??
+      (currentApprovalRequired ? null : approvalsQuery.data?.at(-1) ?? null)
+    : approvalsQuery.data?.find(approval => approval.id === explicitApproval.approvalId) ?? null;
+  const selectedApprovalUnresolved = explicitApproval?.approvalId !== undefined && selectedApproval === null;
+  const selectedApprovalArtifactsQuery = useQuery({
+    queryKey: workbenchQueryKeys.approvalArtifacts(workItem.id, selectedApproval?.id ?? null),
+    queryFn: () => {
+      if (selectedApproval === null) throw new TypeError("Approval identity required");
+      return api.listApprovalArtifacts(workItem.id, selectedApproval.id);
+    },
+    enabled: selectedStep === "AWAITING_SIGNOFF" && selectedApproval !== null,
+    retry: false,
   });
 
   const runs = runsQuery.data ?? [];
@@ -279,6 +320,14 @@ export const WorkItemWorkspace = ({
           type: "active",
         }),
         queryClient.refetchQueries({
+          queryKey: workbenchQueryKeys.currentApproval(workItem.id),
+          type: "active",
+        }),
+        queryClient.refetchQueries({
+          queryKey: workbenchQueryKeys.approvals(workItem.id),
+          type: "active",
+        }),
+        queryClient.refetchQueries({
           queryKey: workbenchQueryKeys.lifecycleArtifacts(workItem.id),
           type: "active",
         }),
@@ -304,13 +353,19 @@ export const WorkItemWorkspace = ({
 
   const artifacts = artifactsQuery.data ?? [];
   const allArtifacts = allArtifactsQuery.data ?? [];
+  const currentArtifactIds = new Set(artifacts.map((artifact) => artifact.id));
+  const signedArtifacts = currentApproval != null && signedArtifactsQuery.isSuccess
+    ? signedArtifactsQuery.data : [];
+  const signedArtifactIds = new Set(signedArtifacts.map(artifact => artifact.id));
+  const inspectionArtifacts = historicalArtifactsRequired
+    ? [...new Map([...signedArtifacts, ...artifacts, ...allArtifacts]
+        .map(artifact => [artifact.id, artifact] as const)).values()]
+    : artifacts;
   const tasks = tasksQuery.data ?? [];
-  const currentExecutionTasks =
-    workItem.stage === "EXECUTION" ? tasks : [];
-  const coherenceTasks =
-    workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE"
-      ? tasks
-      : [];
+  const coherenceTasks = currentApproval == null
+    ? []
+    : tasks.filter((task) => task.approvalId === currentApproval.id);
+  const currentExecutionTasks = workItem.stage === "EXECUTION" ? coherenceTasks : [];
   const runEventQueries = useQueries({
     queries: runs.map((run) => ({
       queryKey: workbenchQueryKeys.runEvents(run.id),
@@ -393,41 +448,23 @@ export const WorkItemWorkspace = ({
     allRunEvents,
     artifacts,
     tasks,
+    allReviewEvents,
   );
 
-  const selectedStepState = workflowStepState(workItem, reachedStages, selectedStep);
-  const selectedLatestStageRun =
-    selectedStep === "R1" ||
-    selectedStep === "R2" ||
-    selectedStep === "DESIGN" ||
-    selectedStep === "PLAN" ||
-    selectedStep === "R3"
-      ? [...runs]
-          .filter((run) =>
-            run.role === "STAGE" &&
-            run.stage === selectedStep)
-          .sort((left, right) =>
-            left.attempt - right.attempt ||
-            left.startedAt.localeCompare(right.startedAt) ||
-            left.id.localeCompare(right.id))
-          .at(-1) ?? null
-      : null;
+  const selectedStepState = workflowStepState(
+    workItem,
+    reachedStages,
+    selectedStep,
+  );
+
   const selectedStageArtifact =
     selectedStep === "R1" ||
     selectedStep === "R2" ||
     selectedStep === "DESIGN" ||
     selectedStep === "PLAN" ||
     selectedStep === "R3"
-      ? artifacts.find((artifact) => artifact.role === selectedStep) ?? null
+      ? inspectionArtifacts.find((artifact) => artifact.role === selectedStep) ?? null
       : null;
-  const selectedStateLabel =
-    selectedStepState === "CURRENT"
-      ? "Current"
-      : selectedStepState === "HISTORICAL"
-        ? "Reached"
-        : "Not reached";
-  const selectedStateVariant =
-    selectedStepState === "CURRENT" ? "info" as const : "neutral" as const;
 
   const sourceDiagnostics = (diagnosticsQuery.data ?? []).filter(
     (item) => item.workItemId === workItem.id || item.path === workItem.sourcePath,
@@ -437,12 +474,12 @@ export const WorkItemWorkspace = ({
     sourceQuery.data.sha256 !== workItem.sourceSha256;
   const sourceAuthorityRequiresReconciliation =
     sourceDiagnostics.length > 0 || sourceAuthorityChanged;
+  const observedPackageError = signoffPackageQuery.error ?? prospectiveArtifactsQuery.error;
   const packageStaleOwner =
     workItem.stage === "AWAITING_SIGNOFF" &&
-    signoffPackageQuery.isError &&
-    api.isOrderHttpRequestFailure(signoffPackageQuery.error) &&
-    signoffPackageQuery.error.orderError.code === "STALE_AUTHORITY"
-      ? signoffPackageQuery.error.orderError.staleAuthorityOwner
+    api.isOrderHttpRequestFailure(observedPackageError) &&
+    observedPackageError.orderError.code === "STALE_AUTHORITY"
+      ? observedPackageError.orderError.staleAuthorityOwner
       : null;
   const changedAuthorityOwners =
     sourceAuthorityRequiresReconciliation
@@ -456,21 +493,28 @@ export const WorkItemWorkspace = ({
   );
   const executionOwner = deriveExecutionOwner(currentExecutionTasks, runs);
   const currentExecutionObservationRequired = workItem.stage === "EXECUTION";
+  const currentReviewHistory = allReviewEvents.filter(entry => entry.approvalId === currentApproval?.id);
+  const executionHistoryQuery=qaHistories[qaApprovals.findIndex(approval=>approval.id===currentApproval?.id)];
   const executionObservationPending =
     currentExecutionObservationRequired &&
     (
       runsQuery.data === undefined ||
       tasksQuery.data === undefined ||
+      currentApprovalQuery.data === undefined ||
+      approvalsQuery.isPending ||
+      (currentApproval != null && executionHistoryQuery?.isPending === true) ||
       executionEventsPending
     );
-  const validationBoundary = executionObservationPending
-    ? null
-    : deriveValidationBoundary(
-        executionOwner,
-        currentExecutionTasks,
-        runs,
-        allRunEvents,
-      );
+  let validationBoundary: ReturnType<typeof deriveValidationBoundary> | null = null;
+  let validationObservationError: Error | null = null;
+  if (!executionObservationPending) {
+    try {
+      validationBoundary = deriveValidationBoundary(executionOwner, currentExecutionTasks, runs, allRunEvents,
+        currentApproval??null,currentReviewHistory);
+    } catch (error) {
+      validationObservationError = error instanceof Error ? error : new Error(String(error));
+    }
+  }
   const recovery = deriveRecoveryDisposition(workItem, runs, currentness);
   const semanticCoherence = deriveObservationCoherence(
     workItem,
@@ -491,15 +535,15 @@ export const WorkItemWorkspace = ({
   const currentExecutionEventsError =
     workItem.stage !== "EXECUTION"
       ? null
-      : runs.reduce<unknown>((error, run, index) =>
+      : (approvalsQuery.error??executionHistoryQuery?.error??runs.reduce<unknown>((error, run, index) =>
           error ??
           (
             run.executionTaskId !== null
               ? runEventQueries[index]?.error ?? null
               : null
-          ), null);
+          ), null));
   const currentExecutionTasksFetching =
-    (workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE") &&
+    (workItem.stage === "EXECUTION" || workItem.stage === "AWAITING_ACCEPTANCE" || workItem.stage === "COMPLETE") &&
     tasksQuery.isFetching;
   const selectedStageConformancePending =
     selectedStageArtifact !== null &&
@@ -516,10 +560,11 @@ export const WorkItemWorkspace = ({
     sourceQuery.data === undefined ||
     diagnosticsQuery.data === undefined ||
     (
-      (workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE") &&
+      historicalArtifactsRequired &&
       allArtifactsQuery.data === undefined
     ) ||
     currentExecutionTasksFetching ||
+    (currentApprovalRequired && currentApprovalQuery.isPending) ||
     executionEventsPending ||
     currentStageEventsPending ||
     selectedStageConformancePending ||
@@ -535,18 +580,46 @@ export const WorkItemWorkspace = ({
     diagnosticsQuery.error ??
     currentStageEventsError ??
     currentExecutionEventsError ??
+    validationObservationError ??
     (
-      workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE"
-        ? tasksQuery.error ?? allArtifactsQuery.error
+      workItem.stage === "EXECUTION" || workItem.stage === "AWAITING_ACCEPTANCE" || workItem.stage === "COMPLETE"
+        ? tasksQuery.error ?? currentApprovalQuery.error ?? signedArtifactsQuery.error
         : null
     ) ??
+    (historicalArtifactsRequired ? allArtifactsQuery.error : null) ??
     (
       workItem.stage === "AWAITING_SIGNOFF" && packageStaleOwner === null
-        ? signoffPackageQuery.error
+        ? observedPackageError
         : null
     );
+  const currentReviewSequence = currentReviewHistory.at(-1)?.sequence ?? null;
+  const qaProofQuery = useQuery({
+    queryKey: workbenchQueryKeys.qaProof(workItem.id,currentApproval?.id ?? null,currentReviewSequence),
+    queryFn: ({signal}) => {
+      if (currentApproval == null || currentReviewSequence === null) throw new TypeError("Current review identity required");
+      return api.listCandidateReviewEvents(workItem.id,currentApproval.id,currentReviewSequence,signal);
+    },
+    enabled: workItem.stage === "AWAITING_ACCEPTANCE" && currentApproval != null && currentReviewSequence !== null,
+    retry:false, refetchInterval: 2000,
+  });
+  const acceptanceDiagnostic = api.isOrderHttpRequestFailure(qaProofQuery.error) ? qaProofQuery.error.orderError : null;
+  let currentRounds: ReturnType<typeof reconstructCandidateRounds> = new Map();
+  let acceptanceCoherent = !transportConverging && semanticCoherence === "COHERENT" && !mutationConflict && !qaProofQuery.isFetching;
+  if (currentApproval != null && currentReviewHistory.length > 0) {
+    try { currentRounds = reconstructCandidateRounds(currentApproval,tasks,runs,allRunEvents,currentReviewHistory); }
+    catch { if (acceptanceDiagnostic === null) acceptanceCoherent = false; }
+  }
+  const acceptanceInput = {
+    current:workItem.stage === "AWAITING_ACCEPTANCE", coherent:acceptanceCoherent,
+    mutationConflict, approval:currentApproval ?? null, history:currentReviewHistory,
+    currentProof:qaProofQuery.isSuccess && !qaProofQuery.isFetching ? qaProofQuery.data : null,
+    diagnostic:acceptanceDiagnostic, rounds:currentRounds,tasks,runs,runEvents:allRunEvents,
+  };
+  let acceptanceDecision: ReturnType<typeof deriveAcceptanceDecision> = {tag:"NONE"};
+  try { acceptanceDecision = deriveAcceptanceDecision(acceptanceInput); } catch { /* incoherent proof cannot admit action */ }
   const currentAttention = deriveCurrentAttention({
     workItem,
+    acceptanceDecision,
     coherence: transportConverging ? "CONVERGING" : semanticCoherence,
     mutationConflict,
     stageInteraction: currentStageInteraction,
@@ -573,17 +646,23 @@ export const WorkItemWorkspace = ({
     mutationsDisabled || currentAttention === "MUTATION_CONFLICT";
   const activeRunOwnsAuthoring = runs.some(runIsActive);
   const documentMutationsDisabled =
-    interactionMutationsDisabled || activeRunOwnsAuthoring;
+    interactionMutationsDisabled || activeRunOwnsAuthoring || approvalMembershipUnresolved;
+  const authoringBlockedReason = activeRunOwnsAuthoring
+    ? "Finish or cancel the active workflow attempt before editing or saving this document."
+    : documentMutationsDisabled
+      ? "Document authoring is unavailable until the current workflow state is reconciled."
+      : undefined;
   const workflowMutationsDisabled =
     interactionMutationsDisabled ||
-    (currentness.tag === "STALE" && !activeRunOwnsAuthoring);
+    (currentness.tag === "STALE" && !activeRunOwnsAuthoring) ||
+    validationObservationError !== null;
 
-  const material = resolveWorkflowMaterial({
+  const resolvedMaterial = resolveWorkflowMaterial({
     workItem,
     selectedStep,
     reachedStages,
     runs,
-    artifacts,
+    artifacts: inspectionArtifacts,
     currentStageRunId: currentStageRun?.id ?? null,
     currentStageRunActive: currentStageRun !== null && runIsActive(currentStageRun),
     currentAttention,
@@ -597,7 +676,33 @@ export const WorkItemWorkspace = ({
     explicitSelection: explicitMaterial,
     dirtyDocument: dirty,
   });
-  const canonicalCurrentMaterial = resolveWorkflowMaterial({
+  const material: WorkflowMaterial = resolvedMaterial.kind !== "APPROVAL_PACKAGE" ? resolvedMaterial :
+    selectedApprovalUnresolved ? resolvedMaterial :
+    selectedApproval !== null ? {
+      kind: "APPROVAL_PACKAGE", approvalId: selectedApproval.id,
+      ...(resolvedMaterial.approvalId === selectedApproval.id ? {
+        artifactId: resolvedMaterial.artifactId, taskId: resolvedMaterial.taskId,
+      } : {}),
+    } : bindProspectiveApprovalSelection(resolvedMaterial, packageHash);
+  const supersededProspective = material.kind === "APPROVAL_PACKAGE" &&
+    (prospectiveApprovalIsSuperseded(material, packageHash) ||
+      (material.approvalId === undefined && material.packageHash !== undefined &&
+        workItem.stage !== "AWAITING_SIGNOFF"));
+  useEffect(() => {
+    if (selectedStep !== "AWAITING_SIGNOFF" || workItem.stage !== "AWAITING_SIGNOFF" ||
+        material.kind !== "APPROVAL_PACKAGE" || material.approvalId !== undefined ||
+        material.packageHash === undefined) return;
+    setExplicitMaterial(previous => previous === null ||
+      (previous.kind === "APPROVAL_PACKAGE" && previous.approvalId === undefined &&
+        previous.packageHash === undefined) ? material : previous);
+  }, [selectedStep, workItem.stage, material.kind, packageHash, explicitMaterial]);
+  const supersededHash = supersededProspective && material.kind === "APPROVAL_PACKAGE"
+    ? material.packageHash : undefined;
+  const supersededPackage = supersededHash === undefined ? null :
+    queryClient.getQueryData<SignoffPackage>(workbenchQueryKeys.observedSignoffPackage(workItem.id, supersededHash)) ?? null;
+  const supersededArtifacts = supersededHash === undefined ? [] :
+    queryClient.getQueryData<readonly ArtifactRef[]>(workbenchQueryKeys.signoffPackageArtifacts(workItem.id, supersededHash)) ?? [];
+  const resolvedCurrentMaterial = resolveWorkflowMaterial({
     workItem,
     selectedStep: workItem.stage,
     reachedStages,
@@ -616,44 +721,52 @@ export const WorkItemWorkspace = ({
     explicitSelection: null,
     dirtyDocument: false,
   });
+  const canonicalCurrentMaterial: WorkflowMaterial =
+    resolvedCurrentMaterial.kind === "APPROVAL_PACKAGE" && packageHash !== null
+      ? {kind:"APPROVAL_PACKAGE",packageHash} : resolvedCurrentMaterial;
   const evidence =
     material.kind === "EVIDENCE" ? material.selection : null;
   const materialIdentity = workflowMaterialIdentity(material);
   const canonicalCurrentMaterialIdentity =
     workflowMaterialIdentity(canonicalCurrentMaterial);
-  const selectedStageMaterialState =
-    selectedStageArtifact !== null &&
-    (
-      selectedStep === "R1" ||
-      selectedStep === "R2" ||
-      selectedStep === "DESIGN" ||
-      selectedStep === "PLAN" ||
-      selectedStep === "R3"
-    )
-      ? deriveMaterialPresentationState(
-          true,
-          reachStateForStage(workItem, reachedStages, selectedStep),
-          materialCurrentnessForStage(currentness, selectedStep),
-          artifactHasCurrentStageConformance(selectedStageArtifact, allRunEvents),
-          (
-            workItem.stage === "EXECUTION" ||
-            workItem.stage === "COMPLETE"
-          ) && tasks.length > 0,
-        )
-      : null;
+  const materialStateForArtifact = (artifact: ArtifactRef) => {
+    const owner = artifact.role;
+    if (owner !== "R1" && owner !== "R2" && owner !== "DESIGN" && owner !== "PLAN" && owner !== "R3") return null;
+    if (approvalMembershipUnresolved || artifactsQuery.data === undefined || runsQuery.data === undefined ||
+      runs.some((run, index) => run.role === "STAGE" && run.stage === owner &&
+        runEventQueries[index]?.data === undefined)) return null;
+    const current = currentArtifactIds.has(artifact.id);
+    const reach = reachStateForStage(workItem, reachedStages, owner);
+    return deriveMaterialPresentationState(
+      current,
+      reach,
+      materialCurrentnessForStage(currentness, owner),
+      artifactHasCurrentStageConformance(artifact, runs, allRunEvents),
+      signedArtifactIds.has(artifact.id) && reach !== "UNREACHED",
+    );
+  };
+  const selectedStageMaterialState = selectedStageArtifact === null
+    ? null : materialStateForArtifact(selectedStageArtifact);
+  const selectedDocumentArtifact = material.kind === "STAGE_DOCUMENT"
+    ? inspectionArtifacts.find((artifact) => artifact.id === material.artifactId) ?? null
+    : null;
+  const selectedDocumentMaterialState = selectedDocumentArtifact === null
+    ? null : materialStateForArtifact(selectedDocumentArtifact);
 
+  const currentStepSelectedForMaterial = selectedStep === workItem.stage;
   const explicitStageArtifactId =
     explicitMaterial?.kind === "STAGE_DOCUMENT"
       ? explicitMaterial.artifactId
       : null;
   const explicitStageArtifactStillCurrent =
     explicitStageArtifactId !== null &&
-    artifacts.some((artifact) => artifact.id === explicitStageArtifactId);
+    inspectionArtifacts.some((artifact) => artifact.id === explicitStageArtifactId);
 
   useEffect(() => {
     if (
       explicitStageArtifactId === null ||
       explicitStageArtifactStillCurrent ||
+      !currentStepSelectedForMaterial ||
       selectedStageArtifact === null
     ) {
       return;
@@ -665,116 +778,9 @@ export const WorkItemWorkspace = ({
   }, [
     explicitStageArtifactId,
     explicitStageArtifactStillCurrent,
+    currentStepSelectedForMaterial,
     selectedStageArtifact?.id,
   ]);
-  const ordinaryClassification = (value: string): string =>
-    value
-      .replaceAll("_", " ")
-      .toLowerCase()
-      .replace(/^./, (first) => first.toUpperCase());
-  const summaryStatusLabel = (() => {
-    if (selectedStep === "IDEA") {
-      return sourceDiagnostics.length > 0
-        ? "Source needs attention"
-        : "Source current";
-    }
-    if (
-      selectedStep === "R1" ||
-      selectedStep === "R2" ||
-      selectedStep === "DESIGN" ||
-      selectedStep === "PLAN"
-    ) {
-      if (pendingProposal && selectedStepState === "CURRENT") {
-        return "Proposal review required";
-      }
-      if (selectedLatestStageRun) {
-        const classification =
-          selectedLatestStageRun.terminalClassification === null
-            ? ""
-            : " · " +
-              ordinaryClassification(selectedLatestStageRun.terminalClassification);
-        const documentState = selectedStageMaterialState === null
-          ? ""
-          : " · " + materialPresentationStateLabel(selectedStageMaterialState);
-        const interactionState =
-          selectedStep === workItem.stage &&
-          selectedLatestStageRun.id === currentStageRun?.id
-            ? currentStageInteraction?.tag === "PROCESSING"
-              ? "Processing"
-              : currentStageInteraction?.tag === "OPEN"
-                ? "Open for continuation"
-                : currentStageInteraction?.tag === "REQUIRED_INPUT"
-                  ? "Waiting for you"
-                  : runStatusLabel(selectedLatestStageRun.status)
-            : runStatusLabel(selectedLatestStageRun.status);
-        return interactionState + classification + documentState;
-      }
-      if (selectedStageMaterialState !== null) {
-        return materialPresentationStateLabel(selectedStageMaterialState);
-      }
-      return selectedStepState === "CURRENT" ? "Ready to start" : "No governed material";
-    }
-    if (selectedStep === "R3") {
-      if (selectedStepState === "HISTORICAL") return "Ready for sign-off";
-      if (selectedLatestStageRun) {
-        return selectedLatestStageRun.terminalClassification
-          ? ordinaryClassification(selectedLatestStageRun.terminalClassification)
-          : runStatusLabel(selectedLatestStageRun.status);
-      }
-      if (selectedStageMaterialState !== null) {
-        return materialPresentationStateLabel(selectedStageMaterialState);
-      }
-      return selectedStepState === "CURRENT"
-        ? "Review in progress"
-        : "Not yet reached";
-    }
-    if (selectedStep === "AWAITING_SIGNOFF") {
-      if (selectedStepState === "HISTORICAL") {
-        if (tasksQuery.isPending) return "Loading approval history";
-        return tasks.length > 0
-          ? "Approved · historical"
-          : "Returned upstream before sign-off";
-      }
-      if (selectedStepState === "UNREACHED") return "Not yet reached";
-      if (signoffPackageQuery.isFetching) return "Resolving package";
-      if (packageStaleOwner !== null) return "Package stale";
-      if (signoffPackageQuery.isError || !signoffPackageQuery.data) {
-        return "Package unavailable";
-      }
-      return "Package current · ready to sign";
-    }
-    if (selectedStep === "COMPLETE") {
-      return selectedStepState === "CURRENT"
-        ? workOutcomeProductLabel(workItem.outcome)
-        : "Not yet reached";
-    }
-    return undefined;
-  })();
-  const summaryStatusVariant =
-    selectedStep === "IDEA" && sourceDiagnostics.length > 0
-      ? "error" as const
-      : selectedLatestStageRun?.status === "FAILED" ||
-          selectedLatestStageRun?.status === "BLOCKED"
-        ? "error" as const
-        : selectedLatestStageRun?.status === "WAITING_FOR_INPUT"
-          ? "warning" as const
-          : selectedStep === "AWAITING_SIGNOFF" &&
-              selectedStepState === "CURRENT" &&
-              packageStaleOwner !== null
-            ? "warning" as const
-            : selectedStep === "AWAITING_SIGNOFF" &&
-                selectedStepState === "CURRENT" &&
-                (signoffPackageQuery.isError || !signoffPackageQuery.data)
-              ? "error" as const
-            : selectedStep === "AWAITING_SIGNOFF" &&
-                selectedStepState === "HISTORICAL" &&
-                tasks.length === 0
-              ? "neutral" as const
-              : selectedStep === "COMPLETE" ||
-                  selectedStepState === "HISTORICAL" ||
-                  selectedLatestStageRun?.status === "COMPLETED"
-                ? "success" as const
-                : "neutral" as const;
 
   const currentStageEventUpdatedAt =
     currentStageRun === null
@@ -787,7 +793,7 @@ export const WorkItemWorkspace = ({
           0,
         );
   const currentTaskUpdatedAt =
-    workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE"
+    workItem.stage === "EXECUTION" || workItem.stage === "AWAITING_ACCEPTANCE" || workItem.stage === "COMPLETE"
       ? tasksQuery.dataUpdatedAt
       : 0;
   const currentSignoffUpdatedAt =
@@ -1056,6 +1062,7 @@ export const WorkItemWorkspace = ({
         const target = Array.from(
           document.querySelectorAll<HTMLButtonElement>("button"),
         ).find((button) =>
+          button.getAttribute("data-testid") === name ||
           button.getAttribute("aria-label") === name ||
           button.textContent?.trim() === name);
         target?.focus();
@@ -1125,6 +1132,11 @@ export const WorkItemWorkspace = ({
     setReturnFocusName(null);
     if (origin) {
       commitSelection(origin);
+    } else if (material.kind === "PROPOSAL") {
+      commitSelection({
+        step: selectedStep,
+        material: { kind: "STAGE_RUN", runId: material.runId },
+      });
     } else {
       setExplicitMaterial(null);
     }
@@ -1193,8 +1205,9 @@ export const WorkItemWorkspace = ({
             ? {
                 status: "error" as const,
                 title: workflow.label + " is blocked",
-                description:
-                  "Resolve the current canonical blocker before continuing.",
+                description: currentStageEvents.findLast(event => event.event.tag === "STAGE_BLOCKED")?.event.tag === "STAGE_BLOCKED"
+                  ? currentStageEvents.flatMap(event => event.event.tag === "STAGE_BLOCKED" ? [event.event.reason] : []).at(-1) ?? "Resolve the current canonical blocker before continuing."
+                  : "Resolve the current canonical blocker before continuing.",
               }
             : currentAttention === "RECOVERY"
               ? {
@@ -1223,44 +1236,12 @@ export const WorkItemWorkspace = ({
                   }
                 : null;
 
+  const inspectingCurrentPackage = currentStepSelected && material.kind === "APPROVAL_PACKAGE" &&
+    material.approvalId === undefined && material.packageHash !== undefined &&
+    material.packageHash === packageHash;
   const inspectedHistorical =
     !currentStepSelected ||
-    materialIdentity !== canonicalCurrentMaterialIdentity;
-  const currentAttentionStatusLabel = (() => {
-    if (!inspectedHistorical) return summaryStatusLabel;
-    switch (currentAttention) {
-      case "CONVERGING": return "Applying change";
-      case "MUTATION_CONFLICT": return "Mutation conflict";
-      case "REQUIRED_INPUT": return "Waiting for you";
-      case "PROPOSAL_DECISION": return "Proposal review required";
-      case "PROPOSAL_ADOPTION": return "Applying change";
-      case "BLOCKER": return "Blocked";
-      case "RECOVERY": return "Recovery required";
-      case "STALE_AUTHORITY": return "Stale authority";
-      case "PROCESSING": return "Processing";
-      case "ACTIONABLE": return "Action required";
-      case "ORDINARY": return "Current material";
-    }
-  })();
-  const currentAttentionVariant = (() => {
-    if (!inspectedHistorical) return summaryStatusVariant;
-    switch (currentAttention) {
-      case "BLOCKER":
-      case "MUTATION_CONFLICT": return "error" as const;
-      case "REQUIRED_INPUT":
-      case "PROPOSAL_DECISION":
-      case "RECOVERY":
-      case "STALE_AUTHORITY":
-        return "warning" as const;
-      case "CONVERGING":
-      case "PROPOSAL_ADOPTION":
-      case "PROCESSING":
-      case "ACTIONABLE":
-        return "info" as const;
-      case "ORDINARY":
-        return "neutral" as const;
-    }
-  })();
+    (materialIdentity !== canonicalCurrentMaterialIdentity && !inspectingCurrentPackage);
 
   const currentOwnerAction =
     canRetry ? (
@@ -1303,62 +1284,78 @@ export const WorkItemWorkspace = ({
       />
     ) : null;
 
-  const stepSummary = (
-    <WorkflowStepSummary
-      label={inspectedHistorical ? workflow.label : selectedWorkflow.label}
-      purpose={inspectedHistorical ? workflow.purpose : selectedWorkflow.purpose}
-      stateLabel={inspectedHistorical ? "Current" : selectedStateLabel}
-      stateVariant={inspectedHistorical ? currentAttentionVariant : selectedStateVariant}
-      statusLabel={currentAttentionStatusLabel}
-      statusVariant={currentAttentionVariant}
-      blocker={summaryBlocker}
-      action={
-        inspectedHistorical ? (
-          <WorkbenchAction
-            label={"Return to " + workflow.label}
-            tone="primary"
-            onClick={() => inspectWorkflowStep(workItem.stage)}
-          />
-        ) : currentOwnerAction ?? (
-          workItem.stage === "COMPLETE" &&
-          (
-            workItem.outcome === "INVESTIGATION_COMPLETE" ||
-            workItem.outcome === "AUDIT_COMPLETE"
-          ) ? (
-            <WorkbenchAction
-              label="Create linked remediation"
-              tone="primary"
-              disabled={mutationsDisabled}
-              onClick={() => onCreateRemediation(workItem)}
-            />
-          ) : undefined
-        )
-      }
-    />
-  );
+  const currentMaterialAction =
+    titleEditing ? undefined : inspectedHistorical ? (
+      <WorkbenchAction
+        label={"Return to " + workflow.label}
+        tone="primary"
+        onClick={() => requestSelection({ step: workItem.stage, material: canonicalCurrentMaterial })}
+      />
+    ) : currentOwnerAction ?? undefined;
+
+  const currentReviewNotice =
+    summaryBlocker === null ? undefined : (
+      <WorkbenchNotice
+        tone={summaryBlocker.status === "error" ? "danger" : summaryBlocker.status}
+        title={summaryBlocker.title}
+        description={summaryBlocker.description}
+      />
+    );
+
+  const currentRequestId = currentStageInteraction?.tag === "REQUIRED_INPUT" ? currentStageInteraction.requestEventId : null;
+  const currentRequest = currentRequestId === null ? undefined :
+    allRunEvents.find(event => event.id === currentRequestId &&
+      event.runId === currentStageRun?.id && event.event.tag === "HUMAN_INPUT_REQUESTED");
+  const currentInspectionReason = currentRequest?.event.tag === "HUMAN_INPUT_REQUESTED"
+    ? currentRequest.event.question
+    : currentAttention === "PROPOSAL_DECISION" ? "A document change requires your decision."
+    : currentAttention === "PROPOSAL_ADOPTION" ? "The current document change is being applied."
+    : currentAttention === "CONVERGING" ? "The current workflow state is being refreshed."
+    : summaryBlocker?.description;
+  const historicalReturn =
+    inspectedHistorical && currentMaterialAction !== undefined
+      ? <>{currentInspectionReason === undefined ? null : <span>{currentInspectionReason}</span>}{currentMaterialAction}</>
+      : undefined;
+
+  const currentInteractionAttention =
+    !inspectedHistorical && summaryBlocker !== null ? (
+      <WorkbenchAttention
+        title={summaryBlocker.title}
+        description={summaryBlocker.description}
+        action={currentMaterialAction}
+      />
+    ) : !inspectedHistorical && currentMaterialAction != null ? (
+      <WorkbenchAttention
+        title={workflow.label + " is ready for your action"}
+        action={currentMaterialAction}
+      />
+    ) : undefined;
+
+  const semanticWorkItemKind = schemas.find(
+    (schema) => schema.schemaId === workItem.schemaId,
+  )?.kind;
+  const workItemKindLabel = semanticWorkItemKind === undefined
+    ? "Work item"
+    : semanticWorkItemKind.charAt(0) + semanticWorkItemKind.slice(1).toLowerCase();
 
   const identity = (
     <WorkItemIdentityRow
       navigation={
         <Link href="/" isStandalone color="secondary" onClick={(event) => { event.preventDefault(); onBack(); }}>
-          Back to queue
+          <span className="order-workitem-back"><WorkbenchIcon name="back" />Back to queue</span>
         </Link>
       }
-      title={
+      title={workItem.title}
+      kind={workItemKindLabel}
+      headingRef={headingRef}
+      editing={
         titleEditing ? (
           <div className="order-workitem-title-edit">
             <TextInput label="Work item title" isLabelHidden size="sm" width="100%" value={titleDraft} hasAutoFocus onChange={setTitleDraft} />
             <WorkbenchAction label="Save title" tone="primary" loading={titleMutation.isPending} disabled={documentMutationsDisabled || titleDraft.trim().length === 0 || titleMutation.isPending} onClick={() => titleMutation.mutate()} />
             <WorkbenchAction label="Cancel title edit" disabled={titleMutation.isPending} onClick={() => { setTitleDraft(workItem.title); setTitleError(null); setTitleEditing(false); }} />
           </div>
-        ) : (
-          <div className="order-workitem-title-row">
-            <h1 ref={headingRef} tabIndex={-1} data-testid="work-item-heading">{workItem.title}</h1>
-            {workItem.stage !== "EXECUTION" && workItem.stage !== "COMPLETE" ? (
-              <WorkbenchAction label="Edit title" tone="ghost" disabled={documentMutationsDisabled} onClick={() => { setTitleDraft(workItem.title); setTitleError(null); setTitleEditing(true); }} />
-            ) : null}
-          </div>
-        )
+        ) : undefined
       }
       detail={
         titleError || titleMutation.error ? (
@@ -1369,18 +1366,20 @@ export const WorkItemWorkspace = ({
       }
       utilities={
         <>
-          <span className="order-workitem-kind">{workItem.schemaId.replace("-v1", "").replace(/^./, (value) => value.toUpperCase())}</span>
+          {!titleEditing && workItem.stage !== "EXECUTION" && workItem.stage !== "AWAITING_ACCEPTANCE" && workItem.stage !== "COMPLETE" ? (
+            <WorkbenchAction label="Edit title" tone="ghost" disabled={documentMutationsDisabled} onClick={() => { setTitleDraft(workItem.title); setTitleError(null); setTitleEditing(true); }} />
+          ) : null}
           <WorkbenchAction
             label="Context"
-            tone="secondary"
+            tone="ghost"
             icon={<WorkbenchIcon name="context" />}
             ariaExpanded={contextOpen}
             onClick={() => onContextOpenChange(!contextOpen)}
           />
           <WorkbenchAction
             label={workItem.archived ? "Restore" : "Archive"}
-            tone="secondary"
-            disabled={mutationsDisabled || workItem.stage === "EXECUTION" || runs.some(runIsActive) || archiveMutation.isPending}
+            tone="ghost"
+            disabled={mutationsDisabled || workItem.stage === "EXECUTION" || workItem.stage === "AWAITING_ACCEPTANCE" || runs.some(runIsActive) || archiveMutation.isPending}
             onClick={() => setConfirmArchive(true)}
           />
         </>
@@ -1392,6 +1391,18 @@ export const WorkItemWorkspace = ({
     <WorkflowRail items={railItems} onSelect={inspectWorkflowStep} />
   );
 
+  const acceptanceMaterial=selectedStep==="AWAITING_ACCEPTANCE"
+    ? material.kind==="ACCEPTANCE_REVIEW"?material:
+      returnSelection?.step==="AWAITING_ACCEPTANCE"&&returnSelection.material?.kind==="ACCEPTANCE_REVIEW"
+        ?returnSelection.material:null
+    :null;
+  const acceptanceInspection=(nextMaterial:WorkflowMaterial,focusId?:string):void=>{
+    if(material.kind!=="ACCEPTANCE_REVIEW")return;
+    if(focusId!==undefined)setReturnFocusName(focusId);
+    // Observational inspection keeps this exact Review owner mounted, with no
+    // second visible interaction and no discard/rebinding of its local form.
+    commitSelection({step:"AWAITING_ACCEPTANCE",material:nextMaterial},{step:selectedStep,material});
+  };
   const primary = (
     <div className="order-workitem-workspace" data-testid="work-item-workspace">
     <div
@@ -1401,17 +1412,44 @@ export const WorkItemWorkspace = ({
       aria-label={selectedWorkflow.label + " workspace"}
       data-testid="workflow-step-workspace"
     >
-      {sharedPreSignoffStage ? (
-        <Suspense fallback={<div className="order-state order-state-compact"><strong>Loading workflow step…</strong></div>}>
+      {acceptanceMaterial!==null?<Suspense fallback={<WorkbenchState kind="loading" title="Loading Acceptance…" />}>
+          <AcceptanceWorkspace key={acceptanceDiscardVersion} workItem={workItem} material={acceptanceMaterial}
+            active={material.kind==="ACCEPTANCE_REVIEW"} onDirtyChange={setDirtyState} approvals={qaApprovals}
+            histories={allReviewEvents} historyPending={approvalsQuery.isPending || qaHistories.some(query=>query.isPending)}
+            historyError={approvalsQuery.error ?? qaHistories.find(query=>query.isError)?.error ?? null}
+            input={acceptanceInput} decision={acceptanceDecision} signedArtifacts={signedArtifacts}
+            onSelectMaterial={next=>requestSelection({step:"AWAITING_ACCEPTANCE",material:next})}
+            onReturnCurrent={()=>requestSelection({step:workItem.stage,material:null})}
+            onOpenEvidence={(selection,focusId)=>acceptanceInspection({kind:"EVIDENCE",selection},focusId)}
+            onOpenDocument={(artifactId,focusId)=>acceptanceInspection({kind:"SUPPORTING_DOCUMENT",artifactId},focusId)}
+            onOpenCorrection={(taskId,runId)=>requestSelection({step:"EXECUTION",material:{kind:"EXECUTION_TASK",taskId,runId}},{step:selectedStep,material})}
+            onMutationError={reportMutationError} />
+        </Suspense>:null}
+      {material.kind === "EVIDENCE" && selectedStep !== "EXECUTION" ? (
+        <Suspense fallback={<WorkbenchState kind="loading" title="Loading evidence…" />}>
+          {historicalReturn === undefined ? null : <div className="order-inline-actions">{historicalReturn}</div>}
+          <EvidenceViewer
+            selection={material.selection}
+            onBack={returnFromTransient}
+          />
+        </Suspense>
+      ) : material.kind === "UNREACHED" ? (
+        <WorkbenchSurface material={<WorkbenchState kind="empty" title={selectedWorkflow.label + " has not been reached"} />} />
+      ) : sharedPreSignoffStage ? (
+        <Suspense fallback={<WorkbenchState kind="loading" title="Loading workflow step…" />}>
           <PreSignoffStageWorkspace
             workItem={workItem}
             stage={sharedPreSignoffStage}
             runs={runs}
             runEvents={allRunEvents}
-            artifacts={artifacts}
+            artifacts={inspectionArtifacts}
             material={material}
             materialState={selectedStageMaterialState}
-            summary={stepSummary}
+            materialStateForArtifact={materialStateForArtifact}
+            documentAttention={currentInteractionAttention}
+            historicalReturn={historicalReturn}
+            stateNotice={inspectedHistorical ? undefined : currentReviewNotice}
+            stateAction={inspectedHistorical ? undefined : currentOwnerAction ?? undefined}
             currentRunId={currentStageRun?.id ?? null}
             currentInteraction={currentStageInteraction}
             currentAttention={currentAttention}
@@ -1419,6 +1457,7 @@ export const WorkItemWorkspace = ({
             mutationsDisabled={workflowMutationsDisabled}
             onRequiredInputFocused={setFocusedRequiredInputEventId}
             authoringMutationsDisabled={documentMutationsDisabled}
+            authoringBlockedReason={authoringBlockedReason}
             onSelectMaterial={(nextMaterial) =>
               requestSelection({
                 step: sharedPreSignoffStage,
@@ -1436,15 +1475,18 @@ export const WorkItemWorkspace = ({
           />
         </Suspense>
       ) : selectedStep === "R3" ? (
-        <Suspense fallback={<div className="order-state order-state-compact"><strong>Loading readiness review…</strong></div>}>
+        <Suspense fallback={<WorkbenchState kind="loading" title="Loading readiness review…" />}>
           <ReadinessWorkspace
             workItem={workItem}
             runs={runs}
             runEvents={allRunEvents}
-            artifacts={artifacts}
+            artifacts={inspectionArtifacts}
+            currentLifecycleArtifacts={artifacts}
             material={material}
             materialState={selectedStageMaterialState}
-            summary={stepSummary}
+            materialStateForArtifact={materialStateForArtifact}
+            reviewNotice={currentReviewNotice}
+            reviewAction={historicalReturn ?? currentMaterialAction}
             currentRunId={currentStageRun?.id ?? null}
             currentInteraction={currentStageInteraction}
             currentAttention={currentAttention}
@@ -1465,26 +1507,31 @@ export const WorkItemWorkspace = ({
           />
         </Suspense>
       ) : selectedStep === "AWAITING_SIGNOFF" ? (
-        <Suspense fallback={<div className="order-state order-state-compact"><strong>Loading approval package…</strong></div>}>
+        <Suspense fallback={<WorkbenchState kind="loading" title="Loading approval package…" />}>
           <SignoffReview
+            key={material.kind === "APPROVAL_PACKAGE" ? material.approvalId ?? material.packageHash ?? "unresolved" : "unresolved"}
             workItem={workItem}
-            summary={stepSummary}
-            packageValue={signoffPackageQuery.data ?? null}
-            packageFetching={signoffPackageQuery.isFetching}
-            packageError={signoffPackageQuery.error}
-            packageStale={packageStaleOwner !== null}
-            artifacts={packageStaleOwner !== null ? allArtifacts : artifacts}
-            artifactsPending={
-              packageStaleOwner !== null
-                ? allArtifactsQuery.isPending
-                : artifactsQuery.isPending
-            }
-            artifactsError={
-              packageStaleOwner !== null
-                ? allArtifactsQuery.error
-                : artifactsQuery.error
-            }
-            tasks={tasks}
+            packageSuperseded={supersededProspective}
+            reviewNotice={currentReviewNotice}
+            reviewAction={historicalReturn ?? currentMaterialAction}
+            packageValue={supersededProspective ? supersededPackage : selectedApproval === null && workItem.stage === "AWAITING_SIGNOFF" ? signoffPackageQuery.data ?? null : null}
+            packageFetching={selectedApproval === null && signoffPackageQuery.isFetching}
+            packageError={selectedApproval === null ? signoffPackageQuery.error : null}
+            packageStale={selectedApproval === null && packageStaleOwner !== null}
+            selectedApproval={selectedApproval}
+            approvals={approvalsQuery.data ?? []}
+            selection={material.kind === "APPROVAL_PACKAGE" ? material : {kind:"APPROVAL_PACKAGE"}}
+            onSelectionChange={(next) => requestSelection({step:"AWAITING_SIGNOFF",material:next})}
+            materialStateForArtifact={(artifact) => supersededProspective || (selectedApproval !== null && selectedApproval.id !== currentApproval?.id)
+              ? { tag: "HISTORICAL" } : materialStateForArtifact(artifact)}
+            artifacts={supersededProspective ? supersededArtifacts : selectedApproval !== null ? selectedApprovalArtifactsQuery.data ?? [] : prospectiveArtifactsQuery.data ?? []}
+            artifactsPending={approvalsQuery.isPending || (currentApprovalRequired && currentApprovalQuery.isPending) || (selectedApproval !== null
+              ? selectedApprovalArtifactsQuery.isPending || selectedApprovalArtifactsQuery.isFetching
+              : packageHash !== null && (prospectiveArtifactsQuery.isPending || prospectiveArtifactsQuery.isFetching))}
+            artifactsError={approvalsQuery.error ?? (currentApprovalRequired ? currentApprovalQuery.error : null) ?? (selectedApprovalUnresolved
+              ? new TypeError("Selected Approval is unavailable")
+              : selectedApproval !== null ? selectedApprovalArtifactsQuery.error : packageStaleOwner !== null ? null : prospectiveArtifactsQuery.error)}
+            tasks={selectedApproval === null ? [] : tasks.filter(task => task.approvalId === selectedApproval.id)}
             tasksPending={tasksQuery.isPending}
             tasksError={tasksQuery.error}
             mutationsDisabled={workflowMutationsDisabled}
@@ -1494,22 +1541,27 @@ export const WorkItemWorkspace = ({
           />
         </Suspense>
       ) : selectedStep === "EXECUTION" ? (
-        <Suspense fallback={<div className="order-state order-state-compact"><strong>Loading implementation…</strong></div>}>
+        <Suspense fallback={<WorkbenchState kind="loading" title="Loading implementation…" />}>
           <ExecutionWorkspace
             workItem={workItem}
             material={material}
-            tasks={tasks}
+            tasks={workItem.stage === "EXECUTION" ? currentExecutionTasks : tasks}
             runs={runs}
+            runEvents={allRunEvents}
             artifacts={allArtifacts}
             statePending={
               runsQuery.isPending ||
               tasksQuery.isPending ||
-              allArtifactsQuery.isPending
+              (currentApprovalRequired && currentApprovalQuery.isPending) ||
+              allArtifactsQuery.isPending || executionObservationPending
             }
             stateError={
               runsQuery.error ??
               tasksQuery.error ??
-              allArtifactsQuery.error
+              (currentApprovalRequired ? currentApprovalQuery.error : null) ??
+              allArtifactsQuery.error ??
+              currentExecutionEventsError ??
+              validationObservationError
             }
             executionOwner={executionOwner}
             validationBoundary={validationBoundary}
@@ -1521,8 +1573,22 @@ export const WorkItemWorkspace = ({
               })}
             onOpenEvidence={openEvidence}
             onReturnFromEvidence={returnFromTransient}
+            onReturnToAcceptance={returnSelection?.step==="AWAITING_ACCEPTANCE"?returnFromTransient:undefined}
+            reviewEvents={allReviewEvents}
+            onOpenFinding={entry=>requestSelection({step:"AWAITING_ACCEPTANCE",material:{kind:"ACCEPTANCE_REVIEW",approvalId:entry.approvalId,findingId:entry.id}},{step:selectedStep,material})}
             onMutationError={reportMutationError}
           />
+        </Suspense>
+      ) : selectedStep === "AWAITING_ACCEPTANCE" && material.kind === "ACCEPTANCE_REVIEW" ? null
+        : selectedStep === "AWAITING_ACCEPTANCE" && material.kind === "SUPPORTING_DOCUMENT" ? (
+        <Suspense fallback={<WorkbenchState kind="loading" title="Loading signed document…"/>}>
+          <WorkbenchAction label="Back to Acceptance" onClick={returnFromTransient}/>
+          {inspectionArtifacts.find(artifact=>artifact.id===material.artifactId)===undefined
+            ? <WorkbenchState kind="error" title="Exact signed document unavailable"/>
+            : <LifecycleDocumentMaterial workItem={workItem} artifactId={material.artifactId}
+                historicalArtifact={inspectionArtifacts.find(artifact=>artifact.id===material.artifactId)}
+                materialState={{tag:"SIGNED_LOCKED"}} readOnly onDirtyChange={()=>{}}
+                onOpenArtifactEvidence={openArtifactEvidence} onContextDocumentChange={onContextDocumentChange}/>}
         </Suspense>
       ) : selectedStep === "COMPLETE" && material.kind !== "EVIDENCE" ? (
         <Suspense fallback={<WorkbenchState kind="loading" title="Loading final outcome…" />}>
@@ -1532,63 +1598,65 @@ export const WorkItemWorkspace = ({
             onCreateRemediation={onCreateRemediation}
           />
         </Suspense>
+      ) : material.kind === "SOURCE_DOCUMENT" || material.kind === "STAGE_DOCUMENT" ? (
+        <div className="order-document-inspection">
+          {historicalReturn === undefined ? currentInteractionAttention : (
+            <div className="order-review-navigation">{historicalReturn}</div>
+          )}
+          <Suspense fallback={<WorkbenchState kind="loading" title="Loading document…" />}>
+            {material.kind === "SOURCE_DOCUMENT" ? (
+              <SourceDocumentMaterial
+                workItem={workItem}
+                authoringLocked={activeRunOwnsAuthoring}
+                mutationsDisabled={documentMutationsDisabled}
+                authoringBlockedReason={authoringBlockedReason}
+                onDirtyChange={setDirtyState}
+                onContextDocumentChange={onContextDocumentChange}
+                onMutationError={reportMutationError}
+              />
+            ) : (
+              <LifecycleDocumentMaterial
+                workItem={workItem}
+                artifactId={material.artifactId}
+                materialState={selectedDocumentMaterialState}
+                historicalArtifact={selectedDocumentMaterialState?.tag === "HISTORICAL" || selectedDocumentMaterialState?.tag === "SIGNED_LOCKED" ? selectedDocumentArtifact ?? undefined : undefined}
+                mutationsDisabled={documentMutationsDisabled}
+                authoringBlockedReason={authoringBlockedReason}
+                onDirtyChange={setDirtyState}
+                onOpenArtifactEvidence={openArtifactEvidence}
+                onContextDocumentChange={onContextDocumentChange}
+                onMutationError={reportMutationError}
+              />
+            )}
+          </Suspense>
+        </div>
       ) : (
-        <WorkflowStepFrame
-          summary={stepSummary}
-          primary={
-          <PrimaryMaterialFrame title={materialTitle(material, selectedWorkflow.label)}>
-            <Suspense fallback={<div className="order-state order-state-compact"><strong>Loading workspace…</strong></div>}>
-        {material.kind === "SOURCE_DOCUMENT" ? (
-          <SourceDocumentMaterial
-            workItem={workItem}
-            mutationsDisabled={documentMutationsDisabled}
-            onDirtyChange={setDirtyState}
-            onContextDocumentChange={onContextDocumentChange}
-            onMutationError={reportMutationError}
-          />
-        ) : null}
-        {material.kind === "STAGE_DOCUMENT" ? (
-          <LifecycleDocumentMaterial
-            workItem={workItem}
-            artifactId={material.artifactId}
-            mutationsDisabled={documentMutationsDisabled}
-            onDirtyChange={setDirtyState}
-            onOpenArtifactEvidence={openArtifactEvidence}
-            onContextDocumentChange={onContextDocumentChange}
-            onMutationError={reportMutationError}
-          />
-        ) : null}
-        {material.kind === "EVIDENCE" ? (
-          <EvidenceViewer
-            selection={evidence}
-            onBack={returnFromTransient}
-          />
-        ) : null}
-        {material.kind === "STEP_STATE" ? (
-          <WorkbenchEmptyState
-            compact
-            title={
-              selectedStep === workItem.stage && canStart
-                ? selectedWorkflow.label + " is ready to start"
-                : "No current material for " + selectedWorkflow.label
-            }
-            description={
-              selectedStep === workItem.stage && canStart
-                ? "Use the current workflow action to begin this step."
-                : "This reached workflow step has no current canonical material to inspect."
-            }
-          />
-        ) : null}
-        {material.kind === "UNREACHED" ? (
-          <WorkbenchEmptyState
-            compact
-            title={selectedWorkflow.label + " has not been reached"}
-            description="Workflow inspection does not create or promote lifecycle state."
-          />
-        ) : null}
-            </Suspense>
-          </PrimaryMaterialFrame>
-        }
+        <WorkbenchSurface
+          attention={currentInteractionAttention}
+          material={
+            <>
+              {historicalReturn === undefined ? null : (
+                <div className="order-inline-actions">{historicalReturn}</div>
+              )}
+              <Suspense fallback={<WorkbenchState kind="loading" title="Loading workspace…" />}>
+              {material.kind === "STEP_STATE" ? (
+                <WorkbenchEmptyState
+                  compact
+                  title={
+                    selectedStepState === "CURRENT" && canStart
+                      ? selectedWorkflow.label + " is ready to start"
+                      : "No current material for " + selectedWorkflow.label
+                  }
+                  description={
+                    selectedStepState === "CURRENT" && canStart
+                      ? "Use the current workflow action to begin this step."
+                      : "This reached workflow step has no current canonical material to inspect."
+                  }
+                />
+              ) : null}
+              </Suspense>
+            </>
+          }
         />
       )}
     </div>
@@ -1597,29 +1665,28 @@ export const WorkItemWorkspace = ({
 
   return (
     <>
-      <WorkbenchLayout
-        toolbar={toolbar}
+      <WorkbenchWorkItemShell
+        identity={identity}
+        workflowRail={workflowRail}
         primary={primary}
-        workItemChrome={{
-          identity,
-          workflowRail,
-          context: {
-            open: contextOpen,
-            onOpenChange: onContextOpenChange,
-            content: contextContent,
-          },
+        context={{
+          open: contextOpen,
+          onOpenChange: onContextOpenChange,
+          content: contextContent,
         }}
       />
 
       <WorkbenchConfirmation
+        kind="safety"
         open={confirmArchive}
         onOpenChange={setConfirmArchive}
         title={workItem.archived ? "Restore work item?" : "Archive work item?"}
-        description={
-          workItem.archived
+        description={<>
+          <strong>{workItem.title}</strong>
+          <p>{workItem.archived
             ? "Restore this WorkItem to the active queue. Its lifecycle and history are unchanged."
-            : "Archive this WorkItem from the active queue. Its source, lifecycle documents, Runs, evidence, approvals and history remain intact."
-        }
+            : "Archive this WorkItem from the active queue. Its source, lifecycle documents, Runs, evidence, approvals and history remain intact."}</p>
+        </>}
         confirmLabel={workItem.archived ? "Restore work item" : "Archive work item"}
         pending={archiveMutation.isPending}
         onConfirm={() => {
@@ -1636,6 +1703,7 @@ export const WorkItemWorkspace = ({
       ) : null}
 
       <WorkbenchConfirmation
+        kind="destructive"
         open={pendingSelection !== null}
         onOpenChange={(open) => {
           if (!open) {
@@ -1643,10 +1711,9 @@ export const WorkItemWorkspace = ({
             setPendingReturnSelection(null);
           }
         }}
-        title="Discard unsaved Markdown?"
-        description="Changing workflow step or material would discard the current unsaved Markdown buffer."
+        title={acceptanceMaterial!==null?"Discard unsaved review form?":"Discard unsaved Markdown?"}
+        description={acceptanceMaterial!==null?"Changing workflow step or material would discard the current unsaved review form.":"Changing workflow step or material would discard the current unsaved Markdown buffer."}
         confirmLabel="Discard unsaved changes"
-        cancelLabel="Cancel"
         pending={false}
         onConfirm={() => {
           const next = pendingSelection;
@@ -1654,6 +1721,7 @@ export const WorkItemWorkspace = ({
           setPendingSelection(null);
           setPendingReturnSelection(null);
           setDirtyState(false);
+          if(acceptanceMaterial!==null)setAcceptanceDiscardVersion(value=>value+1);
           if (next) commitSelection(next, nextReturn);
         }}
       />

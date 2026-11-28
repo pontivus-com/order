@@ -105,53 +105,11 @@ verified no-code   coding agent
 
 ## 6. Desired lifecycle
 
-The canonical WorkItem lifecycle and the internal post-sign-off execution/validation sequence are distinct levels.
+Order carries untrusted software-work intent through governed definition before implementation authority can exist. Work may terminate successfully without code when governed investigation establishes that no candidate is required. When implementation is required, execution begins only after explicit human authorization of an exact current package and autonomously implements, validates, independently reviews and remediates it to a verified candidate. Candidate-producing work then enters interactive human QA/QC and explicit acceptance of the exact verified candidate before delivery eligibility. Human QA may report defects, request governed correction and retest; it is not a sequence of approvals during normal production. No-code results need no candidate acceptance.
 
-```text
-CANONICAL WORKITEM LIFECYCLE
+The exact WorkItem stages, transitions and pre-sign-off decision boundaries are owned by `GW-DOC-WORK-LIFECYCLE-V1`. The exact post-sign-off implementation, mechanical-verification, independent-review and bounded-remediation semantics are owned by `GW-DOC-VALIDATION-STANDARD-V1` and the downstream execution architecture.
 
-IDEA
-  |
-  v
-R1 RESEARCH ------------------------------+
-  |                                       |
-  | confirmed                             | schema-valid terminal outcome
-  v                                       v
-R2 REQUIREMENTS                         COMPLETE
-  |
-  v
-DESIGN
-  |
-  v
-PLAN
-  |
-  v
-R3 READINESS REVIEW
-  |
-  v
-AWAITING SIGN-OFF
-  |
-  | explicit human authorization
-  v
-=============================
- EXECUTION AUTHORITY BOUNDARY
-=============================
-  |
-  v
-EXECUTION
-  |
-  | internal signed-task / validation sequence
-  v
-IMPLEMENT -> MECHANICAL VERIFY -> INDEPENDENT REVIEW
-                 ^                       |
-                 +--- bounded repair <---+
-  |
-  | all approved tasks successfully validated
-  v
-COMPLETE
-```
-
-`IMPLEMENT`, mechanical validation and independent review describe decision/validation boundaries inside the canonical `EXECUTION` stage; they are not additional WorkItem lifecycle stages.
+This P2 owner therefore fixes the product outcome and authorization boundary, not another lifecycle state machine.
 
 ## 7. Non-goals for v1
 

@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { closeSync, constants, existsSync, fstatSync, fsyncSync, lstatSync, openSync, readFileSync, readSync, realpathSync, unlinkSync, writeFileSync } from "node:fs";
 import { basename, join } from "node:path";
 
 import {
@@ -208,8 +208,121 @@ const bootstrapProjectManifestText = (repositoryRoot: string): string => {
   ].join("\n");
 };
 
+type ManifestRootIdentity = Readonly<{ device: bigint; inode: bigint; mode: bigint; uid: bigint }>;
+type ManifestFileIdentity = ManifestRootIdentity & Readonly<{ bytes: Buffer }>;
+
+export type InstallerManifestCustody = Readonly<{
+  path: string;
+  root: string;
+  rootIdentity: ManifestRootIdentity;
+  identity: ManifestFileIdentity | null;
+}>;
+
+export type InstallerManifestEffects = Readonly<{
+  open: (path: string, flags: number, mode: number) => number;
+  read: (descriptor: number, bytes: Buffer, offset: number, length: number, position: number) => number;
+  close: typeof closeSync;
+  write: (descriptor: number, bytes: Buffer) => void;
+  fsync: typeof fsyncSync;
+  unlink: typeof unlinkSync;
+}>;
+
+const manifestEffects: InstallerManifestEffects = {
+  open: openSync,
+  read: readSync,
+  close: closeSync,
+  write: (descriptor, bytes) => writeFileSync(descriptor, bytes),
+  fsync: fsyncSync,
+  unlink: unlinkSync,
+};
+
+const manifestIdentity = (entry: import("node:fs").BigIntStats): ManifestRootIdentity =>
+  ({ device: entry.dev, inode: entry.ino, mode: entry.mode, uid: entry.uid });
+
+const sameManifestIdentity = (left: ManifestRootIdentity, right: ManifestRootIdentity): boolean =>
+  left.device === right.device && left.inode === right.inode &&
+  left.mode === right.mode && left.uid === right.uid;
+
+const manifestRootIdentity = (root: string): ManifestRootIdentity => {
+  if (realpathSync(root) !== root) throw new TypeError("installer manifest root is not canonical: " + root);
+  const entry = lstatSync(root, { bigint: true });
+  if (!entry.isDirectory()) throw new TypeError("installer manifest root is not a directory: " + root);
+  return manifestIdentity(entry);
+};
+
+const requireManifestRoot = (custody: InstallerManifestCustody): void => {
+  if (custody.path !== join(custody.root, "pontivus-order.toml") ||
+      !sameManifestIdentity(manifestRootIdentity(custody.root), custody.rootIdentity)) {
+    throw new TypeError("installer manifest root identity changed: " + custody.path);
+  }
+};
+
+// Positional reads retain the exclusive creation descriptor as the source
+// of partial-write evidence; never reopen the path to attribute its bytes.
+const observeManifestDescriptor = (
+  descriptor: number,
+  maximumBytes: number,
+  read: InstallerManifestEffects["read"] = readSync,
+): ManifestFileIdentity => {
+  const before = fstatSync(descriptor, { bigint: true });
+  if (!before.isFile() || before.size > BigInt(maximumBytes)) {
+    throw new TypeError("installer manifest descriptor has unexpected type or size");
+  }
+  const bytes = Buffer.alloc(Number(before.size));
+  let offset = 0;
+  while (offset < bytes.length) {
+    const count = read(descriptor, bytes, offset, bytes.length - offset, offset);
+    if (count === 0) throw new TypeError("installer manifest descriptor changed during read");
+    offset += count;
+  }
+  const after = fstatSync(descriptor, { bigint: true });
+  if (!sameManifestIdentity(manifestIdentity(before), manifestIdentity(after)) ||
+      before.size !== after.size || before.mtimeNs !== after.mtimeNs || before.ctimeNs !== after.ctimeNs) {
+    throw new TypeError("installer manifest descriptor changed during observation");
+  }
+  return { ...manifestIdentity(after), bytes };
+};
+
+export const requireInstallerManifest = (custody: InstallerManifestCustody): void => {
+  requireManifestRoot(custody);
+  const expected = custody.identity;
+  if (expected === null) throw new TypeError("installer manifest custody is unproven: " + custody.path);
+  const entry = lstatSync(custody.path, { bigint: true });
+  if (!entry.isFile() || !sameManifestIdentity(manifestIdentity(entry), expected)) {
+    throw new TypeError("installer manifest identity changed: " + custody.path);
+  }
+  const descriptor = openSync(custody.path, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
+  try {
+    const observed = observeManifestDescriptor(descriptor, expected.bytes.length);
+    const after = lstatSync(custody.path, { bigint: true });
+    if (!after.isFile() || !sameManifestIdentity(observed, expected) ||
+        !sameManifestIdentity(manifestIdentity(after), expected) || !observed.bytes.equals(expected.bytes)) {
+      throw new TypeError("installer manifest identity or bytes changed: " + custody.path);
+    }
+    requireManifestRoot(custody);
+  } finally { closeSync(descriptor); }
+};
+
+export const restoreInstallerManifest = (
+  custody: InstallerManifestCustody,
+  effects: InstallerManifestEffects = manifestEffects,
+): void => {
+  requireManifestRoot(custody);
+  if (lstatSync(custody.path, { throwIfNoEntry: false }) === undefined) return;
+  // Synchronous verification and unlink under the documented maintenance
+  // boundary; not an atomic compare-and-unlink against arbitrary writers.
+  requireInstallerManifest(custody);
+  effects.unlink(custody.path);
+  requireManifestRoot(custody);
+  if (lstatSync(custody.path, { throwIfNoEntry: false }) !== undefined) {
+    throw new TypeError("installer manifest remains at " + custody.path);
+  }
+};
+
 export const prepareProjectRootForInstall = async (
   candidate: string,
+  onCustody: (custody: InstallerManifestCustody) => void,
+  effects: InstallerManifestEffects = manifestEffects,
 ): Promise<readonly [repositoryRoot: string, createdManifestPath: string | null] | null> => {
   let repositoryRoot: string;
   try {
@@ -220,13 +333,15 @@ export const prepareProjectRootForInstall = async (
   if (repositoryRoot !== candidate) return null;
 
   const manifestPath = join(repositoryRoot, "pontivus-order.toml");
-  if (existsSync(manifestPath)) {
+  const existing = lstatSync(manifestPath, { throwIfNoEntry: false });
+  if (existing !== undefined) {
+    if (!existing.isFile()) throw new TypeError("project manifest is not a regular file: " + manifestPath);
     await loadValidatedProjectManifest(repositoryRoot);
     return [repositoryRoot, null];
   }
 
   const legacyManifestPath = join(repositoryRoot, "gateweft.toml");
-  if (existsSync(legacyManifestPath)) {
+  if (lstatSync(legacyManifestPath, { throwIfNoEntry: false }) !== undefined) {
     throw new TypeError(
       "target repository uses legacy gateweft.toml; adopt pontivus-order.toml under the target repository's own authority before continuing",
     );
@@ -234,20 +349,43 @@ export const prepareProjectRootForInstall = async (
 
   const text = bootstrapProjectManifestText(repositoryRoot);
   parseProjectManifestText(text);
-  let created = false;
+  const bytes = Buffer.from(text, "utf8");
+  let custody: InstallerManifestCustody = {
+    path: manifestPath, root: repositoryRoot, rootIdentity: manifestRootIdentity(repositoryRoot), identity: null,
+  };
+  const descriptor = effects.open(manifestPath,
+    constants.O_RDWR | constants.O_CREAT | constants.O_EXCL | constants.O_NOFOLLOW, 0o644);
+  onCustody(custody);
+  const failures: unknown[] = [];
+  let opened: ManifestRootIdentity | null = null;
   try {
-    writeFileSync(manifestPath, text, {
-      encoding: "utf8",
-      flag: "wx",
-      mode: 0o644,
-    });
-    created = true;
-    await loadValidatedProjectManifest(repositoryRoot);
-    return [repositoryRoot, manifestPath];
-  } catch (error) {
-    if (created) rmSync(manifestPath, { force: true });
-    throw error;
+    const entry = fstatSync(descriptor, { bigint: true });
+    if (!entry.isFile() || entry.size !== 0n) throw new TypeError("exclusive manifest creation is not an empty regular file: " + manifestPath);
+    opened = manifestIdentity(entry);
+    effects.write(descriptor, bytes);
+    effects.fsync(descriptor);
+  } catch (error) { failures.push(error); }
+  try {
+    const observed = observeManifestDescriptor(descriptor, bytes.length, effects.read);
+    if (opened === null || !sameManifestIdentity(observed, opened) ||
+        !observed.bytes.equals(bytes.subarray(0, observed.bytes.length))) {
+      throw new TypeError("installer manifest descriptor custody changed: " + manifestPath);
+    }
+    custody = { ...custody, identity: observed };
+    onCustody(custody);
+  } catch (error) { failures.push(error); }
+  try { effects.close(descriptor); } catch (error) { failures.push(error); }
+  if (failures.length === 1) throw failures[0];
+  if (failures.length > 1) {
+    throw new AggregateError(failures, "installer manifest creation failed: " + failures.map(String).join("; "));
   }
+  if (custody.identity === null || !custody.identity.bytes.equals(bytes)) {
+    throw new TypeError("installer manifest creation bytes differ: " + manifestPath);
+  }
+  requireInstallerManifest(custody);
+  await loadValidatedProjectManifest(repositoryRoot);
+  requireInstallerManifest(custody);
+  return [repositoryRoot, manifestPath];
 };
 
 export const resolveSurfaceConcernIds = (

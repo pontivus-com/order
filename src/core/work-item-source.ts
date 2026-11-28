@@ -1,4 +1,6 @@
 import {
+  AuthorityRefSchema,
+  type AuthorityRef,
   MarkdownTextSchema,
   RepositoryPathSchema,
   WorkItemSchemaCatalogEntrySchema,
@@ -471,7 +473,7 @@ export const linkedRemediationIsAllowed = (
     parent.projectId === childProjectId &&
     parent.stage === "COMPLETE" &&
     (parentKind === "INVESTIGATION" || parentKind === "AUDIT") &&
-    (parent.outcome === "INVESTIGATION_COMPLETE" || parent.outcome === "AUDIT_COMPLETE") &&
+    allowedR1CompletionsForSchema(parent.schemaId).some((outcome) => outcome === parent.outcome) &&
     (childKind === "CHANGE" || childKind === "DEFECT")
   );
 };
@@ -555,6 +557,53 @@ export const stageTemplateForSchema = (
 ): string | null => {
   const id = stageTemplateIdFor(WorkItemSchemaIdSchema.parse(schemaId), stage);
   return id === null ? null : stageTemplates[id];
+};
+
+const readStageAuthorityHeader = (
+  markdown: string,
+  expectedTemplateId: string,
+): readonly AuthorityRef[] => {
+  const firstLine = markdown.split("\n", 1)[0] ?? "";
+  const match = /^<!-- Order template: ([^;]+); authority: (.*) -->$/.exec(firstLine);
+  if (match === null || match[1] !== expectedTemplateId) {
+    throw new TypeError("stage document is missing its exact pinned template authority identity");
+  }
+  const refs = match[2].split(",").map((token) => {
+    const encoded = token.trim();
+    let decoded: string;
+    try {
+      decoded = decodeURIComponent(encoded);
+    } catch {
+      throw new TypeError("stage document contains malformed encoded AuthorityRef");
+    }
+    if (decoded.length === 0 || encodeURIComponent(decoded) !== encoded) {
+      throw new TypeError("stage document contains noncanonical encoded AuthorityRef");
+    }
+    return AuthorityRefSchema.parse(decoded);
+  });
+  if (new Set(refs).size !== refs.length) {
+    throw new TypeError("stage document contains duplicate AuthorityRef");
+  }
+  return refs;
+};
+
+export const stageDocumentAuthorityRefs = (
+  schemaId: WorkItemSchemaId,
+  stage: Extract<WorkStage, "R1" | "R2" | "DESIGN" | "PLAN" | "R3">,
+  markdown: string,
+): readonly AuthorityRef[] => {
+  const id = stageTemplateIdFor(WorkItemSchemaIdSchema.parse(schemaId), stage);
+  if (id === null) {
+    throw new TypeError("schema " + schemaId + " does not authorize stage " + stage);
+  }
+  const required = readStageAuthorityHeader(stageTemplates[id], id);
+  const declared = readStageAuthorityHeader(markdown, id);
+  for (const ref of required) {
+    if (!declared.includes(ref)) {
+      throw new TypeError("stage document is missing pinned AuthorityRef: " + ref);
+    }
+  }
+  return declared;
 };
 
 const requiredTemplateSections = (template: string): readonly string[] =>
@@ -657,6 +706,8 @@ export const validateStageDocumentStructure = (
   markdown: string,
 ): void => {
   const canonicalSchema = WorkItemSchemaIdSchema.parse(schemaId);
+  if (!canonicalSchema.endsWith("-v2")) return;
+  stageDocumentAuthorityRefs(canonicalSchema, stage, markdown);
   if (canonicalSchema !== "change-v2" && canonicalSchema !== "defect-v2") return;
   const template = stageTemplateForSchema(canonicalSchema, stage);
   if (template === null) {

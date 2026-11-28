@@ -229,7 +229,10 @@ IDEA / ACTIVE -- Start Research --> R1 / ACTIVE
                                   |             |
                                   |             | all approved tasks successful
                                   |             v
-                                  |       COMPLETE / COMPLETE
+                                  |       all no-op -> COMPLETE / COMPLETE
+                                  |       candidate(s) -> AWAITING_ACCEPTANCE / ACTIVE
+                                  |                          | explicit final acceptance -> COMPLETE / COMPLETE
+                                  |<-------------------------+ submitted in-scope QA correction
                                   |
                                   +---- classified return to owning upstream stage
                                         R1 | R2 | DESIGN | PLAN | R3
@@ -267,7 +270,12 @@ The following table is exhaustive for WorkItem-stage changes. A command/event no
 | EXECUTION | `GOVERNANCE_BREACH` requiring upstream redesign | DESIGN / ACTIVE |
 | EXECUTION | `BLOCKED_FOR_REANALYSIS` with exact `returnTo` | declared R1/R2/DESIGN/PLAN / ACTIVE |
 | EXECUTION | `APPROVAL_STALE` | earliest changed material owner among R1/R2/DESIGN/PLAN/R3 / ACTIVE |
-| EXECUTION | all approved tasks reach successful terminal state | COMPLETE / COMPLETE |
+| EXECUTION | all approved tasks reach successful terminal state, all ALREADY_SATISFIED | COMPLETE / COMPLETE |
+| EXECUTION | all approved tasks reach successful terminal state, at least one CANDIDATE_DONE | AWAITING_ACCEPTANCE / ACTIVE |
+| AWAITING_ACCEPTANCE | report finding, inspect evidence, retest/disposition or submit findings for review | remain AWAITING_ACCEPTANCE / ACTIVE (no technical success or acceptance inferred) |
+| AWAITING_ACCEPTANCE | admitted queued QA correction review begins for exact current candidate/task under current Approval | EXECUTION / ACTIVE |
+| AWAITING_ACCEPTANCE | explicit acceptance of exact current verified candidate set with all findings resolved and current authority | COMPLETE / COMPLETE with CANDIDATE_DONE |
+| AWAITING_ACCEPTANCE | explicit stale authority/source reconciliation, genuine upstream defect, admitted no-op challenge or unavailable-proof reanalysis | exact existing upstream owner / ACTIVE (PLAN for no-op/proof loss); old Approval and QA evidence historical |
 | COMPLETE | read/inspect, archive/restore where permitted, or changed/missing historical source observation | remain COMPLETE / COMPLETE |
 
 Execution failures that are repairable within the already-approved task (`TEST_FAILURE`, `REVIEW_FAILURE`, and an authorized bounded `CHANGE_BLOAT` reduction) remain inside EXECUTION. `PRECONDITION_FAILED`, unresolved `ENVIRONMENT_BLOCKED`, human cancellation, and operational/provider loss after its bounded replacement policy produce EXECUTION / BLOCKED rather than an upstream lifecycle return. Resume restores EXECUTION / ACTIVE only after the blocker is explicitly resolved.
@@ -289,7 +297,17 @@ return(upstream) => currentStage := upstream
                     reached      := unchanged
 ```
 
-`COMPLETE` is terminal for the WorkItem. A changed or missing source discovered after completion is a diagnostic about historical material and does not reopen the completed WorkItem.
+`COMPLETE` is terminal for the WorkItem. A changed or missing source discovered after completion is a diagnostic about historical material and does not reopen the completed WorkItem. Candidate-producing current work reaches COMPLETE only after §2.4 acceptance; historical completions remain terminal without inferred acceptance.
+
+**Acceptance continuity:** Original report identity and evidence remain immutable. Unsubmitted open reports for a replaced task remain actionable against its successor; disposed reports on that task require retest again, while unchanged member dispositions remain valid. Failed retest records current observed behavior/rationale and leaves the original report unresolved and resubmittable. Before submission a mistaken observation can be withdrawn with rationale and explicit attestation that it is not a known unmet signed obligation; after assessment withdrawal requires independent supporting evidence. Never waive a demonstrated binding defect. A finding against a no-op member of a mixed candidate set blocks acceptance and requires explicit PLAN reanalysis, not patch remediation of a nonexistent candidate. All-no-op terminal work remains terminal; later defects are separate work. Signed source, title, lifecycle and documentation Git mutations are not admitted in Acceptance. Read-only staleness observation never returns upstream; explicit reconciliation does. Correction begins only on scheduler admission, not submission.
+
+### 2.4 Final human QA/QC and candidate acceptance
+
+After the initial exact-package sign-off, every normal implementation, verification, review and bounded remediation step proceeds autonomously. Technical task success is not human acceptance. Only candidate-producing Change/Defect work enters `AWAITING_ACCEPTANCE`; a successful no-code result and already-completed historical WorkItem do not acquire a fabricated acceptance. The WorkItem outcome remains null until final acceptance; task success, reviewer evidence and history remain intact.
+
+The operator inspects the exact final verified candidate(s), signed requirements/acceptance criteria and validation evidence, performs manual/exploratory testing, records structured findings against an exact candidate/task and may submit the findings for autonomous correction. Each finding states expected behavior, observed behavior, reproduction/conditions, impact and available evidence. A report is an observation, not a proven root cause, automatic scope authorization or validation failure. All unresolved findings block acceptance. An independent read-only reviewer evaluates the report against exact candidate and signed authority; confirmed repairable defects use the existing bounded reviewer/remediator path without a new human approval. If not reproduced with supporting evidence or corrected, return a freshly verified candidate and evidence for human retest; only explicit resolution/withdrawal with rationale closes a finding, never an agent's claim alone. A material change to a requirement/design/scope/authority uses the existing upstream return and fresh sign-off; unrelated work becomes a separately governed WorkItem, with reference to the originating report. A binding defect cannot be waived by labeling it unrelated. Exhausted repair or external blockers use existing blocked/recovery semantics. No routine approval is required between correction and verification.
+
+The operator may accept only the exact current verified candidate set, after all applicable findings are resolved and the package remains current. Acceptance records the human identity, time and exact candidate identities; it never implies deployment, merge or any downstream delivery mutation. Independent task candidates are not a combined verified workspace; cumulative changes requiring integrated acceptance must have been authorized as one cumulative task. Historical selections cannot accept or report against current work accidentally. An accepted WorkItem becomes terminal and immutable; later discovered defects are separate governed work. No-code and historical pre-acceptance completions retain their original outcomes and do not fabricate a human decision.
 
 ## 3. Explicit sign-off
 
@@ -420,7 +438,7 @@ The following are the stable R2/P3 functional requirement identities for the alr
 
 ### GW-FR-005-LOCAL-WORKBENCH
 
-**Required behavior:** one local browser workbench exposes the governed lifecycle, authority/evidence inspection, explicit artifact-proposal disposition, readiness inspection, explicit sign-off and candidate inspection over daemon-owned state. The same workbench supports light and dark appearance with an operator-selectable `System | Light | Dark` preference; `System` is the default and follows the operating-system/browser color-scheme preference.
+**Required behavior:** one local browser workbench exposes the governed lifecycle, authority/evidence inspection, explicit artifact-proposal disposition, readiness inspection, explicit initial sign-off, candidate inspection, final QA/QC finding submission/retest and exact-candidate acceptance over daemon-owned state. The same workbench supports light and dark appearance with an operator-selectable `System | Light | Dark` preference; `System` is the default and follows the operating-system/browser color-scheme preference.
 
 **Acceptance criterion:** the local UI can perform the v1 human interaction surface defined by [GW-DOC-TECHNICAL-ARCHITECTURE §18](../architecture/technical-architecture.md) through the canonical loopback HTTP contract, while the daemon remains the sole workflow-state-mutating process. Light and dark modes are visually distinct across the workbench chrome, controls and governed content/status surfaces; an explicit Light or Dark choice survives reload for that browser profile, while System restores live system-following behavior.
 
@@ -428,7 +446,7 @@ The following are the stable R2/P3 functional requirement identities for the alr
 
 ### GW-FR-006-MINIMUM-VERIFIED-CANDIDATE
 
-**Required behavior:** successful execution yields the minimum sufficient verified candidate for the signed task and hands it off without performing downstream delivery operations.
+**Required behavior:** successful autonomous execution yields the minimum sufficient verified candidate for the signed task and hands it off to interactive human QA/QC and exact-candidate acceptance without performing downstream delivery operations.
 
 **Acceptance criterion:** the actual diff remains within authorized scope/change surface, passes V2/V5/V6/V7, retains required evidence/workspace for inspection, and terminates with the canonical candidate result.
 

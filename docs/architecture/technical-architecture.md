@@ -97,7 +97,7 @@ These entry points come from the exact pinned package manifests recorded in [GW-
 
 The productive v1 installation surface is one user-invoked command and one continuous Order-owned installer experience. Root `install.sh` is deliberately minimal: after Linux/source-integrity checks it downloads the exact pinned Bun bootstrap runtime into a temporary directory and executes `src/installer.ts` from the verified source commit. It does not install Node/OpenCode/application dependencies, write Order configuration, invoke `order setup`, create launchers/services, or perform daemon health logic.
 
-`src/installer.ts` is the sole productive installer orchestrator. It owns the staged application/runtime installation, guided first-run/update choices, launcher and user-service materialization, activation/rollback, and final health proof. After the staged application dependency graph exists it may reuse exactly the canonical guided-setup boundary plus the shell-owned state-path and SQLite installer-upgrade functions required by the P6 update contract; it does not gain a general shell dependency and does not route first-run work through the ordinary CLI. It may ask for operator intent while it is running, but once it reports success no additional mandatory configuration or daemon-start action remains.
+`src/installer.ts` is the sole productive installer orchestrator. It owns the staged application/runtime installation, guided first-run/update choices, launcher and user-service materialization, activation/rollback, and final health plus fresh productive-readiness proof. After the staged application dependency graph exists it may reuse exactly the canonical guided-setup boundary plus the shell-owned state-path and SQLite installer-upgrade functions required by the P6 update contract; it does not gain a general shell dependency and does not route first-run work through the ordinary CLI. It may ask for operator intent while it is running, but once it reports fresh-install success no additional mandatory configuration or daemon-start action remains. Established update success proves installation and liveness, not productive readiness; existing Settings exposes any remaining productive blockers.
 
 For the normal user-local install it must:
 
@@ -107,14 +107,15 @@ For the normal user-local install it must:
 - install the committed application dependency graph with pinned Bun, build production `dist/` with the pinned Node/Vite entry point, and refuse completion unless the expected runtime versions and `dist/index.html` are present;
 - install one `order` launcher in the user-local bin directory. The launcher prepends only the Order-private Bun/Node runtime paths, fixes `PONTIVUS_ORDER_OPENCODE_BIN` to the installed exact OpenCode binary, fixes the resolved Order state root for installed operation, and executes installed `src/cli.ts` with installed Bun;
 - make the default user-local launcher directory available to future login shells idempotently;
-- run the installer's own guided configuration phase before daemon activation through the installer-only `runInstallerGuidedSetup` adapter. The ordinary `order setup` adapter remains current-config-only. Both reuse the same internal provider/model/root orchestration, but only the installer adapter may parse a supported immediately preceding config. It preserves the existing model/reference choices. For an already-configured v1 target that proves to be the exact Git top-level root, missing `pontivus-order.toml` is treated as a newly introduced integration artifact rather than changed operator intent: the installer writes a minimal manifest whose `projectId` is derived from the existing root basename and whose P1 authority contains only root `AGENTS.md` when present, validates it through the canonical project-manifest owner, and retains the same target. It does not infer refs, concerns, verification gates or other authority layers. The installer records any manifest it creates so a later update failure removes that file during rollback. For a legacy broad target that is not itself an exact Git root, the installer may read the quiesced v1 database only to obtain distinct persisted WorkItem `repositoryRoot` values; each candidate is handled by the same exact-root/manifest rule and must remain contained by an old configured target. This is bounded state-derived migration evidence, not recursive filesystem discovery. Only when no exact Git target can be established does guided update ask for the exact target-repository field before persisting canonical v2; newly introduced defaultable fields still come from P6;
-- collect and persist at least one exact target Git repository, validating its Git top-level realpath, root `pontivus-order.toml` and unique `projectId`; broad parent roots are never recursively crawled or treated as a project catalog;
+- run the installer's own guided configuration phase before daemon activation through the installer-only `runInstallerGuidedSetup` adapter. The ordinary `order setup` adapter remains current-config-only. Both reuse the same internal provider/model/root orchestration, but only the installer adapter may parse a supported immediately preceding config. It preserves the existing model/reference choices. For an already-configured v1 target that proves to be the exact Git top-level root, missing `pontivus-order.toml` is treated as a newly introduced integration artifact rather than changed operator intent: the installer writes a minimal manifest whose `projectId` is derived from the existing root basename and whose P1 authority contains only root `AGENTS.md` when present, validates it through the canonical project-manifest owner, and retains the same target. It does not infer refs, concerns, verification gates or other authority layers. The existing project-manifest shell owner establishes invocation-local creation custody at the exclusive file creation boundary, including failure before validation returns. The installer compensates only a positively proven invocation-owned creation through that owner; an existing, replaced, altered or unprovable object is never treated as a created file merely because of its pathname. Preserve primary and secondary failure, retained material and dependent-restart blocking under the reversible transaction rule below. For a legacy broad target that is not itself an exact Git root, the installer may read the quiesced v1 database only to obtain distinct persisted WorkItem `repositoryRoot` values; each candidate is handled by the same exact-root/manifest rule and must remain contained by an old configured target. This is bounded state-derived migration evidence, not recursive filesystem discovery. Only when no exact Git target can be established does guided update ask for the exact target-repository field before persisting canonical v2; newly introduced defaultable fields still come from P6;
+- apply the fresh/unproven versus established-installation admission decision in §34.13; fresh productive setup collects or retains at least one exact validated target Git repository, while established update/recovery retains structurally valid configuration even if no target is currently available. Validate added/changed roots through the existing project owner; broad parent roots are never recursively crawled or treated as a project catalog;
 - resolve each target repository's project-local WorkItem documentation root from its validated `pontivus-order.toml`, defaulting to repository-relative `docs/order/work-items`; the installer does not collect an installation-global WorkItem root;
 - when upgrading the immediately preceding config/source layout, migrate external WorkItem source Markdown into the deterministic selected-repository location under the P6 v2→v3 migration contract before activating the new daemon; the old external root is migration input only and is never a productive v3 source boundary;
 - collect optional read-only STAGE reference roots separately, defaulting to none; choosing `$HOME` or another broad reference root is an explicit operator decision and never a target-project discovery mechanism;
 - install/update one user-level `pontivus-order.service` in the standard user-unit configuration location, reload the user manager, enable it, then restart it so both first install and update run the newly activated application; systemd remains limited to process supervision;
-- treat application/config/state activation as one rollback boundary: on update failure, restore the prior application/launcher/config and any installer-archived legacy database, remove any project manifest created by that failed update attempt, then restore the prior service activity state where host supervision remains available;
-- refuse success until the service is active and the normal `GET /api/health` / `order status` path succeeds.
+- treat predecessor migration, application/launcher replacement, config/state transition and service activation as one reversible transaction until installation commit. Before each effect capture the corresponding existing rollback input; record each successful reversible mutation in the invocation's transient typed state. Failure after any intermediate mutation restores only completed changes in reverse dependency order, including partially moved predecessor install/state/database namespaces, application and launcher independently, config, archived database, installer-created manifests and prior service unit/enablement/activity. Quiesce the newly activated service before restoring its application/state; restart the prior service only after restoration where host supervision permits. Capture the previous service unit and supported enablement/activity before the first service mutation; ambiguous unsupported host state stops before mutation rather than being guessed. A failed rollback reports the original failure and the remaining recovery material, never deletes the only recoverable copy or reports success. No persistent transaction ledger or second owner;
+- installer namespace custody relies on the existing sole Order state writer rule: supported installation/update is a maintenance interval with only the admitted installer migration and then the supervised Order daemon writing the Order database/state. Before installation mutation, tell the operator to stop other Order instances, external database clients and concurrent edits to installer-created integration files until completion. Arbitrary concurrent external writers or pathname replacement are outside supported transactional isolation; systemd inactivity alone cannot establish their absence and ordinary SQLite locks do not serialize namespace renames/unlinks. At each admitted effect boundary verify exact expected object identity, bytes where immutable, membership and recovery material; observed interference or unprovable custody blocks dependent effects or compensation, preserves affected objects and recovery copies, and prohibits unsafe prior-service restart. Never promote an unexpected object into invocation custody merely by observing it after startup. Do not assert race-free protection against an independent same-user writer, introduce a second state writer, or change ordinary SQLite access policy;
+- refuse installation commit until normal service liveness and the applicable readiness admission in §34.13 pass. Atomically publish the existing source marker at that boundary for fresh and established attempts. Publication failure is pre-commit failure. After successful publication, do not enter the reversible rollback handler: retire only superseded predecessor artifacts/backups and update the shell profile as post-commit finalization. If finalization fails, preserve the committed application, config and service; retain remaining recovery material, identify incomplete cleanup with safe actionable diagnostics and return failure (nonzero), explicitly stating the installation was committed but finalization did not complete. Never print ordinary success in that case. An uninterrupted successful invocation reports fresh/update success only after finalization completes. Reruns resolve history under §34.13 and may clean only positively identified superseded material; do not scan/guess/delete ambiguous backup paths. When retained predecessor material causes the existing migration-conflict guard to block a rerun, identify the conflicting canonical paths and instruct the operator to resolve the conflict before retry; never automatically delete or combine installations. Process interruption before commit is not proof of completion; after commit, cleanup interruption does not authorize destructive rollback.
 
 The default application/runtime installation root is `$HOME/.local/share/pontivus-order`; the default launcher path is `$HOME/.local/bin/order`. `PONTIVUS_ORDER_INSTALL_ROOT` and `PONTIVUS_ORDER_BIN_DIR` may override those packaging locations when supplied as absolute paths. The productive installer resolves the P6 state root and loopback bind once and binds the installed launcher/service to those values; callers are not required to export state/model/bind variables after installation.
 
@@ -166,7 +167,7 @@ The visual enforcement boundary is closed by `GW-DOC-WORKBENCH-THEME-V1`: one ro
 
 Order does not introduce a replacement primitive framework merely to recreate behavior the pinned design system already owns. Under `GW-TR-103-ASTRYX-FOUNDATION-CONFORMANCE` and `GW-DOC-EXTERNAL-FACTS`, a local semantic primitive composes the suitable Astryx component for low-level interaction/accessibility/state mechanics, exhausts supported props/layout/density/public theme tokens before custom CSS, and never targets private `--_` variables or generated/internal selectors. The local primitive continues to own the narrower Order semantic API and composition rule; Astryx does not own Order information architecture, domain semantics, browser/server state or lifecycle behavior.
 
-Generic foundation guidance remains subordinate to the P3 product contract. The nine-stage rail therefore is not forced into Astryx Stepper (whose pinned guidance recommends another pattern above seven steps), no AppShell SideNav is added to Order's single-navigation-axis Workbench, and a wide docked Context does not become a floating Drawer merely because Drawer exists.
+Generic foundation guidance remains subordinate to the P3 product contract. The canonical ten-stage rail (including Acceptance) therefore is not forced into Astryx Stepper (whose pinned guidance recommends another pattern above seven steps), no AppShell SideNav is added to Order's single-navigation-axis Workbench, and a wide docked Context does not become a floating Drawer merely because Drawer exists.
 
 ### Workbench technical boundary
 
@@ -765,7 +766,7 @@ order provider login <provider>
 - `setup` is the explicit post-install reconfiguration/recovery surface for the same canonical P6 configuration. Bare `order setup` reuses an already-valid configuration/credential binding without prompting; `order setup --reconfigure` explicitly reopens model/root choices. The productive installer does not invoke either CLI form; both the installer and CLI reuse one canonical guided-configuration functional boundary;
 - `provider login <provider>` remains a narrow maintenance/recovery command for the same private OpenCode credential namespace; normal first-run authentication is driven directly by the custom installer through the same canonical provider shell functions;
 - `open` performs the one-time browser-session bootstrap in [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md) and emits the authenticated connect URL; core v1 does not depend on a host default-browser opener;
-- `status` and `tick` call daemon HTTP contracts through CLI Bearer authentication. `tick` is an operational/global coordinator command and is not the Workbench task-local Start action. Lifecycle resume, exact current-task start and sign-off remain Workbench actions rather than duplicate CLI workflows.
+- `status` uses the public liveness/version query; the installer separately uses the authenticated readiness query under P6 §35.3 for fresh completion. `tick` uses daemon/CLI Bearer authentication. `tick` is an operational/global coordinator command and is not the Workbench task-local Start action. Lifecycle resume, exact current-task start and sign-off remain Workbench actions rather than duplicate CLI workflows.
 
 `orderd` owns periodic scheduling directly:
 
@@ -778,7 +779,7 @@ order provider login <provider>
 
 Manual `order tick` invokes the same global coordinator operation. It does not create another scheduler, queue or mutation path.
 
-The Workbench's manual **Start current task** command is not a scheduler scan. It identifies the exact current approved WorkItem/task, proves final eligibility under the same global single-running-task exclusion, atomically creates that task's BUILDER Run, and then enters the same coordinator execution loop asynchronously. Automatic ticks retain the existing global eligible-task ordering.
+The Workbench's manual **Start current task** command is not a scheduler scan. It identifies the exact current approved WorkItem/task, proves final eligibility under the same global single-running-task exclusion, atomically creates that task's BUILDER Run, and then enters the same coordinator execution loop asynchronously. Automatic ticks retain the existing global eligible-task ordering and are mandatory for signed tasks and queued QA; manual start is never a serial approval.
 
 No model call occurs merely because the timer fires: a tick with no eligible approved task is `NO_WORK`.
 
@@ -854,7 +855,7 @@ The patch bytes are persisted under the producing Run evidence directory, read b
 
 A `REVIEWER` or `REMEDIATOR` always starts from its own fresh baseline checkout, replays the exact referenced binary patch, regenerates the candidate patch/changed-path projection and requires exact hash/path equality before provider work. A mismatch blocks the control plane; it is never delegated to the model.
 
-Final success is one `CANDIDATE_RECORDED` RunEvent emitted by the final `REVIEWER` Run. That Run's `triggerEventId` is the exact final candidate-state event, and it owns the complete current coordinator-generated `VALIDATION_PASSED` set for V0-V7; no pass event from an earlier candidate/Run is reusable. That linkage supplies:
+Final success is one `CANDIDATE_RECORDED` RunEvent emitted by the final `REVIEWER` Run. That Run owns the complete current coordinator-generated `VALIDATION_PASSED` set for V0–V7; no pass event from an earlier candidate/Run is reusable. Under P6 §§8/10/38, its trigger is the exact final `CANDIDATE_STATE_RECORDED` for ordinary review, or the exact prior `CANDIDATE_RECORDED` linked to the admitted QA submission for direct QA replay. In the latter case resolve and verify that prior event's exact `candidateStateEventId`; the newly emitted `CANDIDATE_RECORDED` binds that same replayed state event and only the new reviewer's own V0–V7 pass set. A remediated successor binds the actual new candidate-state event; never synthesize a candidate-state event for a read-only replay. That linkage supplies:
 
 - work item/task through the Run/ExecutionTask;
 - approved baseline through the Run/Approval;
@@ -863,7 +864,7 @@ Final success is one `CANDIDATE_RECORDED` RunEvent emitted by the final `REVIEWE
 - exact changed surfaces through `changedPaths`;
 - verification/reviewer/governance/minimum-change evidence through V0-V7 events.
 
-After terminal success Order does not mutate the retained final reviewer workspace.
+After technical success Order does not mutate the retained final reviewer workspace. Final human QA/QC inspects its exact evidence and, if testing requires mutable execution, uses a separate explicit exact-patch replay test copy (never the retained evidence workspace, baseline or a delivery checkout). User-run tests are human observations, not automatic gate PASS. Candidate correction uses only the existing fresh replay reviewer/remediator boundary under still-current Approval. A new verified candidate is recorded before human retest; explicit acceptance is recorded against the exact set, not the workspace path. No automatic application, merge or integration of independent task patches.
 
 Commit, push, pull request, merge and deployment remain outside v1.
 
@@ -1198,7 +1199,7 @@ Existing WorkItem/artifact/run/task/signoff keys remain canonical.
 
 Successful mutations invalidate only affected keys:
 
-- source reconcile -> workItems + selected WorkItem + sourceDiagnostics + affected source/lifecycle-artifact keys;
+- source reconcile -> workItems + selected WorkItem + sourceDiagnostics + affected source/lifecycle-artifact keys; exact Acceptance return also reobserves affected Approval/tasks/Runs/events and QA history/current-proof keys as required by P6 §38.3;
 - Approval authority reconcile -> workItems + selected WorkItem + runs/tasks/lifecycleArtifacts/artifacts/source/signoff/sourceDiagnostics observation keys for that WorkItem; this command changes lifecycle ownership only and never routes through source reconciliation;
 - create -> workItems + sourceDiagnostics; select created item/source;
 - WorkItem source save -> workItems + selected WorkItem + selected source + lifecycleArtifacts + runs/artifacts/signoff package for that WorkItem;
@@ -1252,6 +1253,7 @@ Before:
 - stage promotion;
 - sign-off mutation;
 - V0/V1 post-signoff execution preflight;
+- current Approval QA-review admission and final candidate acceptance under P6 §38;
 
 the daemon performs targeted read-only inspection of the affected source. If the recorded source requires reconciliation, the productive command is rejected with the owning reconciliation/precondition reason; it does not apply the reconciliation and then fail the requested command.
 
@@ -1261,7 +1263,7 @@ The inspection reads only the affected source; it does not rescan the full queue
 
 External source edits while the daemon is running are therefore observed by diagnostics/read-only productive inspection and become canonical workflow transitions only through explicit reconcile/save.
 
-During `EXECUTION`, reconciliation may update the current source projection but cannot authorize continued work: the approval/source comparison yields `APPROVAL_STALE` and returns to the earliest changed-material owner before another productive execution Run. Direct browser source/artifact editing remains disabled in EXECUTION.
+During `EXECUTION`, reconciliation may update the current source projection but cannot authorize continued work: the approval/source comparison yields `APPROVAL_STALE` and returns to the earliest changed-material owner before another productive execution Run. Direct browser source/artifact editing remains disabled in EXECUTION. In AWAITING_ACCEPTANCE it likewise remains disabled; current source/authority inspection is observational and a stale source blocks QA-review admission and final acceptance. Only the explicit selected source reconciliation command with the exact current Approval/sequence returns to R1 under P6 §38.3; ordinary bulk/startup/configuration use its no-implicit-return boundary. A valid source change adopts only its admitted projection; invalid-source invalidation does not adopt invalid bytes or alter the rejected classification. No implicit write, continuing signed work, or acceptance on drift.
 
 For a WorkItem already in `COMPLETE`, inspection/reconciliation does not reinterpret or reopen the historical lifecycle result. If source bytes change or disappear, Order preserves the completed runtime projection and reports `COMPLETED_SOURCE_CHANGED` or `COMPLETED_SOURCE_MISSING`. The operator must create a new WorkItem for new/changed intent rather than repurpose the completed stable id.
 
@@ -1281,7 +1283,7 @@ The sign-off view is a read-only composition of canonical source/package state p
 
 Opening an editable pre-signoff document from sign-off exits the ready package state through normal save/invalidation semantics; the old package hash cannot be reused.
 
-EXECUTION/COMPLETE views expose no Markdown mutation action for signed package artifacts or production outcomes. Existing signed material remains inspectable, but editing it requires returning through the canonical upstream lifecycle rather than changing bytes under active approval.
+EXECUTION/AWAITING_ACCEPTANCE/COMPLETE views expose no Markdown mutation action for signed package artifacts or production outcomes. Existing signed material remains inspectable, but editing it requires returning through the canonical upstream lifecycle rather than changing bytes under active approval.
 
 #### Verification obligations
 
@@ -1316,8 +1318,8 @@ Permanent tests must prove at least:
 - source hash participates in context identity;
 - source edit during active daemon invalidates promotion/approval as required;
 - source-bound sign-off/V0/V1 freshness with required non-null Approval source binding;
-- fresh SQLite initialization creates the complete current schema with `user_version = 3`;
-- unsupported legacy SQLite schema versions fail before mutation and no migration/backfill path is present;
+- fresh SQLite initialization creates the complete current schema with `user_version = 4`;
+- ordinary startup rejects unsupported versions; only stopped-daemon installer migrates supported predecessors under P6 §§32/38;
 - current lifecycle-artifact query selects only canonical current role snapshots and excludes superseded history;
 - direct R1/R2/DESIGN/PLAN Markdown save is hash-guarded and returns to owner;
 - R3 direct write rejected;
@@ -1591,7 +1593,7 @@ The Git shell proves the operation-state condition by resolving Git-internal pat
 
 Detached HEAD and in-progress Git operations are ordinary typed blockers. Order does not attempt to finish, abort or otherwise manipulate the external Git operation.
 
-Implementation/Complete are always ineligible even if WorkItem Markdown happens to differ in the working tree.
+Implementation/Acceptance/Complete are always ineligible even if WorkItem Markdown happens to differ in the working tree.
 
 ### 30.14 Repository-local Git identity
 
@@ -1640,7 +1642,7 @@ This avoids a dual approval semantic and ensures every new v3 Approval is formed
 
 **Required behavior:** daemon eligibility plus Git-shell repository-state probes reject documentation commits outside the permitted pre-signoff/no-active-Run/attached-clean-operation-state boundary.
 
-**Acceptance criterion:** detached HEAD, in-progress Git operations, active Run, Implementation/Complete and noncommittable document states cause no Git mutation and return a specific blocker.
+**Acceptance criterion:** detached HEAD, in-progress Git operations, active Run, Implementation/Acceptance/Complete and noncommittable document states cause no Git mutation and return a specific blocker.
 
 **Failure/negative behavior:** `git commit` process failure must not be used as the primary eligibility check.
 
@@ -1989,7 +1991,7 @@ Retain one permanent workflow:
 .github/workflows/ci.yml
 ```
 
-It runs for pull requests targeting `master` and may also run on `master` for post-merge signal.
+It runs for the PR targets admitted by `GW-DOC-PUBLIC-REPOSITORY-DELIVERY` §10, using the same exact-base/head/merge-candidate checkout and verification job for each target. It may also run on `master` for post-merge signal.
 
 PR execution must be secret-free. It:
 
@@ -2426,7 +2428,7 @@ Update from 0.2.0/v3:
 6. start the daemon even when post-update account readiness requires operator action;
 7. expose unresolved readiness through Settings instead of treating it as installation corruption.
 
-Fresh install may complete with an incomplete v4 config and route the operator into Settings. Guided terminal setup remains available, but it is no longer the only way to reach a valid daemon.
+Fresh installer admission consumes `GW-FR-007-GUIDED-PRODUCTIVE-BOOTSTRAP` and `GW-FR-079-PRODUCTIVE-INSTALLATION-READINESS` (including §2 historical ambiguity). Resolve one invocation-local established-installation decision before migration or staging. Inspect only the exact current or supported predecessor install root and its corresponding launcher/unit: regular readable `SOURCE_COMMIT` containing one lowercase 40-hex commit plus newline, `app/src/cli.ts`, `app/dist/index.html`, executable `runtime/bun/bin/bun`, executable launcher and regular user-service unit. Do not follow symlinks as proof or combine parts across roots; existing conflict checks remain authoritative. A complete footprint identifies a candidate deployment, not completed installation history: v0.2.0–v0.5.0 publish the identical marker before completion and its bytes cannot distinguish historical or newer publication semantics. Use the existing terminal-question boundary for every otherwise complete footprint, identifying its exact install root and asking whether installation admission previously completed (ordinary successful installation/update or explicitly reported committed with finalization incomplete) [y/N]. Only explicit y/yes, case-insensitive after trimming, confirms the established exemption; n/no, blank or unknown means fresh/unproven, other input is rejected and re-prompted, and cancellation/EOF/unavailable input stops before mutation. This consumes the history disposition owned by P3 §2, not a new current readiness test. Do not infer prior completion from liveness, marker, version, timestamps, config, account or database residue. Missing/malformed/partial footprint takes fresh/unproven admission or explicit recovery if existing conflict prevents safe continuation. Preserve valid retained configuration and private provider state; keep legacy migration permission independent of this decision. Use the resolved decision consistently for guided setup, readiness gating and operator-facing start/completion classification; broad footprint detection is restricted to migration/conflict/rollback. Fresh/unproven attempts consume the existing daemon-owned readiness query (P6 §35.3) after service activation and liveness; blocked or unproven observation fails the reversible transaction. Established update/recovery does not require productive readiness. Remove source-marker publication from staging for all attempts; the unchanged marker bytes are published only at the §2 installation commit boundary, not as retrospective proof of previous completion. No new persisted state, marker file, schema, alternate setup flow, CLI command or readiness owner.
 
 Permanent migration tests must prove v3 choices survive byte-for-semantic-value conversion, retained private OpenCode state remains in place, and missing account/repository/model conditions reach Settings rather than daemon startup failure.
 
@@ -2434,9 +2436,9 @@ Permanent migration tests must prove v3 choices survive byte-for-semantic-value 
 
 **Required behavior:** the daemon starts from structurally valid OrderConfig v4 even when repository/model productive prerequisites are absent, and exposes canonical readiness/Settings while blocking only affected productive commands.
 
-**Acceptance criterion:** fresh or upgraded installations can reach authenticated Settings with zero repositories and/or no configured model; existing valid v3 choices migrate unchanged.
+**Acceptance criterion:** already-installed or upgraded systems can reach authenticated Settings with zero repositories and/or no configured model; fresh installer success is forbidden in that state. Existing valid v3 choices migrate unchanged.
 
-**Failure/negative behavior:** daemon startup must not require fake/default repository/model values, silently reset existing config, or force account/model/repository completion exclusively through installer prompts.
+**Failure/negative behavior:** daemon startup must not require fake/default repository/model values, silently reset existing config, or force already-installed recovery exclusively through installer prompts.
 
 #### GW-TR-071-OPENCODE-ACCOUNT-INTEGRATION-READINESS
 

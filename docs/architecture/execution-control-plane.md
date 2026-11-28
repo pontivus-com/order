@@ -79,9 +79,9 @@ orderd
      |
      +-- every 3600s, if no tick is already active
              |
-             +-- no eligible TODO -> NO_WORK
+             +-- no eligible ordinary task or queued Acceptance correction -> NO_WORK
              |
-             +-- eligible TODO -> claim -> execute
+             +-- eligible ordinary task or queued Acceptance correction -> atomic admission -> execute
 ```
 
 `order tick` remains a manual thin-client command for invoking the same global coordinator operation on demand.
@@ -109,7 +109,7 @@ A later distributed-worker requirement would justify revisiting storage. It does
 
 ## 4. Atomic task start
 
-A task is eligible only when:
+An ordinary task is eligible only when:
 
 - state is `TODO`;
 - approval is current;
@@ -120,7 +120,7 @@ A task is eligible only when:
 
 v1 has one daemon and one state writer, so it does not implement worker leases or a separate claim state.
 
-Task start has two admission modes over the **same** canonical task/run transition:
+Ordinary task start has two admission modes over the **same** canonical task/run transition:
 
 - an automatic/tick start selects the single globally eligible `TODO`;
 - an operator Start current task command supplies a WorkItem/task id and must prove that task is exactly the current eligible execution owner for that WorkItem.
@@ -134,9 +134,11 @@ In both modes one SQLite transaction:
 
 The manual command cannot cause another globally eligible task to be selected. It does not create a second queue, scheduler or claim state.
 
+Queued Acceptance correction is a second eligibility branch of the same automatic scan, not a second scheduler or manual task-start mode. P6 §§17/23/38.3 own exact selection, precedence, admission and transaction semantics. It admits the exact previously successful candidate-producing task directly into REVIEWER, with the linked REVIEW_STARTED and WorkItem return to EXECUTION committed together. Ordinary BUILDER admission remains TODO-only; no synthetic TODO, second approval or unrelated task start.
+
 If the daemon stops while a post-signoff Run is `RUNNING`, startup recovery marks that Run `FAILED / COORDINATOR_INTERRUPTED`, abandons its workspace, and applies the bounded operational-action retry policy in [GW-DOC-CANONICAL-CONTRACTS §§8,21](../contracts/canonical-contracts.md). When the single automatic replacement is permitted the ExecutionTask remains `RUNNING` and the coordinator creates the same-role/same-trigger continuation Run; otherwise task and WorkItem block. Automatic recovery never routes through `TODO`.
 
-A task remains `RUNNING` across builder/reviewer/remediator Run boundaries. When no Run is active for that task, the coordinator first reconciles the last durable RunEvent and starts the uniquely required continuation Run, if any, before considering another `TODO` task. Exact continuation eligibility/atomicity is owned by [GW-DOC-CANONICAL-CONTRACTS §§17,23](../contracts/canonical-contracts.md).
+A task remains `RUNNING` across builder/reviewer/remediator Run boundaries. When no Run is active for that task, the coordinator first reconciles the last durable RunEvent and starts the uniquely required continuation Run, if any, before considering another ordinary task or queued Acceptance correction under P6 §23. Exact continuation eligibility/atomicity is owned by [GW-DOC-CANONICAL-CONTRACTS §§17,23](../contracts/canonical-contracts.md).
 
 ## 5. Preflight
 
@@ -246,7 +248,7 @@ Initial terminal outcomes include:
 - `ENVIRONMENT_BLOCKED`;
 - `PROVIDER_FAILURE`.
 
-`CANDIDATE_DONE` means every applicable validation stage passed. It does not authorize commit, PR, merge, deployment, or production mutation.
+`CANDIDATE_DONE` means every applicable validation stage passed for an execution task. When the current Approval has at least one such task and all tasks succeeded, enter final human Acceptance, not terminal WorkItem completion; all-no-op completes directly. Human findings are durable observations against exact candidates, not provider output or synthetic validation failures. The existing scheduler admits a submitted QA review only under current Approval, exact candidate and global single-running-task exclusion; a new read-only REVIEWER replays the exact candidate and evaluates findings against signed criteria. A real repairable V4 failure invokes existing bounded REMEDIATOR and fresh V0–V7 proof; a genuine specification or authority defect follows existing upstream return; exhausted retry blocks. Existing budgets are not reset. Final human acceptance is a separate atomic WorkItem completion decision, not a Run or gate. Neither technical success nor acceptance authorizes commit, PR, merge, deployment, or production mutation.
 
 
 ## 12. Signed in-task verification checkpoints

@@ -1,8 +1,10 @@
 import { readFileSync } from "node:fs";
+import { latestApprovalTasks } from "../src/core/lifecycle.ts";
 import { describe, expect, it } from "vitest";
 
 import {
   ArtifactRefSchema,
+  ApprovalSchema,
   ExecutionTaskSchema,
   RunEventSchema,
   RunSchema,
@@ -16,14 +18,23 @@ import {
 } from "../src/core/contracts.ts";
 import {
   agentActivityRunEvents,
+  verifiedCandidateProofEvents,
   conversationRunEvents,
   pendingProposalForEvents,
   resolveWorkflowMaterial,
+  resolveContextArtifact,
+  selectedContextArtifactId,
   runEventPlane,
   runEventPresentation,
+  stageCompletionProductLabel,
+  workflowMaterialIdentity,
+  bindProspectiveApprovalSelection,
+  prospectiveApprovalIsSuperseded,
+  exactReadinessPackageDocuments,
   workflowRunEvents,
   readinessOutcomeLabel,
   runStatusLabel,
+  runTerminalClassificationLabel,
   workOutcomeProductLabel,
   workflowStepState,
   type ProposalSelection,
@@ -239,7 +250,33 @@ const resolveFixtureMaterial = (
   });
 };
 
+describe("IA32 execution feedback", () => {
+  it("humanizes recorded terminal classification without fabricating a failure event", () => {
+    expect(runTerminalClassificationLabel("PRECONDITION_FAILED")).toBe("An execution prerequisite failed.");
+    expect(runTerminalClassificationLabel("PROVIDER_FAILURE")).toBe("The agent provider failed.");
+    expect(runTerminalClassificationLabel("COORDINATOR_INTERRUPTED")).toBe("The implementation attempt was interrupted.");
+    expect(runTerminalClassificationLabel(null)).toContain("no matching terminal failure reason");
+  });
+});
+
 describe("workflow presentation policy", () => {
+  it("binds Context to exact ArtifactRef identity rather than same-path bytes or a foreign WorkItem", () => {
+    const item = workItem("PLAN");
+    const historical = artifact("PLAN", uuidB);
+    const current = ArtifactRefSchema.parse({ ...historical, id: "artifact_" + uuidC,
+      gitCommit: null, sha256: "sha256:" + "b".repeat(64) });
+    const foreign = ArtifactRefSchema.parse({ ...historical, workItemId: "work_" + uuidD });
+    const reported = { path: current.repositoryPath, sha256: current.sha256, artifactId: current.id };
+    const id = selectedContextArtifactId({ kind: "STAGE_DOCUMENT", artifactId: historical.id }, reported);
+    expect(id).toBe(historical.id);
+    expect(resolveContextArtifact(item.id, id, [foreign, current, historical])).toEqual(historical);
+    expect(resolveContextArtifact(item.id, id, [current, foreign])).toBeNull();
+    expect(selectedContextArtifactId({ kind: "SOURCE_DOCUMENT" }, reported)).toBeNull();
+    expect(selectedContextArtifactId({ kind: "APPROVAL_PACKAGE", artifactId: current.id }, reported)).toBe(current.id);
+    expect(selectedContextArtifactId({ kind: "APPROVAL_PACKAGE" }, reported)).toBeNull();
+    expect(selectedContextArtifactId({ kind: "APPROVAL_PACKAGE" }, null)).toBeNull();
+  });
+
   it("keeps workflow semantics independent of theme selection", () => {
     const presentation = readFileSync(
       new URL("../ui/src/workbench-presentation.ts", import.meta.url),
@@ -247,7 +284,54 @@ describe("workflow presentation policy", () => {
     );
     expect(presentation).not.toMatch(/data-theme|prefers-color-scheme|colorScheme|localStorage/);
   });
+  it("binds Approval identity to its exact parent and selected child", () => {
+    const first: WorkflowMaterial = { kind: "APPROVAL_PACKAGE", approvalId: `approval_${uuidA}` };
+    const second: WorkflowMaterial = { kind: "APPROVAL_PACKAGE", approvalId: `approval_${uuidB}` };
+    expect(workflowMaterialIdentity(first)).not.toBe(workflowMaterialIdentity(second));
+    expect(workflowMaterialIdentity({ ...first, artifactId: `artifact_${uuidC}` }))
+      .not.toBe(workflowMaterialIdentity(first));
+    expect(workflowMaterialIdentity({ ...first, taskId: `task_${uuidD}` }))
+      .not.toBe(workflowMaterialIdentity(first));
+    expect(workflowMaterialIdentity({kind:"APPROVAL_PACKAGE",packageHash:hash}))
+      .not.toBe(workflowMaterialIdentity(first));
+  });
+
+  it("preserves prospective package and child identity on a superseding observation", () => {
+    const first = bindProspectiveApprovalSelection({ kind: "APPROVAL_PACKAGE" }, hash);
+    const detail = { ...first, taskId: "T1" };
+    const replacementHash = `sha256:${"b".repeat(64)}`;
+    expect(bindProspectiveApprovalSelection(detail, replacementHash)).toEqual(detail);
+    expect(prospectiveApprovalIsSuperseded(detail, replacementHash)).toBe(true);
+    expect(prospectiveApprovalIsSuperseded(detail, hash)).toBe(false);
+    expect(bindProspectiveApprovalSelection(detail, null)).toEqual(detail);
+    const replacement = bindProspectiveApprovalSelection({ kind: "APPROVAL_PACKAGE" }, replacementHash);
+    expect(replacement).toEqual({ kind: "APPROVAL_PACKAGE", packageHash: replacementHash });
+    expect(prospectiveApprovalIsSuperseded(replacement, replacementHash)).toBe(false);
+  });
+
+  it("admits reviewed documents only from a closure containing the exact R3 root", () => {
+    const root = artifact("R3", uuidB);
+    const plan = artifact("PLAN", uuidC);
+    const competing = ArtifactRefSchema.parse({ ...root, id: "artifact_" + uuidD });
+    const foreign = ArtifactRefSchema.parse({ ...plan, workItemId: "work_" + uuidE });
+    expect(exactReadinessPackageDocuments(root, [root, plan])).toEqual([plan]);
+    expect(exactReadinessPackageDocuments(root, [competing, plan])).toBeNull();
+    expect(exactReadinessPackageDocuments(root, [root, foreign])).toBeNull();
+    expect(exactReadinessPackageDocuments(root, [root, root, plan])).toBeNull();
+    expect(exactReadinessPackageDocuments(root, [plan])).toBeNull();
+  });
+
   it("uses explicit canonical product labels and typed Readiness outcomes", () => {
+    expect(stageCompletionProductLabel({stage:"R1",outcome:"CONFIRMED"})).toBe("Research confirmed the work request");
+    expect(stageCompletionProductLabel({stage:"R1",outcome:"DISPROVEN"})).toBe("Research disproved the work request");
+    expect(stageCompletionProductLabel({stage:"R1",outcome:"DUPLICATE"})).toBe("Duplicate work identified");
+    expect(stageCompletionProductLabel({stage:"R1",outcome:"ALREADY_SATISFIED"})).toBe("Work already satisfied");
+    expect(stageCompletionProductLabel({stage:"R1",outcome:"INVESTIGATION_COMPLETE"})).toBe("Investigation complete");
+    expect(stageCompletionProductLabel({stage:"R1",outcome:"AUDIT_COMPLETE"})).toBe("Audit complete");
+    expect(stageCompletionProductLabel({stage:"R2",outcome:"ACCEPTED"})).toBe("Requirements accepted");
+    expect(stageCompletionProductLabel({stage:"DESIGN",outcome:"ACCEPTED"})).toBe("Solution design accepted");
+    expect(stageCompletionProductLabel({stage:"PLAN",outcome:"ACCEPTED"})).toBe("Implementation plan accepted");
+    expect(stageCompletionProductLabel({stage:"R3",outcome:"READY_FOR_SIGNOFF"})).toBe("Ready for sign-off");
     expect(workOutcomeProductLabel(null)).toBe("Complete");
     expect(workOutcomeProductLabel("DISPROVEN")).toBe("Disproven");
     expect(workOutcomeProductLabel("DUPLICATE")).toBe("Duplicate");
@@ -481,7 +565,7 @@ describe("workflow presentation policy", () => {
       runs: [],
       artifacts: [],
       approvalPackageAvailable: false,
-    })).toEqual({ kind: "STEP_STATE" });
+    })).toEqual({ kind: "APPROVAL_PACKAGE" });
 
     const executionTask = task(uuidC, "RUNNING");
     const run = executionRun(executionTask, "RUNNING", uuidD);
@@ -948,5 +1032,41 @@ describe("Run presentation", () => {
       detail: "test is awaiting coordinator verification.",
       tone: "neutral",
     });
+  });
+});
+
+
+describe("verified candidate evidence projection", () => {
+  it("uses only the final approval's exact candidate state and validation references", () => {
+    const historical = task(uuidC, "CANDIDATE_DONE");
+    const current = ExecutionTaskSchema.parse({ ...task(uuidD, "CANDIDATE_DONE"), approvalId: "approval_" + uuidE });
+    const builder = RunSchema.parse({ ...executionRun(current, "COMPLETED", uuidF), terminalClassification: "CANDIDATE_DONE" });
+    const event = (run: Run, sequence: number, identity: number, payload: RunEventPayload) =>
+      RunEventSchema.parse({ id: "event_00000000-0000-4000-8000-" + String(identity).padStart(12, "0"), runId: run.id, sequence, occurredAt: stamp, event: payload });
+    const state = event(builder, 1, 1, { tag: "CANDIDATE_STATE_RECORDED", patch: { relativePath: "candidate.patch", sha256: hash, mediaType: "text/x-diff" }, changedPaths: ["ui/src/WorkItemWorkspace.tsx"] });
+    const approval = ApprovalSchema.parse({id: current.approvalId, workItemId: builder.workItemId, baselineCommit: commit,
+      packageHash:hash, planArtifactRefId:"artifact_"+uuidA,r3ArtifactRefId:"artifact_"+uuidB,
+      sourceSha256:hash,approvedBy:"test",approvedAt:stamp});
+    const reviewer = RunSchema.parse({ ...executionRun(current, "COMPLETED", uuidG), attempt:2, role: "REVIEWER", triggerEventId: state.id, terminalClassification: "CANDIDATE_DONE" });
+    const independentReview = event(reviewer, 1, 12, {tag:"REVIEW_PASSED",minimumChange:"MINIMUM_SUFFICIENT",minimumChangeSummary:null,evidence:[]});
+    const validations = (["V0","V1","V2","V3","V4","V5","V6","V7"] as const).map((stage, i) => event(reviewer, i + 2, i + 2, { tag: "VALIDATION_PASSED", stage, evidence: [] }));
+    const record = event(reviewer, 10, 10, { tag: "CANDIDATE_RECORDED", candidateStateEventId: state.id, validationEventIds: validations.map((v) => v.id) });
+    const oldRun = executionRun(historical, "FAILED", uuidH);
+    const oldEvent = event(oldRun, 1, 11, { tag: "PROVIDER_FAILED", detail: "Unrelated failed attempt", evidence: [] });
+    const all = [state, independentReview, ...validations, record, oldEvent];
+    expect(latestApprovalTasks([historical, current])).toEqual([current]);
+    expect(verifiedCandidateProofEvents(approval,[historical, current], [builder, reviewer, oldRun], all,[])).toEqual([state, ...validations]);
+    for(const missing of [validations[2]!,record,independentReview]){
+      expect(verifiedCandidateProofEvents(approval,[current],[builder,reviewer],all.filter(v=>v.id!==missing.id),[])).toBeNull();
+    }
+    const second=ExecutionTaskSchema.parse({...current,id:"task_"+uuidH,planTaskId:"T2"});
+    expect(verifiedCandidateProofEvents(approval,[current,second],[builder,reviewer],all,[])).toBeNull();
+    const foreign=RunSchema.parse({...reviewer,baselineCommit:"b".repeat(40)});
+    expect(verifiedCandidateProofEvents(approval,[current],[builder,foreign],all,[])).toBeNull();
+    const noOp=ExecutionTaskSchema.parse({...second,state:"ALREADY_SATISFIED"});
+    const noOpRun=RunSchema.parse({...executionRun(noOp,"COMPLETED",uuidI),terminalClassification:"ALREADY_SATISFIED"});
+    const noOpProof=event(noOpRun,1,13,{tag:"TASK_ALREADY_SATISFIED",summary:"exact no-op"});
+    expect(verifiedCandidateProofEvents(approval,[current,noOp],[builder,reviewer,noOpRun],[...all,noOpProof],[])).toEqual([state,...validations]);
+    expect(verifiedCandidateProofEvents(approval,[current,noOp],[builder,reviewer,noOpRun],all,[])).toBeNull();
   });
 });

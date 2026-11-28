@@ -1,25 +1,35 @@
 import { useQuery } from "@tanstack/react-query";
+
 import * as api from "./http.ts";
 import { workbenchQueryKeys } from "./query-keys.ts";
-import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
-import { WorkbenchUtilityLink } from "./primitives/WorkbenchUtilityLink.tsx";
 
-export const OpenCodeAccountControl = ({ onOpenSettings }: Readonly<{ onOpenSettings: () => void }>) => {
-  const accountStateQuery = useQuery({ queryKey: workbenchQueryKeys.openCodeAccountState, queryFn: api.getOpenCodeAccountState });
+export const useOpenCodeAccountControl = (): Readonly<{
+  label: string;
+  readiness: Readonly<{
+    tone: "neutral" | "success" | "warning" | "danger";
+    label: string;
+  }>;
+}> => {
+  const accountStateQuery = useQuery({
+    queryKey: workbenchQueryKeys.openCodeAccountState,
+    queryFn: api.getOpenCodeAccountState,
+  });
   const state = accountStateQuery.data;
-  const active = state?.accounts.find((account) => account.active) ?? null;
-  const needsAttention = active === null || active.status.status !== "READY" || (state?.mutationBlockers.length ?? 0) > 0;
-  const accountLabel = active?.label ?? (accountStateQuery.isPending ? "Checking…" : "No account");
-  return (
-    <WorkbenchUtilityLink
-      label={"OpenCode: " + accountLabel}
-      detail={<WorkbenchStatus
-        tone={accountStateQuery.isError ? "danger" : needsAttention ? "warning" : "success"}
-        label={accountStateQuery.isError ? "Unavailable" : needsAttention ? "Needs attention" : "Ready"}
-      />}
-      href="/settings/opencode"
-      testId="opencode-account-trigger"
-      onNavigate={(event) => { event.preventDefault(); onOpenSettings(); }}
-    />
-  );
+  const activeAccount =
+    state?.accounts.find((candidate) => candidate.active) ?? null;
+  const readiness = accountStateQuery.isError
+    ? { tone: "danger" as const, label: "Unavailable" }
+    : accountStateQuery.isPending
+      ? { tone: "neutral" as const, label: "Checking…" }
+      : activeAccount === null
+        ? { tone: "warning" as const, label: "Account required" }
+        : activeAccount.status.status !== "READY"
+          ? { tone: "warning" as const, label: "Needs sign-in" }
+          : { tone: "success" as const, label: "Ready" };
+
+  return {
+    label: activeAccount?.label ??
+      (accountStateQuery.isPending ? "Checking…" : "No account"),
+    readiness,
+  };
 };

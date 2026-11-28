@@ -180,6 +180,8 @@ Each existing lifecycle document exposes at minimum:
 - the editing action when allowed;
 - the relevant conformance/readiness status available from canonical state.
 
+This is an information-availability contract, not an always-visible metadata layout. The exact Markdown/document canvas is the primary Document-class content. Role/currentness/actions may remain in the document header; current path, WorkItem document directory, work kind, Project and Concerns are subordinate same-task orientation facts and, when present on the Document surface, use one specifically named details disclosure closed by default after the document rather than an always-open facts band before it. Git save state/action may remain compactly adjacent to the document action because it directly governs the document persistence task.
+
 Raw ArtifactRef identity/hash information is not required for ordinary navigation. Where existing diagnostic surfaces expose it, it remains read-only and secondary to lifecycle/document navigation.
 
 Run history, questions, evidence and artifact proposals remain inspectable from the WorkItem workspace and remain tied to their canonical Run/RunEvent records.
@@ -199,7 +201,7 @@ If the operator leaves sign-off to edit an editable Markdown document, the norma
 
 The execution/candidate inspection capability itself remains owned by `GW-FR-005-LOCAL-WORKBENCH`, `GW-DOC-EXECUTION-CONTROL-PLANE-V1` and `GW-DOC-VALIDATION-STANDARD-V1`.
 
-This extension owns only the editor boundary: once a WorkItem is in EXECUTION, the existing task/Run/validation/evidence/candidate surfaces remain inspection-only. Order exposes no Markdown-editor mutation action for candidate code, tests, configuration, patch/evidence bytes, RunEvents, Approval records, ExecutionTask state or SQLite/runtime state.
+This extension owns only the editor boundary: once a WorkItem is in EXECUTION, AWAITING_ACCEPTANCE or COMPLETE, the existing task/Run/validation/evidence/candidate surfaces remain inspection-only. Order exposes no Markdown-editor mutation action for candidate code, tests, configuration, patch/evidence bytes, RunEvents, Approval records, ExecutionTask state or SQLite/runtime state.
 
 Signed lifecycle Markdown may remain inspectable, but changing it requires returning through the governed upstream lifecycle rather than editing signed bytes inside the execution view.
 
@@ -234,7 +236,7 @@ That action:
 - reports the resulting commit or the exact failure;
 - leaves the working-tree document bytes intact if the commit fails.
 
-Documentation Git save is available only while the WorkItem remains pre-signoff (`IDEA`, Research, Requirements, Solution design, Implementation plan, Readiness review or Approval) and no Run for that WorkItem is currently active. It is unavailable in Implementation/Complete because those states treat the signed lifecycle package as inspection-only.
+Documentation Git save is available only while the WorkItem remains pre-signoff (`IDEA`, Research, Requirements, Solution design, Implementation plan, Readiness review or Approval) and no Run for that WorkItem is currently active. It is unavailable in Implementation/Acceptance/Complete because those states treat the signed lifecycle package as inspection-only.
 
 Order creates documentation commits only on an attached local branch and only when no merge/rebase/cherry-pick/revert/bisect/sequencer operation is in progress. A detached HEAD or in-progress Git operation is shown as an actionable repository-state blocker rather than being passed through as an unexplained commit failure.
 
@@ -256,8 +258,8 @@ Git save is a documentation operation, not implementation authority. It does not
 
 The Git status/action belongs to the selected WorkItem's Documents/workflow context rather than the global application toolbar.
 
-- the Documents surface shows the resolved project-relative WorkItem directory and current Git status;
-- **Save documentation to Git** is a WorkItem-level secondary/primary mutation when repository changes exist, placed near document/workflow state rather than hidden in Technical details;
+- the Documents surface makes the resolved project-relative WorkItem directory available in the named document-details disclosure and keeps current Git status/action compactly adjacent to the governed document action; neither the directory nor a metadata fact band may precede the Markdown canvas;
+- **Save documentation to Git** is a WorkItem-level secondary/primary mutation when repository changes exist, placed near document/workflow state rather than hidden in technical inspection;
 - the confirmation/review material lists exact governed paths and uses Review/safety space when necessary;
 - compact Context may mirror `Saved to Git` / `Not saved to Git`, but it must not become the only place from which the operator can understand or perform the operation.
 
@@ -363,9 +365,9 @@ The Git status/action belongs to the selected WorkItem's Documents/workflow cont
 
 **Required behavior:** explicit documentation Git save is available only for a pre-signoff WorkItem with no active Run, on an attached local branch, with no in-progress Git operation and with a committable canonical WorkItem document set.
 
-**Acceptance criterion:** Implementation/Complete, detached HEAD, active Run and merge/rebase/cherry-pick/revert/bisect/sequencer states present a specific blocker and perform no Git commit.
+**Acceptance criterion:** Implementation/Acceptance/Complete, detached HEAD, active Run and merge/rebase/cherry-pick/revert/bisect/sequencer states present a specific blocker and perform no Git commit.
 
-**Failure/negative behavior:** the browser must not treat a generic Git process failure as the normal eligibility mechanism or permit documentation commits to mutate signed/historical package state during Implementation/Complete.
+**Failure/negative behavior:** the browser must not treat a generic Git process failure as the normal eligibility mechanism or permit documentation commits to mutate signed/historical package state during Implementation/Acceptance/Complete.
 
 ### GW-FR-072-REPOSITORY-LOCAL-GIT-IDENTITY
 
@@ -460,7 +462,7 @@ On constrained widths, Split may be unavailable or collapse to Edit/Preview swit
 
 Read-only documents open in Preview by default and may expose exact-source inspection where useful, but no editing action is added.
 
-### 17.4 Source-editing ergonomics and formatting toolbar
+### 17.4 Source-editing ergonomics, toolbar and authoring composition
 
 The editor must provide the following ordinary Markdown-authoring behavior:
 
@@ -473,7 +475,7 @@ The editor must provide the following ordinary Markdown-authoring behavior:
 - fenced-code and inline-code syntax recognition;
 - accessible focus and keyboard operation.
 
-The editable source surface also provides a compact **Markdown formatting toolbar**. The toolbar is a source-editing affordance, not a rich-text model. Its actions transform the exact current Markdown buffer and selection directly.
+The editable source surface provides one compact **Markdown formatting toolbar**. The toolbar is a source-editing affordance, not a rich-text model. Its actions transform the exact current Markdown buffer and selection directly.
 
 The required toolbar actions are:
 
@@ -492,7 +494,20 @@ The required toolbar actions are:
 - Fenced code block;
 - Horizontal rule.
 
-The toolbar may group structurally related actions and may collapse lower-frequency actions into an overflow/menu treatment on constrained widths, but the actions remain keyboard accessible and discoverable.
+The toolbar may group structurally related commands. On a width that cannot support all commands, lower-frequency commands move into one discoverable overflow/menu treatment **before** the toolbar is allowed to become multiple independent stacked formatting rows. All commands remain keyboard accessible and discoverable.
+
+The Markdown authoring composition is binding:
+
+~~~text
+document identity / current state
+one editor-control region
+task-relevant warning/error/conflict feedback when present
+source / preview / split canvas
+~~~
+
+The editor-control region owns the Edit/Preview/Split mode, formatting commands and Save/Cancel state/actions in a deliberate compact composition. A control that operates on the document must remain visually and structurally adjacent to the document canvas it controls.
+
+No generic Technical-details, Supporting-material/history, repository-inspection or other unrelated progressive-disclosure bar may be inserted between the editor-control region and the source/preview canvas. Supporting workflow-material selection remains outside the editor chrome in its semantic material owner. Exact SHA/commit/provider/schema/other technical identity belongs to the explicit WorkItem Context/technical-inspection surface rather than an inline editor disclosure.
 
 Formatting behavior must be deterministic and reversible:
 

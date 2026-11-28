@@ -37,7 +37,7 @@ This includes:
 - version/changelog metadata;
 - emergency/revert corrections.
 
-Every change is made on a short-lived branch and delivered through a pull request targeting `master`.
+Every change is made on a short-lived branch and ultimately delivered through a pull request targeting `master`. When the operator explicitly designates one existing working branch for an in-flight release campaign, supporting work for that campaign may use stacked pull requests targeting that branch. All such work converges through the campaign's single integration PR to `master`; it must not be delivered independently to `master` or delivered twice. The same PR audit, exact-candidate verification, scope/authority and operator decision boundaries apply to stacked integration. An integration target does not itself confer execution authority or waive an existing sign-off.
 
 The PR is the durable review/audit boundary. Chat approval, an agent plan, a successful local test run or write access does not create a direct-push exception.
 
@@ -66,7 +66,7 @@ Branches are deleted after merge/closure unless a specific release/recovery inve
 
 Every non-release PR must:
 
-1. start from current `master`;
+1. start from current `master`, or from the explicitly designated in-flight campaign integration target under §2; stale supporting candidates must reconcile the current target before merge;
 2. contain one cohesive change/work package;
 3. identify the governing authority/work item where applicable;
 4. update `CHANGELOG.md` under `[Unreleased]`;
@@ -89,7 +89,7 @@ After `1.0.0`, ordinary Semantic Versioning 2.0.0 MAJOR/MINOR/PATCH semantics ap
 
 The highest release impact among unreleased merged PRs determines the minimum next release increment.
 
-PRs use squash merge so one merged PR maps to one default-branch commit/audit unit. The squash title should retain the PR number.
+PRs delivering to `master` use squash merge so one merged PR maps to one default-branch commit/audit unit. The squash title should retain the PR number. Stacked integration retains attributable PR provenance and preserves existing campaign ancestry; its final public delivery remains the single squash PR.
 
 ## 4. Version ownership
 
@@ -239,7 +239,7 @@ The repository maintains permanent GitHub Actions workflows for:
 
 ### Pull request verification
 
-Triggered for PRs targeting `master`.
+Triggered for PRs targeting `master` and explicitly designated active campaign integration targets. Maintain the allowed target list in the existing permanent verification workflow; do not add a second verification workflow, broaden to arbitrary branch targets, or skip any required gate. Retire an integration target from the list when its supporting integration work is finished and include that change in final exact-candidate verification. The target's current base, PR head and exact tested merge candidate remain explicit evidence; a previous master-targeted run cannot certify a different stacked merge candidate.
 
 It validates at minimum:
 
@@ -249,6 +249,18 @@ It validates at minimum:
 - all required Order verification gates against the exact current PR merge candidate.
 
 A submitted review may provide additional evidence, but review presence or reviewer identity is not a required status gate. A material push invalidates earlier verification evidence because the workflow reruns against the new exact candidate.
+
+### Milestone-driven implementation CI cadence
+
+For repository implementation work, schedule remote PR verification at the relevant implementation/evidence milestones, not at every intermediate commit, correction, or conversational handoff.
+
+- Derive milestones from the governing implementation plan and its mandatory checkpoint, dependency, and acceptance boundaries. For ordinary work without a prescribed sequence, use coherent implementation batches and exact-candidate pre-merge verification. Do not add arbitrary verification stops between those boundaries.
+- Complete related authorized implementation and test changes as a batch. Create coherent intermediate commits without advancing the PR branch ref; publish the accumulated fast-forward commit sequence once at the next required milestone. Preserve the exact signed scope and ordinary PR audit trail.
+- Perform source review, diff/scope checks and available focused local checks during implementation. Do not substitute source review for a required executable check. A mandatory P7 in-task checkpoint or phase-local evidence/acceptance dependency must still be satisfied before the dependent work begins; when remote execution is necessary, that boundary is a valid CI milestone.
+- Do not dispatch or rerun full CI solely to verify every small edit or poll an unfinished run as an implementation activity. Continue independent authorized work while verification runs where the governing dependencies permit. Consolidate related failure analysis and corrections into a single repair batch before rerunning the applicable verification; do not weaken tests or knowingly advance past a failed prerequisite.
+- Retain results against the exact candidate and milestone. Any change invalidating required evidence must be reverified at the next applicable boundary; never carry a stale PASS forward as current proof. Final PR verification, explicit human acceptance where required, and release verification remain mandatory against the exact admitted candidate.
+
+This is a publication and execution-cadence rule, not a new product gate or permission to alter signed plans, skip mandatory checks, bypass review, or disable the permanent PR workflow. The target admission rule above governs PR triggers; required status checks remain unchanged.
 
 ### Release verification/publication
 

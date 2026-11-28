@@ -24,6 +24,14 @@ Reconstruct the complete intended Order functional design that the 0.5.0 work wa
 
 The work must be controlled by that one campaign plan, which proves complete concern coverage, marks the explicit start and end of each investigation, records findings and cross-concern dependencies, tracks every concern through functional design, technical design and final plan coverage, and owns the mandatory final cross-layer alignment/readiness progression.
 
+### Operator clarification — final human QA/QC and acceptance (2026-11-27)
+
+The desired product separates one exact-package implementation authorization from acceptance of the produced solution. After normal sign-off the complete authorized implementation, validation, independent QA and bounded remediation run autonomously; no routine intermediate human approval. A verified candidate is technical production completion, not human acceptance or delivery.
+
+At the final handoff the operator must be able to interact with the candidate in a coherent QA/QC review: inspect the exact candidate, approved acceptance criteria and corresponding verification evidence; perform manual/exploratory evaluation; record feedback and bug reports against the exact reviewed candidate with expected versus observed behavior, reproduction information and supporting evidence; review corrected candidates and retest; explicitly accept/sign off the exact verified candidate for delivery. A blocking finding or rejection prevents acceptance of that candidate. Corrected candidate evidence and acceptance must bind the new exact candidate, not be inherited from a rejected or superseded one. A repair that can be performed under a still-valid existing authorization should run autonomously; material requirement/design/scope/authority changes return to the existing upstream authorization boundary. The human does not approve individual remediation steps. Acceptance is attributable, reviewable and distinct from technical validation; never infer it from a green gate, silence or candidate creation. Acceptance must not silently commit, push, merge or deploy.
+
+This is an explicit operator-requested addition to the native Order product scope, not an implementation observation or a claim that the current package already realizes it. At the operator clarification baseline, the lifecycle/P3/P4/P6 contracts terminated at CANDIDATE_DONE/COMPLETE and restricted linked remediation to completed Investigation/Audit parents. Treat that observation as historical evidence. The affected authoritative requirements and technical contract must be reconciled and independently revalidated before the 0.6.0 package can be declared ready for implementation of this feature; resolve current semantics through the canonical owners. Preserve exact verified-candidate evidence and historical integrity; do not infer a new lifecycle stage, persisted carrier, command, relationship or delivery automation from this request alone. Existing external PR final QA/acceptance can use the canonical GitHub review boundary without pretending to supply the native product feature.
+
 ## Current context
 
 This WorkItem coordinates the existing Order 0.6.0 authority-first reconstruction campaign. The detailed campaign-control, lifecycle-package and implementation observations below are context for that requested outcome; they do not replace the canonical P1-P6 owners or the campaign's sole current-state register.
@@ -74,7 +82,7 @@ The campaign therefore requires:
 - functional-design closure before technical-design decisions;
 - technical-design closure before executable planning;
 - complete P1 -> P2 -> P3 -> P4/P5/P6 -> P7 traceability;
-- one final horizontal integration audit after individual concerns close;
+- complete horizontal integration coverage under the canonical campaign plan;
 - no implementation work until the **sole campaign progression owned by `0.6.0-design-campaign-plan.md`** has reached its implementation-authorizing boundary and the exact package has explicit sign-off. This Work request does not maintain a parallel readiness sequence.
 
 ## Evidence/references
@@ -118,22 +126,9 @@ A stable requirement ID, concern ID, document, schema, passing test or prior rev
 
 The existing 0.6.0 work is an evidence set to recover and revalidate, not a discard-by-default set and not a trusted baseline. Valid authority facts, foundational corrections, implementation evidence and candidate solutions should be reused where independently re-proven. Unsupported closure conclusions must be replaced in the existing canonical lifecycle documents rather than copied into a parallel documentation set.
 
-## Mandatory two-part audit cadence
+## Mandatory exhaustive review and revalidation cadence
 
-The exhaustive restart must be executed in bounded two-concern batches. After any two concerns have been reported complete at a lifecycle phase, those two completed parts must be audited against the full detailed phase requirements before a third concern may begin at that phase.
-
-This cadence applies independently to:
-
-- R1 factual/realization revalidation;
-- R2 functional closure;
-- DESIGN technical closure;
-- PLAN coverage.
-
-The audit is not a summary review. It must reopen the exact two completed parts, challenge every applicable detailed obligation, verify their evidence and cross-layer paths, and return `PASS` or `FAIL`.
-
-A `FAIL` reopens the defective concern(s) at the exact owning phase. A missing audit is equivalent to `FAIL` for progression purposes.
-
-The campaign-control document owns the pair definitions, detailed audit checklist, audit record format and current audit status. No lifecycle artifact or model output may claim later-pair progress when the preceding pair audit has not passed.
+The campaign must retain complete concern, phase and cross-layer audit coverage, without treating each two-concern audit as a separate serial revalidation milestone. As directed by the operator on 2026-11-27, the existing package is to be revalidated in one integrated batch across G2–G6, with consolidated findings and corrections, positive evidence reuse, and no repetitive per-pair publication or CI. The campaign-control document §8.4 exclusively owns the review cadence, pair definitions, detailed checks, evidence and current verdicts. Preserve the logical lifecycle prerequisites, independent R3, exact-candidate fitness and explicit sign-off. No weakening of exhaustive semantic coverage or acceptance criteria is authorized.
 
 ## Explicit exclusions
 

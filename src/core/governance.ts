@@ -142,6 +142,27 @@ const requireResolvedGovernanceRule = (
   }
 };
 
+// Ref closure selects exact identities only; layer/precedence order remains owned by the resolver.
+export const resolveAuthorityRefClosure = (
+  authority: Pick<ResolvedProjectAuthority, "authorityRefs">,
+  dependencies: ProjectManifest["refDependencies"],
+  seeds: readonly AuthorityRef[],
+): readonly AuthorityRef[] => {
+  const reachable = new Set(authority.authorityRefs.map(([ref]) => ref));
+  const visited = new Set<AuthorityRef>();
+  const pending = [...seeds];
+  while (pending.length > 0) {
+    const ref = pending.pop();
+    if (ref === undefined || visited.has(ref)) continue;
+    if (!reachable.has(ref)) throw new TypeError(`unresolved AuthorityRef: ${ref}`);
+    visited.add(ref);
+    if (Object.hasOwn(dependencies, ref)) {
+      for (const dependency of dependencies[ref] ?? []) pending.push(dependency);
+    }
+  }
+  return [...visited].sort();
+};
+
 export const resolveProjectAuthority = (
   manifest: ProjectManifest,
   expandedSources: ExpandedAuthoritySources,
@@ -184,6 +205,16 @@ export const resolveProjectAuthority = (
     }
     authorityRefs.push([authorityRef, path]);
   }
+
+  // Validate all declared edges and stage refs, including currently unused ones.
+  resolveAuthorityRefClosure(
+    { authorityRefs },
+    manifest.refDependencies,
+    [
+      ...Object.keys(manifest.refDependencies),
+      ...Object.values(manifest.stageAuthorityRefs).flatMap((refs) => refs ?? []),
+    ],
+  );
 
   const p1Sources = new Set(
     layers.find((layer) => layer.layer === "p1")?.sources ?? [],
@@ -258,6 +289,37 @@ export const projectAuthorityForLayers = (
     fitnessGateIdsByDefaultRuleId:
       includesP1 ? authority.fitnessGateIdsByDefaultRuleId : [],
     fitnessGateIds: includesP1 ? authority.fitnessGateIds : [],
+    authorityRefs: authority.authorityRefs.filter(([, path]) =>
+      sourcePaths.has(path)
+    ),
+  };
+};
+
+export const projectAuthorityForSources = (
+  authority: ResolvedProjectAuthority,
+  sources: readonly RepositoryPath[],
+): ResolvedProjectAuthority => {
+  const included = new Set(sources);
+  const layers = authority.layers.map((entry) => ({
+    layer: entry.layer,
+    sources: entry.sources.filter((path) => included.has(path)),
+    precedence: entry.precedence.filter((path) => included.has(path)),
+  }));
+  const sourcePaths = new Set(layers.flatMap((entry) => entry.sources));
+  for (const rule of [...authority.overrides, ...authority.extensions]) {
+    if (!sourcePaths.has(rule.source)) {
+      throw new TypeError(
+        `material authority projection omitted applicable governance source: ${rule.source}`,
+      );
+    }
+  }
+  return {
+    layers,
+    inheritedDefaultRuleIds: authority.inheritedDefaultRuleIds,
+    overrides: authority.overrides,
+    extensions: authority.extensions,
+    fitnessGateIdsByDefaultRuleId: authority.fitnessGateIdsByDefaultRuleId,
+    fitnessGateIds: authority.fitnessGateIds,
     authorityRefs: authority.authorityRefs.filter(([, path]) =>
       sourcePaths.has(path)
     ),

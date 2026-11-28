@@ -1,5 +1,10 @@
 import {
   type Approval,
+  type CandidateReviewEvent,
+  type CandidateReviewEventPayload,
+  type Sha256,
+  type RunEventId,
+  CandidateReviewEventSchema,
   type ArtifactRef,
   ArtifactRefSchema,
   ExpectedHashMarkdownWriteSchema,
@@ -19,6 +24,12 @@ import {
 } from "../core/execution.ts";
 import {
   artifactDirectEditIsAllowed,
+  candidateFindingDispositions,
+  candidateMemberActionIsAdmitted,
+  candidateFindingActionIsAdmitted,
+  candidateSubmitIsAdmitted,
+  deriveAcceptanceDecision,
+  linkedSubmission,
   artifactReturnOwner,
   stageRunCancellationIsAdmitted,
   transitionWorkItem,
@@ -32,16 +43,21 @@ import {
 } from "../shell/project.ts";
 import {
   readCommittedFile,
+  prepareCandidateTestCopy,
   readWorkingTreeFile,
   replaceWorkingTreeMarkdown,
 } from "../shell/repository.ts";
 import {
   newArtifactRefId,
+  newCandidateReviewEventId,
   nowIsoDateTime,
   sha256,
 } from "../shell/runtime.ts";
 import {
   loadRunningRuns,
+  loadCandidateReviewEvents,
+  blockExecutionTasksForApproval,
+  storeCandidateReviewEvent,
   loadWorkItems,
   storeArtifact,
   updateWorkItemLifecycle,
@@ -54,6 +70,8 @@ import {
 } from "./runtime.ts";
 import {
   getRun,
+  getRunEvent,
+  validatePayloadEvidence,
   listRunEvents,
   listRuns,
   readReferencedEvidence,
@@ -62,6 +80,9 @@ import {
 } from "./run.ts";
 import {
   canonicalTasksForApproval,
+  observeCurrentCandidateReview,
+  requireCurrentAcceptanceIdentity,
+  acceptanceObservationCodeForFailure,
   currentApprovalForWorkItem,
   currentLifecycleArtifacts,
   currentMaterialFresh,
@@ -71,18 +92,21 @@ import {
   listExecutionTasks,
   reconcileWorkItemAuthority,
   signoffPackageForWorkItem,
+  observeSignoffPackageArtifacts,
   signOffWorkItem,
   staleAuthorityOwnerForFailure,
 } from "./authority.ts";
 import {
   adoptArtifactProposal,
   reconcilePendingArtifactProposals,
+  readArtifactProposalTarget,
   rejectArtifactProposal,
   startStageRun,
   submitRunInput,
 } from "./stage.ts";
 import {
   activeExecutionRun,
+  loadCandidateCapture,
   continuationForRunningTask,
   currentRunningTask,
   executePostSignoffRun,
@@ -100,6 +124,7 @@ import {
   createWorkItemFromSource,
   currentWorkItemSource,
   reconcileWorkItemSources,
+  reconcileAcceptanceSource,
   revalidateWorkItemSource,
   saveWorkItemSource,
   saveWorkItemSourceBody,
@@ -143,12 +168,105 @@ export const listCurrentLifecycleArtifacts = async (
 export const getWorkItemSource = currentWorkItemSource;
 export const getWorkItemSourceDiagnostics = workItemSourceDiagnostics;
 export const reconcileSources = reconcileWorkItemSources;
+export { reconcileAcceptanceSource };
 export const saveSource = saveWorkItemSource;
 export const saveSourceBody = saveWorkItemSourceBody;
 export const updateTitle = updateWorkItemTitle;
 export const setArchived = setWorkItemArchived;
 export const getDocumentationGitStatus = documentationGitStatus;
 export const commitDocumentation = commitWorkItemDocumentation;
+
+// Admission consumes the canonical event payload; ACCEPT membership is server-computed.
+type HumanQaPayload = Exclude<CandidateReviewEventPayload, {tag:"OPENED" | "REVIEW_STARTED" | "REVIEW_COMPLETED" | "ACCEPT"}> | Readonly<{tag:"ACCEPT"}>;
+
+export const recordCandidateReviewDecision = (
+  runtime: CoordinatorRuntime, workItemId: WorkItemId, approvalId: Approval["id"],
+  expectedCandidateHash: Sha256 | null, expectedReviewSequence: number, actor: string,
+  payload: HumanQaPayload,
+): Promise<CandidateReviewEvent> => withWorkItemOperatorMutation(runtime, workItemId, async () => {
+  const identity = requireCurrentAcceptanceIdentity(runtime, workItemId, approvalId, expectedReviewSequence);
+  const proofUnavailable = payload.tag === "REANALYSIS_REQUESTED" && payload.reason === "CANDIDATE_PROOF_UNAVAILABLE";
+  const commit = (event: CandidateReviewEvent) => withTransaction(runtime.database, () => {
+    const current = requireCurrentAcceptanceIdentity(runtime,workItemId,approvalId,expectedReviewSequence);
+    if (JSON.stringify(current)!==JSON.stringify(identity)) throw new TypeError("Acceptance identity changed before command commit");
+    storeCandidateReviewEvent(runtime.database,event);
+    if (event.event.tag === "ACCEPT") updateWorkItemLifecycle(runtime.database,workItemId,transitionWorkItem(current.workItem,{tag:"CANDIDATE_ACCEPTED"}));
+    if (event.event.tag === "REANALYSIS_REQUESTED") {
+      blockExecutionTasksForApproval(runtime.database,approvalId);
+      updateWorkItemLifecycle(runtime.database,workItemId,transitionWorkItem(current.workItem,{tag:"EXECUTION_RETURN",owner:"PLAN"}));
+    }
+    return event;
+  });
+  const makeEvent = (event: CandidateReviewEventPayload) => CandidateReviewEventSchema.parse({
+    id:newCandidateReviewEventId(),approvalId,sequence:expectedReviewSequence+1,occurredAt:nowIsoDateTime(),actor,event
+  });
+  if (proofUnavailable) {
+    if (expectedCandidateHash !== null) throw new TypeError("proof-unavailable reanalysis requires null candidate hash");
+    for (let i=0;i<2;i++) {
+      try { await observeCurrentCandidateReview(runtime,workItemId,approvalId,expectedReviewSequence); }
+      catch (error) {
+        if (acceptanceObservationCodeForFailure(error)==="CANDIDATE_PROOF_UNAVAILABLE") continue;
+        throw error;
+      }
+      throw new TypeError("candidate proof is available; reanalysis not admitted");
+    }
+    return commit(makeEvent(payload));
+  }
+  const proof=await observeCurrentCandidateReview(runtime,workItemId,approvalId,expectedReviewSequence);
+  const round=proof.history.findLast(value=>value.event.tag==="OPENED"||value.event.tag==="REVIEW_COMPLETED");
+  if (round===undefined || (round.event.tag!=="OPENED"&&round.event.tag!=="REVIEW_COMPLETED") ||
+      expectedCandidateHash!==round.event.candidateHash) throw new TypeError("expected candidate hash changed");
+  const members=proof.rounds.get(round.id);
+  if(members===undefined) throw new TypeError("current candidate membership unavailable");
+  const input={...proof,current:true,coherent:true,mutationConflict:false,currentProof:proof.history,diagnostic:null};
+  const decision=deriveAcceptanceDecision(input);
+  switch(payload.tag) {
+    case "REPORT":
+      if(!candidateMemberActionIsAdmitted(input,true,"REPORT",payload.taskId,payload.candidateEventId)) throw new TypeError("report is not admitted");
+      break;
+    case "SUBMIT":
+      if(!candidateSubmitIsAdmitted(input,true,payload.findingIds)) throw new TypeError("submission is not admitted");
+      break;
+    case "RETEST_FAILED":
+      if(!candidateFindingActionIsAdmitted(input,true,"RETEST",payload.findingId)) throw new TypeError("retest is not admitted");
+      break;
+    case "DISPOSITION":
+      if(!candidateFindingActionIsAdmitted(input,true,payload.outcome==="RESOLVED"?"RETEST":"WITHDRAW",payload.findingId)) throw new TypeError("disposition is not admitted");
+      if(payload.followupWorkItemId!==null && getWorkItem(runtime,payload.followupWorkItemId).projectId!==identity.workItem.projectId) throw new TypeError("follow-up must belong to the same project");
+      break;
+    case "REANALYSIS_REQUESTED":
+      if(payload.reason!=="NO_OP_CHALLENGE"||decision.tag!=="REANALYSE_NO_OP"||
+          decision.findingIds.length!==payload.findingIds.length||!decision.findingIds.every(id=>payload.findingIds.includes(id))) throw new TypeError("no-op reanalysis requires exact outstanding challenge set");
+      break;
+    case "ACCEPT":
+      if(decision.tag!=="ACCEPT") throw new TypeError("candidate acceptance is not admitted");
+      break;
+  }
+  const event=makeEvent(payload.tag==="ACCEPT"?{tag:"ACCEPT",candidateHash:round.event.candidateHash,candidateMembers:members}:payload);
+  candidateFindingDispositions([...proof.history,event],proof.rounds,proof.tasks,proof.runs,proof.runEvents);
+  if(event.event.tag==="REPORT"||event.event.tag==="RETEST_FAILED") {
+    for(const id of event.event.evidence) {
+      const evidence=getRunEvent(runtime,id);
+      validatePayloadEvidence(runtime,evidence.runId,evidence.event);
+    }
+  }
+  return commit(event);
+});
+
+export const prepareAcceptanceTestCopy = (
+  runtime: CoordinatorRuntime, workItemId: WorkItemId, approvalId: Approval["id"],
+  expectedCandidateHash: Sha256, expectedReviewSequence: number, taskId: ExecutionTaskId, candidateEventId: RunEventId,
+): Promise<string> => withWorkItemOperatorMutation(runtime,workItemId,async () => {
+  const proof=await observeCurrentCandidateReview(runtime,workItemId,approvalId,expectedReviewSequence);
+  const round=proof.history.findLast(value=>value.event.tag==="OPENED"||value.event.tag==="REVIEW_COMPLETED");
+  if(round===undefined||(round.event.tag!=="OPENED"&&round.event.tag!=="REVIEW_COMPLETED")||
+      round.event.candidateHash!==expectedCandidateHash||
+      !candidateMemberActionIsAdmitted({...proof,current:true,coherent:true,mutationConflict:false,currentProof:proof.history,diagnostic:null},true,"PREPARE_TEST_COPY",taskId,candidateEventId)) throw new TypeError("test copy identity or eligibility changed");
+  const member=getRunEvent(runtime,candidateEventId);
+  if(member.event.tag!=="CANDIDATE_RECORDED") throw new TypeError("test copy requires candidate proof");
+  const workItem=requireCurrentAcceptanceIdentity(runtime,workItemId,approvalId,expectedReviewSequence).workItem;
+  return prepareCandidateTestCopy(workItem.repositoryRoot,proof.approval.baselineCommit,loadCandidateCapture(runtime,getRunEvent(runtime,member.event.candidateStateEventId)));
+});
 
 export type TickResult = Readonly<{
   result: "NO_WORK" | "STARTED";
@@ -431,7 +549,11 @@ const resumeWorkItemUnlocked = async (
     const transition = transitionWorkItem(current, {
       tag: "RESUME_CURRENT_OWNER",
     });
-    markTaskState(runtime, task.id, "TODO");
+    const history=loadCandidateReviewEvents(runtime.database,approval.id);
+    const runs=listRuns(runtime,current.id);
+    const last=runs.filter(run=>run.executionTaskId===task.id).sort((left,right)=>right.attempt-left.attempt)[0];
+    const qa=last!==undefined&&history.length>0&&linkedSubmission(last,runs,runs.flatMap(run=>listRunEvents(runtime,run.id)),history)!==null;
+    markTaskState(runtime, task.id, qa?"RUNNING":"TODO");
     updateWorkItemLifecycle(runtime.database, current.id, transition);
     return getWorkItem(runtime, current.id);
   });
@@ -608,12 +730,19 @@ export {
   getWorkItem,
   listArtifacts,
   listExecutionTasks,
+  observeCurrentApproval,
+  observeApprovalHistory,
+  observeApprovalArtifacts,
+  observeCandidateReviewEvents,
+  acceptanceObservationCodeForFailure,
   reconcileWorkItemAuthority,
   signoffPackageForWorkItem,
+  observeSignoffPackageArtifacts,
   signOffWorkItem,
 } from "./authority.ts";
 export {
   adoptArtifactProposal,
+  readArtifactProposalTarget,
   rejectArtifactProposal,
   startStageRun,
   submitRunInput,

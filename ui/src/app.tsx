@@ -1,9 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  SegmentedControl,
-  SegmentedControlItem,
-} from "@astryxdesign/core/SegmentedControl";
 import { Link } from "@astryxdesign/core/Link";
 import { Theme } from "@astryxdesign/core/theme";
 import { neutralTheme } from "@astryxdesign/theme-neutral/built";
@@ -11,34 +7,29 @@ import { neutralTheme } from "@astryxdesign/theme-neutral/built";
 import {
   WorkItemIdSchema,
   type ProjectManifest,
+  type ArtifactRef,
   type Sha256,
   type WorkItem,
   type WorkItemId,
   type WorkItemSchemaId,
 } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
-import { OpenCodeAccountControl } from "./OpenCodeAccountControl.tsx";
+import { useOpenCodeAccountControl } from "./OpenCodeAccountControl.tsx";
 import type { SettingsSection } from "./SettingsWorkspace.tsx";
 import {
   installationReadinessBlockerText,
   settingsDestinationForReadinessBlocker,
   type WorkflowMaterial,
+  type ContextDocumentIdentity,
 } from "./workbench-presentation.ts";
 import { workbenchQueryKeys } from "./query-keys.ts";
 
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
-import { WorkbenchIcon } from "./primitives/WorkbenchIcon.tsx";
-import { WorkbenchLayout } from "./primitives/WorkbenchLayout.tsx";
+import { WorkbenchAppShell } from "./primitives/WorkbenchAppShell.tsx";
 import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
 import { WorkbenchTaskPanel } from "./primitives/WorkbenchTaskPanel.tsx";
-import { WorkbenchUtilityLink } from "./primitives/WorkbenchUtilityLink.tsx";
 import { WorkbenchConfirmation } from "./primitives/WorkbenchConfirmation.tsx";
-import {
-  WorkbenchToolbar,
-  WorkbenchToolbarGroup,
-  WorkbenchToolbarSearch,
-  WorkbenchToolbarUtilities,
-} from "./primitives/WorkbenchToolbar.tsx";
+import { WorkbenchToolbar } from "./primitives/WorkbenchToolbar.tsx";
 import {
   WorkbenchEmptyState,
   WorkbenchErrorState,
@@ -120,6 +111,7 @@ const updateDestinationUrl = (
 
 export const App = () => {
   const queryClient = useQueryClient();
+  const openCodeAccount = useOpenCodeAccountControl();
   const [selectedWorkItemId, setSelectedWorkItemId] = useState<WorkItemId | null>(selectedIdFromUrl);
   const [settingsSection, setSettingsSection] = useState<SettingsSection | null>(settingsSectionFromUrl);
   const [queueProjectId, setQueueProjectId] = useState("");
@@ -131,8 +123,7 @@ export const App = () => {
   const [contextStep, setContextStep] = useState<WorkItem["stage"] | null>(null);
   const [contextMaterial, setContextMaterial] =
     useState<WorkflowMaterial | null>(null);
-  const [contextDocumentPath, setContextDocumentPath] = useState<string | null>(null);
-  const [contextDocumentSha256, setContextDocumentSha256] = useState<Sha256 | null>(null);
+  const [contextDocument, setContextDocument] = useState<ContextDocumentIdentity | null>(null);
   const [projectId, setProjectId] = useState("");
   const [schemaId, setSchemaId] = useState<WorkItemSchemaId | "">("");
   const [title, setTitle] = useState("");
@@ -141,6 +132,7 @@ export const App = () => {
   const [workspaceDirty, setWorkspaceDirty] = useState(false);
   const [pendingDestination, setPendingDestination] = useState<ApplicationDestination | undefined>(undefined);
   const originatingRowId = useRef<WorkItemId | null>(null);
+  const queueProjectInitialized = useRef(false);
 
   const workItemsQuery = useQuery({ queryKey: workbenchQueryKeys.workItems, queryFn: api.listWorkItems });
   const archivedWorkItemsQuery = useQuery({
@@ -184,6 +176,8 @@ export const App = () => {
         queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItemSourceRoot }),
         queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.lifecycleArtifactsRoot }),
         queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.signoffPackageRoot }),
+        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.currentApprovalRoot }),
+        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.approvalsRoot }),
       ]);
     },
   });
@@ -197,8 +191,12 @@ export const App = () => {
       : workItems.find((item) => item.id === derivedFromWorkItemId) ?? null;
 
   useEffect(() => {
-    if (projectId.length === 0 && projectsQuery.data?.length) {
-      setProjectId(firstProjectId(projectsQuery.data));
+    if (!projectsQuery.data?.length) return;
+    const first = firstProjectId(projectsQuery.data);
+    if (projectId.length === 0) setProjectId(first);
+    if (!queueProjectInitialized.current) {
+      queueProjectInitialized.current = true;
+      setQueueProjectId((current) => current.length === 0 ? first : current);
     }
   }, [projectId, projectsQuery.data]);
 
@@ -260,8 +258,7 @@ export const App = () => {
     setContextOpen(false);
     setContextStep(null);
     setContextMaterial(null);
-    setContextDocumentPath(null);
-    setContextDocumentSha256(null);
+    setContextDocument(null);
     updateDestinationUrl(destination);
     if (returningFrom !== null || (
       destination.workItemId === null && destination.settingsSection === null
@@ -339,9 +336,9 @@ export const App = () => {
   const updateContextDocument = useCallback((
     path: string | null,
     sha256: Sha256 | null,
+    artifactId: ArtifactRef["id"] | null = null,
   ): void => {
-    setContextDocumentPath(path);
-    setContextDocumentSha256(sha256);
+    setContextDocument(path === null ? null : { path, sha256, artifactId });
   }, []);
 
   const queueDataset =
@@ -371,73 +368,64 @@ export const App = () => {
     }
   };
 
+  const applicationDestination =
+    settingsSection !== null
+      ? "Settings"
+      : selectedWorkItem
+        ? "Work item"
+        : "Work queue";
+
+  const projectOptions = (projectsQuery.data ?? []).map(
+    (project) => project.projectId,
+  );
+  const toolbarProjectId =
+    selectedWorkItem?.projectId ??
+    (queueProjectId.length > 0 ? queueProjectId : null);
   const toolbar = (
     <WorkbenchToolbar
-      start={
-        <WorkbenchToolbarGroup>
-          <div className="order-brand">
-            <strong>Order</strong>
-            <span>
-              {settingsSection !== null
-                ? "Settings"
-                : selectedWorkItem
-                  ? "Governed work item"
-                  : "Governed work queue"}
-            </span>
-          </div>
-          {settingsSection !== null ? (
-            <WorkbenchUtilityLink
-              label="Back to work queue"
-              href="/"
-              onNavigate={(event) => { event.preventDefault(); requestSelection(null); }}
-            />
-          ) : null}
-        </WorkbenchToolbarGroup>
-      }
-      end={
-        <>
-          <WorkbenchToolbarUtilities>
-            {selectedWorkItem ? null : <OpenCodeAccountControl onOpenSettings={() => navigateSettings("opencode")} />}
-            <WorkbenchUtilityLink
-              label="Settings"
-              href={"/settings/" + (settingsSection ?? "repositories")}
-              onNavigate={(event) => {
-                event.preventDefault();
-                navigateSettings(settingsSection ?? "repositories");
-              }}
-            />
-            <div className="order-theme-control">
-              <WorkbenchIcon name={themePreference} />
-              <SegmentedControl
-                label="Theme"
-                value={themePreference}
-                onChange={selectTheme}
-                size="sm"
-              >
-                <SegmentedControlItem value="system" label="System" />
-                <SegmentedControlItem value="light" label="Light" />
-                <SegmentedControlItem value="dark" label="Dark" />
-              </SegmentedControl>
-            </div>
-          </WorkbenchToolbarUtilities>
-        </>
-      }
+      orientation={{
+        productLabel: "Order",
+        destinationLabel: applicationDestination,
+      }}
+      projectContext={toolbarProjectId === null
+        ? undefined
+        : {
+          value: toolbarProjectId,
+          options: projectOptions,
+          ...(selectedWorkItem === null && projectOptions.length > 1
+            ? {
+              onChange: (nextProjectId: string) => {
+                setProjectId(nextProjectId);
+                setQueueProjectId(nextProjectId);
+              },
+            }
+            : {}),
+        }}
+      account={{
+        label: openCodeAccount.label,
+        readiness: openCodeAccount.readiness,
+        href: "/settings/opencode",
+        onNavigate: () => navigateSettings("opencode"),
+      }}
+      navigation={settingsSection === null
+        ? {
+          label: "Settings",
+          href: "/settings/repositories",
+          onNavigate: () => navigateSettings("repositories"),
+        }
+        : {
+          label: "Work queue",
+          href: "/",
+          onNavigate: () => requestSelection(null),
+        }}
+      theme={{
+        value: themePreference,
+        onChange: selectTheme,
+      }}
     />
   );
 
-  const queueControls = (
-    <div className="order-queue-controls">
-      <WorkbenchToolbarGroup>
-        <WorkbenchAction label="New work item" tone="primary" icon={<WorkbenchIcon name="add" />} onClick={() => { resetCreate(); setCreateOpen(true); }} />
-        <WorkbenchAction label={refresh.isPending ? "Refreshing…" : "Refresh sources"} icon={<WorkbenchIcon name="refresh" />} loading={refresh.isPending} onClick={() => refresh.mutate()} />
-      </WorkbenchToolbarGroup>
-      <WorkbenchToolbarSearch value={search} onChange={setSearch} />
-    </div>
-  );
-
-  const queue = workItemsQuery.isPending ? (
-    <WorkbenchEmptyState title="Loading work items…" />
-  ) : (
+  const queue = (
     <Suspense fallback={<WorkbenchEmptyState compact title="Loading work queue…" />}>
       <WorkItemQueue
         workItems={filtered}
@@ -445,7 +433,17 @@ export const App = () => {
         selectedWorkItemId={selectedWorkItemId}
         showArchived={showArchived}
         emptyTitle={search.trim().length > 0 ? "No matching work items" : "No work items"}
+        search={search}
+        sourceDiagnostics={diagnosticsQuery.data ?? []}
+        refreshPending={refresh.isPending}
+        loading={workItemsQuery.isPending}
         onShowArchivedChange={setShowArchived}
+        onSearchChange={setSearch}
+        onRefresh={() => refresh.mutate()}
+        onCreate={() => {
+          resetCreate();
+          setCreateOpen(true);
+        }}
         onSelect={requestSelection}
       />
     </Suspense>
@@ -473,10 +471,10 @@ export const App = () => {
       <WorkItemWorkspace
         key={selectedWorkItem.id}
         workItem={selectedWorkItem}
+        schemas={schemasQuery.data ?? []}
         selectedWorkItemFetching={selectedWorkItemQuery.isFetching}
         selectedWorkItemUpdatedAt={selectedWorkItemQuery.dataUpdatedAt}
         selectedWorkItemError={selectedWorkItemQuery.error}
-        toolbar={toolbar}
         contextOpen={contextOpen}
         onContextOpenChange={setContextOpen}
         contextContent={
@@ -485,8 +483,7 @@ export const App = () => {
               workItem={selectedWorkItem}
               selectedStep={contextStep}
               selectedMaterial={contextMaterial}
-              selectedDocumentPath={contextDocumentPath}
-              selectedDocumentSha256={contextDocumentSha256}
+              selectedDocument={contextDocument}
               onClose={() => setContextOpen(false)}
             />
           </Suspense>
@@ -507,73 +504,41 @@ export const App = () => {
       action={<WorkbenchAction label="Retry" onClick={() => void selectedWorkItemQuery.refetch()} />}
     />
   ) : (
-    <div className="order-queue-page">
-      {queueControls}
+    <div className="order-queue-workspace">
       {readinessQuery.data && !readinessQuery.data.ready ? (
-        <section className="order-installation-readiness" data-testid="installation-readiness">
+        <section className="order-app-readiness" data-testid="installation-readiness">
           <WorkbenchNotice tone="warning" title="Setup requires attention" description="Productive readiness is derived from canonical installation state. Each unresolved concern links directly to its owning Settings area; the queue never appears mysteriously empty." />
-          <div className="order-installation-readiness-blockers">
+          <div className="order-app-readiness-list">
             {readinessQuery.data.blockers.map((blocker) => {
               const section = settingsDestinationForReadinessBlocker(blocker);
               const destination = section === "repositories" ? "Repositories" : section === "opencode" ? "OpenCode accounts" : "Model & runtime";
-              return <div className="order-installation-readiness-row" key={blocker}>
-                <div><strong>{installationReadinessBlockerText(blocker)}</strong><span>InstallationReadiness blocker</span></div>
+              return <div className="order-app-readiness-item" key={blocker}>
+                <div><strong>{installationReadinessBlockerText(blocker)}</strong><span>Required before productive work</span></div>
                 <Link href={"/settings/" + section} isStandalone onClick={(event) => { event.preventDefault(); navigateSettings(section); }}>{"Open " + destination}</Link>
               </div>;
             })}
           </div>
         </section>
       ) : null}
-      {(diagnosticsQuery.data ?? []).length > 0 ? (
-        <div data-testid="source-diagnostics">
-          <WorkbenchNotice
-            tone="danger"
-            title="Source diagnostics require attention"
-            description={
-              <ul>
-                {(diagnosticsQuery.data ?? []).map((item, index) => (
-                  <li key={item.code + "-" + (item.path ?? String(index))}>
-                    <strong>{item.code}</strong>
-                    {" · "}
-                    {item.path ?? item.workItemId ?? "unmaterialized source"}
-                    {" — "}
-                    {item.detail}
-                  </li>
-                ))}
-              </ul>
-            }
-          />
-        </div>
-      ) : null}
       {queue}
     </div>
   );
 
-  const body = workItemsQuery.isError ? (
-    <WorkbenchLayout
-      toolbar={toolbar}
-      primary={
-        <WorkbenchErrorState
-          title="Local browser session required"
-          description={
-            errorText(workItemsQuery.error).includes("browser session required")
-              ? "Run order open and open the one-time URL to establish the local session."
-              : errorText(workItemsQuery.error)
-          }
-          action={<WorkbenchAction label="Retry" onClick={() => void workItemsQuery.refetch()} />}
-        />
+  const destination = workItemsQuery.isError ? (
+    <WorkbenchErrorState
+      title="Local browser session required"
+      description={
+        errorText(workItemsQuery.error).includes("browser session required")
+          ? "Run order open and open the one-time URL to establish the local session."
+          : errorText(workItemsQuery.error)
       }
-      workItemChrome={null}
+      action={<WorkbenchAction label="Retry" onClick={() => void workItemsQuery.refetch()} />}
     />
-  ) : selectedWorkItem ? (
-    main
-  ) : (
-    <WorkbenchLayout toolbar={toolbar} primary={main} workItemChrome={null} />
-  );
+  ) : main;
 
   return (
     <Theme theme={neutralTheme} mode={themePreference}>
-      {body}
+      <WorkbenchAppShell toolbar={toolbar} destination={destination} />
 
       <WorkbenchTaskPanel
         open={createOpen}
@@ -582,7 +547,18 @@ export const App = () => {
           if (!open) resetCreate();
         }}
         title={derivedFromWorkItemId === null ? "Create work item" : "Create linked remediation"}
-        content={
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (
+            projectId.length > 0 &&
+            schemaId !== "" &&
+            title.trim().length > 0 &&
+            !create.isPending
+          ) {
+            create.mutate();
+          }
+        }}
+        body={
           <Suspense fallback={<WorkbenchEmptyState compact title="Loading creation controls…" />}>
             <CreateWorkItem
               projects={projectsQuery.data ?? []}
@@ -593,29 +569,55 @@ export const App = () => {
               concernIds={concernIds}
               availableConcernIds={availableConcernIds}
               derivedFromWorkItem={derivedFromWorkItem}
-              pending={create.isPending}
-              error={create.error ? errorText(create.error) : null}
               onProjectChange={setProjectId}
               onSchemaChange={setSchemaId}
               onTitleChange={setTitle}
               onConcernIdsChange={setConcernIds}
-              onSubmit={() => create.mutate()}
-              onCancel={() => {
+            />
+          </Suspense>
+        }
+        feedback={
+          create.error ? (
+            <WorkbenchNotice
+              tone="danger"
+              title="Work item could not be created"
+              description={errorText(create.error)}
+            />
+          ) : undefined
+        }
+        footer={
+          <>
+            <WorkbenchAction
+              label="Cancel"
+              disabled={create.isPending}
+              onClick={() => {
                 setCreateOpen(false);
                 resetCreate();
               }}
             />
-          </Suspense>
+            <WorkbenchAction
+              type="submit"
+              label={derivedFromWorkItemId === null ? "Create work item" : "Create linked remediation"}
+              tone="primary"
+              loading={create.isPending}
+              disabled={
+                projectId.length === 0 ||
+                schemaId === "" ||
+                title.trim().length === 0 ||
+                create.isPending
+              }
+            />
+          </>
         }
       />
 
       <WorkbenchConfirmation
+        kind="destructive"
         open={pendingDestination !== undefined}
         onOpenChange={(open) => { if (!open) setPendingDestination(undefined); }}
         title="Discard unsaved Markdown?"
         description="Leaving this WorkItem would discard the current unsaved Markdown buffer."
         confirmLabel="Discard unsaved changes"
-        cancelLabel="Cancel"
         pending={false}
         onConfirm={() => {
           const next = pendingDestination;

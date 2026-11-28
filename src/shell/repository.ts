@@ -1,4 +1,5 @@
 import {
+  chmodSync,
   existsSync,
   lstatSync,
   mkdirSync,
@@ -25,7 +26,7 @@ import {
 } from "../core/contracts.ts";
 import { createRegularFileExclusive, replaceRegularFileExpectedHash } from "./file-write.ts";
 import { runProcess } from "./process.ts";
-import { sha256 } from "./runtime.ts";
+import { byteEqual, sha256 } from "./runtime.ts";
 
 const utf8 = new TextDecoder("utf-8", { fatal: true });
 const gitTimeoutSeconds = 600;
@@ -232,11 +233,12 @@ const ensureInsideRoot = (
   for (let index = 0; index < segments.length; index += 1) {
     current = join(current, segments[index]!);
     const isLeaf = index === segments.length - 1;
-    if (!existsSync(current)) {
+    // A dangling symlink is an existing object, not an absent leaf.
+    const stat = lstatSync(current, { throwIfNoEntry: false });
+    if (stat === undefined) {
       if (isLeaf && allowMissingLeaf) break;
       throw new TypeError(`repository path component does not exist: ${segments[index]}`);
     }
-    const stat = lstatSync(current);
     if (stat.isSymbolicLink()) throw new TypeError("repository target may not traverse a symlink");
     if (!isLeaf && !stat.isDirectory()) {
       throw new TypeError("repository target parent must be a directory");
@@ -281,6 +283,47 @@ const patchPaths = async (
   return [...new Set(paths)].sort();
 };
 
+const requireProposalPatchTarget = async (
+  repositoryRoot: string,
+  patch: Uint8Array,
+  canonicalTarget: RepositoryPath,
+): Promise<void> => {
+  const changedPaths = await patchPaths(repositoryRoot, patch);
+  if (changedPaths.length !== 1 || changedPaths[0] !== canonicalTarget) {
+    throw new TypeError("proposal patch must modify exactly its canonical targetPath");
+  }
+};
+
+// Check the exact proposed postimage away from the live repository. A
+// single-target patch can still delete its target or turn it into a symlink.
+const previewProposalPatch = async (
+  canonicalTarget: RepositoryPath,
+  target: string,
+  baseSha256: Sha256 | null,
+  patch: Uint8Array,
+): Promise<Sha256> => {
+  const scratch = mkdtempSync(join(tmpdir(), "order-proposal-preview-"));
+  try {
+    if (baseSha256 !== null) {
+      const bytes = readFileSync(target);
+      if (sha256(bytes) !== Sha256Schema.parse(baseSha256)) {
+        throw new TypeError("proposal base hash does not match current target bytes");
+      }
+      createWorkingTreeFileExclusive(scratch, canonicalTarget, bytes);
+      chmodSync(join(scratch, canonicalTarget), lstatSync(target).mode & 0o777);
+    }
+    await runGit(scratch, ["apply", "--check", "--binary", "-"], patch);
+    await runGit(scratch, ["apply", "--binary", "-"], patch);
+    const postimage = lstatSync(join(scratch, canonicalTarget), { throwIfNoEntry: false });
+    if (!postimage?.isFile()) {
+      throw new TypeError("proposal must produce a regular target file");
+    }
+    return sha256(readWorkingTreeFile(scratch, canonicalTarget));
+  } finally {
+    rmSync(scratch, { recursive: true, force: true });
+  }
+};
+
 export const verifyProposalPatchAdoption = async (
   repositoryRoot: string,
   targetPath: RepositoryPath,
@@ -303,10 +346,8 @@ export const verifyProposalPatchAdoption = async (
   }
 
   const patch = new TextEncoder().encode(unifiedDiff);
-  const changedPaths = await patchPaths(repositoryRoot, patch);
-  if (changedPaths.length !== 1 || changedPaths[0] !== canonicalTarget) {
-    throw new TypeError("proposal patch must modify exactly its canonical targetPath");
-  }
+  await requireProposalPatchTarget(repositoryRoot, patch, canonicalTarget);
+  await previewProposalPatch(canonicalTarget, target, baseSha256, patch);
   await runGit(repositoryRoot, ["apply", "--check", "--binary", "-"], patch);
 };
 
@@ -324,17 +365,36 @@ export const adoptProposalPatch = async (
     canonicalTarget,
     baseSha256 === null,
   );
+  await requireProposalPatchTarget(repositoryRoot, patch, canonicalTarget);
   const reconcileApplied = async (): Promise<Sha256> => {
     if (!reconcileAlreadyApplied || !existsSync(target)) {
       throw new TypeError("proposal base hash does not match current target bytes");
     }
-    await runGit(
-      repositoryRoot,
-      ["apply", "--reverse", "--check", "--binary", "-"],
-      patch,
-    );
-    const currentTarget = ensureInsideRoot(repositoryRoot, canonicalTarget, false);
-    return sha256(readFileSync(currentTarget));
+    const observed = readWorkingTreeFile(repositoryRoot, canonicalTarget);
+    const scratch = mkdtempSync(join(tmpdir(), "order-proposal-reconcile-"));
+    try {
+      createWorkingTreeFileExclusive(scratch, canonicalTarget, observed);
+      await runGit(scratch, ["apply", "--reverse", "--check", "--binary", "-"], patch);
+      await runGit(scratch, ["apply", "--reverse", "--binary", "-"], patch);
+      // Reverse application of a new-file patch can remove its empty parent
+      // directories as well. Prove absence in the isolated scratch tree.
+      if (baseSha256 === null
+        ? lstatSync(join(scratch, canonicalTarget), { throwIfNoEntry: false }) !== undefined
+        : sha256(readWorkingTreeFile(scratch, canonicalTarget)) !== Sha256Schema.parse(baseSha256)) {
+        throw new TypeError("proposal reconstructed base does not match recorded base");
+      }
+      await runGit(scratch, ["apply", "--check", "--binary", "-"], patch);
+      await runGit(scratch, ["apply", "--binary", "-"], patch);
+      if (!byteEqual(readWorkingTreeFile(scratch, canonicalTarget), observed)) {
+        throw new TypeError("proposal forward replay does not match observed target bytes");
+      }
+      if (!byteEqual(readWorkingTreeFile(repositoryRoot, canonicalTarget), observed)) {
+        throw new TypeError("proposal target changed during adoption reconciliation");
+      }
+      return sha256(observed);
+    } finally {
+      rmSync(scratch, { recursive: true, force: true });
+    }
   };
 
   if (baseSha256 === null) {
@@ -346,15 +406,21 @@ export const adoptProposalPatch = async (
     }
   }
 
-  const changedPaths = await patchPaths(repositoryRoot, patch);
-  if (changedPaths.length !== 1 || changedPaths[0] !== canonicalTarget) {
-    throw new TypeError("proposal patch must modify exactly its canonical targetPath");
-  }
+  const expectedPostimage = await previewProposalPatch(canonicalTarget, target, baseSha256, patch);
   await runGit(repositoryRoot, ["apply", "--check", "--binary", "-"], patch);
+  if (baseSha256 === null
+    ? existsSync(ensureInsideRoot(repositoryRoot, canonicalTarget, true))
+    : sha256(readWorkingTreeFile(repositoryRoot, canonicalTarget)) !== Sha256Schema.parse(baseSha256)) {
+    throw new TypeError("proposal base hash does not match current target bytes");
+  }
   await runGit(repositoryRoot, ["apply", "--binary", "-"], patch);
 
   const adoptedTarget = ensureInsideRoot(repositoryRoot, canonicalTarget, false);
-  return sha256(readFileSync(adoptedTarget));
+  const adoptedHash = sha256(readFileSync(adoptedTarget));
+  if (adoptedHash !== expectedPostimage) {
+    throw new TypeError("adopted proposal does not match the verified postimage");
+  }
+  return adoptedHash;
 };
 
 export const enumerateAgentInstructions = async (
@@ -975,4 +1041,20 @@ export const commitDocumentationPaths = async (
   }
 
   return committed;
+};
+
+/** Isolated manual-test checkout; no Run or retained proof mutation. */
+export const prepareCandidateTestCopy = async (
+  sourceRepositoryRoot: string, baselineCommit: GitCommit,
+  expected: Readonly<{patch: Uint8Array; patchSha256: Sha256; changedPaths: readonly RepositoryPath[]}>,
+): Promise<string> => {
+  const parent = mkdtempSync(join(tmpdir(),"order-acceptance-"));
+  const workspace = join(parent,"candidate");
+  try {
+    await replayAndVerifyCandidate(sourceRepositoryRoot,workspace,baselineCommit,expected);
+    return realpathSync(workspace);
+  } catch (error) {
+    rmSync(parent,{recursive:true,force:true});
+    throw error;
+  }
 };

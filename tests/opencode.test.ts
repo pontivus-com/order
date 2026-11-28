@@ -651,151 +651,162 @@ describe("OpenCode shell", () => {
   });
 
   pinnedOpenCodeDriveTest(
-    "runs Order's production turn boundary against real OpenCode 2.2.6 with Drive deterministic simulation",
+    "runs exact OpenCode 2.2.6 through Order production admission with Drive deterministic simulation",
     () => {
-      const driveIndex = join(
-        pinnedOpenCodeDriveRoot!,
-        "node_modules",
-        "opencode-drive",
-        "src",
-        "index.ts",
+      const workspace = tempDir("order-opencode-drive-production-workspace-");
+      const state = tempDir("order-opencode-drive-production-state-");
+      const harness = tempDir("order-opencode-drive-production-harness-");
+      writeFileSync(join(workspace, "README.md"), "# SD20 production admission\n");
+
+      const wrapper = join(harness, "opencode");
+      writeFileSync(
+        wrapper,
+        readFileSync("tests/fixtures/opencode-drive-wrapper.sh"),
+        { mode: 0o755 },
       );
+      chmodSync(wrapper, 0o755);
+      writeFileSync(join(harness, "real-path"), pinnedOpenCodeBinary! + "\n");
+
+      const controllerPath = join(
+        process.cwd(),
+        "tests",
+        "opencode-drive-controller.ts",
+      );
+      const compatibleMarker = join(harness, "drive-compatible");
       const output = bunDriveEval(`
-        import { Buffer } from "node:buffer";
-        import { readdirSync, readFileSync } from "node:fs";
-        import { join } from "node:path";
-        import { pathToFileURL } from "node:url";
-
-        const drive = await import(pathToFileURL(${JSON.stringify(driveIndex)}).href);
+        import { existsSync } from "node:fs";
         const order = await import("./src/shell/opencode.ts");
-        const { OpenCode } = await import("@opencode/client");
-        const { Effect, Llm, OpenCodeDriver } = drive;
 
-        const result = await Effect.runPromise(
-          OpenCodeDriver.use(
-            {
-              project: {
-                git: true,
-                files: { "AGENTS.md": "# Order SD20 exact-pin verification\\n" },
-              },
-              opencode: {
-                command: [process.env.PONTIVUS_ORDER_OPENCODE_BIN],
-              },
+        const stateRoot = ${JSON.stringify(state)};
+        const workspace = ${JSON.stringify(workspace)};
+        const controller = Bun.spawn(
+          ["bun", ${JSON.stringify(controllerPath)}],
+          {
+            cwd: process.cwd(),
+            env: {
+              ...process.env,
+              PONTIVUS_ORDER_OPENCODE_DRIVE_ROOT:
+                ${JSON.stringify(pinnedOpenCodeDriveRoot!)},
+              ORDER_SD20_COMPATIBLE: ${JSON.stringify(compatibleMarker)},
             },
-            ({ llm, directory, environment }) =>
-              Effect.gen(function* () {
-                yield* llm.queue(
-                  Llm.text(
-                    '[{"tag":"AGENT_MESSAGE_FINAL","text":"drive-exact-pin","evidence":[]}]',
-                  ),
-                );
-                return yield* Effect.promise(async () => {
-                  await order.assertOpenCodeBinaryVersion(
-                    process.env.PONTIVUS_ORDER_OPENCODE_BIN,
-                    directory,
-                    process.env,
-                  );
-
-                  const serviceDirectory = join(environment.XDG_STATE_HOME, "opencode");
-                  const registration = readdirSync(serviceDirectory)
-                    .filter((name) => /^service(?:-[^.]+)?\\.json$/.test(name))
-                    .map((name) =>
-                      JSON.parse(readFileSync(join(serviceDirectory, name), "utf8"))
-                    )
-                    .find(
-                      (candidate) =>
-                        typeof candidate?.url === "string" &&
-                        typeof candidate?.password === "string",
-                    );
-                  if (registration === undefined) {
-                    throw new Error("Drive-managed OpenCode service registration was not found");
-                  }
-
-                  const client = OpenCode.make({
-                    baseUrl: registration.url,
-                    headers: {
-                      Authorization:
-                        "Basic " +
-                        Buffer.from("opencode:" + registration.password).toString("base64"),
-                    },
-                  });
-                  const info = await client.server.info();
-                  const models = await client.model.list({
-                    location: { directory },
-                  });
-                  const candidate = models.data.find(
-                    (model) => model.enabled && model.providerID === "simulation",
-                  );
-                  if (candidate === undefined) {
-                    throw new Error("Drive simulation provider model was not available");
-                  }
-                  const model = {
-                    providerID: candidate.providerID,
-                    id: candidate.id,
-                  };
-                  const permissions = order.openCodePermissionRules("STAGE", null, []);
-                  const session = await client.session.create({
-                    location: { directory },
-                  });
-                  await client.session.switchModel({
-                    sessionID: session.id,
-                    model,
-                  });
-                  await client.session.update({
-                    sessionID: session.id,
-                    permissions,
-                  });
-                  const rebound = await client.session.get({ sessionID: session.id });
-
-                  let diagnostic = null;
-                  const events = await order.runOpenCodeTurn(
-                    {
-                      client,
-                      process: {},
-                      model,
-                      workspace: directory,
-                      diagnosticStderr: {
-                        reset() {},
-                        record() {},
-                        snapshot() { return null; },
-                        redact(text) { return text; },
-                      },
-                    },
-                    session.id,
-                    {
-                      id: "run_33333333-3333-4333-8333-333333333333",
-                      contextHash: "sha256:" + "b".repeat(64),
-                    },
-                    "event_44444444-4444-4444-8444-444444444444",
-                    "STAGE",
-                    null,
-                    [],
-                    "Return the canonical event array.",
-                    (record) => {
-                      diagnostic = record;
-                    },
-                  );
-
-                  return {
-                    version: info.version,
-                    model,
-                    reboundModel: rebound.model,
-                    events,
-                    diagnostic,
-                  };
-                });
-              }),
-          ),
+            stdout: "ignore",
+            stderr: "inherit",
+          },
         );
 
-        console.log(JSON.stringify(result));
+        const sourceEnvironment = {
+          ...process.env,
+          PONTIVUS_ORDER_OPENCODE_BIN: ${JSON.stringify(wrapper)},
+        };
+
+        const retryProjection = async (operation) => {
+          let lastError = null;
+          for (let attempt = 0; attempt < 120; attempt += 1) {
+            try {
+              return await operation();
+            } catch (error) {
+              lastError = error;
+              await Bun.sleep(250);
+            }
+          }
+          throw lastError;
+        };
+
+        try {
+          const control = await order.startOpenCodeAccountControl(
+            stateRoot,
+            sourceEnvironment,
+          );
+          try {
+            let accounts = await retryProjection(
+              () => order.listOpenCodeAccounts(control),
+            );
+            if (!accounts.some(
+              (account) => account.active && account.status.status === "READY",
+            )) {
+              await control.client.credential.create({
+                integrationID: "opencode",
+                label: "sd20-simulation",
+                value: {
+                  type: "oauth",
+                  methodID: "device",
+                  refresh: "order-sd20-simulation-refresh",
+                  access: "order-sd20-simulation-access",
+                  expires: Date.now() + 86_400_000,
+                  metadata: { orgName: "Order SD20 Simulation" },
+                },
+                activate: true,
+              });
+              accounts = await retryProjection(
+                () => order.listOpenCodeAccounts(control),
+              );
+            }
+            if (!accounts.some(
+              (account) => account.active && account.status.status === "READY",
+            )) {
+              throw new TypeError("simulation account did not become READY");
+            }
+          } finally {
+            await order.stopOpenCodeAccountControl(control);
+          }
+
+          const admission = await order.admitProductiveOpenCode(
+            stateRoot,
+            workspace,
+            { providerID: "simulation", id: "order-sim-model" },
+            sourceEnvironment,
+            "STAGE",
+            null,
+            [],
+            [],
+          );
+          try {
+            const serverInfo = await admission.server.client.server.info();
+            const session = await admission.server.client.session.get({
+              sessionID: admission.sessionId,
+            });
+            let diagnostic = null;
+            const events = await order.runOpenCodeTurn(
+              admission.server,
+              admission.sessionId,
+              {
+                id: "run_33333333-3333-4333-8333-333333333333",
+                contextHash: "sha256:" + "b".repeat(64),
+              },
+              "event_44444444-4444-4444-8444-444444444444",
+              "STAGE",
+              null,
+              [],
+              "Return the canonical event array.",
+              (record) => {
+                diagnostic = record;
+              },
+            );
+            console.log(JSON.stringify({
+              version: serverInfo.version,
+              model: session.model,
+              permissions: session.permissions,
+              trustedAccountId: admission.trustedAccountId,
+              compatible: existsSync(${JSON.stringify(compatibleMarker)}),
+              events,
+              diagnostic,
+            }));
+          } finally {
+            await order.stopOpenCodeServer(admission.server);
+          }
+        } finally {
+          controller.kill();
+          await controller.exited;
+        }
       `, {
-        PONTIVUS_ORDER_OPENCODE_BIN: pinnedOpenCodeBinary!,
+        PONTIVUS_ORDER_OPENCODE_BIN: wrapper,
         PONTIVUS_ORDER_OPENCODE_DRIVE_ROOT: pinnedOpenCodeDriveRoot!,
       }) as {
         version: string;
-        model: { providerID: string; id: string };
-        reboundModel: { providerID: string; id: string; variant?: string };
+        model: { providerID: string; id: string; variant?: string };
+        permissions: unknown[];
+        trustedAccountId: string;
+        compatible: boolean;
         events: unknown[];
         diagnostic: {
           outcome: string;
@@ -806,18 +817,33 @@ describe("OpenCode shell", () => {
       };
 
       expect(output.version).toBe("2.2.6");
-      expect(output.model.providerID).toBe("simulation");
-      expect(output.reboundModel).toMatchObject(output.model);
+      expect(output.compatible).toBe(true);
+      expect(output.model).toMatchObject({
+        providerID: "simulation",
+        id: "order-sim-model",
+      });
+      expect(output.permissions).toEqual(
+        expect.arrayContaining([
+          { action: "*", resource: "*", effect: "deny" },
+          { action: "read", resource: "*", effect: "allow" },
+        ]),
+      );
+      expect(output.trustedAccountId.length).toBeGreaterThan(0);
       expect(output.events).toEqual([
-        { tag: "AGENT_MESSAGE_FINAL", text: "drive-exact-pin", evidence: [] },
+        {
+          tag: "AGENT_MESSAGE_FINAL",
+          text: "drive-production-admission",
+          evidence: [],
+        },
       ]);
       expect(output.diagnostic).toMatchObject({
         outcome: "SUCCEEDED",
         providerId: "simulation",
-        modelId: output.model.id,
+        modelId: "order-sim-model",
         failurePhase: null,
       });
     },
+    60_000,
   );
 
   it("projects and mutates saved accounts only through safe integration state", () => {
@@ -1517,6 +1543,8 @@ materialRefs = ["AGENTS.md"]
         env,
         (value) => stdout.push(value),
         async () => { throw new Error("v3→v4 migration must not prompt"); },
+        true,
+        { snapshot: cfg.captureInstallerConfigSnapshot(${JSON.stringify(state)}), onPublished: () => {} },
       );
       console.log(JSON.stringify({
         code,
@@ -1585,7 +1613,9 @@ materialRefs = ["AGENTS.md"]
         env,
         (value) => stdout.push(value),
         async () => { throw new Error("unchanged exact legacy target must not prompt"); },
-        (path) => created.push(path),
+        true,
+        { snapshot: cfg.captureInstallerConfigSnapshot(${JSON.stringify(state)}), onPublished: () => {} },
+        (custody) => created.push({ path: custody.path, identified: custody.identity !== null }),
       );
       console.log(JSON.stringify({
         code,
@@ -1596,7 +1626,7 @@ materialRefs = ["AGENTS.md"]
       }));
     `, providerEnvironment(binary)) as {
       code: number;
-      created: string[];
+      created: { path: string; identified: boolean }[];
       config: {
         version: 4;
         model: { providerID: string; id: string };
@@ -1618,7 +1648,10 @@ materialRefs = ["AGENTS.md"]
     };
 
     expect(output.code).toBe(0);
-    expect(output.created).toEqual([join(workspace, "pontivus-order.toml")]);
+    expect(output.created).toEqual([
+      { path: join(workspace, "pontivus-order.toml"), identified: false },
+      { path: join(workspace, "pontivus-order.toml"), identified: true },
+    ]);
     expect(output.config.repositoryRoots).toEqual([workspace]);
     expect(output.config.referenceRoots).toEqual([]);
     expect(output.manifest.projectId).toBe(basename(workspace).toLowerCase());
@@ -1719,6 +1752,8 @@ materialRefs = ["AGENTS.md"]
         env,
         (value) => stdout.push(value),
         async () => { throw new Error("valid legacy installer update must not prompt"); },
+        true,
+        { snapshot: cfg.captureInstallerConfigSnapshot(${JSON.stringify(state)}), onPublished: () => {} },
       );
       console.log(JSON.stringify({
         code,

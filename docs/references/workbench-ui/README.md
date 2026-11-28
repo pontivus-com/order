@@ -1,201 +1,67 @@
-# Order Workbench 0.5.0 visual reference pack
+# Order 0.6.0 Workbench comparison corpus
 
-**Status:** Reviewed derived visual reference set — application-wide Phase 2A UX/UI baseline  
-**Scope:** every application/workflow/material/confirmation surface identified by the completed Phase 1 `SURF-*` registry, plus materially distinct interaction/state grammars  
-**Authority:** derived visual reference only; semantic authority remains with the canonical owners below
+**Status:** active derived comparison evidence  
+**Semantic authority:** none  
+**Surface owner:** current 0.6.0 DESIGN declares the 38 governed `SURF-*` contracts.
 
-These SVGs are reproducible design references for the 0.5.0 application. They are not runtime screenshots and they are not a second product specification.
+This directory is a deterministic visual projection of the current Workbench authority. It is not a product requirement, component specification, design decision, lifecycle record, or implementation baseline.
 
-If a visual conflicts with canonical authority, the authority wins and the SVG must be corrected.
+## Exact authority binding
 
-## Evidence rule — no fabricated product state
+The active corpus is valid only for these exact inputs:
 
-Permanent references follow this rule:
+- `GW-DOC-WORKBENCH-UX-V2` — blob `7569fc5be387c974fe7fe0c3bc123c300f147311`;
+- `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2` — blob `7985991b91c5717677da6a38e057c00eb2e4e2fe`;
+- `GW-DOC-WORKBENCH-THEME-V1` — blob `03dfc6be3600a1128b5639d011f4c0159d3497dd`;
+- current 0.6.0 DESIGN — blob `6f1af203da101ae8fd89f666f63cd86c13b3bd84`.
 
-1. **Repository-backed value where one exists.**  
-   Example: the Queue reference uses the actual repository WorkItems/titles/kinds; Work request/Research/Requirements references use the actual linked Change material.
-2. **Canonical typed/template field name where no runtime value exists.**  
-   Example: Proposal review shows `ARTIFACT_PROPOSAL_CREATED.targetPath/rationale/unifiedDiff`; Approval task detail shows `SignedTaskDefinition` fields.
-3. **Canonical state pattern where the reference demonstrates a condition.**  
-   Example: PROCESSING / open-for-continuation / required-input dialogue states come directly from the closed interaction algebra.
-4. **Never invent lifecycle history or business evidence.**  
-   The pack does not invent Runs, agent conclusions, proposals, findings, signed tasks, evidence resources, approvals, deployment claims, validation results or terminal outcomes.
+These are the exact current authority versions projected by this corpus. If any bound owner changes, this corpus is stale until regenerated and reviewed. The owner wins on every conflict.
 
-Each schematic SVG is visibly marked as a **Reference composition** or **Reference state sheet** and must not be interpreted as persisted runtime evidence.
+## Files
 
-## Governing source basis
+- `reference-manifest.json` is the machine-readable 38-SURF mapping, state/view/theme coverage and exact authority binding.
+- `reference-atlas.html` is the deterministic render source. Open one surface with `?surf=SURF-...&state=...&theme=light|dark|system`.
+- Git history is the only retained provenance for the superseded 0.5.0 SVG pack. Those SVGs are not live comparison material.
 
-The reference pack is derived from and checked against:
+## Evidence integrity
 
-- `GW-DOC-WORKBENCH-UX-V2`;
-- `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1`;
-- `GW-DOC-MARKDOWN-WORKBENCH-V1`;
-- `GW-DOC-WORK-LIFECYCLE-V1`;
-- `GW-DOC-LIFECYCLE-CONTEXT-V1`;
-- `GW-DOC-INSTALLATION-READINESS-V1`;
-- `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`;
-- `GW-DOC-WORKBENCH-THEME-V1`;
-- parent Audit `work_9d07ce7e-83e4-4f8c-bc77-1c31c20198d2`, especially `application-interaction-map.md`, `workflow-state-audit.md`, `opencode-interaction-audit.md`, `document-material-maturity-audit.md`, `certification-evidence-map.md`, and `research.md`;
-- linked Change `work_2778105b-d919-4fcd-91e7-dd9b23812aac/requirements.md`.
+G-F41/G-F42 rebind DESIGN for the existing exact criterion action and responsive Settings content-continuity proof. The 38-SURF fixture inventory and semantic visual placement are unchanged; reference metadata is not runtime/interaction acceptance. IA38/IA39 and IA34 must prove actual exact signed-document navigation and cross-breakpoint state continuity independently.
 
-## Canonical visual invariants
+The 2026-11-27 REV-F11 installer forecast correction rebinds the DESIGN authority identity without changing settled SURF contracts or visual reference layout. The Workbench integration correction binds exact selection and prospective package inspection; replacement Dialogue is the existing P4 target. These metadata bindings are not visual acceptance or new rendered proof; IA26 must revalidate actual state/scope/selection equivalence.
 
-Workbench workflow surfaces use:
+Reference fixtures are canonical semantic placeholders. They demonstrate information hierarchy, component anatomy, geometry, responsive recomposition and visual hierarchy without claiming that a runtime event occurred.
 
-```text
-application toolbar
-work-item identity row
-workflow rail
-current-attention / current-task region
-primary interaction surface
-[explicit Context only when opened]
-```
+The corpus must never fabricate or be cited as evidence of persisted Runs, agent conclusions, proposals, findings, signed tasks, approvals, evidence resources, validation results, deployment state or terminal outcomes. Runtime acceptance uses separately captured exact-candidate evidence.
 
-The references preserve:
+## Acceptance use
 
-- completed lifecycle step = success/green plus non-color completion mark;
-- current lifecycle step = Order blue plus semantic current indication;
-- unreached lifecycle step = neutral;
-- one compact stable WorkItem identity row;
-- one current-attention owner;
-- flat, neutral-first, low-chrome presentation;
-- deep navy / Order-blue identity;
-- border/spacing hierarchy rather than decorative card-dashboard styling;
-- technical identity on demand;
-- one primary command per current task;
-- no persistent second pre-signoff navigation rail;
-- supporting material subordinate to current work;
-- Evidence exact-byte/code material uses the pinned Astryx `CodeBlock` standalone card presentation and the root theme's muted surface/text roles; it does not introduce a dedicated dark palette or theme island in Light mode;
-- human/agent dialogue distinct from workflow events and operational activity;
-- Implementation as the only persistent workflow master/detail geometry.
-- Approval uses the closed `WorkbenchReview` hierarchy and decision region; it does not introduce an Approval-only authorization side pane.
-- Implementation uses the canonical fixed `--order-master-width` / `WorkbenchMasterDetail` geometry, and its current Start/Retry/Resume action remains owned by `WorkbenchAttention` rather than task-detail chrome.
-- Complete uses the flat sequential Terminal-result grammar (`WorkbenchSurface + WorkbenchStatus + result content/resources`); it does not introduce a terminal card-dashboard grid.
+The runtime capture and reference must identify the same SURF, state, governed scope, viewport class and effective theme. For lifecycle inspection fixtures, the independently declared `current` and `reached` parameters describe persisted fixture history, separately from the selected `step`; `marker` specifies the current cell's disposition independently of inspected material; `attempt` identifies the selected builder or reviewer attempt when the comparison depends on it. For the validation-recorded comparison, the builder is task-global Attempt 1 (`attempt=builder-1`) and its subsequent reviewer is Attempt 2 (`attempt=reviewer-2`), with separate selected-attempt results. Historical green checkmarks indicate reached history only, never validation success. Unmatched states or selections are not equivalent. A component reference cannot be compared as if it were a full-workbench reference.
 
-## Complete audited surface coverage
+A reference mismatch never authorizes implementation to change product behavior. The reviewer resolves the discrepancy against the exact bound authority first.
 
-Every Phase 1 surface from `application-interaction-map.md §8` maps to a repository reference.
+The 38-SURF universe is derived from current DESIGN, never from this directory.
 
-| SURF id | Reference |
-|---|---|
-| `SURF-APP-001` | [Queue/application shell](queue.svg), [application notices/states](application-notices-states.svg), [installation readiness](installation-readiness.svg), [theme parity](theme-parity.svg) |
-| `SURF-QUEUE-001` | [Queue](queue.svg), [queue states](queue-states.svg) |
-| `SURF-CREATE-001` | [Create WorkItem](create-work-item.svg), [linked remediation variant](create-linked-remediation.svg) |
-| `SURF-SET-001` | [Repositories settings](settings-repositories.svg), [OpenCode settings](settings-opencode.svg), [Model/runtime settings](settings-model.svg) |
-| `SURF-SET-REPO-001` | [Repositories settings](settings-repositories.svg) |
-| `SURF-SET-REPO-ADD-001` | [Add repository](settings-repository-add.svg) |
-| `SURF-SET-REPO-MOVE-001` | [Move WorkItem documents](settings-repository-move.svg) |
-| `SURF-SET-OC-001` | [OpenCode accounts](settings-opencode.svg) |
-| `SURF-SET-OC-RENAME-001` | [Rename OpenCode account](settings-opencode-rename.svg) |
-| `SURF-SET-OC-ADD-001` | [Add OpenCode account](settings-opencode-add.svg) |
-| `SURF-SET-OC-LOGIN-001` | [OpenCode sign-in](settings-opencode-login.svg), [login terminal states](settings-opencode-login-states.svg) |
-| `SURF-SET-MODEL-001` | [Model & runtime](settings-model.svg) |
-| `SURF-WI-001` | [WorkItem shell controls](workitem-shell-controls.svg), all workflow-step references, [current-attention states](current-attention-states.svg) |
-| `SURF-WI-CONTEXT-001` | [Technical Context](workitem-context.svg) |
-| `SURF-STEP-WR-001` | [Work request](work-request.svg) |
-| `SURF-STEP-R1-001` | [Research](research.svg), [dialogue states](dialogue-states.svg) |
-| `SURF-STEP-R2-001` | [Requirements](requirements.svg), [dialogue states](dialogue-states.svg) |
-| `SURF-STEP-DESIGN-001` | [Solution design](solution-design.svg), [dialogue states](dialogue-states.svg) |
-| `SURF-STEP-PLAN-001` | [Implementation plan](implementation-plan.svg), [dialogue states](dialogue-states.svg) |
-| `SURF-STEP-R3-001` | [Readiness review](readiness-review.svg), [dialogue states](dialogue-states.svg) for legitimate input interaction |
-| `SURF-STEP-APPROVAL-001` | [Approval](approval.svg) |
-| `SURF-STEP-EXEC-001` | [Implementation](implementation.svg), [Implementation states](implementation-states.svg) |
-| `SURF-STEP-COMPLETE-001` | [Complete](complete.svg), [Audit/Investigation linked-remediation branch](complete-linked-remediation.svg) |
-| `SURF-MAT-SOURCE-001` | [Document authoring](document-authoring.svg), [document states](document-states.svg) |
-| `SURF-MAT-DOC-001` | [Document authoring](document-authoring.svg), [document states](document-states.svg) |
-| `SURF-MAT-DOC-RO-001` | [Read-only document](document-readonly.svg), [document states](document-states.svg) |
-| `SURF-MAT-ACTIVITY-001` | [Research dialogue/activity](research.svg), [dialogue states](dialogue-states.svg) |
-| `SURF-MAT-PROPOSAL-001` | [Proposal review](proposal-review.svg), [proposal states](proposal-states.svg) |
-| `SURF-MAT-EVIDENCE-001` | [Evidence viewer](evidence-viewer.svg) |
-| `SURF-MAT-APPROVAL-TASK-001` | [Approval task detail](approval-task-detail.svg) |
-| `SURF-MAT-EXEC-TASK-001` | [Implementation](implementation.svg), [Implementation states](implementation-states.svg) |
-| `SURF-CONF-DIRTY-DEST-001` | [Safety confirmations](safety-confirmations.svg) |
-| `SURF-CONF-DIRTY-MATERIAL-001` | [Safety confirmations](safety-confirmations.svg) |
-| `SURF-CONF-ARCHIVE-001` | [Safety confirmations](safety-confirmations.svg) |
-| `SURF-CONF-DOC-GIT-001` | [Safety confirmations](safety-confirmations.svg) |
-| `SURF-CONF-REPO-DISCONNECT-001` | [Safety confirmations](safety-confirmations.svg) |
-| `SURF-CONF-OC-REMOVE-001` | [Safety confirmations](safety-confirmations.svg) |
+The manifest declares representative comparison widths wide=1440, medium=1000 and narrow=760 for every governed surface. Actual responsive class comes from P4 §8.12, not these fixture widths. An eligible runtime comparison uses identical actual viewport dimensions, state/selection, scope and effective theme. IA26/IA38/IA39 own required medium proof and fail on missing applicable comparisons; the historical 800 static renders below do not establish runtime proof.
 
-## Workflow-step reference set
 
-| Step | Reference | Information source used |
-|---|---|---|
-| Work request | [work-request.svg](work-request.svg) | actual `work_2778105b.../work-request.md` |
-| Research | [research.svg](research.svg) | actual Research artifact plus canonical RunEvent/dialogue fields; no invented transcript |
-| Requirements | [requirements.svg](requirements.svg) | actual reviewed `requirements.md` |
-| Solution design | [solution-design.svg](solution-design.svg) | canonical `delivery-design-v1` template; no Solution-design artifact is claimed to exist yet |
-| Implementation plan | [implementation-plan.svg](implementation-plan.svg) | canonical `delivery-plan-v1` template; no Plan artifact is claimed for this WorkItem |
-| Readiness review | [readiness-review.svg](readiness-review.svg) | canonical `delivery-r3-v1` template and Review hierarchy; no verdict/finding is fabricated |
-| Approval | [approval.svg](approval.svg) | canonical `SignoffPackage` / signed-task behavior; no package is fabricated |
-| Implementation | [implementation.svg](implementation.svg) | canonical `ExecutionTask[]`, Run and validation projection fields; no task list is fabricated |
-| Complete | [complete.svg](complete.svg) | canonical terminal-result branches; no outcome/deployment is fabricated |
+## Native Acceptance reference delta
 
-## Work-type progression
+The ten-stage rail is projected across every WorkItem fixture; current/selected/reached remain independently supplied facts, including legacy and non-delivery bypass. Acceptance reference states include current review, open finding, queued correction, retest, failed retest, stale authority, unavailable proof, no-op challenge, report/retest forms and read-only historical correction/acceptance. Complete distinguishes accepted candidate, legacy technical completion without recorded acceptance, all-no-op and non-delivery. These are static authority-derived comparison fixtures, not runtime state or approved screenshot evidence. IA39/IA26 must independently prove equivalent states, exact same-scope captures and actual interactions; this reference change is not rendered acceptance.
 
-[work-type-variants.svg](work-type-variants.svg) records the canonical information differences across:
+The Acceptance reference includes 34 exact comparison states (ordinary, historical, unavailable/conflict, detail and human input/result variants) and explicit dependent Queue, shell/Context, Approval, Implementation, Evidence, signed Document and repository-guard states. The manifest and atlas must match exactly. The fixtures use the existing semantic component anatomy, including a single modal TaskPanel interaction and inert underlying Review; all data/paths are placeholders, not evidence. IA39 and IA26 require actual candidate proof of all affected propositions, including both retest branches and the dirty-navigation confirmations. The reference changes do not themselves establish visual acceptance.
 
-- Change;
-- Defect;
-- Investigation;
-- Audit.
+The source and material reconciliation fixtures share the same stale presentation but distinguish the exact return consequence even when both return to Research. Reopened previously disposed findings show current verified member proof with a historical assessment or no prior assessment, never a fabricated current finding assessment. These four comparison variants remain within the existing Acceptance surface and require IA38/IA39/IA26 semantic and rendered review; no rendered acceptance is implied.
 
-The visual system is shared. The work-type-specific input/Research semantics and downstream obligations are not flattened.
+The scheduler admission clarification changes no SURF datum, interaction, or visual reference state. The DESIGN binding is refreshed; the same 34 Acceptance comparison states remain subject to IA39/IA26 independent rendered review.
 
-## State and interaction reference sheets
+The existing Acceptance comparison states now show an actual mixed set for the no-op challenge and planning-return variants, both signed members in the final decision, signed criterion inspection in the report form, and explicitly historical or noncurrent proof on stale, historical and conflict variants. These are corrections to the derived fixtures under the unchanged DESIGN; no new surface, state, primitive, runtime behavior or acceptance verdict.
 
-- [Current-attention precedence](current-attention-states.svg)
-- [Dialogue interaction states](dialogue-states.svg)
-- [Proposal states](proposal-states.svg)
-- [Document mutation states](document-states.svg)
-- [Implementation task states](implementation-states.svg)
-- [Queue states](queue-states.svg)
-- [Application notices/shared states](application-notices-states.svg)
-- [Installation readiness](installation-readiness.svg)
-- [Create linked remediation](create-linked-remediation.svg)
-- [Audit/Investigation linked-remediation terminal branch](complete-linked-remediation.svg)
-- [OpenCode login-attempt terminal states](settings-opencode-login-states.svg)
-- [Safety/confirmation surfaces](safety-confirmations.svg)
-- [Responsive composition](responsive-composition.svg)
-- [Theme parity](theme-parity.svg)
+The dependent QA correction references preserve successful unrelated members, show the actual processing/blocked rail and attempt state, and do not claim an independent assessment exists before completion. Context uses the direct existing Review; signed-document and evidence inspections show explicit return to Acceptance. Repository guard examples show the existing command-rejection feedback, not a new preflight API or speculative disabled state. No scope, surface, state or authority change.
 
-## Rejected exploratory-image elements
+The failed-retest context correction changes no surface or comparison state. The exact DESIGN identity is rebound; the existing failed-retest and resubmission cases require the original report and current/historical retest evidence to reach the reviewer.
 
-The earlier image-generation concepts were useful only to establish direction. They are not the repository reference standard.
+**QA reference responsive and interaction correction.** The existing comparison atlas uses the canonical wide/medium/narrow boundaries (1280/800), a width-bounded canvas, rail-local horizontal scrolling with the current cell visible, existing master/Context drawer mechanics, existing semantic status tones, TaskPanel header/scrollable body/footer and the existing safety-confirmation anatomy. Signed criterion selection and inspection remain readable at narrow width. No new surface, state or production primitive. Direct Chromium reference-only check of blob `60697d4c9f3b26fab86f0e015747528c503c9180`: 34 Acceptance plus 16 declared dependent states at 1440/1000/700/390 px, Light/Dark/System-light/System-dark (800 combinations), no script errors, page horizontal overflow, clipped main controls, off-screen current rail, overflowing checked sections, hidden modal footer, non-inert underlying Review or state/theme mismatch; 124 state/decision/form assertions passed. The original atlas reproduced 100/100 medium page overflows and 98/100 clipped-control cases (400 total light/dark combinations). Local Chromium rendered the exact HTML/CSS/JS except substituting the URLSearchParams input in-memory because navigation to file/fixture URLs was blocked in that environment. These are deterministic static-reference checks, not production Astryx/IA38/IA39/HUX acceptance or runtime command proof.
 
-The reviewed SVG pack rejects:
+### Phase-local responsive and toolbar comparison
 
-- a generated persistent application/sidebar axis inside the Workbench;
-- a Readiness sign-off action;
-- invented downstream Work request authority;
-- invented agent dialogue;
-- invented proposal/evidence/findings/tasks/validation;
-- invented deployment/production results;
-- generated owner/estimate fields not required by accepted behavior;
-- primary raw ids/paths/hashes;
-- an event feed as a substitute for human/agent dialogue;
-- content-count-driven pre-signoff sidebars;
-- any UI element whose field/action cannot be traced to a canonical contract, template, current renderer, or accepted Phase 2A requirement.
-
-## Completion criteria
-
-The application-wide reference baseline is complete only while all of the following remain true:
-
-| Check | Result |
-|---|---|
-| every Phase 1 `SURF-*` id maps to a reference | PASS |
-| every user-facing workflow step maps to a reference | PASS |
-| supporting Queue/Create/Settings/Context/Evidence services map to references | PASS |
-| proposal/document/dialogue/execution materially distinct state grammars are represented | PASS |
-| all confirmation/dirty/destructive overlays are represented | PASS |
-| responsive recomposition is represented | PASS |
-| light/dark semantic parity is represented | PASS |
-| references use repository-backed values or canonical field/template/state labels only | PASS |
-| no reference claims unobserved lifecycle/runtime facts | PASS |
-
-## Technical realization
-
-Phase 2B is closed in `work_2778105b-d919-4fcd-91e7-dd9b23812aac/solution-design.md` and the amended canonical P4/P6 owners.
-
-The technical design binds these references to the existing Workbench primitives, pinned Astryx Chat leaves, canonical Run/RunEvent/material projections and exact command boundaries without introducing a second state model, DTO/view-model family, browser workflow store, event bus, parallel document owner or feature-local theme.
-
-The SVGs continue to constrain **presentation, hierarchy and interaction composition**; canonical P3/P4/P6 owners remain semantic and technical authority.
+The derived application comparison has state-specific toolbar crops for Queue, Work item and Settings. These crops exclude later-phase bodies; the full-workbench application scope remains available for the application/readiness scenarios. Each pre-cutover phase-owned surface requires a same-scope capture and comparison at the actual 1000 × 800 medium viewport in addition to its existing wide/narrow and theme obligations. The responsive classes use the P4 boundaries (800 and 1280 px), not representative atlas widths. These are evidence requirements, not an acceptance verdict.

@@ -1,29 +1,43 @@
 import type { ReactNode } from "react";
-import { WorkbenchDisclosure } from "./WorkbenchDisclosure.tsx";
+import {
+  WorkbenchReviewSection,
+  type WorkbenchReviewSectionProps,
+} from "./WorkbenchReviewSection.tsx";
+import {
+  WorkbenchReviewVerdict,
+  type WorkbenchReviewVerdictProps,
+} from "./WorkbenchReviewVerdict.tsx";
+
+export type WorkbenchReviewProps = Readonly<{
+  title: string;
+  description?: string;
+  verdict: WorkbenchReviewVerdictProps;
+  sections: readonly WorkbenchReviewSectionProps[];
+  decisions?: ReactNode;
+}>;
 
 export const WorkbenchReview = ({
-  currentness,
-  summary,
-  body,
+  title,
+  description,
+  verdict,
+  sections,
   decisions,
-  technicalDetails,
-  selector,
-}: Readonly<{
-  currentness: ReactNode;
-  summary: ReactNode;
-  body: ReactNode;
-  decisions: ReactNode;
-  technicalDetails?: ReactNode;
-  selector?: ReactNode;
-}>) => (
+}: WorkbenchReviewProps) => (
   <section className="order-workbench-review">
     <header className="order-workbench-review-header">
-      <div className="order-workbench-review-summary">{summary}</div>
-      <div className="order-workbench-review-currentness">{currentness}</div>
+      <div className="order-workbench-review-heading">
+        <h2>{title}</h2>
+        {description === undefined ? null : <p>{description}</p>}
+      </div>
+      <WorkbenchReviewVerdict {...verdict} />
     </header>
-    {selector ? <div className="order-workbench-review-selector">{selector}</div> : null}
-    <div className="order-workbench-review-body">{body}</div>
-    <div className="order-workbench-review-decisions">{decisions}</div>
-    {technicalDetails ? <WorkbenchDisclosure label="Technical details" content={technicalDetails} /> : null}
+    <div className="order-workbench-review-sections">
+      {sections.map((section) => (
+        <WorkbenchReviewSection key={section.id} {...section} />
+      ))}
+    </div>
+    {decisions === undefined ? null : (
+      <div className="order-workbench-review-decisions">{decisions}</div>
+    )}
   </section>
 );

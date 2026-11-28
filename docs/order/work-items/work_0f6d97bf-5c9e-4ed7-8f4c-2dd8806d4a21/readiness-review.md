@@ -2,120 +2,36 @@
 
 # Order 0.6.0 readiness review
 
+## Exact reviewed package
+
+Distinct read-only adversarial R3 after integrated G5A definition closure on `e32e0c9a46471a0bb872e03f37535d6eebfdd090`. Compare prior signed baseline `6d9a09c736193369b867bc3820f4a5637df59aa9`, pre-return realization `726c448a731532122d91713647f019e89b8c6e63` and amended inputs `ac4681c37b034f5a97e129f6b9203ec10a96933d`. Earlier R3 blob `7da53c1c447815bbef0a58fbfad5eddc79059947` and authorization are historical; retain its unaffected propositions, not its grant. Apply GW-DOC-SYSTEMS-GOVERNANCE-PYRAMID-V1, GW-DOC-LIFECYCLE-CONTEXT-V2, GW-DOC-SPECIFICATION-STANDARD-V2, GW-FR-098-READINESS-AUTHORITY-TOPOLOGY-REVIEW and GW-DOC-MINIMUM-CHANGE-V1 §9. This review judges the exact definition delta, not implementation acceptance.
+
+**R1 blob:** `c14631a7a462ed66a9b723d48b1bf254eb874ee5`
+**R2 blob:** `55943b9c293735134e8c963f88e78d460d91b800`
+**DESIGN blob:** `6f1af203da101ae8fd89f666f63cd86c13b3bd84`
+**PLAN blob:** `d9187a05edc11272c21ff48784088c5dce3788c8`
+**P3 Workbench blob:** `7569fc5be387c974fe7fe0c3bc123c300f147311`
+**P4 Workbench blob:** `7985991b91c5717677da6a38e057c00eb2e4e2fe`
+**P4 Workbench Theme blob:** `03dfc6be3600a1128b5639d011f4c0159d3497dd`
+
+Additional authority: P4 Technical Architecture `52f223db8d0fe245de0757f0643087def69c3569`, P6 `7be4a96012650fdf983690fe651bb7235c443f25`, minimum-change `92d58c63ae8b4af094a863283d696c56cc616676`, Installation Readiness `ee8acad4e39f4641476eb46d99ca168afab3db3d`, P4 Execution `ceba43a2e06949ac719b322662b577d9aa4ff4d5`. Frozen 260-row input snapshot `30e268a978d562be6e5cc51e69085f4d1bdd9cb0`; retained original 18-audit evidence blob `7a3e2524a1d7f4304b5518f7794c9ca1e5718adb`.
+
+## Adversarial R3 evaluation
+
+| Challenge | Disposition and exact evidence |
+|---|---|
+| Stale or incomplete closure | PASS at definition boundary. Independently matched all 260 frozen rows to the complete staged recursive tree (no truncation), 22 closed concern rows and 44 pair/12 ALIGN status records. All 56 original bodies matched the previous signed review before delta processing. 18 whole unaffected bodies are retained unchanged; 38 refreshed records preserve prior local evidence and address changed facts/technical imports or shared scope/identity only. Existing historical concern START/END evidence is unchanged; the prior R3 concern completeness and integrated disposition remain applicable. Restored the earlier authority-reference cells in §7 from the previous exact register rather than allowing the reopening edit to replace them with status tokens. |
+| Authority topology and minimum-change | PASS. Compare actual pre-return and amended trees: 13 non-control reviewed inputs changed, none added/deleted. No productive source, runtime fixture, reference atlas, P3/P4 or dependency change in this delta. The P1 amendment limits intermediate revalidation without removing final independent proof or mandatory sign-off. Prior 20 non-control realization changes since the former signed baseline are inside former T1; not accepted as product behavior. |
+| G-F41 counterexamples | PASS at definition boundary. A repeated key can map to different signed manifest members across Approvals; using live manifest or full-list label guessing would select the wrong authority. P6 §§18/38.1 require exact selected WorkItem/Approval/task/ref and signed closure, shared resolver, canonical one-member ArtifactRef array, reject foreign/unsigned/ambiguous/corrupt resolution and malformed filter; operational failure distinct. Unfiltered GET and historical read retain their observational meaning, current proof remains independently sequence/freshness-bound. Exact keyed UI read, original signed Document id and dirty/focus/round/form return are explicit in DESIGN/IA37/38/39, no DTO, new route, duplicate resolver, persistence or new command. Required behavioral and no-effect proof remains unexecuted. |
+| G-F42 counterexamples | PASS at definition boundary. Baseline primitive actually switches section/Layout root; descendant repository input, confirmation and account login identity would remount. FR225 remains the same functional requirement, now factual MIXED. Existing P4 SettingsLayout closed API and SD28/29 specify stable content tree, navigation-only recomposition, no state hoist/domain policy/new hook. IA34 owns actual cross-breakpoint state/identity/focus/no-duplicate-command proof and IA39 the affected signed settings guard; no other Settings renderer admitted. The holding correction is evidence, not acceptance. |
+| Executable task and scope | PASS. Directly extracted the exact DESIGN forecast (62 unique paths) and matched it to the T1 scope/changeSurface; 58 distinct disjoint exclusions. Exactly one added path previously excluded: ui/src/primitives/WorkbenchSettingsLayout.tsx. Objective adjusted to allocate IA34; every other task field unchanged, including 73 acceptance refs, 15 authority refs, six gates and no dependencies. All 14 modular manifest hashes match actual tree; protected architecture sensor remains excluded and its 62/58 checks preserve the prior invariants. Existing phase proof and authoritative reference atlas retained. |
+| Dependencies and negative coverage | PASS at definition boundary. IA37 shared observation and exact signed membership precede IA38 consuming navigation, dirty/form/focus and direct Review; IA35–38 remains atomic. IA33 follows IA38 independent proof; IA34 precedes IA39 cross-feature proof. IA39 precedes integrated IA20–23, IA24 preparation, frozen exhaustive IA26 and read-only IA24. Current corpus is 37 before cutover; 38 runtime surfaces plus 47 scenarios and independent visual/semantic HUX proof remain mandatory, including permanent IA38/39 dispatch. No intermediate human approval, no later proof substituted for earlier phase, no bypass of final acceptance. |
+| Failure and currentness | PASS at definition boundary. No new lifecycle, acceptance/replay/installer semantics, scheduler or state owner. Historical inspection cannot grant current eligibility; current proof/command guard remains unchanged. Source/authority stale, missing proof, late result, rejected no-effect cases and responsive remount side effects have explicit proof owners. No unresolved new functional or technical definition decision. G-F38 and IA38/39 realization/proof remain outstanding, not waived. |
+
+Exact amended-input PR verification [46115497469](https://github.com/pontivus-com/order/actions/runs/46115497469) passed dependency-lock, typecheck, architecture, non-browser tests and build; signed IA27/28 through IA33 phase captures completed at observation. Remaining verification was not complete. This is evidence of preauthorization input fitness, not native Acceptance realization or final acceptance. The published closure requires the existing campaign-state fitness check on the exact candidate; a failed mandatory condition must be disposed before execution.
+
 ## Readiness verdict
 
-`READY_FOR_SIGNOFF`.
+`READY_FOR_SIGNOFF`
 
-This is a fresh adversarial R3 over the exact post-C22-F02 package. No prior readiness verdict is inherited. This review performs no product, functional, technical, PLAN, implementation, verification-contract or authority repair. It only adjudicates whether the exact package below is complete, internally consistent, executable and sufficiently proven to cross the explicit human sign-off boundary.
-
-Exact reviewed package:
-
-- repository evidence baseline: `ca79ee130745d0103fed1a6e8d72f28574bb41dd`;
-- WorkItem: `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`, project `order`, schema `change-v2`;
-- Work request: `3220ce4a7225ad764dabf20effcd436227b5048c`;
-- R1 `research.md`: `a22200e0765f740e89b2f05727e126fbf9e0b034`;
-- R2 `requirements.md`: `332cc0a0ebcbc317be3da8dbd4edc538695eab6d`;
-- DESIGN `solution-design.md`: `bf3cbbebba2b0fd0cbc780c6139c3c161f6ad728`;
-- PLAN `implementation-plan.md`: `f8cd8a188b3d85ed38353f316ed768d35f5e67c0`;
-- pre-R3 campaign state: `49a8b69cd14d4172459ce4b3041ff83a86bda782`;
-- concern coverage evidence: `5dfbfbd45872fb761bd69c6c2fea11f942951209`;
-- project manifest: `27e177c9aff527242becb1002325565c5f4f3585`;
-- P4 technical architecture: `868a73535b080bfeb5519865ffe21bad754315a3`;
-- OpenCode integration P4: `4416547cba749fc9a3fec62dd4be76ad94952527`;
-- external-facts owner: `ecfcc909d9b0fe44104af085fc833c4a6673e404`;
-- P6 canonical contracts: `71f829cff8824db18194689eccdec83da6f5d19f`;
-- permanent architecture/campaign sensor: `427f9fe18a738b100814620dd9d6d125b3f2adf0`;
-- exact pre-R3 verification: PR Verification #1631 / Actions run `44718939664` = SUCCESS.
-
-The reviewed package is ready for explicit sign-off. This verdict does not itself sign the package, authorize T1 execution, or claim that the planned implementation/verification deltas are already realized.
-
-## Authority topology review
-
-**PASS.**
-
-The current manifest contains 269 authority refs and 34 selected authority source paths. Every ref source resolves through at least one selected P1-P6 set; the unselected-ref count is zero. The permanent architecture sensor additionally proves that a retained semantic-version source may be selected only beside its current stable owner in the same authority layer. No new same-layer precedence was introduced merely to make retained snapshots resolvable.
-
-G-F13 is therefore closed at the authority-reachability layer. The subsequent C22-F02 audit correctly exposed the separate materiality issue rather than weakening P6: selected P1-P6 sources are the reachable authority graph, while the pinned WorkItem schema/template, mandatory stage policy, explicit upstream/signed refs and their dependencies determine the material subset for a productive stage. Stable refs select current canonical owners; explicit versioned refs select exact retained snapshots. A retained older semantic source remains reachable for historical-schema/versioned-reference use without becoming current-schema material by raw layer membership.
-
-That distinction is owned by current P3/P4 authority and is fully propagated into the package: R2 A02 states it functionally; P4 §35.1 owns the deterministic realization; DESIGN SD02 owns the package technical consequence; PLAN PL-C22-01 and IA01/IA02 own implementation and proof. Current implementation is known to violate that desired materiality rule until T1 executes; that is an owned implementation delta, not an unresolved authority question.
-
-No provider/UI/runtime state is promoted into canonical authority. No shadow authority graph, alternate precedence mechanism, DTO/model family or second context owner is introduced.
-
-## P1-P7 traceability review
-
-**PASS.**
-
-Current authority inventory remains 113/113: 112 stable current `GW-FR-*` requirements plus `GW-P2-CONTROLLED-WORK`, missing 0 / extra 0. R2, DESIGN and PLAN each retain the same 112 stable requirement identities. DESIGN and PLAN retain 25 package-local atoms; C22-F02 is intentionally folded into the existing `PL-C22-01` / SD02 authority-resolution responsibility rather than manufacturing a second overlapping atom.
-
-The two reopened high-risk chains are closed end-to-end:
-
-- C22-F02 -> R2 C22 reachable/material authority contract -> P4 §35.1 -> DESIGN SD02 -> PLAN `PL-C22-01` -> IA01/IA02 -> `src/core/governance.ts` plus `src/daemon/authority.ts` / `src/daemon/stage.ts` -> core/daemon/certification proof for current-v2 exclusion, exact historical/versioned inclusion and unresolved-applicable-relation blocking.
-- C20-F04 / `GW-FR-103-OPENCODE-INTEGRATION-CERTIFICATION-COVERAGE` -> R2 exact productive-process certification consequence -> OpenCode P4 + external facts -> DESIGN SD20 -> PLAN IA23 -> `tests/opencode.test.ts` + `.github/workflows/ci.yml`. The real system under test is exact OpenCode 2.2.6; `opencode-drive@2.4.1` + `effect@4.0.1` are isolated deterministic model-simulation tooling only. No remote-provider availability, Console OAuth/account connectivity or model-quality claim is inferred from that simulation.
-
-The canonical PLAN contains exactly one `order-tasks` task. T1 has 8 scope patterns, 17 explicit exclusions, 30 unique `changeSurface` paths, 13 acceptance refs, 14 authority refs, 6 gate ids and 6 concern ids. Every acceptance/authority ref resolves through the manifest. The gate union is exactly dependency-lock, typecheck, architecture, test, build and browser. The 30-path surface has no duplicate path.
-
-All R1/R2/DESIGN/PLAN pair audits A01-A11 are freshly PASS. ALIGN-A01-A11 and ALIGN-H1 are freshly PASS against R1 `a22200e0765f740e89b2f05727e126fbf9e0b034`, R2 `332cc0a0ebcbc317be3da8dbd4edc538695eab6d`, DESIGN `bf3cbbebba2b0fd0cbc780c6139c3c161f6ad728` and PLAN `f8cd8a188b3d85ed38353f316ed768d35f5e67c0`. No implementation worker must choose a material P1-P6 design alternative.
-
-## Lifecycle package completeness
-
-**PASS.**
-
-The current Work request is structurally valid `change-v2` source. It contains exactly once, in canonical order, `Requested outcome`, `Current context`, `Constraints/non-goals` and `Evidence/references`; C02-F04 is resolved without changing the substantive campaign intent.
-
-The lifecycle package is singular and current: one Work request, one R1, one R2, one DESIGN, one root PLAN and this R3. The modular PLAN directory is authoring decomposition only. All 14 modular source blobs match the root PLAN manifest and their compiled root sections byte-for-content match the modular sources after heading demotion; no directory file carries an independent task block or lifecycle state.
-
-The exact 0.6.0 campaign state immediately before this review has G0-G5A PASS. G0 is grounded in corrected manifest/sensor fitness; G1 reproduces 113/113 inventory; G2-G5 bind the fresh pair audits; G5A binds the fresh vertical audits. No sibling lifecycle/evidence document owns competing current campaign state.
-
-The post-C22-F02 revalidation changed only governed documentation/evidence after the package baseline. It did not mutate production code, UI code, runtime dependencies, task semantics, signed scope, signed exclusions, the 30-path forecast or verification ownership.
-
-## Open decision/conflict ledger
-
-**NONE.**
-
-There is no unresolved factual, product, functional, authority, architecture, implementation-planning or verification-ownership question that must be decided by the implementation worker.
-
-The following are owned implementation/verification deltas, not open decisions: C22-F02 materiality selection, C20-F04 exact-pin OpenCode certification, the existing UI/source/readiness/approval/installer findings, and the other DESIGN/PLAN deltas already traced through SD01-SD20 and IA01-IA25.
-
-No finding has an `OPEN`, `OPEN_*`, `UNRESOLVED` or `BLOCKED` disposition. Findings that remain `DESIGNED` have exact downstream solution/action/proof ownership and therefore do not constitute unresolved incoming findings at R3.
-
-## Evidence
-
-PR Verification #1631 / Actions run `44718939664` completed SUCCESS on exact pre-R3 baseline `ca79ee130745d0103fed1a6e8d72f28574bb41dd`. It passed:
-
-- PR release metadata;
-- dependency-lock;
-- typecheck;
-- permanent architecture/campaign/package fitness;
-- full test suite;
-- build;
-- release packager verification;
-- browser verification.
-
-Additional deterministic evidence:
-
-- manifest: 269 refs, 34 selected authority sources, zero ref sources outside P1-P6 selection;
-- Work request canonical intake headings: four required sections, each exactly once;
-- signed PLAN: one task, 30/30 unique forecast paths, all task authority/acceptance refs resolvable;
-- root/modular PLAN: 14/14 source hashes and compiled contents exact;
-- current R2/DESIGN/PLAN: 112 stable `GW-FR-*` identities each;
-- DESIGN/PLAN: 25 package-local atoms;
-- exact simulation proof boundary is documented in OpenCode P4 and external facts; simulation tooling is not added to `package.json`, lockfiles, runtime config/state or release dependency graph.
-
-The comparison from exact package baseline `e4dfcb0fb28eb21ccf174114fa37d5198e915e1f` to pre-R3 audit state `ca79ee130745d0103fed1a6e8d72f28574bb41dd` changes only the campaign plan and concern-coverage ledger. Therefore the fresh audit evidence itself does not stale R1/R2/DESIGN/PLAN or their production-state observations.
-
-## Adversarial findings
-
-**No blocking finding.**
-
-1. **G-F13 / manifest authority closure:** challenged and closed. The old 15-ref invalidity and contradictory retained-version sensor rule are both corrected. The fix preserves current stable owners and exact retained version identity without synthetic precedence.
-2. **C02-F04 / source conformance:** challenged and closed. The source is valid change-v2 input and downstream pair/ALIGN audits were rerun after its hash changed.
-3. **C22-F02 / retained-version materiality:** challenged as a potential residual architecture ambiguity. No ambiguity remains in authority or PLAN: reachability and materiality are explicitly different, SD02 owns both, IA01 preserves resolved ref/source identity, IA02 owns stage applicability, and exact positive/negative proof is specified. No extra path is required; the signed 30-path forecast already contains the owning core/daemon/tests.
-4. **C20-F04 / OpenCode exact-pin certification:** challenged against false proof by fake executable or removed temporary workflow. The package does not claim the gap is already implemented. SD20/IA23 require a permanent actual-OpenCode-2.2.6 process test with deterministic simulated model responses, and explicitly prohibit treating it as remote-provider/OAuth/model-quality evidence.
-5. **Scope/bloat challenge:** the C22-F02 refinement adds no production path, dependency, state, transport, persistence model or semantic owner. Pre-signoff changes to `pontivus-order.toml`, P1-P6 docs and `tests/architecture.test.ts` remain outside T1; the only signed workflow metadata path is the explicit SD20 `.github/workflows/ci.yml` verification change.
-6. **Current-state-as-authority challenge:** current implementation/tests remain evidence only. Known implementation violations are retained as findings with authority-defined corrections; no existing defect/test behavior is promoted to a compatibility or preservation contract.
-
-## Exact defective layer/return stage when not ready
-
-Not applicable: this review returns `READY_FOR_SIGNOFF`.
-
-Any later mutation to Work request, R1, R2, DESIGN, PLAN, project manifest, applicable P1-P6 authority, verification material or R3 itself must use the canonical freshness/return rules and may invalidate this verdict. The next boundary is explicit human sign-off of the exact package; implementation must not begin from this R3 verdict alone.
+At the definition boundary no remaining material specification defect was identified in the actual G-F41/G-F42 dependency closure. Normal and bounded authorizations remain NONE. Explicit operator sign-off on the exact published pre-authorization commit and this R3 blob is separate, with actual human decision provenance under campaign §18. No implementation mutation, adoption of the holding branch, product acceptance, merge or release authority is conferred.

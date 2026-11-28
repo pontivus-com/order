@@ -39,6 +39,8 @@ Productive readiness requires, at minimum:
 4. the selected OpenCode account/integration and exact provider pin must satisfy the trusted-integration/admission contract in `GW-DOC-OPENCODE-INTEGRATION-V1`;
 5. repository-local project/WorkItem configuration required by the selected target repository to be valid or to have an explicit recovery path.
 
+When available installation evidence cannot distinguish a prior completed installation from an interrupted first run, do not assume update eligibility. The installer may ask the operator to explicitly confirm that installation admission for the identified deployment previously completed (ordinary successful installation/update or an explicit committed-but-finalization-incomplete result); this is an installation-history decision, not confirmation of current readiness or of cleanup completion. Only a complete identified deployment plus an affirmative answer permits established-system recovery. A negative, unknown or blank answer takes the fresh/unproven admission path, retaining still-valid existing choices; cancellation or unavailable interactive input stops before mutation. Partial installation residue alone never qualifies; when an interrupted update needs restoration of its prior deployment, expose the existing retained recovery material and require explicit resolution rather than guessing or deleting it. No automatic re-authentication or re-entry of proven valid choices is required merely to resolve historical ambiguity.
+
 Readiness is derived from canonical configuration and integration state. It is not a second lifecycle state and need not be persisted as an independent status value.
 
 After installation, a missing readiness condition blocks only the productive behavior that requires it. The workbench remains available so the operator can complete or recover configuration.
@@ -254,7 +256,7 @@ A successful update reports any configuration that still requires operator actio
 
 **Acceptance criterion:** a fresh installation does not report success until the required OpenCode account, valid target repository, valid model selection and productive daemon/readiness conditions are satisfied. After installation, if one of those conditions is lost or an update leaves an unresolved recoverable condition, the workbench remains usable for setup/recovery and affected productive Runs remain blocked. A usable selected account may contribute its trusted Console integration context without additional operator setup.
 
-**Failure/negative behavior:** mandatory fresh-install setup must not be deferred past reported installer success. Post-install unresolved readiness must not appear only as an internal daemon error, empty unexplained workbench, downstream provider/workflow failure, or a falsely READY state.
+**Failure/negative behavior:** mandatory fresh-install setup must not be deferred past reported installer success, including on retry or unresolved installation history under §2. Post-install unresolved readiness must not appear only as an internal daemon error, empty unexplained workbench, downstream provider/workflow failure, or a falsely READY state.
 
 ### GW-FR-080-CONFIGURATION-CONTINUITY
 

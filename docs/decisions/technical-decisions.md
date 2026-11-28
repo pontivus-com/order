@@ -240,7 +240,7 @@ This is **not** provider/model switching. The configured Order model/provider re
 
 OpenCode remains the sole credential owner. Order does not duplicate access tokens, refresh tokens, API keys or active-account state into Order SQLite/configuration.
 
-The browser exposes one application-shell account control that shows the active saved account label, lists all saved OpenCode OAuth login accounts, supports Add/Switch/Rename, and remains independent of WorkItem/project state.
+The browser exposes one application-shell account control that shows the active saved account identity/readiness and provides the P3-authorized entry point to centralized Settings. Saved-account listing and Add/Switch/Rename/Remove management remain in Settings under `GW-FR-073-OPENCODE-ACCOUNT-VISIBILITY`, `GW-FR-091-FIRST-CLASS-INSTALLATION-CONFIGURATION` and `GW-FR-095-CENTRALIZED-APPLICATION-SETTINGS`; this P5 decision does not create a competing shell management surface. The active-account utility remains independent of WorkItem/project state.
 
 The normal account label is the login email supplied by the operator during Add-account. Order deliberately does not consume OpenCode's secret-bearing credential-list response merely to auto-discover the internally stored email.
 

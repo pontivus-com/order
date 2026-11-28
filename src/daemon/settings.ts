@@ -96,7 +96,7 @@ const executionWorkItemExistsForRepository = (
   repositoryRoot: string,
 ): boolean =>
   repositoryWorkItems(runtime, repositoryRoot)
-    .some((workItem) => workItem.stage === "EXECUTION");
+    .some((workItem) => workItem.stage === "EXECUTION" || workItem.stage === "AWAITING_ACCEPTANCE");
 
 const repositoryState = async (
   repositoryRoot: string,
@@ -466,6 +466,7 @@ const activateConfiguration = async (
   const oldState = readOrderConfigState(oldRuntime.stateRoot);
   let candidate: CoordinatorRuntime | null = null;
   let persisted: OrderConfigState | null = null;
+  let activationEffectsStarted=false;
 
   try {
     if (oldState.sha256 !== expectedConfigSha256) {
@@ -476,8 +477,11 @@ const activateConfiguration = async (
     }
 
     const canonical = OrderConfigSchema.parse(proposed);
+    const removed=oldRuntime.config.repositoryRoots.filter(root=>!canonical.repositoryRoots.includes(root));
+    if(removed.some(root=>executionWorkItemExistsForRepository(oldRuntime,root)||activeRunExistsForRepository(oldRuntime,root))) throw new TypeError("repository disconnect is blocked by signed work or an active Run");
     const candidateRoots = await readyRepositoryRoots(canonical);
 
+    activationEffectsStarted=true;
     await stopCoordinatorScheduler(oldRuntime);
     candidate = proposedRuntime(oldRuntime, canonical);
     candidate.schedulerStopped = true;
@@ -502,6 +506,7 @@ const activateConfiguration = async (
     );
     return { configState: persisted, readiness };
   } catch (error) {
+    if(!activationEffectsStarted) throw error;
     if (candidate !== null) {
       await stopCoordinatorScheduler(candidate).catch(() => undefined);
     }
@@ -638,7 +643,7 @@ const beginDocumentRootMigration = (
   }
   if (executionWorkItemExistsForRepository(runtime, repositoryRoot)) {
     throw new TypeError(
-      "WorkItem document-root migration is blocked while repository work is in EXECUTION",
+      "WorkItem document-root migration is blocked while repository signed work is active",
     );
   }
   if (activeRunExistsForRepository(runtime, repositoryRoot)) {
