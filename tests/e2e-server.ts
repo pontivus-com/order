@@ -2,11 +2,13 @@ import {
   chmodSync,
   existsSync,
   mkdirSync,
+  mkdtempSync,
   readFileSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
 import { isAbsolute, join } from "node:path";
+import { tmpdir } from "node:os";
 
 import {
   ApprovalSchema,
@@ -50,7 +52,7 @@ import {
   updateRun,
 } from "../src/daemon/run.ts";
 import { writeOrderConfig } from "../src/shell/config.ts";
-import { resolveHeadCommit } from "../src/shell/repository.ts";
+import { captureCandidate, createFreshCheckout, resolveHeadCommit } from "../src/shell/repository.ts";
 import {
   createWorkItemSourceFile,
   readWorkItemSource,
@@ -1715,9 +1717,19 @@ const seedNativeCandidate = async (item:ReturnType<typeof workItem>)=>{
     providerSessionId:null,terminalClassification:"CANDIDATE_DONE",startedAt:stamp,endedAt:stamp,
   });
   storeRun(database,nativeBuilder);
-  const nativePatch=encoder.encode("diff --git a/src/a.ts b/src/a.ts\n--- a/src/a.ts\n+++ b/src/a.ts\n@@ -1 +1 @@\n-export const a = 1;\n+export const a = 2;\n");
-  const nativeState=persistEvent(nativeBuilder.id,1,{tag:"CANDIDATE_STATE_RECORDED",changedPaths:["src/a.ts"],patch:{
-    relativePath:"candidate.patch",sha256:writeRunEvidenceBytes(stateRoot,nativeBuilder.id,"candidate.patch",nativePatch),mediaType:"text/x-diff"
+  // Capture real patch bytes using the same canonical Git configuration as
+  // candidate replay. A hand-written diff omits the exact full-index identity.
+  const candidateDirectory=mkdtempSync(join(tmpdir(),"order-browser-candidate-"));
+  const candidate=await (async()=>{
+    try{
+      const workspace=join(candidateDirectory,"checkout");
+      await createFreshCheckout(repositoryRoot,workspace,nativeApproval.baselineCommit);
+      writeFileSync(join(workspace,"src","a.ts"),"export const a = 2;\n");
+      return await captureCandidate(workspace);
+    }finally{rmSync(candidateDirectory,{recursive:true,force:true});}
+  })();
+  const nativeState=persistEvent(nativeBuilder.id,1,{tag:"CANDIDATE_STATE_RECORDED",changedPaths:candidate.changedPaths,patch:{
+    relativePath:"candidate.patch",sha256:writeRunEvidenceBytes(stateRoot,nativeBuilder.id,"candidate.patch",candidate.patch),mediaType:"text/x-diff"
   }});
   const nativeReviewer=RunSchema.parse({...nativeBuilder,id:newRunId(),role:"REVIEWER",triggerEventId:nativeState.id,attempt:2,contextHash:sha256Text("native-acceptance-reviewer")});
   storeRun(database,nativeReviewer);
@@ -1790,7 +1802,12 @@ for(const [kind,item] of nativeHistoryItems){
     storeRun(database,run);
     appendQa({tag:"REVIEW_STARTED",submissionId:submission.id,runId:run.id},null);
     if(mode==="BLOCKED"){
-      if(mode==="BLOCKED")persistEvent(run.id,1,{tag:"REVIEW_FAILED",classification:"REVIEW_FAILURE",
+      for(const [index,stage] of (["V0","V1","V2","V3"] as const).entries()){
+        persistEvent(run.id,index+1,{tag:"VALIDATION_PASSED",stage,evidence:[]});
+      }
+      persistEvent(run.id,5,{tag:"REVIEW_FAILED",classification:"REVIEW_FAILURE",
+        summary:"The submitted observation still requires repair.",evidence:[]});
+      persistEvent(run.id,6,{tag:"VALIDATION_FAILED",stage:"V4",classification:"REVIEW_FAILURE",
         summary:"The submitted observation still requires repair.",evidence:[]});
       setExecutionTaskState(database,fixture.task.id,mode);
       updateWorkItemLifecycle(database,item.id,{stage:"EXECUTION",status:mode==="BLOCKED"?"BLOCKED":"ACTIVE",outcome:null});
