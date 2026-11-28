@@ -6036,6 +6036,8 @@ describe("daemon control plane", () => {
   it.each([
     ["R2", "P2", "ordinary"],
     ["R2", "P2", "before-effect"],
+    ["R2", "P2", "after-effect"],
+    ["DESIGN", "P4", "before-effect"],
     ["DESIGN", "P4", "after-effect"],
   ] as const)("adopts %s %s permanent authority with %s intent and rejects a stale base", (ownerStage, layer, interruption) => {
     const repository = createRepository();
@@ -6157,6 +6159,26 @@ describe("daemon control plane", () => {
           "+# product adopted\\n",
         rationale: "Adopt the durable product decision",
       });
+      const manifestPath = repositoryRoot + "/pontivus-order.toml";
+      const originalManifest = fs.readFileSync(manifestPath, "utf8");
+      const ownerLayer = ${JSON.stringify(layer)}.toLowerCase();
+      fs.writeFileSync(manifestPath, originalManifest.replace(ownerLayer + ' = ["docs/product.md"]', ownerLayer + " = []"));
+      let changedOwnerError = null;
+      try { await coord.adoptArtifactProposal(runtime, proposal.id); }
+      catch (error) { changedOwnerError = String(error); }
+      fs.writeFileSync(manifestPath, originalManifest);
+      // An exact postimage without persisted human intent is still stale.
+      await repo.adoptProposalPatch(repositoryRoot, productPath, base, proposal.event.unifiedDiff);
+      let noIntentError = null;
+      try { await coord.adoptArtifactProposal(runtime, proposal.id); }
+      catch (error) { noIntentError = String(error); }
+      const noIntentPreserved = fs.readFileSync(repositoryRoot + "/" + productPath, "utf8") === "# product adopted\\n";
+      const prematureIntent = coord.listRunEvents(runtime, run.id).some(event =>
+        event.event.tag === "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED" && event.event.proposalEventId === proposal.id);
+      fs.writeFileSync(repositoryRoot + "/" + productPath, "# product\\n");
+      if (changedOwnerError === null || noIntentError === null || !noIntentPreserved || prematureIntent) {
+        throw new Error("unsafe governance adoption without current owner and intent");
+      }
       if (${JSON.stringify(interruption)} !== "ordinary") {
         runStore.appendRunEvent(runtime, run.id, {
           tag: "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED",
@@ -6167,6 +6189,12 @@ describe("daemon control plane", () => {
         await repo.adoptProposalPatch(repositoryRoot, productPath, base, proposal.event.unifiedDiff);
       }
       const adopted = await coord.adoptArtifactProposal(runtime, proposal.id);
+      let repeatedError = null;
+      try { await coord.adoptArtifactProposal(runtime, proposal.id); }
+      catch (error) { repeatedError = String(error); }
+      const repeatedPreserved = fs.readFileSync(repositoryRoot + "/" + productPath, "utf8") === "# product adopted\\n";
+      const exactDispositions = coord.listRunEvents(runtime, run.id).filter(event =>
+        event.event.tag === "ARTIFACT_PROPOSAL_DISPOSITIONED" && event.event.proposalEventId === proposal.id).length;
       let driftError = null;
       const driftPath = "docs/drift.md";
       const before = "line one\\nline two\\nline three\\nline four\\nline five\\n";
@@ -6241,6 +6269,8 @@ describe("daemon control plane", () => {
         staleError,
         driftError,
         driftPreserved, danglingRejected, danglingPreserved, rejectedPostimages,
+        changedOwnerError, noIntentError, noIntentPreserved, prematureIntent,
+        repeatedError, repeatedPreserved, exactDispositions,
         adoptionRequests: events.filter((event) =>
           event.event.tag === "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED"
         ).length,
@@ -6257,6 +6287,8 @@ describe("daemon control plane", () => {
       danglingRejected: boolean;
       danglingPreserved: boolean;
       rejectedPostimages: { fault: string; error: string | null; preserved: boolean; intent: boolean }[];
+      changedOwnerError: string | null; noIntentError: string | null; noIntentPreserved: boolean; prematureIntent: boolean;
+      repeatedError: string | null; repeatedPreserved: boolean; exactDispositions: number;
       adoptionRequests: number;
       stage: string;
     };
@@ -6275,6 +6307,13 @@ describe("daemon control plane", () => {
     expect(output.driftPreserved).toBe(true);
     expect(output.danglingRejected).toBe(true);
     expect(output.danglingPreserved).toBe(true);
+    expect(output.changedOwnerError).toContain("not admitted by current resolved authority");
+    expect(output.noIntentError).toContain("baseSha256 is stale");
+    expect(output.noIntentPreserved).toBe(true);
+    expect(output.prematureIntent).toBe(false);
+    expect(output.repeatedError).toContain("already dispositioned");
+    expect(output.repeatedPreserved).toBe(true);
+    expect(output.exactDispositions).toBe(1);
     expect(output.rejectedPostimages.map(value => value.fault)).toEqual(["delete", "symlink"]);
     for (const value of output.rejectedPostimages) {
       expect(value.error).not.toBeNull();
@@ -6416,7 +6455,6 @@ describe("daemon control plane", () => {
       answer(first.run, "STAGE_CHOICE", "second decision question", "historical decision beta");
       answer(first.run, "INFORMATION", "ordinary information question", "ordinary information only");
       answer(first.run, "EVIDENCE", "ordinary evidence question", "ordinary evidence only");
-      append(first.run, { tag: "HUMAN_INPUT_REQUESTED", category: "AUTHORITY_DECISION", question: "unanswered question excluded" });
       const artifactPath = sourceCore.workItemDocumentPath("docs/order/work-items", work.id, "R1");
       fs.writeFileSync(path.join(repositoryRoot, artifactPath), "unrelated adopted material\\n");
       const artifact = await authority.currentFileArtifact(runtime, work, artifactPath, "R1", "P1");
@@ -6427,6 +6465,7 @@ describe("daemon control plane", () => {
       append(first.run, { tag: "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED", proposalEventId: proposed.id });
       append(first.run, { tag: "ARTIFACT_PROPOSAL_DISPOSITIONED", proposalEventId: proposed.id,
         disposition: "ADOPTED", adoptedArtifactRefId: artifact.id });
+      append(first.run, { tag: "HUMAN_INPUT_REQUESTED", category: "AUTHORITY_DECISION", question: "unanswered question excluded" });
       first.finish();
       const failed = prior(work.id, "R1", "FAILED");
       answer(failed.run, "AUTHORITY_CONFLICT", "superseding decision question", "superseding decision gamma");
