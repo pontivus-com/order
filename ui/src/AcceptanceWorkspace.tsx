@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { TextInput } from "@astryxdesign/core/TextInput";
 import { Selector } from "@astryxdesign/core/Selector";
 import { MultiSelector } from "@astryxdesign/core/MultiSelector";
 import { RadioList, RadioListItem } from "@astryxdesign/core/RadioList";
-import type { Approval, ArtifactRef, CandidateReviewEvent, RunEvent, WorkItem } from "../../src/core/contracts.ts";
+import type { Approval, ArtifactRef, AuthorityRef, ExecutionTask, CandidateReviewEvent, RunEvent, WorkItem } from "../../src/core/contracts.ts";
 import { candidateFindingActionIsAdmitted, candidateFindingDispositions, candidateMemberActionIsAdmitted, candidateEvidenceLineage,
   candidateSubmitIsAdmitted, deriveAcceptanceDecision, reconstructCandidateRounds } from "../../src/core/lifecycle.ts";
 import * as api from "./http.ts";
@@ -31,12 +31,13 @@ const formTitles: Record<FormAction,string> = {
 };
 
 export const AcceptanceWorkspace = ({workItem,material,approvals,histories,historyPending,historyError,input,decision,
-  signedArtifacts,onSelectMaterial,onReturnCurrent,onOpenEvidence,onOpenDocument,onOpenCorrection,onMutationError}:Readonly<{
+  signedArtifacts,active,onDirtyChange,onSelectMaterial,onReturnCurrent,onOpenEvidence,onOpenDocument,onOpenCorrection,onMutationError}:Readonly<{
   workItem:WorkItem; material:Material; approvals:readonly Approval[]; histories:readonly CandidateReviewEvent[];
   historyPending:boolean; historyError:unknown; input:Parameters<typeof deriveAcceptanceDecision>[0];
   decision:ReturnType<typeof deriveAcceptanceDecision>; signedArtifacts:readonly ArtifactRef[];
-  onSelectMaterial:(material:Material)=>void; onReturnCurrent:()=>void; onOpenEvidence:(selection:EvidenceSelection)=>void;
-  onOpenDocument:(artifactId:ArtifactRef["id"])=>void; onOpenCorrection:(taskId:string,runId:string)=>void; onMutationError:(error:unknown)=>void;
+  active:boolean; onDirtyChange:(dirty:boolean)=>void;
+  onSelectMaterial:(material:Material)=>void; onReturnCurrent:()=>void; onOpenEvidence:(selection:EvidenceSelection,focusId?:string)=>void;
+  onOpenDocument:(artifactId:ArtifactRef["id"],focusId?:string)=>void; onOpenCorrection:(taskId:string,runId:string)=>void; onMutationError:(error:unknown)=>void;
 }>) => {
   const queryClient=useQueryClient();
   const approval = material.approvalId === undefined
@@ -69,6 +70,22 @@ export const AcceptanceWorkspace = ({workItem,material,approvals,histories,histo
   const [feedback,setFeedback]=useState<string|null>(null);
   const [copyPath,setCopyPath]=useState<string|null>(null);
   const [pending,setPending]=useState(false);
+  const [criterionPending,setCriterionPending]=useState<string|null>(null);
+  const [criterionFeedback,setCriterionFeedback]=useState<string|null>(null);
+  const [discard,setDiscard]=useState<"CLOSE"|Readonly<{taskId:string}>|null>(null);
+  const requestSerial=useRef(0);
+  const originIdentity=JSON.stringify([active,workItem.id,approval?.id,round?.id,material.findingId,form?.action,taskId,form?.sequence]);
+  const currentOrigin=useRef(originIdentity);
+  currentOrigin.current=originIdentity;
+  useEffect(()=>()=>{requestSerial.current+=1;},[]);
+  const formDirty=form!==null&&copyPath===null&&(
+    [actor,expected,observed,reproduction,impact,rationale,outcome,confirmed,followup].some(value=>value.length>0)||
+    criteria.length>0||evidenceIds.length>0||
+    (form.action==="SUBMIT"&&findingIds.length>0)
+  );
+  const dirtyOwner=useRef(onDirtyChange);
+  dirtyOwner.current=onDirtyChange;
+  useEffect(()=>{dirtyOwner.current(formDirty);},[formDirty]);
   const [confirmRecovery,setConfirmRecovery]=useState<Readonly<{decision:typeof decision;approvalId:string;sequence:number}>|null>(null);
   const artifactsQuery=useQuery({
     queryKey:workbenchQueryKeys.approvalArtifacts(workItem.id,approval?.id??null),
@@ -160,10 +177,45 @@ export const AcceptanceWorkspace = ({workItem,material,approvals,histories,histo
     }catch(error){onMutationError(error);setFeedback("Authority reconciliation was rejected. Reinspect current authority.");await invalidateWorkbenchMutation(queryClient,workItem.id);}
     finally{setPending(false);}
   };
-  const evidenceActions=(events:readonly RunEvent[])=>events.flatMap(event=>eventEvidence(event).map(ref=>({
-    id:event.id+":"+ref.relativePath,label:ref.relativePath,detail:ref.mediaType,
-    action:<WorkbenchAction label="View evidence" onClick={()=>onOpenEvidence({kind:"EVIDENCE",runId:event.runId,relativePath:ref.relativePath})}/>
-  })));
+  const criterionRows=(task:ExecutionTask,refs:readonly AuthorityRef[],context:string)=>(
+    <WorkbenchResourceList items={refs.map(ref=>{
+      const id="criterion:"+context+":"+task.id+":"+ref;
+      return {id:ref,label:ref,action:<WorkbenchAction label="Open criterion" testId={id}
+        loading={criterionPending===id} disabled={criterionPending!==null||approval===null}
+        onClick={()=>{void openCriterion(task.id,ref,id);}}/>};
+    })}/>
+  );
+  const openCriterion=async(task:ExecutionTask["id"],ref:AuthorityRef,focusId:string)=>{
+    if(!active||approval===null||criterionPending!==null||!tasks.some(value=>value.id===task&&value.acceptanceRefs.includes(ref)))return;
+    const serial=++requestSerial.current;
+    const origin=originIdentity;
+    setCriterionPending(focusId);setCriterionFeedback(null);
+    try{
+      const resolved=await queryClient.fetchQuery({
+        queryKey:workbenchQueryKeys.approvalCriterion(workItem.id,approval.id,task,ref),
+        queryFn:()=>api.listApprovalArtifacts(workItem.id,approval.id,{taskId:task,acceptanceRef:ref}),
+        staleTime:0,retry:false,
+      });
+      if(requestSerial.current!==serial||currentOrigin.current!==origin)return;
+      const artifact=resolved[0];
+      if(resolved.length!==1||artifact===undefined||artifact.workItemId!==workItem.id||
+        artifact.gitCommit!==approval.baselineCommit||artifact.role!=="GOVERNANCE"||
+        !artifacts.some(value=>value.id===artifact.id&&value.repositoryPath===artifact.repositoryPath&&
+          value.sha256===artifact.sha256&&value.gitCommit===artifact.gitCommit&&value.role===artifact.role)){
+        throw new TypeError("Exact signed criterion document membership is unresolved");
+      }
+      onOpenDocument(artifact.id,focusId);
+    }catch{
+      if(requestSerial.current===serial&&currentOrigin.current===origin)setCriterionFeedback("Exact signed criterion document is unavailable. Reinspect the signed material.");
+    }finally{
+      if(requestSerial.current===serial)setCriterionPending(null);
+    }
+  };
+  const evidenceActions=(events:readonly RunEvent[],context="review")=>events.flatMap(event=>eventEvidence(event).map(ref=>{
+    const id="qa-evidence:"+context+":"+event.id+":"+ref.relativePath;
+    return {id:event.id+":"+ref.relativePath,label:ref.relativePath,detail:ref.mediaType,
+      action:<WorkbenchAction label="View evidence" testId={id} onClick={()=>onOpenEvidence({kind:"EVIDENCE",runId:event.runId,relativePath:ref.relativePath},id)}/>};
+  }));
   const findingDetails=(entry:ReturnType<typeof reportEntries>[number],inspect=true)=>{
     const retest=visibleHistory.findLast(value=>value.event.tag==="RETEST_FAILED"&&value.event.findingId===entry.id);
     const disposition=visibleHistory.findLast(value=>value.event.tag==="DISPOSITION"&&value.event.findingId===entry.id);
@@ -188,8 +240,12 @@ export const AcceptanceWorkspace = ({workItem,material,approvals,histories,histo
         ...(retest?.event.tag==="RETEST_FAILED"?[{id:"retest-observed",label:"Retest observation",value:retest.event.observed},{id:"retest-rationale",label:"Retest rationale",value:retest.event.rationale}]:[]),
         ...(disposition?.event.tag==="DISPOSITION"?[{id:"disposition",label:dispositions.get(entry.id)==="DISPOSED"?"Human disposition":"Prior human disposition",value:(disposition.event.outcome==="RESOLVED"?"Resolved":"Withdrawn")+" · "+disposition.actor+" · "+new Date(disposition.occurredAt).toLocaleString()},{id:"disposition-rationale",label:"Disposition rationale",value:disposition.event.rationale}]:[]),
       ]}/>
-      {inspect?<WorkbenchResourceList items={evidenceActions(input.runEvents.filter(event=>entry.event.evidence.includes(event.id)||(retest?.event.tag==="RETEST_FAILED"&&retest.event.evidence.includes(event.id))))}/>:null}
-      {inspect&&assessment!==undefined&&review!==undefined?<WorkbenchResourceList items={assessment.evidence.map(ref=>({id:review.id+":"+ref.relativePath,label:"Independent assessment evidence",action:<WorkbenchAction label="View evidence" onClick={()=>onOpenEvidence({kind:"EVIDENCE",runId:review.runId,relativePath:ref.relativePath})}/> }))}/>:null}
+      {(()=>{const task=tasks.find(value=>value.id===entry.event.taskId);return task===undefined?null:criterionRows(task,entry.event.acceptanceRefs,inspect?"finding":"form-finding");})()}
+      <WorkbenchResourceList items={evidenceActions(input.runEvents.filter(event=>entry.event.evidence.includes(event.id)||(retest?.event.tag==="RETEST_FAILED"&&retest.event.evidence.includes(event.id))),inspect?"finding":"form-finding")}/>
+      {assessment!==undefined&&review!==undefined?<WorkbenchResourceList items={assessment.evidence.map(ref=>{
+        const id="qa-assessment:"+(inspect?"finding":"form-finding")+":"+review.id+":"+ref.relativePath;
+        return {id:review.id+":"+ref.relativePath,label:"Independent assessment evidence",action:<WorkbenchAction label="View evidence" testId={id} onClick={()=>onOpenEvidence({kind:"EVIDENCE",runId:review.runId,relativePath:ref.relativePath},id)}/>};
+      })}/>:null}
     </>;
   };
   const verdict:WorkbenchReviewProps["verdict"]=(()=>{
@@ -221,14 +277,26 @@ export const AcceptanceWorkspace = ({workItem,material,approvals,histories,histo
   const field=(label:string,value:string,set:(value:string)=>void)=><TextInput label={label} value={value} onChange={set} isRequired width="100%"/>;
   const choice=(label:string,value:string,set:(value:string)=>void,options:readonly {value:string;label:string}[])=><Selector label={label} value={value} onChange={set} options={[...options]} isRequired width="100%"/>;
   const affirmation=(label:string)=><RadioList label={label} value={confirmed} onChange={setConfirmed} isRequired><RadioListItem value="yes" label="I confirm"/></RadioList>;
-  const taskOptions=tasks.filter(task=>form?.action==="REPORT"?actionAllowed("REPORT",task.id):eligibleReports.some(entry=>entry.event.taskId===task.id)).map(task=>({value:task.id,label:task.objective}));
+  const taskOptions=tasks.filter(task=>form?.action==="REPORT"?actionAllowed("REPORT",task.id):eligibleReports.some(entry=>entry.event.taskId===task.id)).map(task=>({value:task.id,label:task.objective+" · "+(memberFor(task.id)?.event.tag==="TASK_ALREADY_SATISFIED"?"No change required":"Verified candidate")}));
+  const resetTaskDraft=(value:string)=>{
+    setTaskId(value);setFindingIds([]);setCriteria([]);setEvidenceIds([]);
+    setActor("");setExpected("");setObserved("");setReproduction("");setImpact("");setRationale("");
+    setOutcome("");setConfirmed("");setFollowup("");setFeedback(null);setCriterionFeedback(null);
+  };
+  const changeTask=(value:string)=>{
+    if(value===taskId)return;
+    if(formDirty)setDiscard({taskId:value});else resetTaskDraft(value);
+  };
+  const closeForm=()=>{if(!pending){if(formDirty)setDiscard("CLOSE");else setForm(null);}};
   const formBody=form===null?null:copyPath!==null?<WorkbenchFacts items={[{id:"copy",label:"Local checkout path",value:copyPath}]}/>:<>
-    {form.action==="REPORT"||form.action==="SUBMIT"?choice("Task",taskId,value=>{setTaskId(value);setFindingIds([]);setCriteria([]);setEvidenceIds([]);},taskOptions):null}
+    {form.action==="REPORT"||form.action==="SUBMIT"?choice("Task",taskId,changeTask,taskOptions):null}
     {form.action==="REPORT"?<>
       <MultiSelector label="Acceptance criteria" options={[...(chosenTask?.acceptanceRefs??[])]} value={criteria} onChange={setCriteria} width="100%"/>
+      {chosenTask===undefined?null:criterionRows(chosenTask,chosenTask.acceptanceRefs,"form-report")}
       {field("Expected behavior",expected,setExpected)}{field("Observed behavior",observed,setObserved)}
       {field("Reproduction",reproduction,setReproduction)}{field("Impact",impact,setImpact)}
       <MultiSelector label="Supporting evidence" options={evidenceOptions(taskId)} value={evidenceIds} onChange={setEvidenceIds} width="100%"/>
+      <WorkbenchResourceList items={evidenceActions(input.runEvents.filter(event=>evidenceIds.includes(event.id)),"form-report")}/>
     </>:null}
     {form.action==="SUBMIT"?<MultiSelector label="Findings" options={eligibleReports.filter(entry=>entry.event.taskId===taskId).map(entry=>({value:entry.id,label:entry.event.observed}))} value={findingIds} onChange={setFindingIds} width="100%"/>:null}
     {form.action==="RETEST"?<>
@@ -244,26 +312,36 @@ export const AcceptanceWorkspace = ({workItem,material,approvals,histories,histo
     {form.action==="ACCEPT"?<><WorkbenchResourceList items={tasks.map(task=>({id:task.id,label:task.objective}))}/>{affirmation("No known unmet signed obligations")}</>:null}
     {form.action==="COPY"?<p>Prepare an isolated local copy of the selected candidate. No delivery or overwrite is performed.</p>:field("Your name",actor,setActor)}
   </>;
+  if(!active)return null;
   return <>
+    {criterionFeedback!==null&&form===null?<WorkbenchNotice tone="danger" title={criterionFeedback}/>:null}
     <WorkbenchReview title="Acceptance" description="Review the exact verified candidate before human acceptance." verdict={verdict} sections={[
       {id:"criteria",title:"Acceptance criteria",content:<>{tasks.map(task=><WorkbenchResourceList key={task.id} label={task.objective}
-        items={task.acceptanceRefs.map(ref=>({id:ref,label:ref,detail:current&&input.currentProof!==null?"Member proof available":"Historical criterion reference"}))}
+        items={task.acceptanceRefs.map(ref=>{
+          const id="criterion:overview:"+task.id+":"+ref;
+          return {id:ref,label:ref,detail:current&&input.currentProof!==null?"Member proof available":"Historical criterion reference",
+            action:<WorkbenchAction label="Open criterion" testId={id} loading={criterionPending===id} disabled={criterionPending!==null||approval===null}
+              onClick={()=>{void openCriterion(task.id,ref,id);}}/>};
+        })}
         empty={<p>No signed criterion references.</p>}/>)}</>},
       {id:"candidate",title:"Candidate and evidence",content:<>
         {observationError?<WorkbenchNotice tone="warning" title="Exact member evidence unavailable"/>:null}
-        <WorkbenchResourceList items={tasks.flatMap(task=>{
-          const member=memberFor(task.id);if(member===undefined)return [];
+        {tasks.map(task=>{
+          const member=memberFor(task.id);if(member===undefined)return null;
           const state=member.event.tag==="CANDIDATE_RECORDED"?input.runEvents.find(event=>event.id===(member.event.tag==="CANDIDATE_RECORDED"?member.event.candidateStateEventId:"")):undefined;
-          return [{id:task.id,label:task.objective,detail:member.event.tag==="TASK_ALREADY_SATISFIED"?"No change required":"Verified candidate",
-            action:actionAllowed("PREPARE_TEST_COPY",task.id)?<WorkbenchAction label="Prepare test copy" onClick={()=>open("COPY",task.id)}/>:undefined},
-            ...evidenceActions([member,...(state?[state]:[]),...input.runEvents.filter(event=>event.runId===member.runId&&event.event.tag.startsWith("VALIDATION_"))])];
-        })}/>
+          return <WorkbenchResourceList key={task.id} label={task.objective} items={[
+            {id:task.id,label:member.event.tag==="TASK_ALREADY_SATISFIED"?"No change required":"Verified candidate",
+              action:<>{actionAllowed("PREPARE_TEST_COPY",task.id)?<WorkbenchAction label="Prepare test copy" onClick={()=>open("COPY",task.id)}/>:null}
+                {actionAllowed("REPORT",task.id)?<WorkbenchAction label="Report finding for task" onClick={()=>open("REPORT",task.id)}/>:null}</>},
+            ...evidenceActions([member,...(state?[state]:[]),...input.runEvents.filter(event=>event.runId===member.runId&&event.event.tag.startsWith("VALIDATION_"))],"member:"+task.id)
+          ]}/>;
+        })}
         <WorkbenchResourceList items={artifacts.map(artifact=>({id:artifact.id,label:lifecycleArtifactLabel(artifact.role),detail:artifact.repositoryPath,
           action:<WorkbenchAction label="Open document" onClick={()=>onOpenDocument(artifact.id)}/> }))}/>
       </>},
-      {id:"findings",title:"QA findings",content:<>{report===undefined?<WorkbenchResourceList items={reports.map(entry=>({id:entry.id,label:entry.event.observed,detail:tasks.find(task=>task.id===entry.event.taskId)?.objective,
+      {id:"findings",title:"QA findings",content:<>{report===undefined?<>{tasks.map(task=><WorkbenchResourceList key={task.id} label={task.objective} items={reports.filter(entry=>entry.event.taskId===task.id).map(entry=>({id:entry.id,label:entry.event.observed,
         meta:<WorkbenchStatus tone="neutral" label={dispositions.get(entry.id)==="DISPOSED"?"Disposed":dispositions.get(entry.id)==="RETEST_REQUIRED"?"Retest required":dispositions.get(entry.id)==="RETEST_FAILED"?"Retest failed":"Open"}/>,
-        action:<WorkbenchAction label="Inspect finding" onClick={()=>setSelectedFinding(entry.id)}/> }))} empty={<p>No findings reported.</p>}/>:<>
+        action:<WorkbenchAction label="Inspect finding" onClick={()=>setSelectedFinding(entry.id)}/> }))}/>)}{reports.length===0?<p>No findings reported.</p>:null}</>:<>
         <WorkbenchAction label="Back to findings" onClick={()=>setSelectedFinding(null)}/>
         {findingDetails(report)}
         {findingAllowed("RETEST",report.id)?<WorkbenchAction label="Record retest" onClick={()=>open("RETEST","",report.id)}/>:null}
@@ -279,10 +357,14 @@ export const AcceptanceWorkspace = ({workItem,material,approvals,histories,histo
           return [{id:entry.id,label:"Independent correction review",detail:new Date(entry.occurredAt).toLocaleString(),action:<WorkbenchAction label="View correction" onClick={()=>onOpenCorrection(run.executionTaskId!,run.id)}/> }];
         })}/></>}
     ]} decisions={primaryAction()}/>
-    <WorkbenchTaskPanel open={form!==null} title={form===null?"Acceptance":formTitles[form.action]} onOpenChange={next=>{if(!next&&!pending)setForm(null);}}
-      body={formBody} feedback={feedback!==null?<WorkbenchNotice tone="danger" title={feedback}/>:form!==null&&!stable&&copyPath===null?<WorkbenchNotice tone="warning" title="Review identity must remain current."/>:undefined}
-      footer={<><WorkbenchAction label={copyPath!==null?"Close":"Cancel"} disabled={pending} onClick={()=>setForm(null)}/>{copyPath===null&&form!==null?<WorkbenchAction label={formTitles[form.action]} tone="primary" type="submit" disabled={!valid} loading={pending}/>:null}</>}
+    <WorkbenchTaskPanel open={form!==null} title={form===null?"Acceptance":formTitles[form.action]} onOpenChange={next=>{if(!next)closeForm();}}
+      body={formBody} feedback={feedback!==null||criterionFeedback!==null?<WorkbenchNotice tone="danger" title={feedback??criterionFeedback??""}/>:form!==null&&!stable&&copyPath===null?<WorkbenchNotice tone="warning" title="Review identity must remain current."/>:undefined}
+      footer={<><WorkbenchAction label={copyPath!==null?"Close":"Cancel"} disabled={pending} onClick={closeForm}/>{copyPath===null&&form!==null?<WorkbenchAction label={formTitles[form.action]} tone="primary" type="submit" disabled={!valid} loading={pending}/>:null}</>}
       onSubmit={event=>{event.preventDefault();void submit();}}/>
+    <WorkbenchConfirmation kind="destructive" open={discard!==null} title="Discard unsaved review form?"
+      description="Changing the selected task or closing the form will discard its unsaved entries."
+      confirmLabel="Discard unsaved changes" pending={false} onOpenChange={next=>{if(!next)setDiscard(null);}}
+      onConfirm={()=>{if(discard==="CLOSE")setForm(null);else if(discard!==null)resetTaskDraft(discard.taskId);setDiscard(null);}}/>
     <WorkbenchConfirmation kind="safety" open={confirmRecovery!==null} title="Reconcile authority"
       description={confirmRecovery?.decision.tag==="RECONCILE_AUTHORITY"?"Return to the exact stale authority owner.":"Return to Research to reconcile source authority."}
       confirmLabel="Reconcile authority" pending={pending} onConfirm={recover} onOpenChange={next=>{if(!next&&!pending)setConfirmRecovery(null);}}/>

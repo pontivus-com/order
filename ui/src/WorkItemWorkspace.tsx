@@ -127,6 +127,7 @@ export const WorkItemWorkspace = ({
   const [selectedStep, setSelectedStep] = useState<WorkItem["stage"]>(workItem.stage);
   const [explicitMaterial, setExplicitMaterial] = useState<WorkflowMaterial | null>(null);
   const [dirty, setDirty] = useState(false);
+  const [acceptanceDiscardVersion,setAcceptanceDiscardVersion]=useState(0);
   const [pendingSelection, setPendingSelection] = useState<WorkspaceSelection | null>(null);
   const [pendingReturnSelection, setPendingReturnSelection] =
     useState<WorkspaceSelection | null>(null);
@@ -1054,6 +1055,7 @@ export const WorkItemWorkspace = ({
         const target = Array.from(
           document.querySelectorAll<HTMLButtonElement>("button"),
         ).find((button) =>
+          button.getAttribute("data-testid") === name ||
           button.getAttribute("aria-label") === name ||
           button.textContent?.trim() === name);
         target?.focus();
@@ -1395,6 +1397,18 @@ export const WorkItemWorkspace = ({
     <WorkflowRail items={railItems} onSelect={inspectWorkflowStep} />
   );
 
+  const acceptanceMaterial=selectedStep==="AWAITING_ACCEPTANCE"
+    ? material.kind==="ACCEPTANCE_REVIEW"?material:
+      returnSelection?.step==="AWAITING_ACCEPTANCE"&&returnSelection.material?.kind==="ACCEPTANCE_REVIEW"
+        ?returnSelection.material:null
+    :null;
+  const acceptanceInspection=(nextMaterial:WorkflowMaterial,focusId?:string):void=>{
+    if(material.kind!=="ACCEPTANCE_REVIEW")return;
+    if(focusId!==undefined)setReturnFocusName(focusId);
+    // Observational inspection keeps this exact Review owner mounted, with no
+    // second visible interaction and no discard/rebinding of its local form.
+    commitSelection({step:"AWAITING_ACCEPTANCE",material:nextMaterial},{step:selectedStep,material});
+  };
   const primary = (
     <div className="order-workitem-workspace" data-testid="work-item-workspace">
     <div
@@ -1404,6 +1418,19 @@ export const WorkItemWorkspace = ({
       aria-label={selectedWorkflow.label + " workspace"}
       data-testid="workflow-step-workspace"
     >
+      {acceptanceMaterial!==null?<Suspense fallback={<WorkbenchState kind="loading" title="Loading Acceptance…" />}>
+          <AcceptanceWorkspace key={acceptanceDiscardVersion} workItem={workItem} material={acceptanceMaterial}
+            active={material.kind==="ACCEPTANCE_REVIEW"} onDirtyChange={setDirtyState} approvals={qaApprovals}
+            histories={allReviewEvents} historyPending={approvalsQuery.isPending || qaHistories.some(query=>query.isPending)}
+            historyError={approvalsQuery.error ?? qaHistories.find(query=>query.isError)?.error ?? null}
+            input={acceptanceInput} decision={acceptanceDecision} signedArtifacts={signedArtifacts}
+            onSelectMaterial={next=>requestSelection({step:"AWAITING_ACCEPTANCE",material:next})}
+            onReturnCurrent={()=>requestSelection({step:workItem.stage,material:null})}
+            onOpenEvidence={(selection,focusId)=>acceptanceInspection({kind:"EVIDENCE",selection},focusId)}
+            onOpenDocument={(artifactId,focusId)=>acceptanceInspection({kind:"SUPPORTING_DOCUMENT",artifactId},focusId)}
+            onOpenCorrection={(taskId,runId)=>requestSelection({step:"EXECUTION",material:{kind:"EXECUTION_TASK",taskId,runId}},{step:selectedStep,material})}
+            onMutationError={reportMutationError} />
+        </Suspense>:null}
       {material.kind === "EVIDENCE" && selectedStep !== "EXECUTION" ? (
         <Suspense fallback={<WorkbenchState kind="loading" title="Loading evidence…" />}>
           {historicalReturn === undefined ? null : <div className="order-inline-actions">{historicalReturn}</div>}
@@ -1558,20 +1585,8 @@ export const WorkItemWorkspace = ({
             onMutationError={reportMutationError}
           />
         </Suspense>
-      ) : selectedStep === "AWAITING_ACCEPTANCE" && material.kind === "ACCEPTANCE_REVIEW" ? (
-        <Suspense fallback={<WorkbenchState kind="loading" title="Loading Acceptance…" />}>
-          <AcceptanceWorkspace workItem={workItem} material={material} approvals={qaApprovals}
-            histories={allReviewEvents} historyPending={approvalsQuery.isPending || qaHistories.some(query=>query.isPending)}
-            historyError={approvalsQuery.error ?? qaHistories.find(query=>query.isError)?.error ?? null}
-            input={acceptanceInput} decision={acceptanceDecision} signedArtifacts={signedArtifacts}
-            onSelectMaterial={next=>requestSelection({step:"AWAITING_ACCEPTANCE",material:next})}
-            onReturnCurrent={()=>requestSelection({step:workItem.stage,material:null})}
-            onOpenEvidence={openEvidence}
-            onOpenDocument={artifactId=>openSupportingMaterial({kind:"SUPPORTING_DOCUMENT",artifactId})}
-            onOpenCorrection={(taskId,runId)=>requestSelection({step:"EXECUTION",material:{kind:"EXECUTION_TASK",taskId,runId}},{step:selectedStep,material})}
-            onMutationError={reportMutationError} />
-        </Suspense>
-      ) : selectedStep === "AWAITING_ACCEPTANCE" && material.kind === "SUPPORTING_DOCUMENT" ? (
+      ) : selectedStep === "AWAITING_ACCEPTANCE" && material.kind === "ACCEPTANCE_REVIEW" ? null
+        : selectedStep === "AWAITING_ACCEPTANCE" && material.kind === "SUPPORTING_DOCUMENT" ? (
         <Suspense fallback={<WorkbenchState kind="loading" title="Loading signed document…"/>}>
           <WorkbenchAction label="Back to Acceptance" onClick={returnFromTransient}/>
           {inspectionArtifacts.find(artifact=>artifact.id===material.artifactId)===undefined
@@ -1702,8 +1717,8 @@ export const WorkItemWorkspace = ({
             setPendingReturnSelection(null);
           }
         }}
-        title="Discard unsaved Markdown?"
-        description="Changing workflow step or material would discard the current unsaved Markdown buffer."
+        title={acceptanceMaterial!==null?"Discard unsaved review form?":"Discard unsaved Markdown?"}
+        description={acceptanceMaterial!==null?"Changing workflow step or material would discard the current unsaved review form.":"Changing workflow step or material would discard the current unsaved Markdown buffer."}
         confirmLabel="Discard unsaved changes"
         pending={false}
         onConfirm={() => {
@@ -1712,6 +1727,7 @@ export const WorkItemWorkspace = ({
           setPendingSelection(null);
           setPendingReturnSelection(null);
           setDirtyState(false);
+          if(acceptanceMaterial!==null)setAcceptanceDiscardVersion(value=>value+1);
           if (next) commitSelection(next, nextReturn);
         }}
       />

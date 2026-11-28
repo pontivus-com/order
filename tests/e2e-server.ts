@@ -527,6 +527,8 @@ writeFileSync(join(repositoryRoot, "docs", "change-plan.md"), changePlanContract
 writeFileSync(join(repositoryRoot, "docs", "defect-plan.md"), defectPlanContractText);
 writeFileSync(join(repositoryRoot, "docs", "design.md"), designText);
 writeFileSync(join(repositoryRoot, "docs", "plan.md"), planText);
+writeFileSync(join(repositoryRoot, "docs", "native-acceptance-plan.md"),
+  planText.replace('"acceptanceRefs":[]','"acceptanceRefs":["GW-FR-098-READINESS-AUTHORITY-TOPOLOGY-REVIEW"]'));
 writeFileSync(
   join(repositoryRoot, "docs", "historical-selection-plan.md"),
   historicalSelectionPlanText,
@@ -949,6 +951,7 @@ const seedLifecycle = async (
   planPath:
     | "docs/plan.md"
     | "docs/stale-approval-plan.md"
+    | "docs/native-acceptance-plan.md"
     | "docs/long-wide-plan.md"
     | "docs/long-narrow-plan.md" = "docs/plan.md",
 ) => {
@@ -1645,7 +1648,7 @@ for (const [title, planPath] of [
 
 const nativeAcceptanceItem=workItem("Native Acceptance review","AWAITING_SIGNOFF","ACTIVE",null);
 storeWorkItem(database,nativeAcceptanceItem);
-await seedLifecycle(nativeAcceptanceItem);
+await seedLifecycle(nativeAcceptanceItem,"docs/native-acceptance-plan.md");
 git("add", "--", workItemsRoot);
 git("commit", "-q", "-m", "browser WorkItem sources");
 baselineCommit = await resolveHeadCommit(repositoryRoot);
