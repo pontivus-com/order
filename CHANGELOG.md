@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Keep the entire canonical ten-stage Workbench rail in one row at wide viewports, retaining scrollable constrained recomposition. Refresh Acceptance proof against the current persisted sequence after mutation instead of re-fetching obsolete proof.
+
 - Extend integrated certification with semantic primary-composition negative fixtures, four effective-theme component-role checks and direct terminal Investigation/Audit no-delivery evidence.
 
 - Correct native QA reviewer validation-boundary admission: prove the exact prior candidate and persisted submission/start lineage, then derive only the new attempt's V0–V7 boundary. Prevent ambiguous Queue title selection in multi-candidate fixtures.
