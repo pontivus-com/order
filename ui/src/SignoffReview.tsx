@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { TextInput } from "@astryxdesign/core/TextInput";
 
 import type {
+  Approval,
   ArtifactRef,
   ExecutionTask,
   Sha256,
@@ -14,7 +15,7 @@ import type { MaterialPresentationState } from "../../src/core/lifecycle.ts";
 import * as api from "./http.ts";
 import { ReadOnlyLifecycleDocumentMaterial } from "./DocumentWorkspace.tsx";
 import { invalidateWorkbenchMutation } from "./query-keys.ts";
-import { lifecycleArtifactLabel, lifecycleArtifactRoleRank } from "./workbench-presentation.ts";
+import { lifecycleArtifactLabel, lifecycleArtifactRoleRank, type WorkflowMaterial } from "./workbench-presentation.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchIcon } from "./primitives/WorkbenchIcon.tsx";
 import { WorkbenchReview } from "./primitives/WorkbenchReview.tsx";
@@ -25,10 +26,7 @@ import {
   WorkbenchState,
 } from "./primitives/WorkbenchState.tsx";
 
-type ApprovalSelection =
-  | Readonly<{ kind: "OVERVIEW" }>
-  | Readonly<{ kind: "DOCUMENT"; artifactId: ArtifactRef["id"] }>
-  | Readonly<{ kind: "TASK"; taskId: string }>;
+type ApprovalSelection = Extract<WorkflowMaterial, {kind:"APPROVAL_PACKAGE"}>;
 
 const packageDocumentRoles = new Set<ArtifactRef["role"]>([
   "R1",
@@ -122,6 +120,10 @@ export const SignoffReview = ({
   packageFetching,
   packageError,
   packageStale = false,
+  selectedApproval,
+  approvals,
+  selection,
+  onSelectionChange,
   materialStateForArtifact,
   artifacts,
   artifactsPending,
@@ -141,6 +143,10 @@ export const SignoffReview = ({
   packageFetching: boolean;
   packageError: unknown;
   packageStale?: boolean;
+  selectedApproval: Approval | null;
+  approvals: readonly Approval[];
+  selection: ApprovalSelection;
+  onSelectionChange: (material: ApprovalSelection) => void;
   materialStateForArtifact: (artifact: ArtifactRef) => MaterialPresentationState | null;
   artifacts: readonly ArtifactRef[];
   artifactsPending: boolean;
@@ -156,12 +162,14 @@ export const SignoffReview = ({
   onMutationError?: (error: unknown) => void;
 }>) => {
   const queryClient = useQueryClient();
-  const [selection, setSelection] = useState<ApprovalSelection>({ kind: "OVERVIEW" });
+  const selectDetail = (detail: {artifactId?: ArtifactRef["id"]; taskId?: string} = {}): void =>
+    onSelectionChange({kind:"APPROVAL_PACKAGE",approvalId:selection.approvalId,
+      packageHash:selection.packageHash,...detail});
   const [approvedBy, setApprovedBy] = useState("");
 
-  const currentApproval = workItem.stage === "AWAITING_SIGNOFF";
+  const currentApproval = workItem.stage === "AWAITING_SIGNOFF" && selectedApproval === null;
   const currentTasks = packageValue?.taskBlock.tasks ?? [];
-  const approvalCompleted = !currentApproval && tasks.length > 0;
+  const approvalCompleted = selectedApproval !== null;
   const packageArtifacts = artifacts
     .filter((artifact) => packageDocumentRoles.has(artifact.role))
     .sort((left, right) =>
@@ -169,11 +177,11 @@ export const SignoffReview = ({
       left.repositoryPath.localeCompare(right.repositoryPath));
 
   const selectedArtifact =
-    selection.kind === "DOCUMENT"
+    selection.artifactId !== undefined
       ? packageArtifacts.find((artifact) => artifact.id === selection.artifactId) ?? null
       : null;
   const selectedTask =
-    selection.kind === "TASK"
+    selection.taskId !== undefined
       ? currentApproval
         ? currentTasks.find((task) => task.id === selection.taskId) ?? null
         : tasks.find((task) => task.id === selection.taskId) ?? null
@@ -189,7 +197,8 @@ export const SignoffReview = ({
 
   const signoff = useMutation({
     mutationFn: () => {
-      if (packageValue === null || packageStale) {
+      if (packageValue === null || packageStale || artifactsPending || artifactsError !== null ||
+          artifacts.length === 0 || selection.packageHash !== packageValue.packageHash) {
         throw new TypeError("current sign-off package is unavailable");
       }
       return api.signOffWorkItem(
@@ -239,7 +248,7 @@ export const SignoffReview = ({
     );
   }
 
-  if (selection.kind === "DOCUMENT") {
+  if (selection.artifactId !== undefined) {
     return (
       <div className="order-document-inspection" data-testid="review-workspace">
         <div className="order-review-navigation">
@@ -247,7 +256,7 @@ export const SignoffReview = ({
             label="Back to Approval"
             icon={<WorkbenchIcon name="back" />}
             tone="ghost"
-            onClick={() => setSelection({ kind: "OVERVIEW" })}
+            onClick={() => selectDetail()}
           />
         </div>
         {selectedArtifact === null ? (
@@ -257,7 +266,7 @@ export const SignoffReview = ({
             workItem={workItem}
             artifactId={selectedArtifact.id}
             materialState={materialStateForArtifact(selectedArtifact)}
-            historicalArtifact={packageStale || materialStateForArtifact(selectedArtifact)?.tag === "HISTORICAL" ? selectedArtifact : undefined}
+            historicalArtifact={selectedArtifact}
             embeddedReadOnly={packageStale}
             onOpenArtifactEvidence={onOpenArtifactEvidence}
             onContextDocumentChange={onContextDocumentChange}
@@ -267,11 +276,11 @@ export const SignoffReview = ({
     );
   }
 
-  if (selection.kind === "TASK" && selectedTask === null) {
+  if (selection.taskId !== undefined && selectedTask === null) {
     return (
       <div data-testid="review-workspace">
         <WorkbenchState kind="empty" title="Signed task is no longer available"
-          action={<WorkbenchAction label="Back to Approval" onClick={() => setSelection({ kind: "OVERVIEW" })} />} />
+          action={<WorkbenchAction label="Back to Approval" onClick={() => selectDetail()} />} />
       </div>
     );
   }
@@ -292,7 +301,7 @@ export const SignoffReview = ({
         label={"View task " + (index + 1)}
         icon={<WorkbenchIcon name="execution" />}
         tone="secondary"
-        onClick={() => setSelection({ kind: "TASK", taskId: task.id })}
+        onClick={() => selectDetail({taskId:task.id})}
       />
     ),
   }));
@@ -305,7 +314,7 @@ export const SignoffReview = ({
         label={"View " + lifecycleArtifactLabel(artifact.role)}
         icon={<WorkbenchIcon name="document" />}
         tone="secondary"
-        onClick={() => setSelection({ kind: "DOCUMENT", artifactId: artifact.id })}
+        onClick={() => selectDetail({artifactId:artifact.id})}
       />
     ),
   }));
@@ -341,7 +350,8 @@ export const SignoffReview = ({
   const approvalDecision =
     currentApproval &&
     !packageStale &&
-    packageValue !== null
+    packageValue !== null && selection.packageHash === packageValue.packageHash &&
+    artifacts.length > 0 && !artifactsPending && artifactsError === null
       ? (
         <div className="order-approval-decision">
           <TextInput
@@ -410,6 +420,20 @@ export const SignoffReview = ({
       ]
       : [...taskDetailSections(selectedTask)];
   const reviewSections = [
+    ...(selectedTask === null && approvals.length > 0 ? [{
+      id:"approval-history", title:"Approval history",
+      content:<WorkbenchResourceList items={[
+        ...(workItem.stage === "AWAITING_SIGNOFF" && selectedApproval !== null ? [{
+          id:"prospective",label:"Current package",action:<WorkbenchAction label="View current package"
+            onClick={()=>onSelectionChange({kind:"APPROVAL_PACKAGE"})} />
+        }] : []),
+        ...approvals.filter(approval=>approval.id!==selectedApproval?.id).map(approval=>({
+          id:approval.id,label:"Approved "+new Date(approval.approvedAt).toLocaleString(),
+          action:<WorkbenchAction label={"View Approval "+new Date(approval.approvedAt).toLocaleString()}
+            onClick={()=>onSelectionChange({kind:"APPROVAL_PACKAGE",approvalId:approval.id})} />
+        }))
+      ]}/>
+    }] : []),
     ...(reviewNotice === undefined ? [] : [{ id: "notice", title: "Current package status", content: reviewNotice }]),
     ...sections,
     ...(signoff.error === null
@@ -437,7 +461,7 @@ export const SignoffReview = ({
             label="Back to Approval"
             icon={<WorkbenchIcon name="back" />}
             tone="ghost"
-            onClick={() => setSelection({ kind: "OVERVIEW" })}
+            onClick={() => selectDetail()}
           />
           {currentApproval ? reviewAction ?? approvalDecision : reviewAction}
         </>

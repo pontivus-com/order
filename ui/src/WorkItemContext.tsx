@@ -73,13 +73,13 @@ export const WorkItemContext=({workItem,selectedStep,selectedMaterial,selectedDo
   const selectedTask=material.kind==="EXECUTION_TASK"
     ?(tasksQuery.data??[]).find((task)=>task.id===material.taskId)??null
     :null;
-  const selectedPackage=material.kind==="APPROVAL_PACKAGE"&&workItem.stage==="AWAITING_SIGNOFF"
+  const selectedPackage=material.kind==="APPROVAL_PACKAGE"&&material.approvalId===undefined&&workItem.stage==="AWAITING_SIGNOFF"
     ?signoffPackageQuery.data??null
     :null;
   const approvalsQuery=useQuery({
     queryKey:workbenchQueryKeys.approvals(workItem.id),
     queryFn:()=>api.listApprovals(workItem.id),
-    enabled:selectedTask!==null,
+    enabled:selectedTask!==null||(material.kind==="APPROVAL_PACKAGE"&&material.approvalId!==undefined),
   });
   const finalApprovalQuery=useQuery({
     queryKey:workbenchQueryKeys.currentApproval(workItem.id),
@@ -89,7 +89,9 @@ export const WorkItemContext=({workItem,selectedStep,selectedMaterial,selectedDo
   });
   const selectedApproval=selectedTask!==null
     ?(approvalsQuery.data??[]).find(approval=>approval.id===selectedTask.approvalId&&approval.workItemId===workItem.id)??null
-    :material.kind==="APPROVAL_PACKAGE"&&
+    :material.kind==="APPROVAL_PACKAGE"&&material.approvalId!==undefined
+      ?(approvalsQuery.data??[]).find(approval=>approval.id===material.approvalId&&approval.workItemId===workItem.id)??null
+      :material.kind==="APPROVAL_PACKAGE"&&
       (workItem.stage==="EXECUTION"||workItem.stage==="COMPLETE")?finalApprovalQuery.data??null:null;
   const selectedDocumentIsRelevant=sourceSelected||artifactId!==null;
 

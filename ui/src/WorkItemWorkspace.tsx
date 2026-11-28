@@ -215,6 +215,34 @@ export const WorkItemWorkspace = ({
     queryFn: () => api.getSignoffPackage(workItem.id),
     enabled: workItem.stage === "AWAITING_SIGNOFF",
   });
+  const packageHash = workItem.stage === "AWAITING_SIGNOFF" ? signoffPackageQuery.data?.packageHash ?? null : null;
+  const prospectiveArtifactsQuery = useQuery({
+    queryKey: workbenchQueryKeys.signoffPackageArtifacts(workItem.id, packageHash),
+    queryFn: () => {
+      if (packageHash === null) throw new TypeError("prospective package hash required");
+      return api.listSignoffPackageArtifacts(workItem.id, packageHash);
+    },
+    enabled: packageHash !== null,
+    retry: false,
+  });
+  const approvalsQuery = useQuery({
+    queryKey: workbenchQueryKeys.approvals(workItem.id),
+    queryFn: () => api.listApprovals(workItem.id),
+    enabled: selectedStep === "AWAITING_SIGNOFF",
+  });
+  const explicitApproval = explicitMaterial?.kind === "APPROVAL_PACKAGE" ? explicitMaterial : null;
+  const selectedApproval = explicitApproval?.approvalId === undefined
+    ? workItem.stage === "AWAITING_SIGNOFF" ? null : currentApproval ?? approvalsQuery.data?.at(-1) ?? null
+    : approvalsQuery.data?.find(approval => approval.id === explicitApproval.approvalId) ?? null;
+  const selectedApprovalArtifactsQuery = useQuery({
+    queryKey: workbenchQueryKeys.approvalArtifacts(workItem.id, selectedApproval?.id ?? null),
+    queryFn: () => {
+      if (selectedApproval === null) throw new TypeError("Approval identity required");
+      return api.listApprovalArtifacts(workItem.id, selectedApproval.id);
+    },
+    enabled: selectedStep === "AWAITING_SIGNOFF" && selectedApproval !== null,
+    retry: false,
+  });
 
   const runs = runsQuery.data ?? [];
 
@@ -572,7 +600,7 @@ export const WorkItemWorkspace = ({
     interactionMutationsDisabled ||
     (currentness.tag === "STALE" && !activeRunOwnsAuthoring);
 
-  const material = resolveWorkflowMaterial({
+  const resolvedMaterial = resolveWorkflowMaterial({
     workItem,
     selectedStep,
     reachedStages,
@@ -591,7 +619,19 @@ export const WorkItemWorkspace = ({
     explicitSelection: explicitMaterial,
     dirtyDocument: dirty,
   });
-  const canonicalCurrentMaterial = resolveWorkflowMaterial({
+  const material: WorkflowMaterial = resolvedMaterial.kind !== "APPROVAL_PACKAGE" ? resolvedMaterial :
+    selectedApproval !== null ? {
+      kind: "APPROVAL_PACKAGE", approvalId: selectedApproval.id,
+      ...(resolvedMaterial.approvalId === selectedApproval.id ? {
+        artifactId: resolvedMaterial.artifactId, taskId: resolvedMaterial.taskId,
+      } : {}),
+    } : packageHash !== null ? {
+      kind: "APPROVAL_PACKAGE", packageHash,
+      ...(resolvedMaterial.packageHash === packageHash ? {
+        artifactId: resolvedMaterial.artifactId, taskId: resolvedMaterial.taskId,
+      } : {}),
+    } : { kind: "APPROVAL_PACKAGE" };
+  const resolvedCurrentMaterial = resolveWorkflowMaterial({
     workItem,
     selectedStep: workItem.stage,
     reachedStages,
@@ -610,6 +650,9 @@ export const WorkItemWorkspace = ({
     explicitSelection: null,
     dirtyDocument: false,
   });
+  const canonicalCurrentMaterial: WorkflowMaterial =
+    resolvedCurrentMaterial.kind === "APPROVAL_PACKAGE" && packageHash !== null
+      ? {kind:"APPROVAL_PACKAGE",packageHash} : resolvedCurrentMaterial;
   const evidence =
     material.kind === "EVIDENCE" ? material.selection : null;
   const materialIdentity = workflowMaterialIdentity(material);
@@ -1366,23 +1409,22 @@ export const WorkItemWorkspace = ({
             workItem={workItem}
             reviewNotice={currentReviewNotice}
             reviewAction={currentMaterialAction}
-            packageValue={signoffPackageQuery.data ?? null}
-            packageFetching={signoffPackageQuery.isFetching}
-            packageError={signoffPackageQuery.error}
-            packageStale={packageStaleOwner !== null}
+            packageValue={selectedApproval === null ? signoffPackageQuery.data ?? null : null}
+            packageFetching={selectedApproval === null && signoffPackageQuery.isFetching}
+            packageError={selectedApproval === null ? signoffPackageQuery.error : null}
+            packageStale={selectedApproval === null && packageStaleOwner !== null}
+            selectedApproval={selectedApproval}
+            approvals={approvalsQuery.data ?? []}
+            selection={material.kind === "APPROVAL_PACKAGE" ? material : {kind:"APPROVAL_PACKAGE"}}
+            onSelectionChange={(next) => requestSelection({step:"AWAITING_SIGNOFF",material:next})}
             materialStateForArtifact={materialStateForArtifact}
-            artifacts={packageStaleOwner !== null ? allArtifacts : artifacts}
-            artifactsPending={
-              packageStaleOwner !== null
-                ? allArtifactsQuery.isPending
-                : artifactsQuery.isPending
-            }
-            artifactsError={
-              packageStaleOwner !== null
-                ? allArtifactsQuery.error
-                : artifactsQuery.error
-            }
-            tasks={tasks}
+            artifacts={selectedApproval !== null ? selectedApprovalArtifactsQuery.data ?? [] : prospectiveArtifactsQuery.data ?? []}
+            artifactsPending={approvalsQuery.isPending || (selectedApproval !== null
+              ? selectedApprovalArtifactsQuery.isPending || selectedApprovalArtifactsQuery.isFetching
+              : packageHash !== null && (prospectiveArtifactsQuery.isPending || prospectiveArtifactsQuery.isFetching))}
+            artifactsError={approvalsQuery.error ?? (selectedApproval !== null
+              ? selectedApprovalArtifactsQuery.error : prospectiveArtifactsQuery.error)}
+            tasks={selectedApproval === null ? [] : tasks.filter(task => task.approvalId === selectedApproval.id)}
             tasksPending={tasksQuery.isPending}
             tasksError={tasksQuery.error}
             mutationsDisabled={workflowMutationsDisabled}
