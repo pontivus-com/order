@@ -1,5 +1,6 @@
 import {
   SignedTaskBlockSchema,
+  type CandidateReviewEventId,
   type ApprovalId,
   type ExecutionTask,
   type ExecutionTaskId,
@@ -168,7 +169,7 @@ export const providerEventIsAdmitted = (
 // Exact submitted IDs, once each, and the ordinary V4 verdict must agree.
 export const qaReviewAssessmentsAreAdmitted = (
   payload: RunEventPayload,
-  submitted: readonly import("./contracts.ts").CandidateReviewEventId[] | null,
+  submitted: readonly CandidateReviewEventId[] | null,
 ): boolean => {
   if (payload.tag !== "REVIEW_PASSED" && payload.tag !== "REVIEW_FAILED") return false;
   if (submitted === null) return payload.qaAssessments === undefined;

@@ -1682,8 +1682,10 @@ export const deriveAcceptanceDecision = (input: Readonly<{
   const outstanding = history.findLast(entry => entry.event.tag === "SUBMIT");
   if (outstanding !== undefined && !history.some(entry => entry.event.tag === "REVIEW_COMPLETED" && entry.event.submissionId === outstanding.id)) return { tag: "QUEUED", submissionId: outstanding.id };
   const unresolved = history.flatMap(entry => entry.event.tag === "REPORT" && findings.get(entry.id) !== "DISPOSED" ? [entry] : []);
-  const noOps = unresolved.filter(entry => entry.event.tag === "REPORT" &&
-    input.tasks.some(task => task.id === entry.event.taskId && task.state === "ALREADY_SATISFIED"));
+  const noOps = unresolved.filter(entry => {
+    const event = entry.event;
+    return event.tag === "REPORT" && input.tasks.some(task => task.id === event.taskId && task.state === "ALREADY_SATISFIED");
+  });
   if (noOps.length > 0) return { tag: "REANALYSE_NO_OP", findingIds: noOps.map(entry => entry.id) };
   const open = unresolved.filter(entry => findings.get(entry.id) === "OPEN" || findings.get(entry.id) === "RETEST_FAILED");
   if (open.length > 0) return { tag: "SUBMIT_FINDINGS", findingIds: open.map(entry => entry.id) };

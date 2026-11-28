@@ -27,7 +27,7 @@ const bun = (code: string, allowFailure = false) => {
 };
 
 describe("SQLite shell", () => {
-  it("creates and reopens exact schema version 3 with required effective PRAGMAs", () => {
+  it("creates and reopens exact schema version 4 with required effective PRAGMAs", () => {
     const root = tempDir();
     const result = bun(`
       const s = await import("./src/shell/sqlite.ts");
@@ -48,7 +48,7 @@ describe("SQLite shell", () => {
       console.log(JSON.stringify({ first, reopenedVersion }));
     `);
     const parsed = JSON.parse(result.stdout.trim());
-    expect(parsed.first.version).toBe(3);
+    expect(parsed.first.version).toBe(4);
     expect(String(parsed.first.journal).toLowerCase()).toBe("wal");
     expect(parsed.first.synchronous).toBe(2);
     expect(parsed.first.foreignKeys).toBe(1);
@@ -57,13 +57,14 @@ describe("SQLite shell", () => {
       "approvals",
       "artifactDependencies",
       "artifactRefs",
+      "candidateReviewEvents",
       "executionTasks",
       "runEvents",
       "runs",
       "workItemSources",
       "workItems",
     ]);
-    expect(parsed.reopenedVersion).toBe(3);
+    expect(parsed.reopenedVersion).toBe(4);
     expect(parsed.first.workItemColumns).toContain("archived");
   });
 
@@ -128,7 +129,7 @@ describe("SQLite shell", () => {
     `);
     const parsed = JSON.parse(result.stdout.trim());
     expect(parsed.archiveDatabase).toContain(".legacy-v1.");
-    expect(parsed.currentVersion).toBe(3);
+    expect(parsed.currentVersion).toBe(4);
     expect(parsed.restoredVersion).toBe(1);
     expect(parsed.sentinel).toBe("legacy");
   });
@@ -140,7 +141,7 @@ describe("SQLite shell", () => {
       const db = s.openOrderDatabase(${JSON.stringify(root)});
       const work = "work_11111111-1111-4111-8111-111111111111";
       const run = "run_11111111-1111-4111-8111-111111111111";
-      db.exec("ALTER TABLE workItems DROP COLUMN archived; PRAGMA user_version = 2;");
+      db.exec("DROP TABLE candidateReviewEvents; ALTER TABLE workItems DROP COLUMN archived; PRAGMA user_version = 2;");
       db.query("INSERT INTO workItems VALUES (?1,'fixture','/repo','title','origin','PLAN','ACTIVE',NULL,'[]','2026-11-11T03:30:00.000Z')").run(work);
       db.query("INSERT INTO workItemSources VALUES (?1,'change-v1','legacy.md',?2,NULL)")
         .run(work, "sha256:" + "a".repeat(64));
@@ -156,6 +157,7 @@ describe("SQLite shell", () => {
         paths,
         new Map([[work, true]]),
       );
+      s.migrateOrderDatabaseV3ToV4(archive, s.observeInstallerDatabaseCandidates(archive, true, undefined, true));
       const migrated = s.openOrderDatabase(${JSON.stringify(root)});
       const version = migrated.query("PRAGMA user_version").get().user_version;
       const sourcePath = migrated.query("SELECT sourcePath FROM workItemSources WHERE workItemId=?1").get(work).sourcePath;
@@ -165,7 +167,7 @@ describe("SQLite shell", () => {
       console.log(JSON.stringify({ version, sourcePath, lifecycle, runCount, archive: archive.archiveDatabase }));
     `);
     const parsed = JSON.parse(result.stdout.trim());
-    expect(parsed.version).toBe(3);
+    expect(parsed.version).toBe(4);
     expect(parsed.sourcePath).toBe(
       "docs/order/work-items/work_11111111-1111-4111-8111-111111111111/work-request.md",
     );
@@ -180,7 +182,7 @@ describe("SQLite shell", () => {
       const s = await import("./src/shell/sqlite.ts");
       const db = s.openOrderDatabase(${JSON.stringify(root)});
       const work = "work_11111111-1111-4111-8111-111111111111";
-      db.exec("ALTER TABLE workItems DROP COLUMN archived; PRAGMA user_version = 2;");
+      db.exec("DROP TABLE candidateReviewEvents; ALTER TABLE workItems DROP COLUMN archived; PRAGMA user_version = 2;");
       db.query("INSERT INTO workItems VALUES (?1,'fixture','/repo','title','origin','EXECUTION','ACTIVE',NULL,'[]','2026-11-11T03:30:00.000Z')").run(work);
       db.query("INSERT INTO workItemSources VALUES (?1,'change-v1','legacy.md',?2,NULL)")
         .run(work, "sha256:" + "a".repeat(64));
@@ -189,6 +191,41 @@ describe("SQLite shell", () => {
     `, true);
     expect(result.status).not.toBe(0);
     expect(result.stderr).toContain("prohibited while post-signoff execution is active");
+  });
+
+  it("archives a stopped v3 candidate, migrates additively, preserves legacy completion and restores exact original", () => {
+    const root = tempDir();
+    const result = bun(`
+      const { readFileSync } = await import("node:fs");
+      const s = await import("./src/shell/sqlite.ts");
+      const r = await import("./src/shell/runtime.ts");
+      const path = r.statePaths(${JSON.stringify(root)}).database;
+      const db = s.openOrderDatabase(${JSON.stringify(root)});
+      db.exec("DROP TABLE candidateReviewEvents; PRAGMA user_version=3;");
+      const id = "work_11111111-1111-4111-8111-111111111111";
+      db.query("INSERT INTO workItems VALUES (?1,'fixture','/repo','legacy','origin','COMPLETE','COMPLETE','CANDIDATE_DONE','[]',0,'2026-11-11T03:30:00.000Z')").run(id);
+      db.query("INSERT INTO workItemSources VALUES (?1,'change-v1',?2,?3,NULL)").run(id, "docs/order/work-items/" + id + "/work-request.md", "sha256:" + "a".repeat(64));
+      const prior = db.query("SELECT * FROM workItems").all();
+      db.close();
+      const bytes = readFileSync(path).toString("base64");
+      let ordinaryRejected = false;
+      try { s.openOrderDatabase(${JSON.stringify(root)}).close(); } catch { ordinaryRejected = true; }
+      const archive = s.prepareOrderDatabaseForInstall(${JSON.stringify(root)});
+      if (archive === null || !archive.suffix.startsWith(".legacy-v3.")) throw Error("v3 archive missing");
+      const prepared = s.observeInstallerDatabaseCandidates(archive, false);
+      s.migrateOrderDatabaseV3ToV4(archive, prepared);
+      const migrated = s.openOrderDatabase(${JSON.stringify(root)});
+      const preserved = JSON.stringify(migrated.query("SELECT * FROM workItems").all()) === JSON.stringify(prior);
+      const events = migrated.query("SELECT count(*) AS count FROM candidateReviewEvents").get().count;
+      const version = migrated.query("PRAGMA user_version").get().user_version;
+      migrated.close();
+      s.restoreOrderDatabaseAfterFailedInstall(archive);
+      const restored = readFileSync(path).toString("base64") === bytes;
+      console.log(JSON.stringify({ ordinaryRejected, preserved, events, version, restored }));
+    `);
+    expect(JSON.parse(result.stdout.trim())).toEqual({
+      ordinaryRejected: true, preserved: true, events: 0, version: 4, restored: true,
+    });
   });
 
   it("rejects unsupported schema versions", () => {
