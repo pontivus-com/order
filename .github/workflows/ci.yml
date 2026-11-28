@@ -271,6 +271,37 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+      - name: signed rendered IA38
+        id: signed_ia38
+        if: ${{ !cancelled() && steps.signed_candidate.outcome == 'success' }}
+        continue-on-error: true
+        env:
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR: ${{ runner.temp }}/order-rendered-signed-ia38
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA: ${{ steps.signed_candidate.outputs.sha }}
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_LABEL: "IA38 signed phase evidence"
+          PONTIVUS_ORDER_RENDERED_EVIDENCE_KIND: "ia26_acceptance"
+          PONTIVUS_ORDER_SIGNED_RENDERED_PHASE: "IA38"
+        shell: bash
+        run: |
+          set +e
+          mkdir -p "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR"
+          node node_modules/@playwright/test/cli.js test --grep "rendered acceptance IA26 captures downstream Workbench"
+          status=$?
+          printf '{"candidateSha":"%s","signedPhase":"%s","exitStatus":%s}\n' "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA" "$PONTIVUS_ORDER_SIGNED_RENDERED_PHASE" "$status" > "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR/exit-status.json"
+          if [[ "$status" == 0 && ! -s "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR/manifest.json" ]]; then exit 1; fi
+          exit "$status"
+
+      - name: Upload signed rendered IA38
+        id: upload_ia38
+        if: ${{ !cancelled() && steps.signed_candidate.outcome == 'success' }}
+        continue-on-error: true
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: rendered-signed-ia38-${{ steps.signed_candidate.outputs.sha }}
+          path: ${{ runner.temp }}/order-rendered-signed-ia38
+          if-no-files-found: error
+          retention-days: 14
+
       - name: signed rendered IA33
         id: signed_ia33
         if: ${{ !cancelled() && steps.signed_candidate.outcome == 'success' }}
@@ -333,6 +364,37 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+      - name: signed rendered IA39
+        id: signed_ia39
+        if: ${{ !cancelled() && steps.signed_candidate.outcome == 'success' }}
+        continue-on-error: true
+        env:
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR: ${{ runner.temp }}/order-rendered-signed-ia39
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA: ${{ steps.signed_candidate.outputs.sha }}
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_LABEL: "IA39 signed phase evidence"
+          PONTIVUS_ORDER_RENDERED_EVIDENCE_KIND: "ia26_acceptance"
+          PONTIVUS_ORDER_SIGNED_RENDERED_PHASE: "IA39"
+        shell: bash
+        run: |
+          set +e
+          mkdir -p "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR"
+          node node_modules/@playwright/test/cli.js test --grep "rendered acceptance IA26 captures downstream Workbench"
+          status=$?
+          printf '{"candidateSha":"%s","signedPhase":"%s","exitStatus":%s}\n' "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA" "$PONTIVUS_ORDER_SIGNED_RENDERED_PHASE" "$status" > "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR/exit-status.json"
+          if [[ "$status" == 0 && ! -s "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR/manifest.json" ]]; then exit 1; fi
+          exit "$status"
+
+      - name: Upload signed rendered IA39
+        id: upload_ia39
+        if: ${{ !cancelled() && steps.signed_candidate.outcome == 'success' }}
+        continue-on-error: true
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: rendered-signed-ia39-${{ steps.signed_candidate.outputs.sha }}
+          path: ${{ runner.temp }}/order-rendered-signed-ia39
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Record current-state diagnostic candidate
         id: diagnostic_candidate
         shell: bash
@@ -353,7 +415,7 @@ jobs:
           set +e
           failures=0
           node node_modules/@playwright/test/cli.js test             --grep "rendered acceptance phase 1" || failures=1
-          for phase in IA34 IA29 IA30 IA31 IA32 IA33; do
+          for phase in IA34 IA29 IA30 IA31 IA32 IA38 IA33; do
             PONTIVUS_ORDER_DIAGNOSTIC_PHASE="$phase"               node node_modules/@playwright/test/cli.js test               --grep "rendered acceptance IA26" || failures=1
           done
           exit "$failures"
@@ -442,8 +504,8 @@ jobs:
             throw new Error("diagnostic evidence kind mismatch");
           }
           const surfaces = new Set(manifest.entries.map((entry) => entry.surface));
-          if (surfaces.size !== 37) {
-            throw new Error("diagnostic surface coverage must be 37, found " + surfaces.size);
+          if (surfaces.size !== 38) {
+            throw new Error("diagnostic surface coverage must be 38, found " + surfaces.size);
           }
           const ids = new Set(manifest.entries.map((entry) => entry.id));
           for (const id of [
@@ -477,6 +539,7 @@ jobs:
             "ia26-implementation-wide-light",
             "ia26-implementation-processing-wide-light",
             "ia26-implementation-blocked-wide-light",
+            "ia38-awaiting-review-wide-light",
             "ia26-complete-candidate-wide-light",
             "ia26-evidence-wide-light",
             "ia26-settings-frame-wide-light",
@@ -538,6 +601,10 @@ jobs:
           IA30_UPLOAD: ${{ steps.upload_ia30.outcome }}
           IA32_CAPTURE: ${{ steps.signed_ia32.outcome }}
           IA32_UPLOAD: ${{ steps.upload_ia32.outcome }}
+          IA38_CAPTURE: ${{ steps.signed_ia38.outcome }}
+          IA38_UPLOAD: ${{ steps.upload_ia38.outcome }}
+          IA39_CAPTURE: ${{ steps.signed_ia39.outcome }}
+          IA39_UPLOAD: ${{ steps.upload_ia39.outcome }}
           IA33_CAPTURE: ${{ steps.signed_ia33.outcome }}
           IA33_UPLOAD: ${{ steps.upload_ia33.outcome }}
           IA34_CAPTURE: ${{ steps.signed_ia34.outcome }}
@@ -546,7 +613,7 @@ jobs:
         run: |
           set -euo pipefail
           failures=0
-          for phase in IA27_28 IA29 IA31 IA30 IA32 IA33 IA34; do
+          for phase in IA27_28 IA29 IA31 IA30 IA32 IA38 IA33 IA34 IA39; do
             capture="${phase}_CAPTURE"
             upload="${phase}_UPLOAD"
             if [[ "${!capture}" != success || "${!upload}" != success ]]; then

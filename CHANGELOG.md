@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Extend permanent rendered phase dispatch and diagnostic coverage to native Acceptance, with exact-state fail-closed certification and actual signed-fixture navigation/form captures. Remaining Acceptance variants and integrated dependent states require implementation and proof.
+
 - Preserve queued Acceptance admission failure semantics through the existing authority observation owner instead of a forbidden execution-to-source dependency.
 
 - Integrate the retained native Acceptance lifecycle, typed review events, v4 persistence/migration, execution/recovery and Workbench consumer candidate under renewed T1 authority; extend the existing signed artifact observation with exact task/criterion resolution, retaining historical read and current proof independence. Phase certification remains required.

@@ -42,7 +42,7 @@ if (![
 const diagnosticCurrentState = renderedEvidenceKind === "diagnostic_current_state";
 
 const diagnosticPhase = process.env.PONTIVUS_ORDER_DIAGNOSTIC_PHASE ?? null;
-const signedRenderedPhases = ["IA27_28","IA29","IA31","IA30","IA32","IA33","IA34"] as const;
+const signedRenderedPhases = ["IA27_28","IA29","IA31","IA30","IA32","IA38","IA33","IA34","IA39"] as const;
 type SignedRenderedPhase = typeof signedRenderedPhases[number];
 const rawSignedRenderedPhase = process.env.PONTIVUS_ORDER_SIGNED_RENDERED_PHASE;
 const signedRenderedPhase = rawSignedRenderedPhase === undefined ? null :
@@ -53,14 +53,14 @@ if (signedRenderedPhase === undefined ||
   throw new TypeError("invalid or incompatible PONTIVUS_ORDER_SIGNED_RENDERED_PHASE");
 }
 
-const renderedDiagnosticPhases = ["IA34", "IA29", "IA30", "IA31", "IA32", "IA33"] as const;
+const renderedDiagnosticPhases = ["IA34", "IA29", "IA30", "IA31", "IA32", "IA38", "IA33"] as const;
 type RenderedDiagnosticPhase = typeof renderedDiagnosticPhases[number];
 const runRenderedPhase = (phase: RenderedDiagnosticPhase): boolean =>
-  signedRenderedPhase !== null ? signedRenderedPhase === phase :
+  signedRenderedPhase !== null ? signedRenderedPhase === phase || (signedRenderedPhase === "IA39" && phase === "IA38") :
     !diagnosticCurrentState || diagnosticPhase === phase;
 
 // These are the explicitly named scenario variants, not a post-execution filter.
-// Owned surfaces follow the action catalog's disjoint 37-SURF partition.
+// Owned surfaces follow the action catalog's disjoint 38-SURF partition. IA39 re-proves dependent states, not additional owners.
 const signedPhaseCaptureIds = {
   IA27_28: [
     "application-wide-light-active-account",
@@ -241,6 +241,7 @@ const signedPhaseOwnedSurfaces = {
     "SURF-STEP-EXEC-001",
     "SURF-MAT-EXEC-TASK-001",
   ],
+  IA38: ["SURF-STEP-ACCEPTANCE-001"],
   IA33: [
     "SURF-STEP-COMPLETE-001",
     "SURF-MAT-EVIDENCE-001",
@@ -2112,7 +2113,7 @@ test("queue opens a primary workspace, keeps context compact, preserves URL hist
 
 // These exact named fixtures are part of the existing scenario dispatch.
 // Re-render each at the actual medium viewport, not a fallback atlas width.
-// The pre-cutover runtime has 37 owned surfaces; IA38/39 add Acceptance.
+// The runtime includes native Acceptance; IA39 re-proves dependent surfaces.
 const mediumComparisonSources = {
   "SURF-APP-001": "hux-app-queue-wide-light",
   "SURF-QUEUE-001": "queue-wide-light-populated",
@@ -2138,6 +2139,7 @@ const mediumComparisonSources = {
   "SURF-MAT-ACTIVITY-001": "ia26-stage-dialogue-open-wide-light",
   "SURF-STEP-EXEC-001": "ia26-implementation-wide-light",
   "SURF-MAT-EXEC-TASK-001": "ia26-implementation-task-wide-light",
+  "SURF-STEP-ACCEPTANCE-001": "ia38-awaiting-review-wide-light",
   "SURF-STEP-COMPLETE-001": "ia26-complete-candidate-wide-light",
   "SURF-MAT-EVIDENCE-001": "ia26-evidence-wide-light",
   "SURF-SET-001": "ia26-settings-frame-wide-light",
@@ -2154,8 +2156,58 @@ const mediumComparisonSources = {
 } as const satisfies Readonly<Record<string, string>>;
 const mediumComparisonId = (sourceId: string): string => sourceId + "-medium-comparison";
 
+// IA38/39 must fail closed on absent runtime evidence; the atlas is not a fixture source.
+const acceptanceSurface = "SURF-STEP-ACCEPTANCE-001";
+const acceptanceDependentStates = [
+  ["SURF-QUEUE-001", "acceptance-pending"],
+  ["SURF-WI-001", "acceptance-current"],
+  ["SURF-WI-CONTEXT-001", "acceptance"],
+  ["SURF-STEP-APPROVAL-001", "signed-acceptance"],
+  ["SURF-STEP-EXEC-001", "qa-review"], ["SURF-STEP-EXEC-001", "qa-blocked"],
+  ["SURF-MAT-EXEC-TASK-001", "qa-review"], ["SURF-MAT-EXEC-TASK-001", "qa-blocked"],
+  ["SURF-MAT-EVIDENCE-001", "qa-original"], ["SURF-MAT-EVIDENCE-001", "qa-successor"],
+  ["SURF-MAT-DOC-RO-001", "signed-acceptance"],
+  ["SURF-STEP-COMPLETE-001", "accepted-candidate"], ["SURF-STEP-COMPLETE-001", "verified-candidate"],
+  ["SURF-STEP-COMPLETE-001", "all-no-op"],
+  ["SURF-SET-REPO-001", "acceptance-guard"], ["SURF-SET-REPO-MOVE-001", "acceptance-guard"],
+] as const;
+
+const validateNativeAcceptanceEvidence = (entries: readonly RenderedAcceptanceEntry[], integrated: boolean): void => {
+  const declared = referenceSurfaceById.get(acceptanceSurface);
+  if (declared === undefined) throw new TypeError("native Acceptance reference missing");
+  const eligible = entries.filter(entry => entry.reference.comparisonEligible &&
+    entry.reference.state === entry.state && entry.referenceScreenshot !== undefined);
+  const required = [
+    ...declared.states.map(state => [acceptanceSurface, state] as const),
+    ...(integrated ? acceptanceDependentStates : []),
+  ];
+  const missing = required.filter(([surface, state]) =>
+    !eligible.some(entry => entry.surface === surface && entry.state === state));
+  expect(missing.map(([surface,state]) => surface + "/" + state), "exact native Acceptance state coverage").toEqual([]);
+  for (const viewport of declared.viewports) {
+    expect(eligible.some(entry => entry.surface === acceptanceSurface && entry.reference.viewportClass === viewport),
+      "native Acceptance viewport " + viewport).toBe(true);
+  }
+  for (const theme of declared.themes) {
+    expect(eligible.some(entry => entry.surface === acceptanceSurface && entry.reference.theme === theme),
+      "native Acceptance theme " + theme).toBe(true);
+  }
+  expect(new Set(entries.map(entry => entry.id)).size).toBe(entries.length);
+  for (const entry of entries) {
+    expect(readFileSync(join(renderedAcceptanceDir!, entry.screenshot)).length).toBeGreaterThan(0);
+    if (entry.reference.comparisonEligible) {
+      expect(entry.referenceScreenshot, entry.id).toBeDefined();
+      expect(readFileSync(join(renderedAcceptanceDir!, "references", entry.referenceScreenshot!)).length).toBeGreaterThan(0);
+    }
+  }
+};
+
 const validateSignedPhaseEvidence = (entries: readonly RenderedAcceptanceEntry[]): void => {
   if (signedRenderedPhase === null) return;
+  if (signedRenderedPhase === "IA38" || signedRenderedPhase === "IA39") {
+    validateNativeAcceptanceEvidence(entries, signedRenderedPhase === "IA39");
+    return;
+  }
   const expectedIds: readonly string[] = signedPhaseCaptureIds[signedRenderedPhase];
   const owned: readonly string[] = signedPhaseOwnedSurfaces[signedRenderedPhase];
   const expectedMediumIds = owned.map(surface =>
@@ -3257,7 +3309,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
       !renderedDiagnosticPhases.includes(diagnosticPhase as RenderedDiagnosticPhase))
   ) {
     throw new TypeError(
-      "PONTIVUS_ORDER_DIAGNOSTIC_PHASE must select one IA29-IA34 rendered diagnostic phase",
+      "PONTIVUS_ORDER_DIAGNOSTIC_PHASE must select an admitted rendered diagnostic phase",
     );
   }
 
@@ -4811,6 +4863,67 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
 
   }
 
+  if (runRenderedPhase("IA38")) {
+    // Exercise the real signed native Acceptance fixture, using the existing Review
+    // and document inspection routes. Never synthesize a runtime state from the atlas.
+    await openWorkItem(page, "Native Acceptance review");
+    const acceptanceRail = page.getByTestId("workflow-rail");
+    const review = page.getByTestId("workflow-step-workspace");
+    await expect(acceptanceRail.getByRole("button", {name:"Acceptance",exact:true})).toHaveAttribute("aria-current","step");
+    await expect(review.getByTestId("review-verdict")).toContainText("Verified candidate");
+    await expect(review.getByRole("button",{name:"Accept candidate",exact:true})).toBeEnabled();
+    const captureAcceptance = async (state:string, suffix:string, viewport:Readonly<{width:number;height:number}> = light,
+      theme:RenderedAcceptanceInput["theme"]="Light"):Promise<void> => {
+      await page.setViewportSize(viewport);
+      await capture({id:"ia38-"+state+"-"+suffix, workItemKind:"CHANGE", workflowStep:"Acceptance",
+        surface:acceptanceSurface,state,fixture:"Native Acceptance review",viewport,theme,route:routeValue(),
+        authorityRefs:["GW-DOC-WORKBENCH-UX-V2","GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2","GW-DOC-CANONICAL-CONTRACTS-V2"]});
+    };
+    await captureAcceptance("awaiting-review","wide-light");
+    await captureAcceptance("awaiting-review","narrow-light",narrow);
+    await page.setViewportSize(light);
+    await page.getByRole("radio",{name:"Dark"}).click();
+    await captureAcceptance("awaiting-review","wide-dark",light,"Dark");
+    await page.getByRole("radio",{name:"System"}).click();
+    await page.emulateMedia({colorScheme:"light"});
+    await captureAcceptance("awaiting-review","wide-system-light",light,"System/light");
+    await page.getByRole("radio",{name:"Light"}).click();
+    const criterion=review.getByRole("button",{name:"Open criterion",exact:true});
+    await criterion.click();
+    await expect(review.getByText("Browser fixture lifecycle/specification authority",{exact:false})).toBeVisible();
+    await review.getByRole("button",{name:"Back to Acceptance",exact:true}).click();
+    await expect(criterion).toBeFocused();
+    await review.getByRole("button",{name:"Report finding for task",exact:true}).click();
+    const report=page.getByRole("dialog",{name:"Report finding",exact:true});
+    await expect(report).toBeVisible();
+    await captureAcceptance("report-form","wide-light");
+    await report.getByLabel("Expected behavior").fill("draft retained");
+    await report.getByRole("button",{name:"Open criterion",exact:true}).click();
+    await review.getByRole("button",{name:"Back to Acceptance",exact:true}).click();
+    await expect(report.getByLabel("Expected behavior")).toHaveValue("draft retained");
+    await expect(report.getByRole("button",{name:"Open criterion",exact:true})).toBeFocused();
+    await report.getByRole("button",{name:"Cancel",exact:true}).click();
+    await page.getByRole("dialog",{name:"Discard unsaved review form?"}).getByRole("button",{name:"Discard unsaved changes"}).click();
+    await expect(report).toHaveCount(0);
+    await review.getByRole("button",{name:"Prepare test copy",exact:true}).click();
+    const copy=page.getByRole("dialog",{name:"Prepare test copy",exact:true});
+    await expect(copy).toBeVisible();
+    await captureAcceptance("test-copy-form","wide-light");
+    await copy.getByRole("button",{name:"Cancel",exact:true}).click();
+    await review.getByRole("button",{name:"Inspect round",exact:true}).click();
+    await expect(review.getByTestId("review-verdict")).toContainText("Historical review");
+    await expect(review.getByRole("button",{name:"Accept candidate",exact:true})).toHaveCount(0);
+    await captureAcceptance("round-detail","wide-light");
+    await review.getByRole("button",{name:"Return to current review",exact:true}).click();
+    await review.getByRole("button",{name:"Accept candidate",exact:true}).click();
+    const accept=page.getByRole("dialog",{name:"Accept candidate",exact:true});
+    await expect(accept.getByRole("button",{name:"Accept candidate",exact:true})).toBeDisabled();
+    await captureAcceptance("accept-form","wide-light");
+    // Rendered observation does not accept the candidate or mutate signed history.
+    await accept.getByRole("button",{name:"Cancel",exact:true}).click();
+    await backToQueue(page);
+  }
+
   if (runRenderedPhase("IA33")) {
   // IA33 — terminal result and Evidence, both attention-free.
   await openWorkItem(page, "Verified candidate");
@@ -4949,6 +5062,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     "SURF-SET-REPO-ADD-001",
     "SURF-SET-REPO-MOVE-001",
     "SURF-STEP-APPROVAL-001",
+    "SURF-STEP-ACCEPTANCE-001",
     "SURF-STEP-COMPLETE-001",
     "SURF-STEP-DESIGN-001",
     "SURF-STEP-EXEC-001",
@@ -4972,6 +5086,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     "Readiness review",
     "Approval",
     "Implementation",
+    "Acceptance",
     "Complete",
   ]) {
     expect(allEntries.some((entry) =>
@@ -5023,10 +5138,10 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
 
   expect(referenceManifest.semanticAuthority).toBe(false);
   expect(referenceManifest.source).toBe(referenceAtlasPath);
-  // The authority-derived comparison target has 38 surfaces. This existing
-  // pre-cutover runtime corpus still proves the exact 37 current surfaces;
-  // IA39 must extend actual runtime/phase/final coverage, not fabricate a capture.
+  // The final corpus must prove the actual 38-surface runtime, including every
+  // Acceptance state and its exact dependent state pairs, not just count labels.
   expect(referenceManifest.surfaces).toHaveLength(38);
+  validateNativeAcceptanceEvidence(allEntries, true);
   expect([...new Set(allEntries.map((entry) => entry.reference.surface))].sort())
     .toEqual(requiredSurfaces);
   for (const entry of allEntries) {

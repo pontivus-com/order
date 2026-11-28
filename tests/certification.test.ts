@@ -2873,7 +2873,7 @@ describe("public release delivery certification", () => {
     expect(ci).toContain('--grep "rendered acceptance"');
     expect(ci.indexOf("name: browser"))
       .toBeLessThan(ci.indexOf("name: rendered acceptance IA26"));
-    const signedPhases = ["IA27_28", "IA29", "IA31", "IA30", "IA32", "IA33", "IA34"];
+    const signedPhases = ["IA27_28", "IA29", "IA31", "IA30", "IA32", "IA38", "IA33", "IA34", "IA39"];
     let previous = ci.indexOf("name: Install Playwright Chromium");
     for (const phase of signedPhases) {
       const capture = ci.indexOf("name: signed rendered " + phase + "\n");
@@ -2904,6 +2904,9 @@ describe("public release delivery certification", () => {
     expect(browser).toContain("validateSignedPhaseEvidence(entries)");
     expect(browser).toContain("exact phase SURF coverage");
     expect(browser).toContain("exact phase capture identities");
+    expect(browser).toContain("exact native Acceptance state coverage");
+    expect(browser).toContain("validateNativeAcceptanceEvidence(allEntries, true)");
+    expect(ci).toContain("diagnostic surface coverage must be 38");
     expect(browser).toContain('type ReferenceViewportClass = "wide" | "medium" | "narrow"');
     expect(browser).toContain('viewport.width >= 1280 ? "wide" : viewport.width >= 800 ? "medium" : "narrow"');
     expect(browser).toContain("const mediumComparisonSources");
