@@ -7869,6 +7869,33 @@ test("terminal investigation and audit results remain closed and linked remediat
   expect(refreshedParent.outcome).toBe("INVESTIGATION_COMPLETE");
 });
 
+test("all schema-admitted terminal investigation and audit outcomes expose the canonical linked-remediation action", async ({page,request}) => {
+  await authenticate(page, request);
+  for(const [title,outcome] of [
+    ["Duplicate investigation","DUPLICATE"],
+    ["Already satisfied investigation","ALREADY_SATISFIED"],
+    ["Duplicate audit","DUPLICATE"],
+    ["Already satisfied audit","ALREADY_SATISFIED"],
+  ] as const){
+    const parent=await workItemForTitle(page,title);
+    await openWorkItem(page,title);
+    await page.getByRole("button",{name:"Create linked remediation"}).click();
+    const dialog=page.getByRole("dialog",{name:"Create linked remediation"});
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole("radio",{name:"Change"})).toBeVisible();
+    await expect(dialog.getByRole("radio",{name:"Defect"})).toBeVisible();
+    await expect(dialog.getByRole("radio",{name:"Investigation"})).toHaveCount(0);
+    await expect(dialog.getByRole("radio",{name:"Audit"})).toHaveCount(0);
+    await expect(dialog.getByTestId("linked-remediation-project")).toContainText(parent.projectId);
+    await dialog.getByRole("button",{name:"Cancel",exact:true}).click();
+    await expect(dialog).toHaveCount(0);
+    const refreshed=await workItemForTitle(page,title);
+    expect(refreshed.stage).toBe("COMPLETE");
+    expect(refreshed.outcome).toBe(outcome);
+    await backToQueue(page);
+  }
+});
+
 test("all non-delivery terminal classifications render under Complete without invented remediation", async ({
   page,
   request,

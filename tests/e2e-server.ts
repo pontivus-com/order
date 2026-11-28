@@ -1976,6 +1976,15 @@ for (const [title, outcome] of [
   await seedTerminalResult(workItem(title, "COMPLETE", "COMPLETE", outcome), "docs/r1.md", outcome);
 }
 
+for (const [title, schema, outcome, path] of [
+  ["Duplicate investigation", "investigation-v1", "DUPLICATE", "docs/investigation-result.md"],
+  ["Already satisfied investigation", "investigation-v1", "ALREADY_SATISFIED", "docs/investigation-result.md"],
+  ["Duplicate audit", "audit-v1", "DUPLICATE", "docs/audit-result.md"],
+  ["Already satisfied audit", "audit-v1", "ALREADY_SATISFIED", "docs/audit-result.md"],
+] as const) {
+  await seedTerminalResult(workItem(title, "COMPLETE", "COMPLETE", outcome, schema), path, outcome);
+}
+
 const seedExecutionFeedback = (
   title: string,
   lifecycle: Readonly<
