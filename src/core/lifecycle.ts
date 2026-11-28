@@ -1140,6 +1140,8 @@ export const deriveValidationBoundary = (
   tasks: readonly ExecutionTask[],
   runs: readonly Run[],
   events: readonly RunEvent[],
+  approval: Approval | null = null,
+  reviewHistory: readonly CandidateReviewEvent[] = [],
 ): ValidationBoundary => {
   if (owner.tag === "NONE") return { tag: "NONE" };
   const task = tasks.find((candidate) => candidate.id === owner.taskId);
@@ -1170,12 +1172,27 @@ export const deriveValidationBoundary = (
   if (run.role === "REVIEWER") {
     const triggers = events.filter((event) => event.id === run.triggerEventId);
     const candidateEvent = triggers[0];
-    if (triggers.length !== 1 || candidateEvent?.event.tag !== "CANDIDATE_STATE_RECORDED") {
-      throw new TypeError("REVIEWER trigger must identify CANDIDATE_STATE_RECORDED");
+    if (triggers.length !== 1 || candidateEvent === undefined) {
+      throw new TypeError("REVIEWER trigger must identify CANDIDATE_STATE_RECORDED or an admitted QA member");
     }
     const predecessor = causalRun(candidateEvent);
-    if (predecessor.role !== "BUILDER" && predecessor.role !== "REMEDIATOR") {
-      throw new TypeError("REVIEWER candidate must belong to the current ExecutionTask builder or remediator");
+    if (candidateEvent.event.tag === "CANDIDATE_RECORDED") {
+      // P6 §38.3: a QA reviewer replays the exact earlier verified member.
+      // Reuse the canonical review fold, rather than admitting any reviewer
+      // result as a trigger or inheriting its prior validation passes.
+      if (approval === null || approval.id !== task.approvalId ||
+          approval.workItemId !== run.workItemId || approval.baselineCommit !== run.baselineCommit ||
+          predecessor.role !== "REVIEWER") throw new TypeError("QA reviewer requires exact signed candidate lineage");
+      const history=orderedCandidateReviewEvents(approval.id,reviewHistory);
+      const start=requireUnique(history.filter(entry=>entry.event.tag==="REVIEW_STARTED"&&entry.event.runId===run.id),
+        "QA reviewer requires exact REVIEW_STARTED admission");
+      if(start.event.tag!=="REVIEW_STARTED")throw new TypeError("QA reviewer admission is invalid");
+      const priorHistory=history.filter(entry=>entry.sequence<=start.sequence);
+      const rounds=reconstructCandidateRounds(approval,tasks,runs,events,priorHistory);
+      candidateFindingDispositions(priorHistory,rounds,tasks,runs,events);
+    } else if (candidateEvent.event.tag !== "CANDIDATE_STATE_RECORDED" ||
+        (predecessor.role !== "BUILDER" && predecessor.role !== "REMEDIATOR")) {
+      throw new TypeError("REVIEWER trigger must identify CANDIDATE_STATE_RECORDED from the current task builder or remediator");
     }
     // A retry with the same candidate trigger starts its own independent proof.
     return validationBoundaryFromEvents(runEvents);

@@ -1754,6 +1754,7 @@ for(const {fault,item} of nativeFaultItems) nativeFaultFixtures.set(item.id,{...
 
 // Canonical persisted histories: use the real signed package and exact
 // builder/reviewer/event lineage, not mocked view models or atlas states.
+let liveCorrection:Readonly<{run:ReturnType<typeof RunSchema.parse>;approvalId:ReturnType<typeof newApprovalId>;submissionId:ReturnType<typeof newCandidateReviewEventId>;sequence:number}>|null=null;
 for(const [kind,item] of nativeHistoryItems){
   const fixture=await seedNativeCandidate(item);
   if(kind==="copy"||kind==="loading"||kind==="mixed")continue;
@@ -1780,9 +1781,15 @@ for(const [kind,item] of nativeHistoryItems){
     const run=RunSchema.parse({...fixture.reviewer,id:newRunId(),attempt:++attempt,
       triggerEventId:currentMember.id,status:mode,endedAt:mode==="RUNNING"?null:stamp,
       terminalClassification:mode==="COMPLETED"?"CANDIDATE_DONE":mode==="RUNNING"?null:"REVIEW_FAILURE"});
+    if(mode==="RUNNING"){
+      // Active attempts must be inserted after daemon restart recovery, just
+      // like the existing live STAGE fixtures below.
+      liveCorrection={run,approvalId:fixture.approval.id,submissionId:submission.id,sequence:sequence+1};
+      return;
+    }
     storeRun(database,run);
     appendQa({tag:"REVIEW_STARTED",submissionId:submission.id,runId:run.id},null);
-    if(mode==="RUNNING"||mode==="BLOCKED"){
+    if(mode==="BLOCKED"){
       if(mode==="BLOCKED")persistEvent(run.id,1,{tag:"REVIEW_FAILED",classification:"REVIEW_FAILURE",
         summary:"The submitted observation still requires repair.",evidence:[]});
       setExecutionTaskState(database,fixture.task.id,mode);
@@ -1814,7 +1821,7 @@ for(const [kind,item] of nativeHistoryItems){
     const finding=report("Submitted correction finding");
     correction(finding.id,kind==="running"?"RUNNING":kind==="blocked"?"BLOCKED":"COMPLETED");
   }
-  if(kind==="queued"||kind==="retest")await observeCurrentCandidateReview(seedRuntime,item.id,fixture.approval.id,sequence);
+  if(kind==="queued"||kind==="retest"||kind==="running")await observeCurrentCandidateReview(seedRuntime,item.id,fixture.approval.id,sequence);
 }
 
 writeFileSync(
@@ -2376,7 +2383,16 @@ const environment: NodeJS.ProcessEnv = {
   PONTIVUS_ORDER_BIND: "127.0.0.1:17347",
 };
 const daemon = await startOrderDaemon(environment);
-
+if(liveCorrection!==null){
+  const {run,approvalId,submissionId,sequence}=liveCorrection;
+  withTransaction(daemon.coordinator.database,()=>{
+    storeRun(daemon.coordinator.database,run);
+    storeCandidateReviewEvent(daemon.coordinator.database,{id:newCandidateReviewEventId(),approvalId,sequence,
+      occurredAt:nowIsoDateTime(),actor:null,event:{tag:"REVIEW_STARTED",submissionId,runId:run.id}});
+    setExecutionTaskState(daemon.coordinator.database,run.executionTaskId!,"RUNNING");
+    updateWorkItemLifecycle(daemon.coordinator.database,run.workItemId,{stage:"EXECUTION",status:"ACTIVE",outcome:null});
+  });
+}
 insertRun(daemon.coordinator, openContinuationRun);
 appendRunEvent(daemon.coordinator, openContinuationRun.id, {
   tag: "STAGE_STARTED",

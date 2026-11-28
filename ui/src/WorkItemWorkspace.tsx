@@ -490,19 +490,24 @@ export const WorkItemWorkspace = ({
   );
   const executionOwner = deriveExecutionOwner(currentExecutionTasks, runs);
   const currentExecutionObservationRequired = workItem.stage === "EXECUTION";
+  const currentReviewHistory = allReviewEvents.filter(entry => entry.approvalId === currentApproval?.id);
+  const executionHistoryQuery=qaHistories[qaApprovals.findIndex(approval=>approval.id===currentApproval?.id)];
   const executionObservationPending =
     currentExecutionObservationRequired &&
     (
       runsQuery.data === undefined ||
       tasksQuery.data === undefined ||
       currentApprovalQuery.data === undefined ||
+      approvalsQuery.isPending ||
+      (currentApproval != null && executionHistoryQuery?.isPending === true) ||
       executionEventsPending
     );
   let validationBoundary: ReturnType<typeof deriveValidationBoundary> | null = null;
   let validationObservationError: Error | null = null;
   if (!executionObservationPending) {
     try {
-      validationBoundary = deriveValidationBoundary(executionOwner, currentExecutionTasks, runs, allRunEvents);
+      validationBoundary = deriveValidationBoundary(executionOwner, currentExecutionTasks, runs, allRunEvents,
+        currentApproval??null,currentReviewHistory);
     } catch (error) {
       validationObservationError = error instanceof Error ? error : new Error(String(error));
     }
@@ -527,13 +532,13 @@ export const WorkItemWorkspace = ({
   const currentExecutionEventsError =
     workItem.stage !== "EXECUTION"
       ? null
-      : runs.reduce<unknown>((error, run, index) =>
+      : (approvalsQuery.error??executionHistoryQuery?.error??runs.reduce<unknown>((error, run, index) =>
           error ??
           (
             run.executionTaskId !== null
               ? runEventQueries[index]?.error ?? null
               : null
-          ), null);
+          ), null));
   const currentExecutionTasksFetching =
     (workItem.stage === "EXECUTION" || workItem.stage === "AWAITING_ACCEPTANCE" || workItem.stage === "COMPLETE") &&
     tasksQuery.isFetching;
@@ -584,7 +589,6 @@ export const WorkItemWorkspace = ({
         ? observedPackageError
         : null
     );
-  const currentReviewHistory = allReviewEvents.filter(entry => entry.approvalId === currentApproval?.id);
   const currentReviewSequence = currentReviewHistory.at(-1)?.sequence ?? null;
   const qaProofQuery = useQuery({
     queryKey: workbenchQueryKeys.qaProof(workItem.id,currentApproval?.id ?? null,currentReviewSequence),
@@ -1546,7 +1550,7 @@ export const WorkItemWorkspace = ({
               runsQuery.isPending ||
               tasksQuery.isPending ||
               (currentApprovalRequired && currentApprovalQuery.isPending) ||
-              allArtifactsQuery.isPending
+              allArtifactsQuery.isPending || executionObservationPending
             }
             stateError={
               runsQuery.error ??

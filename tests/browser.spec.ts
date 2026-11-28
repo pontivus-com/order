@@ -874,7 +874,8 @@ const authenticate = async (
 const rowFor = (page: Page, title: string) =>
   page
     .locator('[data-testid^="work-item-row-"]')
-    .filter({ has: page.getByText(title, { exact: true }) })
+    .filter({ has: page.locator(".order-queue-primary strong").filter({hasText:new RegExp("^"+title.replace(/[.*+?^$\x7b\x7d()|[\]\\]/g,"\\.filter({ has: page.getByText(title, { exact: true }) })
+    .first();")+"$")}) })
     .first();
 
 const recoveryFixtureEventIds = new Map([
@@ -5275,7 +5276,8 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
         await expect(move).toContainText("Document move failed");
         await captureDependent("SURF-SET-REPO-MOVE-001","acceptance-guard",null,"Signed Acceptance document-root guard");
         await move.getByRole("button",{name:"Cancel move",exact:true}).click();
-        await page.getByRole("link",{name:"Work items",exact:false}).click();
+        await page.goto("/");
+        await expect(page.getByTestId("work-item-queue")).toBeVisible();
       }
       for(const [fault,title,state,confirmation] of [
         ["SOURCE_AUTHORITY_STALE","Native Acceptance source drift","source-stale-authority","source-reconcile-confirmation"],
