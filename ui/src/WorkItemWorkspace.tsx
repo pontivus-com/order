@@ -168,16 +168,16 @@ export const WorkItemWorkspace = ({
     selectedStep === "R3" ||
     selectedStep === "AWAITING_SIGNOFF" ||
     workItem.stage === "AWAITING_SIGNOFF" ||
-    selectedStep === "EXECUTION" ||
+    selectedStep === "EXECUTION" || selectedStep === "AWAITING_ACCEPTANCE" ||
     selectedStep === "COMPLETE" ||
-    workItem.stage === "EXECUTION" ||
+    workItem.stage === "EXECUTION" || workItem.stage === "AWAITING_ACCEPTANCE" ||
     workItem.stage === "COMPLETE";
   const allArtifactsQuery = useQuery({
     queryKey: workbenchQueryKeys.artifacts(workItem.id),
     queryFn: () => api.listArtifacts(workItem.id),
     enabled: historicalArtifactsRequired,
   });
-  const currentApprovalRequired = workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE";
+  const currentApprovalRequired = workItem.stage === "EXECUTION" || workItem.stage === "AWAITING_ACCEPTANCE" || workItem.stage === "COMPLETE";
   const currentApprovalQuery = useQuery({
     queryKey: workbenchQueryKeys.currentApproval(workItem.id),
     queryFn: () => api.getCurrentApproval(workItem.id),
@@ -197,8 +197,8 @@ export const WorkItemWorkspace = ({
       (currentApproval != null && (!signedArtifactsQuery.isSuccess || signedArtifactsQuery.isFetching)));
   const tasksRequired =
     selectedStep === "AWAITING_SIGNOFF" ||
-    selectedStep === "EXECUTION" ||
-    workItem.stage === "EXECUTION" ||
+    selectedStep === "EXECUTION" || selectedStep === "AWAITING_ACCEPTANCE" ||
+    workItem.stage === "EXECUTION" || workItem.stage === "AWAITING_ACCEPTANCE" ||
     workItem.stage === "COMPLETE";
   const tasksQuery = useQuery({
     queryKey: workbenchQueryKeys.tasks(workItem.id),
@@ -527,7 +527,7 @@ export const WorkItemWorkspace = ({
               : null
           ), null);
   const currentExecutionTasksFetching =
-    (workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE") &&
+    (workItem.stage === "EXECUTION" || workItem.stage === "AWAITING_ACCEPTANCE" || workItem.stage === "COMPLETE") &&
     tasksQuery.isFetching;
   const selectedStageConformancePending =
     selectedStageArtifact !== null &&
@@ -566,7 +566,7 @@ export const WorkItemWorkspace = ({
     currentExecutionEventsError ??
     validationObservationError ??
     (
-      workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE"
+      workItem.stage === "EXECUTION" || workItem.stage === "AWAITING_ACCEPTANCE" || workItem.stage === "COMPLETE"
         ? tasksQuery.error ?? currentApprovalQuery.error ?? signedArtifactsQuery.error
         : null
     ) ??
@@ -751,7 +751,7 @@ export const WorkItemWorkspace = ({
           0,
         );
   const currentTaskUpdatedAt =
-    workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE"
+    workItem.stage === "EXECUTION" || workItem.stage === "AWAITING_ACCEPTANCE" || workItem.stage === "COMPLETE"
       ? tasksQuery.dataUpdatedAt
       : 0;
   const currentSignoffUpdatedAt =
@@ -1336,7 +1336,7 @@ export const WorkItemWorkspace = ({
       }
       utilities={
         <>
-          {!titleEditing && workItem.stage !== "EXECUTION" && workItem.stage !== "COMPLETE" ? (
+          {!titleEditing && workItem.stage !== "EXECUTION" && workItem.stage !== "AWAITING_ACCEPTANCE" && workItem.stage !== "COMPLETE" ? (
             <WorkbenchAction label="Edit title" tone="ghost" disabled={documentMutationsDisabled} onClick={() => { setTitleDraft(workItem.title); setTitleError(null); setTitleEditing(true); }} />
           ) : null}
           <WorkbenchAction
@@ -1349,7 +1349,7 @@ export const WorkItemWorkspace = ({
           <WorkbenchAction
             label={workItem.archived ? "Restore" : "Archive"}
             tone="ghost"
-            disabled={mutationsDisabled || workItem.stage === "EXECUTION" || runs.some(runIsActive) || archiveMutation.isPending}
+            disabled={mutationsDisabled || workItem.stage === "EXECUTION" || workItem.stage === "AWAITING_ACCEPTANCE" || runs.some(runIsActive) || archiveMutation.isPending}
             onClick={() => setConfirmArchive(true)}
           />
         </>

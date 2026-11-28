@@ -51,6 +51,10 @@ export const workbenchQueryKeys = {
     ["approvals", workItemId] as const,
   approvalArtifacts: (workItemId: WorkItemId, approvalId: ApprovalId | null) =>
     ["approvals", workItemId, approvalId, "artifacts"] as const,
+  qaHistory: (workItemId: WorkItemId, approvalId: ApprovalId | null) =>
+    ["approvals", workItemId, approvalId, "qa-events"] as const,
+  qaProof: (workItemId: WorkItemId, approvalId: ApprovalId | null, sequence: number | null) =>
+    ["approvals", workItemId, approvalId, "qa-events", "current", sequence] as const,
   tasks: (workItemId: WorkItemId) =>
     ["tasks", workItemId] as const,
   runs: (workItemId: WorkItemId) =>

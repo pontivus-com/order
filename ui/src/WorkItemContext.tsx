@@ -85,7 +85,7 @@ export const WorkItemContext=({workItem,selectedStep,selectedMaterial,selectedDo
   const finalApprovalQuery=useQuery({
     queryKey:workbenchQueryKeys.currentApproval(workItem.id),
     queryFn:()=>api.getCurrentApproval(workItem.id),
-    enabled:material.kind==="APPROVAL_PACKAGE"&&(workItem.stage==="EXECUTION"||workItem.stage==="COMPLETE"),
+    enabled:material.kind==="APPROVAL_PACKAGE"&&(workItem.stage==="EXECUTION"||workItem.stage==="AWAITING_ACCEPTANCE"||workItem.stage==="COMPLETE"),
     retry:false,
   });
   const selectedApproval=selectedTask!==null
@@ -93,7 +93,7 @@ export const WorkItemContext=({workItem,selectedStep,selectedMaterial,selectedDo
     :material.kind==="APPROVAL_PACKAGE"&&material.approvalId!==undefined
       ?(approvalsQuery.data??[]).find(approval=>approval.id===material.approvalId&&approval.workItemId===workItem.id)??null
       :material.kind==="APPROVAL_PACKAGE"&&material.packageHash===undefined&&
-      (workItem.stage==="EXECUTION"||workItem.stage==="COMPLETE")?finalApprovalQuery.data??null:null;
+      (workItem.stage==="EXECUTION"||workItem.stage==="AWAITING_ACCEPTANCE"||workItem.stage==="COMPLETE")?finalApprovalQuery.data??null:null;
   const selectedDocumentIsRelevant=sourceSelected||artifactId!==null;
 
   const sections = [

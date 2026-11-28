@@ -1,5 +1,16 @@
 import {
   ApprovalSchema,
+  AbsoluteDirectoryPathSchema,
+  CandidateReviewEventSchema,
+  QaReportCommandSchema,
+  QaSubmitCommandSchema,
+  QaRetestFailedCommandSchema,
+  QaDispositionCommandSchema,
+  QaReanalysisCommandSchema,
+  QaAcceptCommandSchema,
+  QaPrepareTestCopyCommandSchema,
+  ReconcileWorkItemSourcesCommandSchema,
+  type CandidateReviewEvent,
   ArtifactRefSchema,
   CommitWorkItemDocumentationSchema,
   ConnectRepositorySchema,
@@ -273,6 +284,74 @@ export const listApprovalArtifacts = async (
 ): Promise<readonly ArtifactRef[]> =>
   ArtifactRefSchema.array().parse(await json(
     `/api/work-items/${encodeURIComponent(workItemId)}/approvals/${encodeURIComponent(approvalId)}/artifacts`,
+  ));
+
+const approvalQaPath = (workItemId: WorkItemId, approvalId: Approval["id"]): string =>
+  `/api/work-items/${encodeURIComponent(workItemId)}/approvals/${encodeURIComponent(approvalId)}`;
+
+export const listCandidateReviewEvents = async (
+  workItemId: WorkItemId, approvalId: Approval["id"], expectedReviewSequence?: number,
+): Promise<readonly CandidateReviewEvent[]> =>
+  CandidateReviewEventSchema.array().parse(await json(
+    approvalQaPath(workItemId, approvalId) + "/qa-events" +
+      (expectedReviewSequence === undefined ? "" : "?expectedReviewSequence=" + expectedReviewSequence),
+  ));
+
+export const reportCandidateFinding = async (
+  workItemId: WorkItemId, approvalId: Approval["id"], command: ReturnType<typeof QaReportCommandSchema.parse>,
+): Promise<CandidateReviewEvent> =>
+  CandidateReviewEventSchema.parse(await json(
+    approvalQaPath(workItemId, approvalId) + "/qa/report", mutation("POST", QaReportCommandSchema.parse(command)),
+  ));
+
+export const submitCandidateFindings = async (
+  workItemId: WorkItemId, approvalId: Approval["id"], command: ReturnType<typeof QaSubmitCommandSchema.parse>,
+): Promise<CandidateReviewEvent> =>
+  CandidateReviewEventSchema.parse(await json(
+    approvalQaPath(workItemId, approvalId) + "/qa/submit", mutation("POST", QaSubmitCommandSchema.parse(command)),
+  ));
+
+export const recordCandidateRetestFailure = async (
+  workItemId: WorkItemId, approvalId: Approval["id"], command: ReturnType<typeof QaRetestFailedCommandSchema.parse>,
+): Promise<CandidateReviewEvent> =>
+  CandidateReviewEventSchema.parse(await json(
+    approvalQaPath(workItemId, approvalId) + "/qa/retest-failed", mutation("POST", QaRetestFailedCommandSchema.parse(command)),
+  ));
+
+export const recordCandidateDisposition = async (
+  workItemId: WorkItemId, approvalId: Approval["id"], command: ReturnType<typeof QaDispositionCommandSchema.parse>,
+): Promise<CandidateReviewEvent> =>
+  CandidateReviewEventSchema.parse(await json(
+    approvalQaPath(workItemId, approvalId) + "/qa/disposition", mutation("POST", QaDispositionCommandSchema.parse(command)),
+  ));
+
+export const requestCandidateReanalysis = async (
+  workItemId: WorkItemId, approvalId: Approval["id"], command: ReturnType<typeof QaReanalysisCommandSchema.parse>,
+): Promise<CandidateReviewEvent> =>
+  CandidateReviewEventSchema.parse(await json(
+    approvalQaPath(workItemId, approvalId) + "/qa/reanalysis", mutation("POST", QaReanalysisCommandSchema.parse(command)),
+  ));
+
+export const acceptCandidate = async (
+  workItemId: WorkItemId, approvalId: Approval["id"], command: ReturnType<typeof QaAcceptCommandSchema.parse>,
+): Promise<CandidateReviewEvent> =>
+  CandidateReviewEventSchema.parse(await json(
+    approvalQaPath(workItemId, approvalId) + "/qa/accept", mutation("POST", QaAcceptCommandSchema.parse(command)),
+  ));
+
+export const prepareCandidateTestCopy = async (
+  workItemId: WorkItemId, approvalId: Approval["id"], command: ReturnType<typeof QaPrepareTestCopyCommandSchema.parse>,
+): Promise<string> =>
+  AbsoluteDirectoryPathSchema.parse(await json(
+    approvalQaPath(workItemId, approvalId) + "/qa/prepare-test-copy", mutation("POST", QaPrepareTestCopyCommandSchema.parse(command)),
+  ));
+
+export const reconcileAcceptanceSource = async (
+  workItemId: WorkItemId, expectedApprovalId: Approval["id"], expectedReviewSequence: number,
+): Promise<WorkItemSourceReconciliation> =>
+  WorkItemSourceReconciliationSchema.parse(await json(
+    "/api/work-item-sources/reconcile",
+    mutation("POST", ReconcileWorkItemSourcesCommandSchema.parse({workItemId, expectedApprovalId, expectedReviewSequence})),
   ));
 
 export const listExecutionTasks = async (

@@ -309,7 +309,7 @@ export const SourceDocumentMaterial = ({
   const sourceReadOnly =
     readOnly ||
     authoringLocked ||
-    workItem.stage === "EXECUTION" ||
+    workItem.stage === "EXECUTION" || workItem.stage === "AWAITING_ACCEPTANCE" ||
     workItem.stage === "COMPLETE";
   const git = useDocumentationGitProjection(
     workItem,
@@ -393,7 +393,7 @@ export const SourceDocumentMaterial = ({
         description={
           readOnly
             ? "Read-only supporting Work request context."
-            : workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE"
+            : workItem.stage === "EXECUTION" || workItem.stage === "AWAITING_ACCEPTANCE" || workItem.stage === "COMPLETE"
               ? "Read-only in execution/completed state."
               : mutationsDisabled
                 ? authoringBlockedReason ?? "Document authoring is unavailable while the current workflow state is reconciled."

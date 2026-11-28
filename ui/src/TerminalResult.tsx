@@ -85,6 +85,32 @@ export const TerminalResult = ({
     workItem.outcome === "AUDIT_COMPLETE";
   const candidateDone = workItem.outcome === "CANDIDATE_DONE";
 
+  const finalApprovalQuery = useQuery({
+    queryKey: workbenchQueryKeys.currentApproval(workItem.id),
+    queryFn: () => api.getCurrentApproval(workItem.id),
+    enabled: candidateDone,
+  });
+  const finalApprovalId = finalApprovalQuery.data?.id ?? null;
+  const qaHistoryQuery = useQuery({
+    queryKey: workbenchQueryKeys.qaHistory(workItem.id, finalApprovalId),
+    queryFn: () => {
+      if (finalApprovalId === null) throw new TypeError("Final Approval identity unavailable");
+      return api.listCandidateReviewEvents(workItem.id, finalApprovalId);
+    },
+    enabled: candidateDone && finalApprovalId !== null,
+    retry: false,
+  });
+  const accepted = qaHistoryQuery.data?.find(entry => entry.event.tag === "ACCEPT");
+  const acceptanceProvenance = finalApprovalQuery.isError || qaHistoryQuery.isError
+    ? "Acceptance provenance unavailable."
+    : finalApprovalQuery.isPending || (finalApprovalId !== null && qaHistoryQuery.isPending)
+      ? "Loading acceptance provenance…"
+      : accepted !== undefined && accepted.actor !== null
+        ? "Accepted by " + accepted.actor + " · " + new Date(accepted.occurredAt).toLocaleString()
+        : qaHistoryQuery.isSuccess && qaHistoryQuery.data.length === 0
+          ? "Legacy completion: no human acceptance recorded."
+          : "Acceptance provenance unavailable.";
+
   const artifactsQuery = useQuery({
     queryKey: workbenchQueryKeys.lifecycleArtifacts(workItem.id),
     queryFn: () => api.listLifecycleArtifacts(workItem.id),
@@ -173,6 +199,7 @@ export const TerminalResult = ({
       resources={candidateDone ? {
         title: "Verified candidate resources",
         content: <div data-testid="candidate-result-material">
+          <p>{acceptanceProvenance}</p>
           {runsQuery.isPending || tasksQuery.isPending ||
           eventQueries.some((query) => query.isPending) ? (
             <WorkbenchState

@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Connect the browser to canonical Acceptance history, current proof and QA commands; retain signed-stage authoring locks and render exact final human acceptance provenance.
+
 - Stage exact Acceptance source/material recovery, bulk/startup reconciliation exclusion and signed source/title/archive/repository guards.
 
 - Activate the canonical candidate/no-op aggregate, atomic review opening/return and exact queued correction admission on the isolated cutover branch.
