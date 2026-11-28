@@ -1826,6 +1826,10 @@ await seedTerminalResult(
   "docs/investigation-result.md",
   "INVESTIGATION_COMPLETE",
 );
+// Persist a competing same-role snapshot for a dedicated Result-only fixture.
+const competingTerminalItem=workItem("Completed investigation with competing artifact","COMPLETE","COMPLETE","INVESTIGATION_COMPLETE","investigation-v1");
+await seedTerminalResult(competingTerminalItem,"docs/investigation-result.md","INVESTIGATION_COMPLETE");
+await currentFileArtifact(seedRuntime,competingTerminalItem,"docs/r1.md","R1","P1");
 
 const auditItem = workItem(
   "Completed audit",
@@ -2216,6 +2220,8 @@ const reviewRef = {
 };
 persistEvent(reviewerRun.id, 1, {
   tag: "REVIEW_PASSED",
+  minimumChange: "MINIMUM_SUFFICIENT",
+  minimumChangeSummary: null,
   evidence: [reviewRef],
 });
 const validationEventIds = [];

@@ -1,8 +1,6 @@
-import { useMemo, useState } from "react";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { CodeBlock } from "@astryxdesign/core/CodeBlock";
 import { Markdown } from "@astryxdesign/core/Markdown";
-import { Tab, TabList } from "@astryxdesign/core/TabList";
 
 import {
   MarkdownTextSchema,
@@ -10,13 +8,11 @@ import {
   type RunEvent,
   type WorkItem,
 } from "../../src/core/contracts.ts";
-import { reconstructCandidateRounds, candidateFindingDispositions } from "../../src/core/lifecycle.ts";
+import { admittedTerminalR1Artifact } from "../../src/core/lifecycle.ts";
 import * as api from "./http.ts";
 import { workbenchQueryKeys } from "./query-keys.ts";
 import {
   eventEvidence,
-  lifecycleArtifactLabel,
-  lifecycleArtifactRoleRank,
   runRoleLabel,
   workOutcomeProductLabel,
   verifiedCandidateProofEvents,
@@ -36,7 +32,7 @@ const resultExplanation = (workItem: WorkItem): string => {
     case "DUPLICATE":
       return "The work is a duplicate of already governed work.";
     case "ALREADY_SATISFIED":
-      return "The approved intent is already satisfied by the current repository state.";
+      return "The intent is already satisfied by the current repository state.";
     case "INVESTIGATION_COMPLETE":
       return "The investigation completed with an evidence-backed result.";
     case "AUDIT_COMPLETE":
@@ -89,7 +85,7 @@ export const TerminalResult = ({
   const finalApprovalQuery = useQuery({
     queryKey: workbenchQueryKeys.currentApproval(workItem.id),
     queryFn: () => api.getCurrentApproval(workItem.id),
-    enabled: candidateDone,
+    enabled: workItem.stage === "COMPLETE",
   });
   const finalApprovalId = finalApprovalQuery.data?.id ?? null;
   const qaHistoryQuery = useQuery({
@@ -101,90 +97,67 @@ export const TerminalResult = ({
     enabled: candidateDone && finalApprovalId !== null,
     retry: false,
   });
-  const accepted = qaHistoryQuery.data?.find(entry => entry.event.tag === "ACCEPT");
-  const acceptanceProvenance = finalApprovalQuery.isError || qaHistoryQuery.isError
-    ? "Acceptance provenance unavailable."
-    : finalApprovalQuery.isPending || (finalApprovalId !== null && qaHistoryQuery.isPending)
-      ? "Loading acceptance provenance…"
-      : accepted !== undefined && accepted.actor !== null
-        ? "Accepted by " + accepted.actor + " · " + new Date(accepted.occurredAt).toLocaleString()
-        : qaHistoryQuery.isSuccess && qaHistoryQuery.data.length === 0
-          ? "Legacy completion: no human acceptance recorded."
-          : "Acceptance provenance unavailable.";
-
+  const terminalR1 = !candidateDone && finalApprovalQuery.isSuccess && finalApprovalQuery.data === null;
   const artifactsQuery = useQuery({
-    queryKey: workbenchQueryKeys.lifecycleArtifacts(workItem.id),
-    queryFn: () => api.listLifecycleArtifacts(workItem.id),
-    enabled: evidenceBacked,
+    queryKey: workbenchQueryKeys.artifacts(workItem.id),
+    queryFn: () => api.listArtifacts(workItem.id),
+    enabled: terminalR1,
   });
   const runsQuery = useQuery({
     queryKey: workbenchQueryKeys.runs(workItem.id),
     queryFn: () => api.listRuns(workItem.id),
-    enabled: candidateDone,
+    enabled: candidateDone || terminalR1,
   });
-
   const tasksQuery = useQuery({
     queryKey: workbenchQueryKeys.tasks(workItem.id),
     queryFn: () => api.listExecutionTasks(workItem.id),
     enabled: candidateDone,
   });
-
-  const candidateRuns = candidateDone
-    ? (runsQuery.data ?? []).filter((run) => run.executionTaskId !== null)
-    : [];
+  const relevantRuns = (runsQuery.data ?? []).filter(run =>
+    candidateDone ? run.executionTaskId !== null : run.stage === "R1" && run.role === "STAGE");
   const eventQueries = useQueries({
-    queries: candidateRuns.map((run) => ({
+    queries: relevantRuns.map(run => ({
       queryKey: workbenchQueryKeys.runEvents(run.id),
       queryFn: () => api.listRunEvents(run.id, 0),
-      enabled: candidateDone,
     })),
   });
-
-  const artifacts = useMemo(
-    () =>
-      [...(artifactsQuery.data ?? [])].filter((artifact) => artifact.role === "R1").sort(
-        (left, right) =>
-          lifecycleArtifactRoleRank(left.role) -
-          lifecycleArtifactRoleRank(right.role),
-      ),
-    [artifactsQuery.data],
-  );
-  const [selectedArtifactId, setSelectedArtifactId] =
-    useState<ArtifactRef["id"] | null>(null);
-  const selectedArtifact =
-    artifacts.find((artifact) => artifact.id === selectedArtifactId) ??
-    artifacts.at(-1) ??
-    null;
+  const allEvents = eventQueries.flatMap(query => query.data ?? []);
+  const eventsPending = runsQuery.isPending || eventQueries.some(query => query.isPending);
+  const eventsFailed = runsQuery.isError || eventQueries.some(query => query.isError);
+  // The canonical current/final Approval observation returns null only after
+  // schema-admitted terminal R1 has been proven by the daemon. Reuse the exact
+  // pure same-Run output selector; never pick a current or last R1 artifact.
+  const selectedArtifact = (() : ArtifactRef | null => {
+    if (!terminalR1 || eventsPending || eventsFailed || !artifactsQuery.isSuccess || workItem.outcome === null) return null;
+    try {
+      return admittedTerminalR1Artifact(workItem, relevantRuns, allEvents, artifactsQuery.data, [workItem.outcome]);
+    } catch { return null; }
+  })();
   const contentQuery = useQuery({
     queryKey: workbenchQueryKeys.artifactContent(selectedArtifact?.id ?? null),
     queryFn: () => {
-      if (selectedArtifact === null) {
-        throw new TypeError("terminal result artifact required");
-      }
+      if (selectedArtifact === null) throw new TypeError("terminal result artifact required");
       return api.readArtifactContent(selectedArtifact.id);
     },
     enabled: selectedArtifact !== null,
   });
-
-  const allEvents=eventQueries.flatMap(query=>query.data??[]);
-  const exactProofEvents=(()=>{
-    if(!qaHistoryQuery.isSuccess||finalApprovalQuery.data==null)return [];
-    const history=qaHistoryQuery.data;
-    if(history.length===0)return verifiedCandidateProofEvents((tasksQuery.data??[]).filter(task=>task.approvalId===finalApprovalId),candidateRuns,allEvents);
-    if(accepted?.event.tag!=="ACCEPT")return [];
-    try{
-      const rounds=reconstructCandidateRounds(finalApprovalQuery.data,tasksQuery.data??[],candidateRuns,allEvents,history);
-      candidateFindingDispositions(history,rounds,tasksQuery.data??[],candidateRuns,allEvents);
-      return accepted.event.candidateMembers.flatMap(([,id])=>{
-        const member=allEvents.find(event=>event.id===id);
-        if(member?.event.tag!=="CANDIDATE_RECORDED")return [];
-        const ids=[member.event.candidateStateEventId,...member.event.validationEventIds];
-        return ids.flatMap(id=>allEvents.filter(event=>event.id===id));
-      });
-    }catch{return [];}
-  })();
-  const candidateEvidence = exactProofEvents.flatMap((event: RunEvent) => {
-    const run = candidateRuns.find((candidate) => candidate.id === event.runId);
+  const proofPending = finalApprovalQuery.isPending || eventsPending || tasksQuery.isPending ||
+    (finalApprovalId !== null && qaHistoryQuery.isPending);
+  const proofFailed = finalApprovalQuery.isError || eventsFailed || tasksQuery.isError || qaHistoryQuery.isError;
+  const exactProofEvents = !proofPending && !proofFailed && finalApprovalQuery.data != null &&
+    qaHistoryQuery.isSuccess && tasksQuery.isSuccess
+    ? verifiedCandidateProofEvents(finalApprovalQuery.data, tasksQuery.data, relevantRuns, allEvents, qaHistoryQuery.data)
+    : null;
+  const accepted = exactProofEvents === null ? undefined : qaHistoryQuery.data?.find(entry => entry.event.tag === "ACCEPT");
+  const acceptanceProvenance = proofPending
+    ? "Loading acceptance provenance…"
+    : accepted !== undefined && accepted.actor !== null
+      ? "Accepted by " + accepted.actor + " · " + new Date(accepted.occurredAt).toLocaleString()
+      : exactProofEvents !== null && qaHistoryQuery.data?.length === 0
+        ? "Legacy completion: no human acceptance recorded."
+        : "Acceptance provenance unavailable.";
+  const candidateEvidence = (exactProofEvents ?? []).flatMap((event: RunEvent) => {
+    const run = relevantRuns.find((candidate) => candidate.id === event.runId);
     return run === undefined ? [] : eventEvidence(event).map((proof) => ({
       runId: run.id,
       role: run.role,
@@ -206,7 +179,7 @@ export const TerminalResult = ({
       title={workOutcomeProductLabel(workItem.outcome)}
       status={<WorkbenchStatus tone={candidateDone || evidenceBacked ? "success" : "neutral"} label="Complete" />}
       summary={resultExplanation(workItem)}
-      action={evidenceBacked && onCreateRemediation !== undefined ? (
+      action={evidenceBacked && selectedArtifact !== null && onCreateRemediation !== undefined ? (
         <WorkbenchAction label="Create linked remediation" tone="primary"
           onClick={() => onCreateRemediation(workItem)} />
       ) : undefined}
@@ -214,14 +187,12 @@ export const TerminalResult = ({
         title: "Verified candidate resources",
         content: <div data-testid="candidate-result-material">
           <p>{acceptanceProvenance}</p>
-          {runsQuery.isPending || tasksQuery.isPending ||
-          eventQueries.some((query) => query.isPending) ? (
+          {proofPending ? (
             <WorkbenchState
               kind="loading"
               title="Loading candidate resources…"
             />
-          ) : runsQuery.isError || tasksQuery.isError ||
-            eventQueries.some((query) => query.isError) ? (
+          ) : proofFailed || exactProofEvents === null ? (
             <WorkbenchState
               kind="error"
               title="Candidate resources unavailable"
@@ -262,62 +233,22 @@ export const TerminalResult = ({
           )}
         </div>,
       } : undefined}
-      sections={evidenceBacked ? [{
+      sections={!candidateDone && (terminalR1 || finalApprovalQuery.isPending || finalApprovalQuery.isError) ? [{
         content: <div data-testid="result-material">
-          {artifactsQuery.isPending ? (
+          {finalApprovalQuery.isPending || (terminalR1 && (eventsPending || artifactsQuery.isPending)) ? (
             <WorkbenchState kind="loading" title="Loading result…" />
-          ) : artifactsQuery.isError ? (
-            <WorkbenchState
-              kind="error"
-              title="Result unavailable"
-              description={
-                artifactsQuery.error instanceof Error
-                  ? artifactsQuery.error.message
-                  : String(artifactsQuery.error)
-              }
-            />
-          ) : artifacts.length === 0 ? (
-            <WorkbenchState
-              kind="empty"
-              title="No result document is available"
-              description="The terminal outcome is canonical, but no current result document is available."
-            />
+          ) : finalApprovalQuery.isError || eventsFailed || artifactsQuery.isError || selectedArtifact === null ? (
+            <WorkbenchState kind="error" title="Result unavailable"
+              description="The exact admitted terminal Research output could not be resolved." />
           ) : (
             <>
-              {artifacts.length > 1 ? (
-                <TabList
-                  value={selectedArtifact?.id ?? artifacts[0]!.id}
-                  onChange={(value) => {
-                    const artifact = artifacts.find(
-                      (candidate) => candidate.id === value,
-                    );
-                    if (artifact !== undefined) {
-                      setSelectedArtifactId(artifact.id);
-                    }
-                  }}
-                  role="tablist"
-                  overflow="scroll"
-                >
-                  {artifacts.map((artifact) => (
-                    <Tab
-                      key={artifact.id}
-                      value={artifact.id}
-                      label={lifecycleArtifactLabel(artifact.role)}
-                    />
-                  ))}
-                </TabList>
-              ) : null}
               {contentQuery.isPending ? (
                 <WorkbenchState kind="loading" title="Loading result document…" />
               ) : contentQuery.isError ? (
                 <WorkbenchState
                   kind="error"
                   title="Result document unavailable"
-                  description={
-                    contentQuery.error instanceof Error
-                      ? contentQuery.error.message
-                      : String(contentQuery.error)
-                  }
+                  description="The exact admitted result bytes could not be read."
                 />
               ) : contentQuery.data === undefined ? null : (() => {
                   const content = decodeResult(contentQuery.data);

@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Bind Complete result material to the exact admitted terminal Research output and final signed candidate membership, rejecting partial or cross-Run proof and avoiding duplicate Result actions. Distinguish admitted no-change intent without implying approval.
+
 - Add isolated actual signed source drift, material drift and missing-evidence browser fixtures, verifying typed proof diagnostics and the exact recovery form while ordinary Acceptance mutation is suppressed.
 
 - Suspend the Acceptance review task panel during destructive discard confirmation, retaining its draft on cancellation; use the actual AlertDialog accessibility role and prove cancel/resume/discard in browser coverage.

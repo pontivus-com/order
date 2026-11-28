@@ -16,7 +16,9 @@ import {
   reachStateForStage,
   linkedSubmission,
   candidateSubmissionEvents,
-  latestApprovalTasks,
+  initialCandidateMembers,
+  reconstructCandidateRounds,
+  candidateFindingDispositions,
   type CurrentAttentionTag,
   type ExecutionOwner,
   type StageRunInteraction,
@@ -881,33 +883,38 @@ export const runEventPresentation = (
 // Resolve evidence through the durable final candidate record, never by
 // excluding unrelated historical execution events from final-outcome evidence.
 export const verifiedCandidateProofEvents = (
+  approval: Approval,
   tasks: readonly ExecutionTask[],
   runs: readonly Run[],
   events: readonly RunEvent[],
-): readonly RunEvent[] => {
-  const byId = new Map(events.map((event) => [event.id, event]));
-  const runById = new Map(runs.map((run) => [run.id, run]));
-  return latestApprovalTasks(tasks).filter((task) => task.state === "CANDIDATE_DONE").flatMap((task) => {
-    const records = events.filter((event) => {
-      const run = runById.get(event.runId);
-      return event.event.tag === "CANDIDATE_RECORDED" && run?.executionTaskId === task.id &&
-        run.role === "REVIEWER" && run.status === "COMPLETED" && run.terminalClassification === "CANDIDATE_DONE";
-    });
-    if (records.length !== 1) return [];
-    const record = records[0]!;
-    if (record.event.tag !== "CANDIDATE_RECORDED") return [];
-    const state = byId.get(record.event.candidateStateEventId);
-    const stateRun = state === undefined ? undefined : runById.get(state.runId);
-    const reviewer = runById.get(record.runId);
-    if (state?.event.tag !== "CANDIDATE_STATE_RECORDED" ||
-      stateRun?.executionTaskId !== task.id || (stateRun.role !== "BUILDER" && stateRun.role !== "REMEDIATOR") ||
-      reviewer?.triggerEventId !== state.id || reviewer.baselineCommit !== stateRun.baselineCommit) return [];
-    const validations = record.event.validationEventIds.map((id) => byId.get(id));
-    if (validations.length !== 8 || validations.some((event, index) =>
-      event?.event.tag !== "VALIDATION_PASSED" || event.runId !== record.runId ||
-      event.sequence >= record.sequence || event.event.stage !== "V" + index)) return [];
-    return [state, ...validations.filter((event): event is RunEvent => event !== undefined)];
-  });
+  history: readonly CandidateReviewEvent[],
+): readonly RunEvent[] | null => {
+  const signedTasks = tasks.filter(task => task.approvalId === approval.id);
+  if (signedTasks.some(task => task.state !== "CANDIDATE_DONE" && task.state !== "ALREADY_SATISFIED")) return null;
+  try {
+    const members = (() => {
+      if (history.length === 0) return initialCandidateMembers(approval, signedTasks, runs, events, history);
+      const rounds = reconstructCandidateRounds(approval, signedTasks, runs, events, history);
+      candidateFindingDispositions(history, rounds, signedTasks, runs, events);
+      const accepted = history.at(-1);
+      if (accepted?.event.tag !== "ACCEPT") throw new TypeError("final human acceptance missing");
+      return accepted.event.candidateMembers;
+    })();
+    const result: RunEvent[] = [];
+    for (const [taskId, id] of members) {
+      const task = signedTasks.find(value => value.id === taskId);
+      const member = events.find(value => value.id === id);
+      if (member?.event.tag === "TASK_ALREADY_SATISFIED" && task?.state === "ALREADY_SATISFIED") continue;
+      if (member?.event.tag !== "CANDIDATE_RECORDED" || task?.state !== "CANDIDATE_DONE") return null;
+      const ids = [member.event.candidateStateEventId, ...member.event.validationEventIds];
+      for (const proofId of ids) {
+        const matches = events.filter(value => value.id === proofId);
+        if (matches.length !== 1) return null;
+        result.push(matches[0]!);
+      }
+    }
+    return result.length === 0 ? null : result;
+  } catch { return null; }
 };
 
 export const eventEvidence = (

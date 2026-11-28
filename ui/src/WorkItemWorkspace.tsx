@@ -1284,20 +1284,7 @@ export const WorkItemWorkspace = ({
         tone="primary"
         onClick={() => requestSelection({ step: workItem.stage, material: canonicalCurrentMaterial })}
       />
-    ) : currentOwnerAction ?? (
-      workItem.stage === "COMPLETE" &&
-      (
-        workItem.outcome === "INVESTIGATION_COMPLETE" ||
-        workItem.outcome === "AUDIT_COMPLETE"
-      ) ? (
-        <WorkbenchAction
-          label="Create linked remediation"
-          tone="primary"
-          disabled={mutationsDisabled}
-          onClick={() => onCreateRemediation(workItem)}
-        />
-      ) : undefined
-    );
+    ) : currentOwnerAction ?? undefined;
 
   const currentReviewNotice =
     summaryBlocker === null ? undefined : (

@@ -7434,12 +7434,19 @@ test("terminal investigation and audit results remain closed and linked remediat
   await expect(page.getByRole("button", { name: "Create linked remediation" })).toBeVisible();
   await backToQueue(page);
 
+  await openWorkItem(page,"Completed investigation with competing artifact");
+  await expect(page.getByTestId("result-material")).toContainText("Evidence-backed conclusion.");
+  await expect(page.getByRole("tablist")).toHaveCount(0);
+  await backToQueue(page);
+
   const parent = await workItemForTitle(page, "Completed investigation");
   await openWorkItem(page, "Completed investigation");
   await expect(page.getByTestId("result-workspace")).toContainText("Investigation complete");
   await expect(page.getByTestId("result-material")).toContainText(
     "Evidence-backed conclusion.",
   );
+  await expect(page.getByTestId("result-material")).not.toContainText("Browser certification");
+  await expect(page.getByRole("tablist")).toHaveCount(0);
   await selectWorkflowStep(page, "Research");
   await expect(page.getByTestId("markdown-readonly")).toContainText(
     "Evidence-backed conclusion.",
