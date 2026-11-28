@@ -3051,7 +3051,9 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   expect(identityHierarchy.primaryRight).toBeLessThanOrEqual(identityHierarchy.utilityLeft);
   expect(identityHierarchy.titleSize).toBeGreaterThan(identityHierarchy.navSize);
   const processRail = page.getByTestId("workflow-rail");
-  await expect(processRail.locator(".order-workbench-process-marker")).toHaveCount(9);
+  await expect(processRail.locator(".order-workbench-process-marker")).toHaveCount(10);
+  const railRows = await processRail.locator("ol > li").evaluateAll(items => items.map(item => item.getBoundingClientRect().top));
+  expect(new Set(railRows).size).toBe(1);
   await expect(processRail.getByRole("button", { name: "Work request", exact: true }).locator(".order-workbench-rail-status")).toBeVisible();
   await expect(processRail.getByRole("button", { name: "Work request", exact: true })).toHaveAttribute("aria-current", "step");
   await expect(identity.locator(".order-workbench-identity-primary .order-workitem-kind")).toHaveText("Change");
@@ -4977,6 +4979,9 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     const acceptanceRail = page.getByTestId("workflow-rail");
     const review = page.getByTestId("workflow-step-workspace");
     await expect(acceptanceRail.getByRole("button", {name:"Acceptance",exact:true})).toHaveAttribute("aria-current","step");
+    await expect(acceptanceRail.locator("ol > li")).toHaveCount(10);
+    const railRows=await acceptanceRail.locator("ol > li").evaluateAll(items=>items.map(item=>item.getBoundingClientRect().top));
+    expect(new Set(railRows).size).toBe(1);
     await expect(review.getByTestId("review-verdict")).toContainText("Verified candidate");
     await expect(review.getByRole("button",{name:"Accept candidate",exact:true})).toBeEnabled();
     const captureAcceptance = async (state:string, suffix:string, viewport:Readonly<{width:number;height:number}> = light,
