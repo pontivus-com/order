@@ -8767,3 +8767,38 @@ describe("daemon control plane", () => {
   });
 
 });
+
+describe("native QA assessment evidence", () => {
+  it("validates nested review evidence before persistence and authorizes its exact persisted Run read", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-qa-evidence-");
+    const output = bunEval(`
+      ${seedSignoffScript(repository,state)}
+      const runStore = await import("./src/daemon/run.ts");
+      const execution = await import("./src/daemon/execution.ts");
+      const task = (await coord.listExecutionTasks(runtime,work))[0];
+      const running = {...task,state:"RUNNING"};
+      sql.setExecutionTaskState(database,task.id,"RUNNING");
+      const context = await authority.approvalContext(runtime,approval,running,"REVIEWER");
+      const run = execution.createExecutionRun(runtime,coord.getWorkItem(runtime,work),running,approval,"REVIEWER",null,context.contextHash);
+      const findingId = "review_00000000-0000-4000-8000-000000000001";
+      const bytes = new TextEncoder().encode("independent evidence");
+      const evidence = runStore.writeRunEvidence(runtime,run.id,"qa/assessment.txt",bytes,"text/plain");
+      const review = {tag:"REVIEW_PASSED",minimumChange:"MINIMUM_SUFFICIENT",minimumChangeSummary:null,evidence:[],
+        qaAssessments:[{findingId,verdict:"SATISFIED",rationale:"verified",evidence:[evidence]}]};
+      const rejected = (fn) => { try { fn(); return false; } catch { return true; } };
+      const bad = {...review,qaAssessments:[{...review.qaAssessments[0],evidence:[{...evidence,sha256:"sha256:"+"0".repeat(64)}]}]};
+      const missing = {...review,qaAssessments:[{...review.qaAssessments[0],evidence:[{...evidence,relativePath:"qa/missing.txt"}]}]};
+      const before = runStore.listRunEvents(runtime,run.id).length;
+      const badRejected = rejected(()=>runStore.persistProviderEvents(runtime,run,[bad]));
+      const missingRejected = rejected(()=>runStore.persistProviderEvents(runtime,run,[missing]));
+      const unchanged = runStore.listRunEvents(runtime,run.id).length===before;
+      runStore.persistProviderEvents(runtime,run,[review]);
+      const read = new TextDecoder().decode(runStore.readReferencedEvidence(runtime,run.id,"qa/assessment.txt"));
+      console.log(JSON.stringify({badRejected,missingRejected,unchanged,read,refs:runStore.evidenceRefsInPayload(review),evidence}));
+      database.close();
+    `) as {badRejected:boolean;missingRejected:boolean;unchanged:boolean;read:string;refs:unknown[];evidence:unknown};
+    expect(output).toMatchObject({badRejected:true,missingRejected:true,unchanged:true,read:"independent evidence"});
+    expect(output.refs).toEqual([output.evidence]);
+  },30_000);
+});

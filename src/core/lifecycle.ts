@@ -1472,7 +1472,33 @@ export const orderedCandidateReviewEvents = (
   });
 };
 
-const linkedSubmission = (
+// The immutable provider input is selected by SUBMIT identity and sequence,
+// never by the newest report/retest or a mutable task projection.
+export const candidateSubmissionEvents = (
+  approvalId: Approval["id"], history: readonly CandidateReviewEvent[], submissionId: CandidateReviewEventId,
+): readonly CandidateReviewEvent[] => {
+  const ordered = orderedCandidateReviewEvents(approvalId, history);
+  const submission = requireUnique(ordered.filter(value => value.id === submissionId && value.event.tag === "SUBMIT"),
+    "QA submission missing or ambiguous");
+  if (submission.event.tag !== "SUBMIT") throw new TypeError("invalid QA submission");
+  const prior = ordered.filter(value => value.sequence < submission.sequence);
+  const taskIds = new Set<ExecutionTaskId>();
+  const input = [submission];
+  for (const findingId of submission.event.findingIds) {
+    const report = requireUnique(prior.filter(value => value.id === findingId && value.event.tag === "REPORT"),
+      "submission report missing");
+    if (report.event.tag !== "REPORT") throw new TypeError("invalid QA report");
+    taskIds.add(report.event.taskId);
+    input.push(report);
+    const retest = prior.findLast(value => value.sequence > report.sequence &&
+      value.event.tag === "RETEST_FAILED" && value.event.findingId === findingId);
+    if (retest !== undefined) input.push(retest);
+  }
+  if (taskIds.size !== 1) throw new TypeError("submission must own one task");
+  return input;
+};
+
+export const linkedSubmission = (
   run: Run, runs: readonly Run[], events: readonly RunEvent[], history: readonly CandidateReviewEvent[],
 ): CandidateReviewEventId | null => {
   const visited = new Set<Run["id"]>();
@@ -1532,10 +1558,8 @@ export const reconstructCandidateRounds = (
     const submission = requireUnique(ordered.filter(value => value.id === completion.submissionId &&
       value.sequence < entry.sequence && value.event.tag === "SUBMIT"), "QA completion lacks prior exact submission");
     if (submission.event.tag !== "SUBMIT") throw new TypeError("invalid QA submission");
-    const reports = submission.event.findingIds.map(id => requireUnique(ordered.filter(value => value.id === id &&
-      value.sequence < submission.sequence && value.event.tag === "REPORT"), "submission report missing"));
-    const taskIds = new Set(reports.map(report => report.event.tag === "REPORT" ? report.event.taskId : null));
-    if (taskIds.size !== 1 || taskIds.has(null)) throw new TypeError("submission must own one task");
+    const taskIds = new Set(candidateSubmissionEvents(approval.id, ordered, submission.id).flatMap(value =>
+      value.event.tag === "REPORT" ? [value.event.taskId] : []));
     const replacement = admittedCandidateMember(approval, signedTasks, runs, events, completion.candidateEventId);
     const replacementEvent = requireUnique(events.filter(event => event.id === replacement[1]), "replacement candidate missing");
     const replacementRun = requireUnique(runs.filter(run => run.id === replacementEvent.runId), "replacement Run missing");
@@ -1572,10 +1596,10 @@ export type AcceptanceDecision =
 
 type FindingDisposition = "OPEN" | "RETEST_REQUIRED" | "RETEST_FAILED" | "DISPOSED";
 
-export const candidateFindingDispositions = (
+const foldCandidateReview = (
   history: readonly CandidateReviewEvent[], rounds: ReadonlyMap<CandidateReviewEventId, CandidateMembers>,
   tasks: readonly ExecutionTask[], runs: readonly Run[], runEvents: readonly RunEvent[],
-): ReadonlyMap<CandidateReviewEventId, FindingDisposition> => {
+) => {
   const findings = new Map<CandidateReviewEventId, FindingDisposition>();
   const reports = new Map<CandidateReviewEventId, Extract<CandidateReviewEvent["event"], { tag: "REPORT" }>>();
   let currentHash: Sha256 | null = null;
@@ -1585,6 +1609,11 @@ export const candidateFindingDispositions = (
   const submitted = new Set<CandidateReviewEventId>();
   const startedRuns = new Set<Run["id"]>();
   const latestIndependentSupport = new Map<CandidateReviewEventId, boolean>();
+  const withdrawalIsAdmitted = (id: CandidateReviewEventId): boolean => {
+    const state = findings.get(id);
+    return (state === "OPEN" || state === "RETEST_REQUIRED" || state === "RETEST_FAILED") &&
+      (!submitted.has(id) || latestIndependentSupport.get(id) === true);
+  };
   const currentMember = (taskId: ExecutionTaskId): RunEvent => {
     const member = members?.find(value => value[0] === taskId);
     if (member === undefined) throw new TypeError("exact current member missing");
@@ -1697,7 +1726,7 @@ export const candidateFindingDispositions = (
         if (event.outcome === "RESOLVED" ? state !== "RETEST_REQUIRED" : state !== "OPEN" && state !== "RETEST_REQUIRED" && state !== "RETEST_FAILED") {
           throw new TypeError("finding disposition is not admitted");
         }
-        if (event.outcome === "WITHDRAWN" && submitted.has(event.findingId) && latestIndependentSupport.get(event.findingId) !== true) {
+        if (event.outcome === "WITHDRAWN" && !withdrawalIsAdmitted(event.findingId)) {
           throw new TypeError("post-submission withdrawal requires independent supporting evidence");
         }
         findings.set(event.findingId, "DISPOSED"); break;
@@ -1716,12 +1745,17 @@ export const candidateFindingDispositions = (
         terminal = true; break;
     }
   }
-  return findings;
+  return { findings, members, submission, terminal, withdrawalIsAdmitted };
 };
 
-// The observation is supplied by the existing typed HTTP/authority boundary.
-// History alone never grants a current operator action.
-export const deriveAcceptanceDecision = (input: Readonly<{
+export const candidateFindingDispositions = (
+  history: readonly CandidateReviewEvent[], rounds: ReadonlyMap<CandidateReviewEventId, CandidateMembers>,
+  tasks: readonly ExecutionTask[], runs: readonly Run[], runEvents: readonly RunEvent[],
+): ReadonlyMap<CandidateReviewEventId, FindingDisposition> =>
+  foldCandidateReview(history, rounds, tasks, runs, runEvents).findings;
+
+// Pure local input to decisions, not a persisted or transported state projection.
+type AcceptanceDecisionInput = Readonly<{
   current: boolean;
   coherent: boolean;
   mutationConflict: boolean;
@@ -1733,7 +1767,68 @@ export const deriveAcceptanceDecision = (input: Readonly<{
   tasks: readonly ExecutionTask[];
   runs: readonly Run[];
   runEvents: readonly RunEvent[];
-}>): AcceptanceDecision => {
+}>;
+
+const currentAcceptanceReview = (input: AcceptanceDecisionInput) => {
+  if (!input.current || !input.coherent || input.mutationConflict || input.approval === null || input.diagnostic !== null) return null;
+  const history = orderedCandidateReviewEvents(input.approval.id, input.history);
+  if (input.currentProof === null || canonicalJson(input.currentProof) !== canonicalJson(history) || history.length === 0) return null;
+  const review = foldCandidateReview(history, input.rounds, input.tasks, input.runs, input.runEvents);
+  return review.terminal ? null : { history, ...review };
+};
+
+// Per-action admission is independent of the primary decision; a historical
+// selection cannot exercise current authority even if the primary action exists.
+export const candidateMemberActionIsAdmitted = (
+  input: AcceptanceDecisionInput, selectedCurrent: boolean,
+  action: "REPORT" | "PREPARE_TEST_COPY", taskId: ExecutionTaskId, candidateEventId: RunEventId,
+): boolean => {
+  if (!selectedCurrent) return false;
+  const review = currentAcceptanceReview(input);
+  if (review === null || review.submission !== null ||
+      !review.members?.some(([task, event]) => task === taskId && event === candidateEventId)) return false;
+  const member = requireUnique(input.runEvents.filter(value => value.id === candidateEventId), "exact current member proof missing");
+  return action === "REPORT"
+    ? member.event.tag === "CANDIDATE_RECORDED" || member.event.tag === "TASK_ALREADY_SATISFIED"
+    : member.event.tag === "CANDIDATE_RECORDED";
+};
+
+export const candidateFindingActionIsAdmitted = (
+  input: AcceptanceDecisionInput, selectedCurrent: boolean,
+  action: "WITHDRAW" | "RETEST", findingId: CandidateReviewEventId,
+): boolean => {
+  if (!selectedCurrent) return false;
+  const review = currentAcceptanceReview(input);
+  if (review === null || review.submission !== null) return false;
+  return action === "WITHDRAW" ? review.withdrawalIsAdmitted(findingId) : review.findings.get(findingId) === "RETEST_REQUIRED";
+};
+
+export const candidateSubmitIsAdmitted = (
+  input: AcceptanceDecisionInput, selectedCurrent: boolean, findingIds: readonly CandidateReviewEventId[],
+): boolean => {
+  if (!selectedCurrent || findingIds.length === 0 || new Set(findingIds).size !== findingIds.length) return false;
+  const review = currentAcceptanceReview(input);
+  if (review === null || review.submission !== null) return false;
+  const reportTasks = new Set<ExecutionTaskId>();
+  for (const id of findingIds) {
+    const state = review.findings.get(id);
+    if (state !== "OPEN" && state !== "RETEST_FAILED") return false;
+    const report = review.history.find(value => value.id === id);
+    if (report?.event.tag !== "REPORT") return false;
+    const taskId = report.event.taskId;
+    const member = review.members?.find(([task]) => task === taskId);
+    if (member === undefined || !input.runEvents.some(value => value.id === member[1] && value.event.tag === "CANDIDATE_RECORDED")) return false;
+    reportTasks.add(taskId);
+  }
+  // The no-op challenge is the higher primary decision, so the ordinary
+  // submission action cannot bypass the exact required PLAN return.
+  const decision = deriveAcceptanceDecision(input);
+  return decision.tag === "SUBMIT_FINDINGS" && reportTasks.size === 1 && findingIds.every(id => decision.findingIds.includes(id));
+};
+
+// The observation is supplied by the existing typed HTTP/authority boundary.
+// History alone never grants a current operator action.
+export const deriveAcceptanceDecision = (input: AcceptanceDecisionInput): AcceptanceDecision => {
   if (!input.current || !input.coherent || input.mutationConflict || input.approval === null) return { tag: "NONE" };
   const error = input.diagnostic;
   if (error !== null) {
@@ -1742,18 +1837,15 @@ export const deriveAcceptanceDecision = (input: Readonly<{
     if (error.code === "CANDIDATE_PROOF_UNAVAILABLE") return { tag: "REANALYSE_PROOF_UNAVAILABLE" };
     return { tag: "NONE" };
   }
-  const history = orderedCandidateReviewEvents(input.approval.id, input.history);
-  if (input.currentProof === null || canonicalJson(input.currentProof) !== canonicalJson(history) ||
-      history.length === 0 || history.some(entry => entry.event.tag === "ACCEPT" || entry.event.tag === "REANALYSIS_REQUESTED")) return { tag: "NONE" };
-  const findings = candidateFindingDispositions(history, input.rounds, input.tasks, input.runs, input.runEvents);
-  const outstanding = history.findLast(entry => entry.event.tag === "SUBMIT");
-  if (outstanding !== undefined && !history.some(entry => entry.event.tag === "REVIEW_COMPLETED" && entry.event.submissionId === outstanding.id)) return { tag: "QUEUED", submissionId: outstanding.id };
+  const review = currentAcceptanceReview(input);
+  if (review === null) return { tag: "NONE" };
+  const { history, findings } = review;
+  if (review.submission !== null) return { tag: "QUEUED", submissionId: review.submission.id };
   const unresolved = history.flatMap(entry => entry.event.tag === "REPORT" && findings.get(entry.id) !== "DISPOSED" ? [entry] : []);
   const noOps = unresolved.filter(entry => {
     const event = entry.event;
     if (event.tag !== "REPORT") return false;
-    const latestRound = history.findLast(value => value.event.tag === "OPENED" || value.event.tag === "REVIEW_COMPLETED");
-    const memberId = latestRound === undefined ? undefined : input.rounds.get(latestRound.id)?.find(member => member[0] === event.taskId)?.[1];
+    const memberId = review.members?.find(member => member[0] === event.taskId)?.[1];
     return input.runEvents.some(value => value.id === memberId && value.event.tag === "TASK_ALREADY_SATISFIED");
   });
   if (noOps.length > 0) return { tag: "REANALYSE_NO_OP", findingIds: noOps.map(entry => entry.id) };

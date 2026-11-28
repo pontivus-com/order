@@ -2314,7 +2314,7 @@ describe("actual IA25 installer transaction", () => {
     "migrates direct v3 through the actual installer and preserves exact rollback custody: %s", scenario => {
       const fixture = transactionFixture();
       createPriorDeployment(fixture);
-      const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes", legacyDatabaseVersion: 3,
+      const outcome = runInstallerTransaction({ ...fixture, establishedHistory: scenario === "readiness" ? "no" : "yes", legacyDatabaseVersion: 3,
         databaseSidecars: true, v3MigrationCorrupt: scenario === "migration",
         failRestart: scenario === "activation", failMarkerWrite: scenario === "marker",
         readiness: scenario === "readiness" ? { ready: false, blockers: ["MODEL_INVALID"] } : { ready: true, blockers: [] } });

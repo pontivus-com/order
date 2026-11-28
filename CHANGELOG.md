@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Derive exact per-action Acceptance admission from canonical review history; select immutable SUBMIT/REPORT/preceding RETEST_FAILED inputs and verify nested assessment evidence through existing Run evidence owner (IA35/IA37 preparation).
+
 - Extend actual installer transaction proof to direct v3→v4 migration, preserved legacy completion, original DB/WAL/SHM custody, rollback and secondary compensation; retain separate unchanged-schema v4 proof (IA36).
 
 - Reject contradictory historical candidate proof that claims V6 PASS despite independent CHANGE_BLOAT evidence, for both original and replacement Acceptance rounds (IA35).

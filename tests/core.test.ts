@@ -67,6 +67,10 @@ import {
   verifyCandidateRoundHashes,
   candidateFindingDispositions,
   deriveAcceptanceDecision,
+  candidateMemberActionIsAdmitted,
+  candidateFindingActionIsAdmitted,
+  candidateSubmitIsAdmitted,
+  candidateSubmissionEvents,
   deriveExecutionOwner,
   executionTaskRuns,
   terminalExecutionFailureEvent,
@@ -3538,6 +3542,58 @@ describe("native Acceptance preparation", () => {
       .toEqual([[tasks[0]!.id, result.result.id], [tasks[1]!.id, noOp.id]]);
     expect(() => reconstructCandidateRounds(approval, tasks, runs, [...baseEvents, ...result.events.map(bloatReview)], history))
       .toThrow(/V6 requires independently reviewed minimum-sufficient change/);
+  });
+  it("derives per-action currentness and exact candidate membership independently of the primary decision", () => {
+    const first = report(2,0,prior.result.id);
+    const noOpFinding = report(3,1,noOp.id);
+    const inputFor = (history: readonly ReturnType<typeof reviewEvent>[]) => ({
+      current:true, coherent:true, mutationConflict:false, approval, history, currentProof:history,
+      diagnostic:null, rounds:reconstructCandidateRounds(approval,tasks,baseRuns,baseEvents,history), tasks, runs:baseRuns, runEvents:baseEvents,
+    });
+    const input = inputFor([opened,first,noOpFinding]);
+    expect(deriveAcceptanceDecision(input)).toEqual({tag:"REANALYSE_NO_OP",findingIds:[noOpFinding.id]});
+    expect(candidateMemberActionIsAdmitted(input,true,"REPORT",tasks[1]!.id,noOp.id)).toBe(true);
+    expect(candidateMemberActionIsAdmitted(input,true,"PREPARE_TEST_COPY",tasks[1]!.id,noOp.id)).toBe(false);
+    expect(candidateMemberActionIsAdmitted(input,true,"PREPARE_TEST_COPY",tasks[0]!.id,prior.result.id)).toBe(true);
+    expect(candidateMemberActionIsAdmitted(input,true,"REPORT",tasks[1]!.id,prior.result.id)).toBe(false);
+    expect(candidateMemberActionIsAdmitted(input,false,"REPORT",tasks[0]!.id,prior.result.id)).toBe(false);
+    expect(candidateMemberActionIsAdmitted({...input,currentProof:null},true,"REPORT",tasks[0]!.id,prior.result.id)).toBe(false);
+    expect(candidateFindingActionIsAdmitted(input,true,"WITHDRAW",first.id)).toBe(true);
+    expect(candidateFindingActionIsAdmitted(input,false,"WITHDRAW",first.id)).toBe(false);
+    expect(candidateFindingActionIsAdmitted(input,true,"RETEST",first.id)).toBe(false);
+    expect(candidateSubmitIsAdmitted(input,true,[first.id])).toBe(false);
+    const onlyCandidate = inputFor([opened,first]);
+    expect(candidateSubmitIsAdmitted(onlyCandidate,true,[first.id])).toBe(true);
+    expect(candidateSubmitIsAdmitted(onlyCandidate,true,[first.id,first.id])).toBe(false);
+    expect(candidateSubmitIsAdmitted(onlyCandidate,false,[first.id])).toBe(false);
+    const submit = reviewEvent(3,{tag:"SUBMIT",candidateHash:hashA,findingIds:[first.id]});
+    const queued = inputFor([opened,first,submit]);
+    expect(deriveAcceptanceDecision(queued)).toEqual({tag:"QUEUED",submissionId:submit.id});
+    expect(candidateMemberActionIsAdmitted(queued,true,"REPORT",tasks[0]!.id,prior.result.id)).toBe(false);
+    expect(candidateFindingActionIsAdmitted(queued,true,"WITHDRAW",first.id)).toBe(false);
+    expect(candidateSubmitIsAdmitted(queued,true,[first.id])).toBe(false);
+    expect(deriveAcceptanceDecision({...queued,diagnostic:{code:"CANDIDATE_PROOF_UNAVAILABLE",message:"missing",sourceDiagnostic:null,staleAuthorityOwner:null}})).toEqual({tag:"REANALYSE_PROOF_UNAVAILABLE"});
+  });
+  it("selects exact ordered QA submission inputs including only each latest preceding failed retest", () => {
+    const first = report(2,0,prior.result.id);
+    const second = report(3,0,prior.result.id);
+    const unrelated = report(4,1,noOp.id);
+    const failed = (n:number,findingId:typeof first.id, observed:string) =>
+      reviewEvent(n,{tag:"RETEST_FAILED",findingId,candidateHash:hashB,observed,rationale:"reproduced",evidence:[]});
+    const earlier = failed(5,first.id,"earlier");
+    const other = failed(6,unrelated.id,"unrelated");
+    const latest = failed(7,first.id,"latest");
+    const submit = reviewEvent(8,{tag:"SUBMIT",candidateHash:hashB,findingIds:[second.id,first.id]});
+    const later = failed(9,first.id,"later");
+    // This tests the immutable selector; semantic admission is separately
+    // enforced by the round/disposition fold before context selection.
+    const history = [opened,first,second,unrelated,earlier,other,latest,submit,later];
+    expect(candidateSubmissionEvents(approval.id,history,submit.id)).toEqual([submit,second,first,latest]);
+    expect(candidateSubmissionEvents(approval.id,history.slice(0,-1),submit.id)).toEqual([submit,second,first,latest]);
+    expect(()=>candidateSubmissionEvents(approval.id,history,first.id)).toThrow(/submission missing/);
+    const foreign = reviewEvent(8,{tag:"SUBMIT",candidateHash:hashB,findingIds:[first.id,unrelated.id]});
+    expect(()=>candidateSubmissionEvents(approval.id,[...history.slice(0,7),foreign],foreign.id)).toThrow(/one task/);
+    expect(()=>candidateSubmissionEvents(approval.id,history.map(value=>value.id===second.id?{...value,approvalId:identity("approval",2)} as typeof value:value),submit.id)).toThrow(/stream identity/);
   });
   it("reconstructs exact historical replacement and reopens disposed reports without absorbing other open reports", () => {
     const first = report(2,0,prior.result.id);
