@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Add signed deterministic correction, mixed-task, retest and isolated-copy fixture histories for native Acceptance coverage.
+
 - Add the exact selected Acceptance identity group to the existing Context owner, sharing Review round selection. Extend integrated captures for Queue, identity, Context, signed Approval/document, original evidence and terminal provenance.
 
 - Prove Settings draft, destructive confirmation and pending OpenCode login focus/identity continuity through wide, medium and narrow recomposition without a second login command.
