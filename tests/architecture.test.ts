@@ -529,9 +529,17 @@ describe("architecture fitness", () => {
           if (["shell", "daemon", "cli"].includes(targetLayer)) {
             violations.push(`${sourcePath} -> ${targetPath}: UI may not depend on ${targetLayer}`);
           }
+          const exactPlanParserImport =
+            sourcePath === "ui/src/DocumentWorkspace.tsx" &&
+            targetPath === "src/core/execution.ts" &&
+            specifier === "../../src/core/execution.ts" &&
+            importSpecifiers(sourceText(sourcePath)).filter(candidate =>
+              resolvedRepositoryImport(sourcePath, candidate) === targetPath).length === 1 &&
+            /^import\s+\{\s*admitSignedTaskBlockForSchema\s*,\s*parseSignedTaskBlockFromPlan\s*\}\s+from\s+"\.\.\/\.\.\/src\/core\/execution\.ts";$/m.test(sourceText(sourcePath));
           if (
             targetLayer === "core" &&
-            !["src/core/contracts.ts", "src/core/lifecycle.ts"].includes(targetPath)
+            !["src/core/contracts.ts", "src/core/lifecycle.ts"].includes(targetPath) &&
+            !exactPlanParserImport
           ) {
             violations.push(
               `${sourcePath} -> ${targetPath}: UI may import only browser-safe canonical contracts or lifecycle policy from core`,
@@ -723,7 +731,7 @@ describe("architecture fitness", () => {
         "src/core/contracts.ts",
         "src/core/canonical.ts",
       ],
-      "src/core/lifecycle.ts": ["src/core/contracts.ts"],
+      "src/core/lifecycle.ts": ["src/core/contracts.ts", "src/core/canonical.ts"],
       "src/core/work-item-source.ts": ["src/core/contracts.ts"],
       "src/core/execution.ts": ["src/core/contracts.ts"],
     };
