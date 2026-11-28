@@ -6,7 +6,7 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
-- Reconcile the exact PLAN inspection dependency and canonical lifecycle serialization fitness with their existing semantic owners; protected authority amendment only, not implementation acceptance.
+- Reconcile exact PLAN inspection, canonical lifecycle serialization and linked-remediation eligibility dependencies with their existing pure semantic owners; protected authority amendment only, not implementation acceptance.
 
 - Record targeted R3 for the amended 0.6.0 specification after integrated alignment; preserve prior local evidence and require a separate exact-package authorization before remaining implementation.
 
