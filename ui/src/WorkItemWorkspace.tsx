@@ -163,6 +163,7 @@ export const WorkItemWorkspace = ({
     );
   const historicalArtifactsRequired =
     historicalPreSignoffSelected ||
+    selectedStep === "R3" ||
     selectedStep === "AWAITING_SIGNOFF" ||
     workItem.stage === "AWAITING_SIGNOFF" ||
     selectedStep === "EXECUTION" ||
@@ -233,7 +234,7 @@ export const WorkItemWorkspace = ({
   const explicitApproval = explicitMaterial?.kind === "APPROVAL_PACKAGE" ? explicitMaterial : null;
   const selectedApproval = explicitApproval?.approvalId === undefined
     ? workItem.stage === "AWAITING_SIGNOFF" ? null : currentApproval ??
-      (currentApprovalQuery.isPending && currentApprovalRequired ? null : approvalsQuery.data?.at(-1) ?? null)
+      (currentApprovalRequired ? null : approvalsQuery.data?.at(-1) ?? null)
     : approvalsQuery.data?.find(approval => approval.id === explicitApproval.approvalId) ?? null;
   const selectedApprovalUnresolved = explicitApproval?.approvalId !== undefined && selectedApproval === null;
   const selectedApprovalArtifactsQuery = useQuery({
@@ -453,12 +454,12 @@ export const WorkItemWorkspace = ({
     sourceQuery.data.sha256 !== workItem.sourceSha256;
   const sourceAuthorityRequiresReconciliation =
     sourceDiagnostics.length > 0 || sourceAuthorityChanged;
+  const observedPackageError = signoffPackageQuery.error ?? prospectiveArtifactsQuery.error;
   const packageStaleOwner =
     workItem.stage === "AWAITING_SIGNOFF" &&
-    signoffPackageQuery.isError &&
-    api.isOrderHttpRequestFailure(signoffPackageQuery.error) &&
-    signoffPackageQuery.error.orderError.code === "STALE_AUTHORITY"
-      ? signoffPackageQuery.error.orderError.staleAuthorityOwner
+    api.isOrderHttpRequestFailure(observedPackageError) &&
+    observedPackageError.orderError.code === "STALE_AUTHORITY"
+      ? observedPackageError.orderError.staleAuthorityOwner
       : null;
   const changedAuthorityOwners =
     sourceAuthorityRequiresReconciliation
@@ -555,13 +556,13 @@ export const WorkItemWorkspace = ({
     currentExecutionEventsError ??
     (
       workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE"
-        ? tasksQuery.error ?? currentApprovalQuery.error
+        ? tasksQuery.error ?? currentApprovalQuery.error ?? signedArtifactsQuery.error
         : null
     ) ??
     (historicalArtifactsRequired ? allArtifactsQuery.error : null) ??
     (
       workItem.stage === "AWAITING_SIGNOFF" && packageStaleOwner === null
-        ? signoffPackageQuery.error
+        ? observedPackageError
         : null
     );
   const currentAttention = deriveCurrentAttention({
@@ -1402,7 +1403,7 @@ export const WorkItemWorkspace = ({
             materialState={selectedStageMaterialState}
             materialStateForArtifact={materialStateForArtifact}
             reviewNotice={currentReviewNotice}
-            reviewAction={currentMaterialAction}
+            reviewAction={historicalReturn ?? currentMaterialAction}
             currentRunId={currentStageRun?.id ?? null}
             currentInteraction={currentStageInteraction}
             currentAttention={currentAttention}
@@ -1427,7 +1428,7 @@ export const WorkItemWorkspace = ({
           <SignoffReview
             workItem={workItem}
             reviewNotice={currentReviewNotice}
-            reviewAction={currentMaterialAction}
+            reviewAction={historicalReturn ?? currentMaterialAction}
             packageValue={selectedApproval === null && workItem.stage === "AWAITING_SIGNOFF" ? signoffPackageQuery.data ?? null : null}
             packageFetching={selectedApproval === null && signoffPackageQuery.isFetching}
             packageError={selectedApproval === null ? signoffPackageQuery.error : null}
@@ -1436,12 +1437,13 @@ export const WorkItemWorkspace = ({
             approvals={approvalsQuery.data ?? []}
             selection={material.kind === "APPROVAL_PACKAGE" ? material : {kind:"APPROVAL_PACKAGE"}}
             onSelectionChange={(next) => requestSelection({step:"AWAITING_SIGNOFF",material:next})}
-            materialStateForArtifact={materialStateForArtifact}
+            materialStateForArtifact={(artifact) => selectedApproval !== null && selectedApproval.id !== currentApproval?.id
+              ? { tag: "HISTORICAL" } : materialStateForArtifact(artifact)}
             artifacts={selectedApproval !== null ? selectedApprovalArtifactsQuery.data ?? [] : prospectiveArtifactsQuery.data ?? []}
             artifactsPending={approvalsQuery.isPending || (currentApprovalRequired && currentApprovalQuery.isPending) || (selectedApproval !== null
               ? selectedApprovalArtifactsQuery.isPending || selectedApprovalArtifactsQuery.isFetching
               : packageHash !== null && (prospectiveArtifactsQuery.isPending || prospectiveArtifactsQuery.isFetching))}
-            artifactsError={approvalsQuery.error ?? (selectedApprovalUnresolved
+            artifactsError={approvalsQuery.error ?? (currentApprovalRequired ? currentApprovalQuery.error : null) ?? (selectedApprovalUnresolved
               ? new TypeError("Selected Approval is unavailable")
               : selectedApproval !== null ? selectedApprovalArtifactsQuery.error : prospectiveArtifactsQuery.error)}
             tasks={selectedApproval === null ? [] : tasks.filter(task => task.approvalId === selectedApproval.id)}

@@ -1013,7 +1013,7 @@ describe("Order cross-boundary certification", () => {
     expect(approval).toContain("WorkbenchResourceList");
     expect(approval).toContain("packageStale?: boolean");
     expect(approval).toContain(
-      'historicalArtifact={packageStale || materialStateForArtifact(selectedArtifact)?.tag === "HISTORICAL" ? selectedArtifact : undefined}',
+      'historicalArtifact={selectedArtifact}',
     );
     expect(approval).toContain("embeddedReadOnly={packageStale}");
     expect(approval).toContain('label="Back to Approval"');
@@ -1028,9 +1028,9 @@ describe("Order cross-boundary certification", () => {
     expect(approval).not.toContain('label="Open ');
 
     const workspace = read("ui/src/WorkItemWorkspace.tsx");
-    expect(workspace).toContain("packageStale={packageStaleOwner !== null}");
+    expect(workspace).toContain("packageStale={selectedApproval === null && packageStaleOwner !== null}");
     expect(workspace).toContain(
-      "artifacts={packageStaleOwner !== null ? allArtifacts : artifacts}",
+      "artifacts={selectedApproval !== null ? selectedApprovalArtifactsQuery.data ?? [] : prospectiveArtifactsQuery.data ?? []}",
     );
     expect(workspace).toContain('selectedStep === "AWAITING_SIGNOFF"');
     expect(workspace).toContain("api.listArtifacts(workItem.id)");
@@ -1449,8 +1449,8 @@ describe("Order cross-boundary certification", () => {
     expect(workspace).toContain("signoffPackageQuery.isFetching");
     expect(workspace).toContain("api.listExecutionTasks(workItem.id)");
     expect(workspace).toContain("api.listArtifacts(workItem.id)");
-    expect(workspace).toContain("packageValue={signoffPackageQuery.data ?? null}");
-    expect(workspace).toContain("tasks={tasks}");
+    expect(workspace).toContain("packageValue={selectedApproval === null && workItem.stage === \"AWAITING_SIGNOFF\" ? signoffPackageQuery.data ?? null : null}");
+    expect(workspace).toContain("tasks={selectedApproval === null ? [] : tasks.filter(task => task.approvalId === selectedApproval.id)}");
     expect(workspace).toContain("runs={runs}");
     expect(workspace).toContain("artifacts={allArtifacts}");
 
@@ -2629,7 +2629,9 @@ describe("0.6.0 Wave 4 Workbench and product-language certification", () => {
     expect(preSignoff).not.toContain('aria-label="Related workflow material"');
     expect(preSignoff).not.toContain('aria-label="Supporting workflow material"');
 
-    expect(readiness).toContain('event.event.completion.stage === "R3"');
+    expect(readiness).toContain("admittedStageCompletion(workItem.id, selectedRun, runEvents)");
+    expect(readiness).toContain("artifact.id === completion.artifactRefIds[0]");
+    expect(readiness).toContain("readinessContentQuery.isSuccess");
     expect(readiness).toContain("readinessOutcomeLabel(outcome)");
     expect(readiness).toContain("WorkbenchReview");
     expect(readiness).toContain("verdict={{");

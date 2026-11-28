@@ -931,6 +931,43 @@ describe("daemon control plane", () => {
     expect(result.leaked).toBe(false);
   }, 30_000);
 
+  it("observes only the exact prospective conformed closure without persisting an Approval", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-prospective-closure-");
+    const output = bunEval(seedSignoffScript(repository, state, `
+      const changes = () => database.query("SELECT total_changes() AS n").get().n;
+      const before = changes();
+      const prospective = await coord.computeSignoffPackage(runtime, work);
+      const members = await coord.observeSignoffPackageArtifacts(runtime, work, prospective.packageHash);
+      const again = await coord.observeSignoffPackageArtifacts(runtime, work, prospective.packageHash);
+      let mismatch = false;
+      try { await coord.observeSignoffPackageArtifacts(runtime, work, rt.sha256Text("other package")); }
+      catch (error) { mismatch = String(error).includes("identity changed"); }
+      const proof = {
+        ids: members.map(member => member.id).sort(),
+        expected: [...new Set([outputs.R3.id, ...authority.dependencyClosure(runtime, outputs.R3.id)])].sort(),
+        hasPlan: members.some(member => member.id === outputs.PLAN.id),
+        same: JSON.stringify(members) === JSON.stringify(again),
+        mismatch,
+        observational: before === changes(),
+      };
+    `) + `
+      const beforeSignedRead = changes();
+      let unavailableAfterApproval = false;
+      try { await coord.observeSignoffPackageArtifacts(runtime, work, prospective.packageHash); }
+      catch { unavailableAfterApproval = true; }
+      console.log(JSON.stringify({...proof, unavailableAfterApproval, signedReadObservational: beforeSignedRead === changes()}));
+      database.close();
+    `) as {ids:string[];expected:string[];hasPlan:boolean;same:boolean;mismatch:boolean;observational:boolean;unavailableAfterApproval:boolean;signedReadObservational:boolean};
+    expect(output.ids).toEqual(output.expected);
+    expect(output.hasPlan).toBe(true);
+    expect(output.same).toBe(true);
+    expect(output.mismatch).toBe(true);
+    expect(output.observational).toBe(true);
+    expect(output.unavailableAfterApproval).toBe(true);
+    expect(output.signedReadObservational).toBe(true);
+  }, 30_000);
+
   it("observes exact Approval identity, immutable membership and successful final task aggregate", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-approval-observation-");

@@ -598,11 +598,12 @@ export const LifecycleDocumentMaterial = ({
     );
   }
 
-  const markdown = decodeCanonicalMarkdown(contentQuery.data);
+  const contentBytes = contentQuery.data;
+  const markdown = decodeCanonicalMarkdown(contentBytes);
   const planTasks = selectedArtifact.role === "PLAN" ? (() => {
     try {
       return { block: admitSignedTaskBlockForSchema(workItem.schemaId,
-        parseSignedTaskBlockFromPlan(contentQuery.data)), error: null };
+        parseSignedTaskBlockFromPlan(contentBytes)), error: null };
     } catch (error) {
       return { block: null, error: errorText(error) };
     }

@@ -55,32 +55,29 @@ const decodeCanonicalMarkdown = (bytes: Uint8Array): string | null => {
   }
 };
 
+// The typed Run verdict owns the Review verdict. Keep every remaining
+// governed section rather than selecting findings by a title whitelist.
 const readinessFindingsMarkdown = (markdown: string): string | null => {
   const selected: string[] = [];
-  let includedHeadingLevel: number | null = null;
+  let excludedHeadingLevel: number | null = null;
   let fence: string | null = null;
   for (const line of markdown.split("\n")) {
     const fenceMatch = /^\s{0,3}(`{3,}|~{3,})/.exec(line)?.[1] ?? null;
     if (fenceMatch !== null) {
       if (fence === null) fence = fenceMatch;
       else if (fence[0] === fenceMatch[0] && fenceMatch.length >= fence.length) fence = null;
-      if (includedHeadingLevel !== null) selected.push(line);
+      if (excludedHeadingLevel === null) selected.push(line);
       continue;
     }
-    const heading = fence === null ? /^(#{2,6})\s+(.+?)\s*$/.exec(line) : null;
+    const heading = fence === null ? /^(#{1,6})\s+(.+?)\s*$/.exec(line) : null;
     if (heading !== null) {
       const level = heading[1]!.length;
       const label = heading[2]!.trim().toLowerCase();
-      if (includedHeadingLevel !== null && level > includedHeadingLevel) {
-        selected.push(line);
-        continue;
-      }
-      includedHeadingLevel =
-        label === "findings" || label === "r3 findings" || label === "package judgment"
-          ? level : null;
-      continue;
+      if (excludedHeadingLevel !== null && level > excludedHeadingLevel) continue;
+      excludedHeadingLevel = label === "readiness verdict" || label === "verdict" ? level : null;
+      if (excludedHeadingLevel !== null || level === 1) continue;
     }
-    if (includedHeadingLevel !== null) selected.push(line);
+    if (excludedHeadingLevel === null) selected.push(line);
   }
   const value = selected.join("\n").trim();
   return value.length === 0 ? null : value;

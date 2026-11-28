@@ -176,10 +176,10 @@ export type ContextDocumentIdentity = Readonly<{
 
 export const selectedContextArtifactId = (
   material: WorkflowMaterial,
-  document: ContextDocumentIdentity | null,
+  _document: ContextDocumentIdentity | null,
 ): ArtifactRef["id"] | null => {
   if (material.kind === "STAGE_DOCUMENT" || material.kind === "SUPPORTING_DOCUMENT") return material.artifactId;
-  if (material.kind === "APPROVAL_PACKAGE") return material.artifactId ?? document?.artifactId ?? null;
+  if (material.kind === "APPROVAL_PACKAGE") return material.artifactId ?? null;
   return null;
 };
 

@@ -25,6 +25,8 @@ import {
   selectedContextArtifactId,
   runEventPlane,
   runEventPresentation,
+  stageCompletionProductLabel,
+  workflowMaterialIdentity,
   workflowRunEvents,
   readinessOutcomeLabel,
   runStatusLabel,
@@ -256,7 +258,8 @@ describe("workflow presentation policy", () => {
     expect(resolveContextArtifact(item.id, id, [foreign, current, historical])).toEqual(historical);
     expect(resolveContextArtifact(item.id, id, [current, foreign])).toBeNull();
     expect(selectedContextArtifactId({ kind: "SOURCE_DOCUMENT" }, reported)).toBeNull();
-    expect(selectedContextArtifactId({ kind: "APPROVAL_PACKAGE" }, reported)).toBe(current.id);
+    expect(selectedContextArtifactId({ kind: "APPROVAL_PACKAGE", artifactId: current.id }, reported)).toBe(current.id);
+    expect(selectedContextArtifactId({ kind: "APPROVAL_PACKAGE" }, reported)).toBeNull();
     expect(selectedContextArtifactId({ kind: "APPROVAL_PACKAGE" }, null)).toBeNull();
   });
 
@@ -267,7 +270,29 @@ describe("workflow presentation policy", () => {
     );
     expect(presentation).not.toMatch(/data-theme|prefers-color-scheme|colorScheme|localStorage/);
   });
+  it("binds Approval identity to its exact parent and selected child", () => {
+    const first: WorkflowMaterial = { kind: "APPROVAL_PACKAGE", approvalId: `approval_${uuidA}` };
+    const second: WorkflowMaterial = { kind: "APPROVAL_PACKAGE", approvalId: `approval_${uuidB}` };
+    expect(workflowMaterialIdentity(first)).not.toBe(workflowMaterialIdentity(second));
+    expect(workflowMaterialIdentity({ ...first, artifactId: `artifact_${uuidC}` }))
+      .not.toBe(workflowMaterialIdentity(first));
+    expect(workflowMaterialIdentity({ ...first, taskId: `task_${uuidD}` }))
+      .not.toBe(workflowMaterialIdentity(first));
+    expect(workflowMaterialIdentity({kind:"APPROVAL_PACKAGE",packageHash:hash}))
+      .not.toBe(workflowMaterialIdentity(first));
+  });
+
   it("uses explicit canonical product labels and typed Readiness outcomes", () => {
+    expect(stageCompletionProductLabel({stage:"R1",outcome:"CONFIRMED"})).toBe("Research confirmed the work request");
+    expect(stageCompletionProductLabel({stage:"R1",outcome:"DISPROVEN"})).toBe("Research disproved the work request");
+    expect(stageCompletionProductLabel({stage:"R1",outcome:"DUPLICATE"})).toBe("Duplicate work identified");
+    expect(stageCompletionProductLabel({stage:"R1",outcome:"ALREADY_SATISFIED"})).toBe("Work already satisfied");
+    expect(stageCompletionProductLabel({stage:"R1",outcome:"INVESTIGATION_COMPLETE"})).toBe("Investigation complete");
+    expect(stageCompletionProductLabel({stage:"R1",outcome:"AUDIT_COMPLETE"})).toBe("Audit complete");
+    expect(stageCompletionProductLabel({stage:"R2",outcome:"ACCEPTED"})).toBe("Requirements accepted");
+    expect(stageCompletionProductLabel({stage:"DESIGN",outcome:"ACCEPTED"})).toBe("Solution design accepted");
+    expect(stageCompletionProductLabel({stage:"PLAN",outcome:"ACCEPTED"})).toBe("Implementation plan accepted");
+    expect(stageCompletionProductLabel({stage:"R3",outcome:"READY_FOR_SIGNOFF"})).toBe("Ready for sign-off");
     expect(workOutcomeProductLabel(null)).toBe("Complete");
     expect(workOutcomeProductLabel("DISPROVEN")).toBe("Disproven");
     expect(workOutcomeProductLabel("DUPLICATE")).toBe("Duplicate");
@@ -501,7 +526,7 @@ describe("workflow presentation policy", () => {
       runs: [],
       artifacts: [],
       approvalPackageAvailable: false,
-    })).toEqual({ kind: "STEP_STATE" });
+    })).toEqual({ kind: "APPROVAL_PACKAGE" });
 
     const executionTask = task(uuidC, "RUNNING");
     const run = executionRun(executionTask, "RUNNING", uuidD);

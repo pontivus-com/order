@@ -2647,6 +2647,10 @@ describe("closed Workbench workflow-state kernel", () => {
       true,
       true,
     )).toEqual({ tag: "SIGNED_LOCKED" });
+    expect(deriveMaterialPresentationState(false, "REACHED_HISTORICAL", { tag: "CURRENT" }, false, true))
+      .toEqual({ tag: "SIGNED_LOCKED" });
+    expect(() => deriveMaterialPresentationState(false, "UNREACHED", { tag: "CURRENT" }, false, true))
+      .toThrow();
   });
 
   it("scopes stale currentness to the changed owner and downstream stages", () => {
