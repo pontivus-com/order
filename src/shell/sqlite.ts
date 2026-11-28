@@ -858,6 +858,8 @@ export const openOrderDatabase = (stateRoot: string): Database => {
   });
 
   try {
+    const version = userVersion(database);
+    if (version !== 0 && version !== 4) throw new TypeError(`unsupported Order SQLite schema version: ${version}; installer migration required`);
     configureDatabase(database);
     verifyCapabilities(database);
     initializeSchema(database);

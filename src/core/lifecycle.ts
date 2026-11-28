@@ -1571,7 +1571,7 @@ type FindingDisposition = "OPEN" | "RETEST_REQUIRED" | "RETEST_FAILED" | "DISPOS
 
 export const candidateFindingDispositions = (
   history: readonly CandidateReviewEvent[], rounds: ReadonlyMap<CandidateReviewEventId, CandidateMembers>,
-  tasks: readonly ExecutionTask[],
+  tasks: readonly ExecutionTask[], runs: readonly Run[], runEvents: readonly RunEvent[],
 ): ReadonlyMap<CandidateReviewEventId, FindingDisposition> => {
   const findings = new Map<CandidateReviewEventId, FindingDisposition>();
   const reports = new Map<CandidateReviewEventId, Extract<CandidateReviewEvent["event"], { tag: "REPORT" }>>();
@@ -1579,6 +1579,38 @@ export const candidateFindingDispositions = (
   let members: CandidateMembers | null = null;
   let submission: CandidateReviewEvent | null = null;
   let terminal = false;
+  const submitted = new Set<CandidateReviewEventId>();
+  const startedRuns = new Set<Run["id"]>();
+  const latestIndependentSupport = new Map<CandidateReviewEventId, boolean>();
+  const currentMember = (taskId: ExecutionTaskId): RunEvent => {
+    const member = members?.find(value => value[0] === taskId);
+    if (member === undefined) throw new TypeError("exact current member missing");
+    return requireUnique(runEvents.filter(event => event.id === member[1]), "current member proof missing");
+  };
+  const lineage = (member: RunEvent): ReadonlySet<Run["id"]> => {
+    const seen = new Set<Run["id"]>();
+    let cursor = requireUnique(runs.filter(run => run.id === member.runId), "member Run missing");
+    const taskId = cursor.executionTaskId;
+    const workItemId = cursor.workItemId;
+    for (;;) {
+      if (seen.has(cursor.id)) throw new TypeError("cyclic candidate evidence lineage");
+      seen.add(cursor.id);
+      if (cursor.triggerEventId === null) return seen;
+      const triggerId = cursor.triggerEventId;
+      const trigger = requireUnique(runEvents.filter(event => event.id === triggerId), "candidate lineage trigger missing");
+      const prior = requireUnique(runs.filter(run => run.id === trigger.runId), "candidate lineage Run missing");
+      if (prior.executionTaskId !== taskId || prior.workItemId !== workItemId || prior.baselineCommit !== cursor.baselineCommit ||
+          prior.attempt >= cursor.attempt) throw new TypeError("foreign candidate evidence lineage");
+      cursor = prior;
+    }
+  };
+  const requireEvidence = (taskId: ExecutionTaskId, ids: readonly RunEventId[]): void => {
+    const allowed = lineage(currentMember(taskId));
+    for (const id of ids) {
+      const evidence = requireUnique(runEvents.filter(event => event.id === id), "reported evidence event missing");
+      if (!allowed.has(evidence.runId)) throw new TypeError("reported evidence outside exact candidate lineage");
+    }
+  };
   for (const entry of history) {
     const event = entry.event;
     if (terminal) throw new TypeError("review history cannot follow a terminal human decision");
@@ -1603,6 +1635,7 @@ export const candidateFindingDispositions = (
         const task = requireUnique(tasks.filter(value => value.id === event.taskId && value.approvalId === entry.approvalId), "foreign report task");
         if (!members.some(([taskId, eventId]) => taskId === event.taskId && eventId === event.candidateEventId) ||
             !event.acceptanceRefs.every(ref => task.acceptanceRefs.includes(ref))) throw new TypeError("report lacks current signed member or criteria");
+        requireEvidence(event.taskId, event.evidence);
         reports.set(entry.id, event); findings.set(entry.id, "OPEN"); break;
       }
       case "SUBMIT": {
@@ -1611,36 +1644,65 @@ export const candidateFindingDispositions = (
           if (report === undefined || (findings.get(id) !== "OPEN" && findings.get(id) !== "RETEST_FAILED")) throw new TypeError("finding is not submittable");
           return report.taskId;
         });
-        if (new Set(selected).size !== 1 || tasks.find(task => task.id === selected[0])?.state === "ALREADY_SATISFIED") throw new TypeError("submission requires one candidate-producing task");
+        if (new Set(selected).size !== 1 || selected[0] === undefined ||
+            currentMember(selected[0]).event.tag !== "CANDIDATE_RECORDED") throw new TypeError("submission requires one candidate-producing task");
+        for (const id of event.findingIds) { submitted.add(id); latestIndependentSupport.delete(id); }
+        startedRuns.clear();
         submission = entry; break;
       }
-      case "REVIEW_STARTED":
-        if (submission?.id !== event.submissionId) throw new TypeError("QA Run starts without exact queued submission");
-        break;
+      case "REVIEW_STARTED": {
+        if (submission?.id !== event.submissionId || pending === null || startedRuns.has(event.runId)) throw new TypeError("QA Run starts without exact queued submission");
+        const report = reports.get(pending.findingIds[0]!);
+        if (report === undefined) throw new TypeError("QA submission report missing");
+        const run = requireUnique(runs.filter(value => value.id === event.runId), "QA admitted Run missing");
+        const member = currentMember(report.taskId);
+        const priorRun = requireUnique(runs.filter(value => value.id === member.runId), "QA member Run missing");
+        if (run.role !== "REVIEWER" || run.executionTaskId !== report.taskId || run.triggerEventId !== member.id ||
+            run.workItemId !== priorRun.workItemId || run.baselineCommit !== priorRun.baselineCommit || run.attempt <= priorRun.attempt) {
+          throw new TypeError("QA admission must replay exact current member");
+        }
+        startedRuns.add(run.id); break;
+      }
       case "REVIEW_COMPLETED": {
         const replacement = rounds.get(entry.id);
-        if (submission?.id !== event.submissionId || pending === null || replacement === undefined) throw new TypeError("completion without exact submission and membership");
+        if (submission?.id !== event.submissionId || pending === null || replacement === undefined || startedRuns.size === 0) throw new TypeError("completion without exact submission and membership");
         const changed = replacement.filter(member => !members!.some(prior => prior[0] === member[0] && prior[1] === member[1]));
-        if (changed.length !== 1) throw new TypeError("completion must replace exactly one task member");
+        if (changed.length !== 1 || changed[0]![1] !== event.candidateEventId) throw new TypeError("completion must replace exactly one task member");
+        const completed = requireUnique(runEvents.filter(value => value.id === event.candidateEventId), "completed QA candidate missing");
+        const completedRun = requireUnique(runs.filter(value => value.id === completed.runId), "completed QA Run missing");
+        if (linkedSubmission(completedRun, runs, runEvents, history.filter(value => value.sequence < entry.sequence)) !== event.submissionId) throw new TypeError("completed QA candidate outside exact submission lineage");
+        const review = requireUnique(runEvents.filter(value => value.runId === completed.runId && value.event.tag === "REVIEW_PASSED"), "successful QA review assessment missing");
+        if (review.event.tag !== "REVIEW_PASSED" || review.event.qaAssessments === undefined ||
+            review.event.qaAssessments.length !== pending.findingIds.length ||
+            !pending.findingIds.every(id => review.event.tag === "REVIEW_PASSED" && review.event.qaAssessments?.some(value => value.findingId === id)) ||
+            review.event.qaAssessments.some(value => value.verdict !== "SATISFIED" && value.verdict !== "NOT_REPRODUCED")) throw new TypeError("successful QA review requires exact submitted finding assessments");
+        for (const assessment of review.event.qaAssessments) latestIndependentSupport.set(assessment.findingId, assessment.evidence.length > 0);
         for (const [id, report] of reports) {
           if (report.taskId === changed[0]![0] && (pending.findingIds.includes(id) || findings.get(id) === "DISPOSED")) findings.set(id, "RETEST_REQUIRED");
         }
         members = replacement; currentHash = event.candidateHash; submission = null; break;
       }
-      case "RETEST_FAILED":
-        if (findings.get(event.findingId) !== "RETEST_REQUIRED") throw new TypeError("failed retest requires reviewed current member");
+      case "RETEST_FAILED": {
+        const report = reports.get(event.findingId);
+        if (report === undefined || findings.get(event.findingId) !== "RETEST_REQUIRED") throw new TypeError("failed retest requires reviewed current member");
+        requireEvidence(report.taskId, event.evidence);
+        latestIndependentSupport.delete(event.findingId);
         findings.set(event.findingId, "RETEST_FAILED"); break;
+      }
       case "DISPOSITION": {
         const state = findings.get(event.findingId);
         if (event.outcome === "RESOLVED" ? state !== "RETEST_REQUIRED" : state !== "OPEN" && state !== "RETEST_REQUIRED" && state !== "RETEST_FAILED") {
           throw new TypeError("finding disposition is not admitted");
+        }
+        if (event.outcome === "WITHDRAWN" && submitted.has(event.findingId) && latestIndependentSupport.get(event.findingId) !== true) {
+          throw new TypeError("post-submission withdrawal requires independent supporting evidence");
         }
         findings.set(event.findingId, "DISPOSED"); break;
       }
       case "REANALYSIS_REQUESTED":
         if (event.reason === "NO_OP_CHALLENGE") {
           const unresolvedNoOps = [...reports].filter(([id, report]) => findings.get(id) !== "DISPOSED" &&
-            tasks.find(task => task.id === report.taskId)?.state === "ALREADY_SATISFIED").map(([id]) => id);
+            currentMember(report.taskId).event.tag === "TASK_ALREADY_SATISFIED").map(([id]) => id);
           if (unresolvedNoOps.length !== event.findingIds.length || !unresolvedNoOps.every(id => event.findingIds.includes(id))) throw new TypeError("no-op return requires exact unresolved no-op finding set");
         }
         terminal = true; break;
@@ -1666,6 +1728,8 @@ export const deriveAcceptanceDecision = (input: Readonly<{
   diagnostic: OrderHttpError | null;
   rounds: ReadonlyMap<CandidateReviewEventId, CandidateMembers>;
   tasks: readonly ExecutionTask[];
+  runs: readonly Run[];
+  runEvents: readonly RunEvent[];
 }>): AcceptanceDecision => {
   if (!input.current || !input.coherent || input.mutationConflict || input.approval === null) return { tag: "NONE" };
   const error = input.diagnostic;
@@ -1678,13 +1742,16 @@ export const deriveAcceptanceDecision = (input: Readonly<{
   const history = orderedCandidateReviewEvents(input.approval.id, input.history);
   if (input.currentProof === null || canonicalJson(input.currentProof) !== canonicalJson(history) ||
       history.length === 0 || history.some(entry => entry.event.tag === "ACCEPT" || entry.event.tag === "REANALYSIS_REQUESTED")) return { tag: "NONE" };
-  const findings = candidateFindingDispositions(history, input.rounds, input.tasks);
+  const findings = candidateFindingDispositions(history, input.rounds, input.tasks, input.runs, input.runEvents);
   const outstanding = history.findLast(entry => entry.event.tag === "SUBMIT");
   if (outstanding !== undefined && !history.some(entry => entry.event.tag === "REVIEW_COMPLETED" && entry.event.submissionId === outstanding.id)) return { tag: "QUEUED", submissionId: outstanding.id };
   const unresolved = history.flatMap(entry => entry.event.tag === "REPORT" && findings.get(entry.id) !== "DISPOSED" ? [entry] : []);
   const noOps = unresolved.filter(entry => {
     const event = entry.event;
-    return event.tag === "REPORT" && input.tasks.some(task => task.id === event.taskId && task.state === "ALREADY_SATISFIED");
+    if (event.tag !== "REPORT") return false;
+    const latestRound = history.findLast(value => value.event.tag === "OPENED" || value.event.tag === "REVIEW_COMPLETED");
+    const memberId = latestRound === undefined ? undefined : input.rounds.get(latestRound.id)?.find(member => member[0] === event.taskId)?.[1];
+    return input.runEvents.some(value => value.id === memberId && value.event.tag === "TASK_ALREADY_SATISFIED");
   });
   if (noOps.length > 0) return { tag: "REANALYSE_NO_OP", findingIds: noOps.map(entry => entry.id) };
   const open = unresolved.filter(entry => findings.get(entry.id) === "OPEN" || findings.get(entry.id) === "RETEST_FAILED");

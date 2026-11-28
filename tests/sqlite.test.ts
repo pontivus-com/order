@@ -207,9 +207,9 @@ describe("SQLite shell", () => {
       db.query("INSERT INTO workItemSources VALUES (?1,'change-v1',?2,?3,NULL)").run(id, "docs/order/work-items/" + id + "/work-request.md", "sha256:" + "a".repeat(64));
       const prior = db.query("SELECT * FROM workItems").all();
       db.close();
-      const bytes = readFileSync(path).toString("base64");
       let ordinaryRejected = false;
       try { s.openOrderDatabase(${JSON.stringify(root)}).close(); } catch { ordinaryRejected = true; }
+      const bytes = readFileSync(path).toString("base64");
       const archive = s.prepareOrderDatabaseForInstall(${JSON.stringify(root)});
       if (archive === null || !archive.suffix.startsWith(".legacy-v3.")) throw Error("v3 archive missing");
       const prepared = s.observeInstallerDatabaseCandidates(archive, false);

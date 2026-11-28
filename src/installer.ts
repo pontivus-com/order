@@ -1191,7 +1191,7 @@ export const runInstaller = async (
       sqliteUpgradeModule.migrateOrderDatabaseV3ToV4(databaseArchive, databaseWriterBaseline);
       databaseCandidates = sqliteUpgradeModule.observeInstallerDatabaseCandidates(databaseCustody, true, databaseWriterBaseline, true);
       sqliteUpgradeModule.requireInstallerDatabaseCandidates(databaseCustody, databaseCandidates, false);
-      process.stdout.write("Order installer — verified additive SQLite v4 migration\\n");
+      process.stdout.write("Order installer — verified additive SQLite v4 migration\n");
     }
     step("installing and starting user service");
     activateService(locations, launcher, prior, environment,

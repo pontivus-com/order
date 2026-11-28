@@ -1427,13 +1427,15 @@ const reanalysisFields = { owner: z.literal("PLAN"), rationale: qaText };
 const noOpReanalysis = { reason: z.literal("NO_OP_CHALLENGE"), findingIds: qaFindingIds, ...reanalysisFields };
 const proofReanalysis = { reason: z.literal("CANDIDATE_PROOF_UNAVAILABLE"), findingIds: z.tuple([]).readonly(), ...reanalysisFields };
 
-export const CandidateReviewEventPayloadSchema = z.union([
+export const CandidateReviewEventPayloadSchema = z.discriminatedUnion("tag", [
   z.strictObject({ tag: z.literal("OPENED"), candidateHash: Sha256Schema }),
   z.strictObject({ tag: z.literal("REPORT"), candidateHash: Sha256Schema, ...reportFields }),
   z.strictObject({ tag: z.literal("SUBMIT"), candidateHash: Sha256Schema, findingIds: qaFindingIds }),
   z.strictObject({ tag: z.literal("RETEST_FAILED"), candidateHash: Sha256Schema, ...retestFailedFields }),
-  z.strictObject({ tag: z.literal("REANALYSIS_REQUESTED"), candidateHash: Sha256Schema, ...noOpReanalysis }),
-  z.strictObject({ tag: z.literal("REANALYSIS_REQUESTED"), candidateHash: z.null(), ...proofReanalysis }),
+  z.discriminatedUnion("reason", [
+    z.strictObject({ tag: z.literal("REANALYSIS_REQUESTED"), candidateHash: Sha256Schema, ...noOpReanalysis }),
+    z.strictObject({ tag: z.literal("REANALYSIS_REQUESTED"), candidateHash: z.null(), ...proofReanalysis }),
+  ]),
   z.strictObject({ tag: z.literal("REVIEW_STARTED"), submissionId: CandidateReviewEventIdSchema, runId: RunIdSchema }),
   z.strictObject({ tag: z.literal("REVIEW_COMPLETED"), submissionId: CandidateReviewEventIdSchema,
     candidateHash: Sha256Schema, candidateEventId: RunEventIdSchema }),
