@@ -2942,6 +2942,9 @@ describe("public release delivery certification", () => {
     expect(browser).toContain('type ReferenceViewportClass = "wide" | "medium" | "narrow"');
     expect(browser).toContain('viewport.width >= 1280 ? "wide" : viewport.width >= 800 ? "medium" : "narrow"');
     expect(browser).toContain("const mediumComparisonSources");
+    expect(browser).toContain("validateSurfaceViewportCoverage(entries, owned)");
+    expect(browser).toContain("validateSurfaceViewportCoverage(allEntries, requiredSurfaces)");
+    expect(browser).toContain("narrowComparisonId(entry.id)");
     expect(browser).toContain("Object.values(signedPhaseOwnedSurfaces).flat().sort()");
     expect(browser).toContain("stateCaptureScopes");
     expect(browser).toContain("matching toolbar reference");
