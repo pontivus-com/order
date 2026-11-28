@@ -2460,6 +2460,7 @@ describe("daemon control plane", () => {
       const coord = await import("./src/daemon/coordinator.ts");
       const settings = await import("./src/daemon/settings.ts");
       const repo = await import("./src/shell/repository.ts");
+      const config = await import("./src/shell/config.ts");
 
       const database = sql.openOrderDatabase(${JSON.stringify(state)});
       const runtime = daemonRuntime.createCoordinatorRuntime(
@@ -2475,6 +2476,8 @@ describe("daemon control plane", () => {
       );
       runtime.schedulerStopped = true;
       const owner = settings.createCoordinatorRuntimeOwner(runtime);
+      config.writeOrderConfig(runtime.stateRoot,runtime.config);
+      const originalConfig=settings.orderConfigState(owner);
       const created = await coord.createWorkItem(runtime, {
         projectId: "document-root-admission",
         schemaId: "change-v1",
@@ -2530,6 +2533,31 @@ describe("daemon control plane", () => {
       }
 
       sql.updateWorkItemLifecycle(database, created.id, {
+        stage: "AWAITING_ACCEPTANCE",
+        status: "ACTIVE",
+        outcome: null,
+      });
+      let acceptance = null;
+      let acceptanceDisconnect = null;
+      try {
+        await settings.migrateWorkItemDocumentRoot(owner, {
+          repositoryRoot: ${JSON.stringify(repository)},
+          expectedManifestSha256: manifest.sha256,
+          targetWorkItemsRoot: "docs/order/acceptance-target",
+        });
+      } catch (error) {
+        acceptance = error instanceof Error ? error.message : String(error);
+      }
+      try {
+        await settings.disconnectRepository(owner, {
+          repositoryRoot: ${JSON.stringify(repository)},
+          expectedConfigSha256: originalConfig.sha256,
+        });
+      } catch (error) {
+        acceptanceDisconnect = error instanceof Error ? error.message : String(error);
+      }
+
+      sql.updateWorkItemLifecycle(database, created.id, {
         stage: "PLAN",
         status: "ACTIVE",
         outcome: null,
@@ -2567,6 +2595,10 @@ describe("daemon control plane", () => {
         stale,
         conflict,
         execution,
+        acceptance,
+        acceptanceDisconnect,
+        configUnchanged: settings.orderConfigState(owner).sha256 === originalConfig.sha256,
+        acceptanceTargetExists: fs.existsSync(path.join(${JSON.stringify(repository)}, "docs/order/acceptance-target")),
         activeRun,
         manifestUnchanged: fs.readFileSync(manifestPath, "utf8") === originalManifest,
         oldRootExists: fs.existsSync(path.join(${JSON.stringify(repository)}, "docs/order/work-items")),
@@ -2579,7 +2611,11 @@ describe("daemon control plane", () => {
 
     expect(String(output.stale)).toContain("manifest changed");
     expect(String(output.conflict)).toContain("conflicting bytes");
-    expect(String(output.execution)).toContain("EXECUTION");
+    expect(String(output.execution)).toContain("repository signed work is active");
+    expect(String(output.acceptance)).toContain("repository signed work is active");
+    expect(String(output.acceptanceDisconnect)).toContain("repository disconnect is blocked by signed work");
+    expect(output.configUnchanged).toBe(true);
+    expect(output.acceptanceTargetExists).toBe(false);
     expect(String(output.activeRun)).toContain("active Run");
     expect(output.manifestUnchanged).toBe(true);
     expect(output.oldRootExists).toBe(true);
