@@ -270,7 +270,7 @@ export const acceptanceObservationCodeForFailure = (error: unknown): AcceptanceO
   return error.orderCode === "SOURCE_AUTHORITY_STALE" || error.orderCode === "CANDIDATE_PROOF_UNAVAILABLE" ? error.orderCode : null;
 };
 
-const requireCurrentAcceptanceIdentity = (
+export const requireCurrentAcceptanceIdentity = (
   runtime: CoordinatorRuntime, workItemId: WorkItemId, approvalId: Approval["id"], sequence: number,
 ) => {
   const workItem = getWorkItem(runtime, workItemId);

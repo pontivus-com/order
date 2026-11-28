@@ -11,6 +11,13 @@ import { extname, resolve, sep } from "node:path";
 import { orderVersion } from "../version.ts";
 import {
   ApprovalIdSchema,
+  QaReportCommandSchema,
+  QaSubmitCommandSchema,
+  QaRetestFailedCommandSchema,
+  QaDispositionCommandSchema,
+  QaReanalysisCommandSchema,
+  QaAcceptCommandSchema,
+  QaPrepareTestCopyCommandSchema,
   ArtifactRefIdSchema,
   CommitWorkItemDocumentationSchema,
   ConnectRepositorySchema,
@@ -66,6 +73,8 @@ import {
   observeApprovalArtifacts,
   observeCandidateReviewEvents,
   acceptanceObservationCodeForFailure,
+  recordCandidateReviewDecision,
+  prepareAcceptanceTestCopy,
   listProjects,
   listWorkItemSchemas,
   listRunEvents,
@@ -877,6 +886,45 @@ const routeApi = async (
         sequence = Number(entry[1]);
       }
       return jsonResponse(await observeCandidateReviewEvents(runtime, workItemId, approvalId, sequence));
+    }
+    if(parts[3]==="approvals"&&parts[5]==="qa"&&parts.length===7&&request.method==="POST") {
+      const approvalId=await parseRequest(()=>ApprovalIdSchema.parse(parts[4]));
+      const body=await readJsonBody(request);
+      switch(parts[6]) {
+        case "report": {
+          const {actor,expectedCandidateHash,expectedReviewSequence,...fields}=await parseRequest(()=>QaReportCommandSchema.parse(body));
+          return jsonResponse(await recordCandidateReviewDecision(runtime,workItemId,approvalId,expectedCandidateHash,expectedReviewSequence,actor,{tag:"REPORT",candidateHash:expectedCandidateHash,...fields}));
+        }
+        case "submit": {
+          const {actor,expectedCandidateHash,expectedReviewSequence,...fields}=await parseRequest(()=>QaSubmitCommandSchema.parse(body));
+          return jsonResponse(await recordCandidateReviewDecision(runtime,workItemId,approvalId,expectedCandidateHash,expectedReviewSequence,actor,{tag:"SUBMIT",candidateHash:expectedCandidateHash,...fields}));
+        }
+        case "retest-failed": {
+          const {actor,expectedCandidateHash,expectedReviewSequence,...fields}=await parseRequest(()=>QaRetestFailedCommandSchema.parse(body));
+          return jsonResponse(await recordCandidateReviewDecision(runtime,workItemId,approvalId,expectedCandidateHash,expectedReviewSequence,actor,{tag:"RETEST_FAILED",candidateHash:expectedCandidateHash,...fields}));
+        }
+        case "disposition": {
+          const {actor,expectedCandidateHash,expectedReviewSequence,...fields}=await parseRequest(()=>QaDispositionCommandSchema.parse(body));
+          return jsonResponse(await recordCandidateReviewDecision(runtime,workItemId,approvalId,expectedCandidateHash,expectedReviewSequence,actor,{tag:"DISPOSITION",candidateHash:expectedCandidateHash,...fields}));
+        }
+        case "reanalysis": {
+          const command=await parseRequest(()=>QaReanalysisCommandSchema.parse(body));
+          const {actor,expectedReviewSequence,expectedCandidateHash}=command;
+          const payload=command.reason==="NO_OP_CHALLENGE"
+            ? {tag:"REANALYSIS_REQUESTED" as const,reason:command.reason,candidateHash:command.expectedCandidateHash,findingIds:command.findingIds,owner:command.owner,rationale:command.rationale}
+            : {tag:"REANALYSIS_REQUESTED" as const,reason:command.reason,candidateHash:null,findingIds:command.findingIds,owner:command.owner,rationale:command.rationale};
+          return jsonResponse(await recordCandidateReviewDecision(runtime,workItemId,approvalId,expectedCandidateHash,expectedReviewSequence,actor,payload));
+        }
+        case "accept": {
+          const {actor,expectedCandidateHash,expectedReviewSequence}=await parseRequest(()=>QaAcceptCommandSchema.parse(body));
+          return jsonResponse(await recordCandidateReviewDecision(runtime,workItemId,approvalId,expectedCandidateHash,expectedReviewSequence,actor,{tag:"ACCEPT"}));
+        }
+        case "prepare-test-copy": {
+          const {expectedCandidateHash,expectedReviewSequence,taskId,candidateEventId}=await parseRequest(()=>QaPrepareTestCopyCommandSchema.parse(body));
+          return jsonResponse(await prepareAcceptanceTestCopy(runtime,workItemId,approvalId,expectedCandidateHash,expectedReviewSequence,taskId,candidateEventId));
+        }
+        default: throw badRequest("unknown QA command");
+      }
     }
     if (parts[3] === "tasks" && parts.length === 4 && request.method === "GET") {
       return jsonResponse(await listExecutionTasks(runtime, workItemId));
