@@ -1020,7 +1020,7 @@ describe("Order cross-boundary certification", () => {
     expect(approval).toContain(
       'historicalArtifact={selectedArtifact}',
     );
-    expect(approval).toContain("embeddedReadOnly={packageStale}");
+    expect(approval).toContain("embeddedReadOnly={packageStale || packageSuperseded}");
     expect(approval).toContain('label="Back to Approval"');
     expect(approval).not.toContain("order-review-approval-");
     expect(approval).not.toContain("MetadataList");
@@ -1035,7 +1035,7 @@ describe("Order cross-boundary certification", () => {
     const workspace = read("ui/src/WorkItemWorkspace.tsx");
     expect(workspace).toContain("packageStale={selectedApproval === null && packageStaleOwner !== null}");
     expect(workspace).toContain(
-      "artifacts={selectedApproval !== null ? selectedApprovalArtifactsQuery.data ?? [] : prospectiveArtifactsQuery.data ?? []}",
+      "artifacts={supersededProspective ? supersededArtifacts : selectedApproval !== null ? selectedApprovalArtifactsQuery.data ?? [] : prospectiveArtifactsQuery.data ?? []}",
     );
     expect(workspace).toContain('selectedStep === "AWAITING_SIGNOFF"');
     expect(workspace).toContain("api.listArtifacts(workItem.id)");
