@@ -8832,6 +8832,34 @@ describe("native QA immutable execution context", () => {
       const hash=rt.sha256Text(core.candidateMembershipCanonicalJson(approval.id,[[task.id,member.id]]));
       const append=(sequence,actor,event)=>{const value={id:rt.newCandidateReviewEventId(),approvalId:approval.id,sequence,occurredAt:timestamp,actor,event};sql.storeCandidateReviewEvent(database,value);return value;};
       const opened=append(1,null,{tag:"OPENED",candidateHash:hash});
+      // Exact current proof is observational; history remains inspectable even
+      // after the current source or evidence has become unavailable.
+      sql.updateWorkItemLifecycle(database,work,{stage:"AWAITING_ACCEPTANCE",status:"ACTIVE",outcome:null});
+      const fs=await import("node:fs");
+      const changes=()=>database.query("SELECT total_changes() AS n").get().n;
+      const beforeProof=changes();
+      const proof=await coord.observeCandidateReviewEvents(runtime,work,approval.id,1);
+      const sourceFile=repositoryRoot+"/"+workItem.sourcePath;
+      const originalSource=fs.readFileSync(sourceFile);
+      const patchFile=rt.statePaths(runtime.stateRoot).evidence+"/"+builder.id+"/candidate/patch.diff";
+      const originalPatch=fs.readFileSync(patchFile);
+      const diagnostic=async sequence=>{try{await coord.observeCandidateReviewEvents(runtime,work,approval.id,sequence);return null;}catch(error){return (await import("./src/daemon/server.ts")).classifyHttpFailure(error).code;}};
+      fs.writeFileSync(patchFile,"corrupt");
+      const proofMissing=await diagnostic(1);
+      fs.appendFileSync(sourceFile,"\\nChanged work request.\\n");
+      const staleBeforeProof=await diagnostic(1);
+      fs.writeFileSync(sourceFile,originalSource);
+      fs.unlinkSync(patchFile);
+      fs.rmdirSync(patchFile.slice(0,patchFile.lastIndexOf("/")));
+      const missing=await diagnostic(1);
+      const noEvidenceReadEffects=!fs.existsSync(patchFile.slice(0,patchFile.lastIndexOf("/")));
+      const history=await coord.observeCandidateReviewEvents(runtime,work,approval.id);
+      const sequenceConflict=await diagnostic(0);
+      fs.mkdirSync(patchFile.slice(0,patchFile.lastIndexOf("/")));
+      fs.writeFileSync(patchFile,originalPatch);
+      const observational=changes()===beforeProof&&proof[0].id===opened.id&&history[0].id===opened.id;
+      sql.updateWorkItemLifecycle(database,work,{stage:"EXECUTION",status:"ACTIVE",outcome:null});
+
       const report=append(2,"human",{tag:"REPORT",candidateHash:hash,taskId:task.id,candidateEventId:member.id,acceptanceRefs:[],expected:"expected",observed:"observed",reproduction:"steps",impact:"impact",evidence:[candidateState.id]});
       const submit=append(3,"human",{tag:"SUBMIT",candidateHash:hash,findingIds:[report.id]});
       const qa={submissionId:submit.id,triggerEventId:member.id};
@@ -8855,13 +8883,14 @@ describe("native QA immutable execution context", () => {
         replacementExact:replacement.id!==replay.id&&replacement.triggerEventId===replay.triggerEventId&&
           replacementContext.contextHash===replay.contextHash&&replacementHistory.at(-1).event.runId===replacement.id&&
           replacementHistory.at(-1).event.submissionId===submit.id,
+        observational,proofMissing,staleBeforeProof,missing,noEvidenceReadEffects,sequenceConflict,
         ordinaryDifferent:ordinaryReview.contextHash!==active.contextHash,
         events:reloaded.qa.events.map(value=>value.id),expected:[submit.id,report.id],
         promptContains:prompt.includes(JSON.stringify(report.id))&&prompt.includes(member.id)&&!prompt.includes('"state":"RUNNING"'),
         wrongTrigger,wrongHash}));
       database.close();
     `) as {stable:boolean;ordinaryDifferent:boolean;events:string[];expected:string[];promptContains:boolean;wrongTrigger:boolean;wrongHash:boolean;replayExact:boolean;replacementExact:boolean};
-    expect(output).toMatchObject({stable:true,ordinaryDifferent:true,promptContains:true,wrongTrigger:true,wrongHash:true,replayExact:true,replacementExact:true});
+    expect(output).toMatchObject({stable:true,ordinaryDifferent:true,promptContains:true,wrongTrigger:true,wrongHash:true,replayExact:true,replacementExact:true,observational:true,proofMissing:"CANDIDATE_PROOF_UNAVAILABLE",staleBeforeProof:"SOURCE_AUTHORITY_STALE",missing:"CANDIDATE_PROOF_UNAVAILABLE",noEvidenceReadEffects:true,sequenceConflict:"CURRENT_STATE_CONFLICT"});
     expect(output.events).toEqual(output.expected);
   },30_000);
 });
