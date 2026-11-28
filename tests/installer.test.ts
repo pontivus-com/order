@@ -498,6 +498,7 @@ type InstallerTransactionFixture = Readonly<{
   deploymentDrift?: "application" | "launcher" | "application-backup" | "launcher-backup";
   readinessDrift?: "application" | "launcher" | "unit" | "config";
   markerDrift?: "launcher" | "unit" | "config";
+  markerTemporaryDrift?: "identity" | "bytes" | "symlink";
   failRestoreService?: "disable" | "daemon-reload" | "enable";
   failPredecessorRetirement?: boolean;
   failStaging?: boolean;
@@ -1037,6 +1038,16 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
             throw new Error("injected partial marker temporary write");
           }
           fs.writeFileSync(descriptor, bytes, "utf8");
+          if (fixture.markerTemporaryDrift) {
+            const target = fs.readlinkSync("/proc/self/fd/" + descriptor);
+            if (fixture.markerTemporaryDrift === "bytes") {
+              fs.writeFileSync(target, "unexpected marker bytes");
+            } else {
+              fs.renameSync(target, target + ".retained");
+              if (fixture.markerTemporaryDrift === "identity") fs.writeFileSync(target, bytes, { mode: 0o644 });
+              else fs.symlinkSync(target + ".retained", target);
+            }
+          }
           if (fixture.markerDrift) replaceDeploymentMember(fixture.markerDrift, ".marker-external");
           if (fixture.databaseFault === "marker-sidecar-replaced") {
             fs.renameSync(faultPath, faultPath + ".retained-candidate");
@@ -1099,7 +1110,7 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
     if (walFixtureFailure !== null) throw new Error("SQLite fixture infrastructure failure: " + walFixtureFailure);
     console.log("ORDER_TRANSACTION_RESULT " + JSON.stringify({
       failure, prompts, events, restartObservations, activity, enablement, legacyActivity, sourceCommit,
-      marker: fs.existsSync(marker) ? fs.readFileSync(marker, "utf8") : null,
+      marker: fs.lstatSync(marker, { throwIfNoEntry: false })?.isFile() ? fs.readFileSync(marker, "utf8") : null,
       config: (() => { try { const bytes = readBytes(configPath); return bytes === null ? null : JSON.parse(Buffer.from(bytes, "base64").toString("utf8")); } catch { return null; } })(),
       app: fs.existsSync(installRoot), launcher: fs.existsSync(launcher), unit: fs.existsSync(unitPath),
       originalDatabase, originalConfig, retainedArchive, originalNamespace, migrationObservation,
@@ -1689,13 +1700,53 @@ describe("actual IA25 installer transaction", () => {
     expect(readFileSync(manifest)).toEqual(readFileSync(manifest + ".retained"));
   }, 120_000);
 
-  it("failed marker publication compensates without ordinary success", () => {
-    const outcome = runInstallerTransaction({ ...transactionFixture(),
+  it("preserves an unexpected marker object and refuses dependent application removal", () => {
+    const fixture = transactionFixture();
+    const outcome = runInstallerTransaction({ ...fixture,
       readiness: { ready: true, blockers: [] }, failMarker: true });
-    expect(outcome.failure).not.toBeNull();
+    expect(outcome.failure).toContain("unexpected installation commit marker");
+    expect(outcome.failure).toContain("rollback incomplete");
     expect(outcome.marker).toBeNull();
-    expect(outcome.app || outcome.launcher || outcome.unit).toBe(false);
+    expect(outcome.app).toBe(true);
+    expect(outcome.launcher || outcome.unit).toBe(false);
+    expect(outcome.activity).toBe("inactive");
+    expect(lstatSync(join(fixture.home, ".local/share/pontivus-order/SOURCE_COMMIT")).isDirectory()).toBe(true);
     expect(outcome.stdout).not.toContain("Order installed successfully.");
+  }, 120_000);
+
+  it.each([
+    { markerTemporaryDrift: "identity" as const, established: false },
+    { markerTemporaryDrift: "identity" as const, established: true },
+    { markerTemporaryDrift: "bytes" as const, established: false },
+    { markerTemporaryDrift: "symlink" as const, established: false },
+  ])("preserves unproven marker temporary custody: %j", ({ markerTemporaryDrift, established }) => {
+    const fixture = transactionFixture();
+    if (established) createPriorDeployment(fixture);
+    const root = join(fixture.home, ".local/share/pontivus-order");
+    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes",
+      readiness: { ready: true, blockers: [] }, markerTemporaryDrift });
+    expect(outcome.failure).toContain("SOURCE_COMMIT.tmp.");
+    expect(outcome.failure).toContain("rollback incomplete");
+    expect(outcome.marker).toBeNull();
+    expect(outcome.activity).toBe("inactive");
+    expect(outcome.stdout).not.toContain("Order installed successfully.");
+    expect(outcome.stdout).not.toContain("Order updated successfully.");
+    const entries = readdirSync(root).filter(name => name.startsWith("SOURCE_COMMIT.tmp.") && !name.endsWith(".retained"));
+    expect(entries).toHaveLength(1);
+    const target = join(root, entries[0]!);
+    if (markerTemporaryDrift === "bytes") expect(readFileSync(target, "utf8")).toBe("unexpected marker bytes");
+    else {
+      expect(readFileSync(target + ".retained", "utf8")).toBe(outcome.sourceCommit + "\n");
+      if (markerTemporaryDrift === "symlink") expect(lstatSync(target).isSymbolicLink()).toBe(true);
+      else {
+        expect(readFileSync(target)).toEqual(readFileSync(target + ".retained"));
+        expect(lstatSync(target).ino).not.toBe(lstatSync(target + ".retained").ino);
+      }
+    }
+    if (established) {
+      expect(outcome.appBackups).toHaveLength(1);
+      expect(readFileSync(join(fixture.home, ".local/share", outcome.appBackups[0], "SOURCE_COMMIT"), "utf8")).toBe("b".repeat(40) + "\n");
+    }
   }, 120_000);
 
   it("complete-looking deployment still needs affirmative history; cancellation is non-mutating", () => {

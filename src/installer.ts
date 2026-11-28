@@ -1080,6 +1080,10 @@ export const runInstaller = async (
   let sqliteUpgradeModule: typeof import("./shell/sqlite.ts") | null = null;
   let configuredSetup: Awaited<ReturnType<typeof configureOrder>> | null = null;
   const createdProjectManifests = new Map<string, InstallerManifestCustody>();
+  const marker = join(locations.installRoot, "SOURCE_COMMIT");
+  let temporaryMarker: string | null = null;
+  let markerIdentity: InstallerFileIdentity | null = null;
+  let markerPrepared = false;
 
   try {
     if (prior.activity === "active") {
@@ -1213,23 +1217,26 @@ export const runInstaller = async (
     requireCommitCustody();
 
     // Installation commit: all reversible admission conditions have passed.
-    const marker = join(locations.installRoot, "SOURCE_COMMIT");
-    const temporaryMarker = marker + ".tmp." + crypto.randomUUID();
+    if (footprintEntryExists(marker)) fail("unexpected installation commit marker: " + marker);
+    temporaryMarker = marker + ".tmp." + crypto.randomUUID();
     const markerDescriptor = openSync(temporaryMarker,
       constants.O_WRONLY | constants.O_CREAT | constants.O_EXCL | constants.O_NOFOLLOW, 0o644);
     try {
+      // Establish ownership from the exclusive descriptor before the write,
+      // including when the write or sync later fails.
+      const opened = fstatSync(markerDescriptor, { bigint: true });
+      if (!opened.isFile()) fail("installation commit marker is not a regular file: " + temporaryMarker);
+      markerIdentity = { device: opened.dev, inode: opened.ino, mode: opened.mode,
+        uid: opened.uid, bytes: Buffer.from(args.sourceCommit + "\n", "utf8") };
       writeMarker(markerDescriptor, args.sourceCommit + "\n");
+      markerPrepared = true;
       fsyncSync(markerDescriptor);
-      const opened = fstatSync(markerDescriptor);
-      const observed = lstatSync(temporaryMarker);
-      if (!observed.isFile() || observed.dev !== opened.dev || observed.ino !== opened.ino ||
-          readFileSync(temporaryMarker, "utf8") !== args.sourceCommit + "\n") {
-        fail("installation commit marker temporary changed: " + temporaryMarker);
-      }
+      requireInstallerFile(temporaryMarker, markerIdentity);
     } finally { closeSync(markerDescriptor); }
     // Marker preparation is itself an effect. Re-establish the entire
     // admitted deployment's custody before the irreversible publication.
     requireCommitCustody();
+    requireInstallerFile(temporaryMarker, markerIdentity);
     if (footprintEntryExists(marker)) fail("unexpected installation commit marker: " + marker);
     rename(temporaryMarker, marker);
   } catch (error) {
@@ -1301,6 +1308,20 @@ export const runInstaller = async (
     if (appActivated) compensate("new application removal incomplete: " + locations.installRoot, () => {
       if (stagingIdentity === null) throw new TypeError("application custody unavailable");
       requireInstallerDirectory(locations.installRoot, stagingIdentity);
+      // Recursive removal is a dependent effect: do not destroy an unexpected
+      // marker or a replaced/changed temporary merely because the root is ours.
+      if (footprintEntryExists(marker)) fail("unexpected installation commit marker retained: " + marker);
+      if (temporaryMarker !== null) {
+        if (markerIdentity === null) requireInstallerFile(temporaryMarker, null);
+        else {
+          const observed = captureInstallerFile(temporaryMarker);
+          const expected = markerPrepared ? markerIdentity :
+            { ...markerIdentity, bytes: markerIdentity.bytes.subarray(0, observed.bytes.length) };
+          if (!sameInstallerFile(observed, expected)) {
+            fail("installation commit marker temporary custody changed; retained: " + temporaryMarker);
+          }
+        }
+      }
       rmSync(locations.installRoot, { recursive: true });
       requireInstallerDirectory(locations.installRoot, null);
     });
