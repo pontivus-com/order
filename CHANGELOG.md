@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Add a native signed Acceptance browser fixture and exact current/historical/final decision regression, retaining legacy completion fixtures independently.
+
 - Open exact signed documents in read-only Document, link review attempts to Implementation and use the final ACCEPT membership rather than latest task attempts for terminal evidence.
 
 - Preserve exact selected Acceptance finding and historical round, expose original/independent/retest/disposition facts and admit optional evidence and same-project follow-up selection through canonical lineage.

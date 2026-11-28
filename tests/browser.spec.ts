@@ -7435,3 +7435,33 @@ test("candidate Complete surface and reached Implementation expose V0-V7, exact 
       .getByRole("button", { name: "Evidence: review.txt" }),
   ).toBeFocused();
 });
+
+test("native Acceptance uses one exact current decision and historical round stays read-only", async ({page,request})=>{
+  await authenticate(page,request);
+  await openWorkItem(page,"Native Acceptance review");
+  const rail=page.getByTestId("workflow-rail");
+  await expect(rail.getByRole("button",{name:"Acceptance",exact:true})).toHaveAttribute("aria-current","step");
+  const workspace=page.getByTestId("workflow-step-workspace");
+  await expect(workspace.getByRole("heading",{name:"Acceptance",exact:true})).toBeVisible();
+  await expect(workspace.locator("[data-review-section]")).toHaveCount(4);
+  await expect(workspace.getByTestId("review-verdict")).toContainText("Verified candidate");
+  await expect(workspace.getByRole("button",{name:"Accept candidate",exact:true})).toBeEnabled();
+  await workspace.getByRole("button",{name:"Inspect round",exact:true}).click();
+  await expect(workspace.getByTestId("review-verdict")).toContainText("Historical review");
+  await expect(workspace.getByRole("button",{name:"Accept candidate",exact:true})).toHaveCount(0);
+  await expect(workspace.getByRole("button",{name:"Report finding",exact:true})).toHaveCount(0);
+  await workspace.getByRole("button",{name:"Return to current review",exact:true}).click();
+  await workspace.getByRole("button",{name:"Accept candidate",exact:true}).click();
+  const dialog=page.getByRole("dialog",{name:"Accept candidate",exact:true});
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole("button",{name:"Accept candidate",exact:true})).toBeDisabled();
+  await dialog.getByLabel("Your name").fill("Browser QA operator");
+  await dialog.getByText("I confirm",{exact:true}).click();
+  await expect(dialog.getByRole("button",{name:"Accept candidate",exact:true})).toBeEnabled();
+  await dialog.getByRole("button",{name:"Accept candidate",exact:true}).click();
+  await expect(rail.getByRole("button",{name:"Complete",exact:true})).toHaveAttribute("aria-current","step");
+  await expect(page.getByTestId("candidate-result-material")).toContainText("Accepted by Browser QA operator");
+  await selectWorkflowStep(page,"Acceptance");
+  await expect(workspace.getByTestId("review-verdict")).toContainText("Accepted candidate");
+  await expect(workspace.getByRole("button",{name:"Accept candidate",exact:true})).toHaveCount(0);
+});
