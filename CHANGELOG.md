@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Amend the existing signed Approval artifact observation for exact task/criterion document selection, and reconcile the one excluded SettingsLayout continuity path through the upstream 62-path/58-exclusion forecast, compiled PLAN and protected scope sensor before renewed sign-off.
+
 - Suspend the exact 0.6.0 T1 authorization and reopen package evidence binding after signed criterion consumption and excluded Settings-path defects were identified; preserve the isolated Acceptance implementation and prior evidence pending governed upstream reconciliation.
 
 - Establish settled theme-control paint before browser contrast certification; preserve the 4.5 minimum and all appearance behavior checks.

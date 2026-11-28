@@ -13,7 +13,7 @@ The active corpus is valid only for these exact inputs:
 - `GW-DOC-WORKBENCH-UX-V2` — blob `7569fc5be387c974fe7fe0c3bc123c300f147311`;
 - `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2` — blob `7985991b91c5717677da6a38e057c00eb2e4e2fe`;
 - `GW-DOC-WORKBENCH-THEME-V1` — blob `03dfc6be3600a1128b5639d011f4c0159d3497dd`;
-- current 0.6.0 DESIGN — blob `5414b551fa090bcedb05433a3527410ae389ba2c`.
+- current 0.6.0 DESIGN — blob `6f1af203da101ae8fd89f666f63cd86c13b3bd84`.
 
 These are the exact current authority versions projected by this corpus. If any bound owner changes, this corpus is stale until regenerated and reviewed. The owner wins on every conflict.
 
@@ -24,6 +24,8 @@ These are the exact current authority versions projected by this corpus. If any 
 - Git history is the only retained provenance for the superseded 0.5.0 SVG pack. Those SVGs are not live comparison material.
 
 ## Evidence integrity
+
+G-F41/G-F42 rebind DESIGN for the existing exact criterion action and responsive Settings content-continuity proof. The 38-SURF fixture inventory and semantic visual placement are unchanged; reference metadata is not runtime/interaction acceptance. IA38/IA39 and IA34 must prove actual exact signed-document navigation and cross-breakpoint state continuity independently.
 
 The 2026-11-27 REV-F11 installer forecast correction rebinds the DESIGN authority identity without changing settled SURF contracts or visual reference layout. The Workbench integration correction binds exact selection and prospective package inspection; replacement Dialogue is the existing P4 target. These metadata bindings are not visual acceptance or new rendered proof; IA26 must revalidate actual state/scope/selection equivalence.
 
