@@ -2186,12 +2186,13 @@ describe("actual IA25 installer transaction", () => {
       const archive = outcome.stateEntries.find((name: string) => name.startsWith("order.sqlite3.legacy-v2."));
       expect(readFileSync(join(fixture.stateRoot, archive)).toString("base64")).toBe(outcome.originalNamespace[0]);
       const candidate = join(fixture.stateRoot, "order.sqlite3");
+      expect(typeof outcome.preStartNamespace[0]).toBe("string");
       expect(outcome.preStartNamespace[0]).not.toBe(outcome.originalNamespace[0]);
       if (databaseFault === "pre-start-content-drift") {
         expect(readFileSync(candidate).subarray(-"unexpected same-inode bytes".length).toString()).toBe("unexpected same-inode bytes");
       } else {
         expect(existsSync(candidate)).toBe(false);
-        expect(readFileSync(candidate + ".retained-candidate").toString("base64")).toBe(outcome.originalNamespace[1]);
+        expect(readFileSync(candidate + ".retained-candidate").toString("base64")).toBe(outcome.preStartNamespace[0]);
       }
     }, 120_000);
 
