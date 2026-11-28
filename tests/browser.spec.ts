@@ -3345,6 +3345,8 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
 
   let loginStatus: "PENDING" | "COMPLETED" | "FAILED" | "EXPIRED" | "CANCELLED" = "PENDING";
   const loginAttemptId = "00000000-0000-4000-8000-00000000a026";
+  let loginStartCount=0;
+  const observedLoginIds=new Set<string>();
   const accountState = OpenCodeAccountStateSchema.parse({
     accounts: [
       { id: "cred_ia26_alpha", label: "alpha@example.com", active: true, status: { status: "READY" } },
@@ -3361,6 +3363,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
       return;
     }
     if (url.pathname === "/api/opencode/accounts/login" && req.method() === "POST") {
+      loginStartCount+=1;
       await route.fulfill({
         status: 201,
         contentType: "application/json",
@@ -3376,6 +3379,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
       return;
     }
     if (url.pathname === "/api/opencode/accounts/login/" + loginAttemptId && req.method() === "GET") {
+      observedLoginIds.add(url.pathname.split("/").at(-1)!);
       await route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -3522,6 +3526,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     // task or its input. Do not reopen or reconstruct the form to pass.
     const exactRoot = addRepository.getByLabel("Exact Git root");
     await exactRoot.fill("/tmp/order-responsive-unsaved-repository");
+    await expect(exactRoot).toBeFocused();
     const settingsLayout = page.getByTestId("workbench-settings-layout");
     for (const viewport of [
       { width: 1000, height: 800 },
@@ -3534,6 +3539,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
       await expect(addRepository, "responsive Settings task must remain mounted").toBeVisible();
       await expect(exactRoot, "unsubmitted repository root must survive reflow")
         .toHaveValue("/tmp/order-responsive-unsaved-repository");
+      await expect(exactRoot,"draft input focus must survive reflow").toBeFocused();
     }
     await exactRoot.fill("");
   }
@@ -3578,6 +3584,16 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
 
   await repositoryRow.getByRole("button", { name: /^Disconnect / }).click();
   const disconnect = page.getByRole("alertdialog", { name: "Disconnect repository?" });
+  if (!diagnosticCurrentState) {
+    const cancel=disconnect.getByRole("button",{name:"Cancel",exact:true});
+    await expect(cancel).toBeFocused();
+    for(const viewport of [{width:1000,height:800},narrow,light]){
+      await page.setViewportSize(viewport);
+      await expect(disconnect).toBeVisible();
+      await expect(cancel,"confirmation focus must survive responsive layout").toBeFocused();
+    }
+    await expect(disconnect).toHaveCount(1);
+  }
   await capture({
     id: "ia26-confirm-repository-disconnect-wide-light",
     workItemKind: "QUEUE",
@@ -3662,6 +3678,19 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   await addAccount.getByRole("button", { name: "Continue to OpenCode sign-in" }).click();
   const loginAttempt = page.getByTestId("opencode-login-attempt");
   await expect(loginAttempt).toContainText("Waiting for sign-in");
+  if (!diagnosticCurrentState) {
+    const started=loginStartCount;
+    expect(started).toBe(1);
+    const cancel=loginAttempt.getByRole("button",{name:"Cancel OpenCode sign-in"});
+    await cancel.focus();
+    for(const viewport of [{width:1000,height:800},narrow,light]){
+      await page.setViewportSize(viewport);
+      await expect(loginAttempt).toContainText("Waiting for sign-in");
+      await expect(cancel).toBeFocused();
+      expect(loginStartCount,"responsive recomposition may not start another login").toBe(started);
+    }
+    await expect.poll(()=>[...observedLoginIds]).toEqual([loginAttemptId]);
+  }
   await capture({
     id: "ia26-settings-opencode-login-pending-wide-light",
     workItemKind: "QUEUE",
