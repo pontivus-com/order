@@ -1594,6 +1594,7 @@ export const WorkItemWorkspace = ({
         <Suspense fallback={<WorkbenchState kind="loading" title="Loading final outcome…" />}>
           <TerminalResult
             workItem={workItem}
+            schemas={schemas}
             onOpenEvidence={openEvidence}
             onCreateRemediation={onCreateRemediation}
           />

@@ -8,7 +8,11 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 - Use the canonical deterministic JSON owner for Acceptance identity rechecks at command commit, consistent with authority observation.
 
+- Reconcile protected PLAN inspection, lifecycle serialization and terminal linked-remediation dependency ownership with exact named-import enforcement.
+
 - Resolve a fresh prospective Approval identity before binding or requesting its exact document closure. Keep observed closure cache keys separate from current-package invalidation and prove revisiting a cached superseded package does not request stale authority or expose sign-off.
+
+- Reuse the canonical linked-remediation eligibility predicate for all schema-admitted terminal investigation and audit outcomes, including duplicate and already-satisfied results.
 
 - Keep the entire canonical ten-stage Workbench rail in one row at wide viewports, retaining scrollable constrained recomposition. Refresh Acceptance proof against the current persisted sequence after mutation instead of re-fetching obsolete proof.
 

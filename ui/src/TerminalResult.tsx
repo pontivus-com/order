@@ -7,8 +7,10 @@ import {
   type ArtifactRef,
   type RunEvent,
   type WorkItem,
+  type WorkItemSchemaCatalogEntry,
 } from "../../src/core/contracts.ts";
 import { admittedTerminalR1Artifact } from "../../src/core/lifecycle.ts";
+import { linkedRemediationIsAllowed } from "../../src/core/work-item-source.ts";
 import * as api from "./http.ts";
 import { workbenchQueryKeys } from "./query-keys.ts";
 import {
@@ -70,10 +72,12 @@ const decodeResult = (
 
 export const TerminalResult = ({
   workItem,
+  schemas,
   onOpenEvidence,
   onCreateRemediation,
 }: Readonly<{
   workItem: WorkItem;
+  schemas: readonly WorkItemSchemaCatalogEntry[];
   onOpenEvidence: (selection: EvidenceSelection) => void;
   onCreateRemediation?: (workItem: WorkItem) => void;
 }>) => {
@@ -174,12 +178,15 @@ export const TerminalResult = ({
       ) === index,
   );
 
+  const linkedRemediationAvailable = terminalR1 && selectedArtifact !== null &&
+    schemas.some(schema => schema.authoringDefault &&
+      linkedRemediationIsAllowed(workItem, workItem.projectId, schema.schemaId));
   const material = (
     <WorkbenchResult
       title={workOutcomeProductLabel(workItem.outcome)}
       status={<WorkbenchStatus tone={candidateDone || evidenceBacked ? "success" : "neutral"} label="Complete" />}
       summary={resultExplanation(workItem)}
-      action={evidenceBacked && selectedArtifact !== null && onCreateRemediation !== undefined ? (
+      action={linkedRemediationAvailable && onCreateRemediation !== undefined ? (
         <WorkbenchAction label="Create linked remediation" tone="primary"
           onClick={() => onCreateRemediation(workItem)} />
       ) : undefined}
