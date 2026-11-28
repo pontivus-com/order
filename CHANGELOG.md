@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Add isolated actual signed source drift, material drift and missing-evidence browser fixtures, verifying typed proof diagnostics and the exact recovery form while ordinary Acceptance mutation is suppressed.
+
 - Suspend the Acceptance review task panel during destructive discard confirmation, retaining its draft on cancellation; use the actual AlertDialog accessibility role and prove cancel/resume/discard in browser coverage.
 
 - Exercise report, withdrawal, submission and historical human acceptance through the dedicated signed runtime fixture; retain strict native phase identity, scope, actual medium evidence and exact PR run provenance checks.
