@@ -3386,7 +3386,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
       expectedConflictConsoleErrors -= 1;
       return;
     }
-    runtimeErrors.push("console: " + message.text());
+    runtimeErrors.push("console: " + message.text()+" at "+message.location().url);
   });
 
   let loginStatus: "PENDING" | "COMPLETED" | "FAILED" | "EXPIRED" | "CANCELLED" = "PENDING";

@@ -592,9 +592,9 @@ export const WorkItemWorkspace = ({
   const currentReviewSequence = currentReviewHistory.at(-1)?.sequence ?? null;
   const qaProofQuery = useQuery({
     queryKey: workbenchQueryKeys.qaProof(workItem.id,currentApproval?.id ?? null,currentReviewSequence),
-    queryFn: () => {
+    queryFn: ({signal}) => {
       if (currentApproval == null || currentReviewSequence === null) throw new TypeError("Current review identity required");
-      return api.listCandidateReviewEvents(workItem.id,currentApproval.id,currentReviewSequence);
+      return api.listCandidateReviewEvents(workItem.id,currentApproval.id,currentReviewSequence,signal);
     },
     enabled: workItem.stage === "AWAITING_ACCEPTANCE" && currentApproval != null && currentReviewSequence !== null,
     retry:false, refetchInterval: 2000,

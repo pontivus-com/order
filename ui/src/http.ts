@@ -298,11 +298,12 @@ const approvalQaPath = (workItemId: WorkItemId, approvalId: Approval["id"]): str
   `/api/work-items/${encodeURIComponent(workItemId)}/approvals/${encodeURIComponent(approvalId)}`;
 
 export const listCandidateReviewEvents = async (
-  workItemId: WorkItemId, approvalId: Approval["id"], expectedReviewSequence?: number,
+  workItemId: WorkItemId, approvalId: Approval["id"], expectedReviewSequence?: number, signal?: AbortSignal,
 ): Promise<readonly CandidateReviewEvent[]> =>
   CandidateReviewEventSchema.array().parse(await json(
     approvalQaPath(workItemId, approvalId) + "/qa-events" +
       (expectedReviewSequence === undefined ? "" : "?expectedReviewSequence=" + expectedReviewSequence),
+    signal===undefined?undefined:{signal},
   ));
 
 export const reportCandidateFinding = async (

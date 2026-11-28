@@ -1,6 +1,9 @@
 import type { QueryClient } from "@tanstack/react-query";
 import type {
   ApprovalId,
+  Approval,
+  CandidateReviewEvent,
+  WorkItem,
   AuthorityRef,
   ExecutionTaskId,
   Sha256,
@@ -57,8 +60,9 @@ export const workbenchQueryKeys = {
     ["approvals", workItemId, approvalId, "artifacts", taskId, acceptanceRef] as const,
   qaHistory: (workItemId: WorkItemId, approvalId: ApprovalId | null) =>
     ["approvals", workItemId, approvalId, "qa-events"] as const,
+  qaProofRoot: (workItemId: WorkItemId) => ["qaProof", workItemId] as const,
   qaProof: (workItemId: WorkItemId, approvalId: ApprovalId | null, sequence: number | null) =>
-    ["approvals", workItemId, approvalId, "qa-events", "current", sequence] as const,
+    ["qaProof", workItemId, approvalId, sequence] as const,
   tasks: (workItemId: WorkItemId) =>
     ["tasks", workItemId] as const,
   runs: (workItemId: WorkItemId) =>
@@ -99,8 +103,22 @@ export const invalidateWorkbenchMutation = async (
   queryClient: QueryClient,
   workItemId: WorkItemId,
 ): Promise<void> => {
+  // A proof belongs to one exact sequence, not to the history collection.
+  // Invalidate without refetching the obsolete sequence concurrently with
+  // the history and current WorkItem/Approval observations.
+  const proofRoot=workbenchQueryKeys.qaProofRoot(workItemId);
+  await queryClient.cancelQueries({queryKey:proofRoot});
+  await queryClient.invalidateQueries({queryKey:proofRoot,refetchType:"none"});
   await Promise.all(
     workbenchMutationInvalidationKeys(workItemId)
       .map((queryKey) => queryClient.invalidateQueries({ queryKey })),
   );
+  const workItem=queryClient.getQueryData<WorkItem>(workbenchQueryKeys.workItem(workItemId));
+  const approval=queryClient.getQueryData<Approval|null>(workbenchQueryKeys.currentApproval(workItemId));
+  if(workItem?.stage!=="AWAITING_ACCEPTANCE"||approval==null)return;
+  const history=queryClient.getQueryData<readonly CandidateReviewEvent[]>(workbenchQueryKeys.qaHistory(workItemId,approval.id));
+  const sequence=history?.at(-1)?.sequence;
+  if(sequence!==undefined)await queryClient.refetchQueries({
+    queryKey:workbenchQueryKeys.qaProof(workItemId,approval.id,sequence),exact:true,type:"active",
+  });
 };
