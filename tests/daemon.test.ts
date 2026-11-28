@@ -6051,6 +6051,39 @@ describe("daemon control plane", () => {
       });
       const productPath = "docs/product.md";
       const base = rt.sha256Text("# product\\n");
+      const rejectedPostimages = [];
+      // Exercise the real Git patch effect through daemon admission, not a
+      // synthetic invalid diff or an already-rejected pathname.
+      for (const fault of ["delete", "symlink"]) {
+        const absolute = repositoryRoot + "/" + productPath;
+        fs.unlinkSync(absolute);
+        if (fault === "symlink") fs.symlinkSync("nonexistent.md", absolute);
+        const diff = Bun.spawnSync(["git", "diff", "--binary", "--", productPath], {
+          cwd: repositoryRoot, stdout: "pipe", stderr: "pipe",
+        });
+        if (fault === "symlink") fs.unlinkSync(absolute);
+        fs.writeFileSync(absolute, "# product\\n");
+        if (diff.exitCode !== 0 || diff.stdout.length === 0) throw new Error("failed to generate invalid-postimage fixture");
+        const invalid = runStore.appendRunEvent(runtime, run.id, {
+          tag: "ARTIFACT_PROPOSAL_CREATED", targetPath: productPath, baseSha256: base,
+          role: "GOVERNANCE", authorityLayer: ${JSON.stringify(layer)},
+          unifiedDiff: new TextDecoder().decode(diff.stdout), rationale: "Reject nonregular result",
+        });
+        let error = null;
+        try { await coord.adoptArtifactProposal(runtime, invalid.id); }
+        catch (failure) { error = String(failure); }
+        const preserved = fs.lstatSync(absolute).isFile() &&
+          fs.readFileSync(absolute, "utf8") === "# product\\n";
+        const intent = coord.listRunEvents(runtime, run.id).some(event =>
+          event.event.tag === "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED" &&
+          event.event.proposalEventId === invalid.id);
+        rejectedPostimages.push({ fault, error, preserved, intent });
+        if (!preserved || intent || error === null) throw new Error("unsafe nonregular proposal admission");
+        await coord.rejectArtifactProposal(runtime, invalid.id);
+        runStore.appendRunEvent(runtime, run.id, {
+          tag: "AGENT_MESSAGE_FINAL", text: "Corrected permanent authority proposal", evidence: [],
+        });
+      }
       const proposal = runStore.appendRunEvent(runtime, run.id, {
         tag: "ARTIFACT_PROPOSAL_CREATED",
         targetPath: productPath,
@@ -6148,7 +6181,7 @@ describe("daemon control plane", () => {
         staleReadError,
         staleError,
         driftError,
-        driftPreserved, danglingRejected, danglingPreserved,
+        driftPreserved, danglingRejected, danglingPreserved, rejectedPostimages,
         adoptionRequests: events.filter((event) =>
           event.event.tag === "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED"
         ).length,
@@ -6164,6 +6197,7 @@ describe("daemon control plane", () => {
       driftPreserved: boolean;
       danglingRejected: boolean;
       danglingPreserved: boolean;
+      rejectedPostimages: { fault: string; error: string | null; preserved: boolean; intent: boolean }[];
       adoptionRequests: number;
       stage: string;
     };
@@ -6182,6 +6216,12 @@ describe("daemon control plane", () => {
     expect(output.driftPreserved).toBe(true);
     expect(output.danglingRejected).toBe(true);
     expect(output.danglingPreserved).toBe(true);
+    expect(output.rejectedPostimages.map(value => value.fault)).toEqual(["delete", "symlink"]);
+    for (const value of output.rejectedPostimages) {
+      expect(value.error).not.toBeNull();
+      expect(value.preserved).toBe(true);
+      expect(value.intent).toBe(false);
+    }
   }, 30_000);
 
   it("rejects STAGE completion after durable decision input without later adoption", () => {

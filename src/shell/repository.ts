@@ -1,4 +1,5 @@
 import {
+  chmodSync,
   existsSync,
   lstatSync,
   mkdirSync,
@@ -293,6 +294,36 @@ const requireProposalPatchTarget = async (
   }
 };
 
+// Check the exact proposed postimage away from the live repository. A
+// single-target patch can still delete its target or turn it into a symlink.
+const previewProposalPatch = async (
+  canonicalTarget: RepositoryPath,
+  target: string,
+  baseSha256: Sha256 | null,
+  patch: Uint8Array,
+): Promise<Sha256> => {
+  const scratch = mkdtempSync(join(tmpdir(), "order-proposal-preview-"));
+  try {
+    if (baseSha256 !== null) {
+      const bytes = readFileSync(target);
+      if (sha256(bytes) !== Sha256Schema.parse(baseSha256)) {
+        throw new TypeError("proposal base hash does not match current target bytes");
+      }
+      createWorkingTreeFileExclusive(scratch, canonicalTarget, bytes);
+      chmodSync(join(scratch, canonicalTarget), lstatSync(target).mode & 0o777);
+    }
+    await runGit(scratch, ["apply", "--check", "--binary", "-"], patch);
+    await runGit(scratch, ["apply", "--binary", "-"], patch);
+    const postimage = lstatSync(join(scratch, canonicalTarget), { throwIfNoEntry: false });
+    if (!postimage?.isFile()) {
+      throw new TypeError("proposal must produce a regular target file");
+    }
+    return sha256(readWorkingTreeFile(scratch, canonicalTarget));
+  } finally {
+    rmSync(scratch, { recursive: true, force: true });
+  }
+};
+
 export const verifyProposalPatchAdoption = async (
   repositoryRoot: string,
   targetPath: RepositoryPath,
@@ -316,6 +347,7 @@ export const verifyProposalPatchAdoption = async (
 
   const patch = new TextEncoder().encode(unifiedDiff);
   await requireProposalPatchTarget(repositoryRoot, patch, canonicalTarget);
+  await previewProposalPatch(canonicalTarget, target, baseSha256, patch);
   await runGit(repositoryRoot, ["apply", "--check", "--binary", "-"], patch);
 };
 
@@ -374,6 +406,7 @@ export const adoptProposalPatch = async (
     }
   }
 
+  const expectedPostimage = await previewProposalPatch(canonicalTarget, target, baseSha256, patch);
   await runGit(repositoryRoot, ["apply", "--check", "--binary", "-"], patch);
   if (baseSha256 === null
     ? existsSync(ensureInsideRoot(repositoryRoot, canonicalTarget, true))
@@ -383,7 +416,11 @@ export const adoptProposalPatch = async (
   await runGit(repositoryRoot, ["apply", "--binary", "-"], patch);
 
   const adoptedTarget = ensureInsideRoot(repositoryRoot, canonicalTarget, false);
-  return sha256(readFileSync(adoptedTarget));
+  const adoptedHash = sha256(readFileSync(adoptedTarget));
+  if (adoptedHash !== expectedPostimage) {
+    throw new TypeError("adopted proposal does not match the verified postimage");
+  }
+  return adoptedHash;
 };
 
 export const enumerateAgentInstructions = async (
