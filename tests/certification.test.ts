@@ -2873,6 +2873,15 @@ describe("public release delivery certification", () => {
     expect(browser).toContain("validateSignedPhaseEvidence(entries)");
     expect(browser).toContain("exact phase SURF coverage");
     expect(browser).toContain("exact phase capture identities");
+    expect(browser).toContain('type ReferenceViewportClass = "wide" | "medium" | "narrow"');
+    expect(browser).toContain('viewport.width >= 1280 ? "wide" : viewport.width >= 800 ? "medium" : "narrow"');
+    expect(browser).toContain("const mediumComparisonSources");
+    expect(browser).toContain("surface + \" same-scope comparison\"");
+    expect(browser).toContain("surface + \" medium reference PNG\"");
+    expect(browser).toContain("await referencePage.setViewportSize(entry.viewport)");
+    const context = read("ui/src/WorkItemContext.tsx");
+    expect(context).toContain("resolveContextArtifact(workItem.id,artifactId");
+    expect(context).not.toContain("artifact.repositoryPath===selectedDocumentPath");
     expect(browser).not.toContain("huxPriorityCaptureIds");
     expect(
       [...ci.matchAll(/^\s*uses:\s*(\S+)\s*$/gm)].map((match) => match[1]),

@@ -21,6 +21,8 @@ import {
   conversationRunEvents,
   pendingProposalForEvents,
   resolveWorkflowMaterial,
+  resolveContextArtifact,
+  selectedContextArtifactId,
   runEventPlane,
   runEventPresentation,
   workflowRunEvents,
@@ -242,6 +244,22 @@ const resolveFixtureMaterial = (
 };
 
 describe("workflow presentation policy", () => {
+  it("binds Context to exact ArtifactRef identity rather than same-path bytes or a foreign WorkItem", () => {
+    const item = workItem("PLAN");
+    const historical = artifact("PLAN", uuidB);
+    const current = ArtifactRefSchema.parse({ ...historical, id: "artifact_" + uuidC,
+      gitCommit: null, sha256: "sha256:" + "b".repeat(64) });
+    const foreign = ArtifactRefSchema.parse({ ...historical, workItemId: "work_" + uuidD });
+    const reported = { path: current.repositoryPath, sha256: current.sha256, artifactId: current.id };
+    const id = selectedContextArtifactId({ kind: "STAGE_DOCUMENT", artifactId: historical.id }, reported);
+    expect(id).toBe(historical.id);
+    expect(resolveContextArtifact(item.id, id, [foreign, current, historical])).toEqual(historical);
+    expect(resolveContextArtifact(item.id, id, [current, foreign])).toBeNull();
+    expect(selectedContextArtifactId({ kind: "SOURCE_DOCUMENT" }, reported)).toBeNull();
+    expect(selectedContextArtifactId({ kind: "APPROVAL_PACKAGE" }, reported)).toBe(current.id);
+    expect(selectedContextArtifactId({ kind: "APPROVAL_PACKAGE" }, null)).toBeNull();
+  });
+
   it("keeps workflow semantics independent of theme selection", () => {
     const presentation = readFileSync(
       new URL("../ui/src/workbench-presentation.ts", import.meta.url),

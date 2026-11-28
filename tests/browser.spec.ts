@@ -261,7 +261,7 @@ const signedPhaseSharedSurfaces: Readonly<Partial<Record<SignedRenderedPhase, re
   IA31: ["SURF-WI-001"],
 };
 
-type ReferenceViewportClass = "wide" | "narrow";
+type ReferenceViewportClass = "wide" | "medium" | "narrow";
 type ReferenceTheme = "light" | "dark" | "system";
 
 type ReferenceManifestSurface = Readonly<{
@@ -282,7 +282,7 @@ type ReferenceManifest = Readonly<{
   semanticAuthority: false;
   source: string;
   query: string;
-  viewportClasses: Readonly<{ wide: number; narrow: number }>;
+  viewportClasses: Readonly<{ wide: number; medium: number; narrow: number }>;
   surfaces: readonly ReferenceManifestSurface[];
 }>;
 
@@ -470,9 +470,9 @@ const referenceTheme = (theme: RenderedAcceptanceInput["theme"]): ReferenceTheme
 const referenceViewportClass = (
   viewport: RenderedAcceptanceInput["viewport"],
 ): ReferenceViewportClass | null =>
-  viewport.width === referenceManifest.viewportClasses.wide
-    ? "wide"
-    : viewport.width <= referenceManifest.viewportClasses.narrow ? "narrow" : null;
+  !Number.isFinite(viewport.width) || viewport.width <= 0 ||
+  !Number.isFinite(viewport.height) || viewport.height <= 0 ? null
+    : viewport.width >= 1280 ? "wide" : viewport.width >= 800 ? "medium" : "narrow";
 
 // These are independently declared expectations from the persisted e2e fixtures,
  // not observations copied from the rendered workflow rail.
@@ -2090,12 +2090,66 @@ test("queue opens a primary workspace, keeps context compact, preserves URL hist
 });
 
 
+// These exact named fixtures are part of the existing scenario dispatch.
+// Re-render each at the actual medium viewport, not a fallback atlas width.
+// The pre-cutover runtime has 37 owned surfaces; IA38/39 add Acceptance.
+const mediumComparisonSources = {
+  "SURF-APP-001": "application-wide-light-active-account",
+  "SURF-QUEUE-001": "queue-wide-light-populated",
+  "SURF-CREATE-001": "create-work-item-wide-light-change",
+  "SURF-WI-001": "workitem-shell-wide-light-chrome",
+  "SURF-WI-CONTEXT-001": "workitem-context-wide-light-selected-workitem",
+  "SURF-STEP-WR-001": "ia26-work-request-step-wide-light",
+  "SURF-MAT-SOURCE-001": "ia26-source-document-editor-wide-light",
+  "SURF-MAT-DOC-001": "ia26-lifecycle-document-editor-wide-light",
+  "SURF-MAT-DOC-RO-001": "ia26-lifecycle-document-readonly-wide-light",
+  "SURF-CONF-DIRTY-DEST-001": "ia26-confirm-dirty-destination-wide-light",
+  "SURF-CONF-DIRTY-MATERIAL-001": "ia26-confirm-dirty-material-wide-light",
+  "SURF-CONF-ARCHIVE-001": "ia26-confirm-archive-wide-light",
+  "SURF-CONF-DOC-GIT-001": "ia26-confirm-documentation-git-wide-light",
+  "SURF-MAT-PROPOSAL-001": "ia26-proposal-review-wide-light",
+  "SURF-STEP-R3-001": "ia26-readiness-review-wide-light",
+  "SURF-STEP-APPROVAL-001": "ia26-approval-wide-light",
+  "SURF-MAT-APPROVAL-TASK-001": "ia26-approval-task-wide-light",
+  "SURF-STEP-R1-001": "ia26-research-wide-light",
+  "SURF-STEP-R2-001": "ia26-requirements-wide-light",
+  "SURF-STEP-DESIGN-001": "ia26-solution-design-wide-light",
+  "SURF-STEP-PLAN-001": "ia26-implementation-plan-wide-light",
+  "SURF-MAT-ACTIVITY-001": "ia26-stage-dialogue-open-wide-light",
+  "SURF-STEP-EXEC-001": "ia26-implementation-wide-light",
+  "SURF-MAT-EXEC-TASK-001": "ia26-implementation-task-wide-light",
+  "SURF-STEP-COMPLETE-001": "ia26-complete-candidate-wide-light",
+  "SURF-MAT-EVIDENCE-001": "ia26-evidence-wide-light",
+  "SURF-SET-001": "ia26-settings-frame-wide-light",
+  "SURF-SET-REPO-001": "ia26-settings-repositories-wide-light",
+  "SURF-SET-REPO-ADD-001": "ia26-settings-repository-add-wide-light",
+  "SURF-SET-REPO-MOVE-001": "ia26-settings-repository-move-wide-light",
+  "SURF-SET-OC-001": "ia26-settings-opencode-wide-light",
+  "SURF-SET-OC-RENAME-001": "ia26-settings-opencode-rename-wide-light",
+  "SURF-SET-OC-ADD-001": "ia26-settings-opencode-add-wide-light",
+  "SURF-SET-OC-LOGIN-001": "ia26-settings-opencode-login-pending-wide-light",
+  "SURF-SET-MODEL-001": "ia26-settings-model-wide-light",
+  "SURF-CONF-REPO-DISCONNECT-001": "ia26-confirm-repository-disconnect-wide-light",
+  "SURF-CONF-OC-REMOVE-001": "ia26-confirm-opencode-remove-wide-light",
+} as const satisfies Readonly<Record<string, string>>;
+const mediumComparisonId = (sourceId: string): string => sourceId + "-medium-comparison";
+
 const validateSignedPhaseEvidence = (entries: readonly RenderedAcceptanceEntry[]): void => {
   if (signedRenderedPhase === null) return;
-  const expectedIds = signedPhaseCaptureIds[signedRenderedPhase];
-  expect(entries.map((entry) => entry.id).sort(), "exact phase capture identities")
-    .toEqual([...expectedIds].sort());
+  const expectedIds: readonly string[] = signedPhaseCaptureIds[signedRenderedPhase];
   const owned: readonly string[] = signedPhaseOwnedSurfaces[signedRenderedPhase];
+  const expectedMediumIds = owned.map(surface =>
+    mediumComparisonId(mediumComparisonSources[surface as keyof typeof mediumComparisonSources]));
+  expect(entries.map((entry) => entry.id).sort(), "exact phase capture identities")
+    .toEqual([...expectedIds, ...expectedMediumIds].sort());
+  for (const surface of owned) {
+    const medium = entries.find(entry => entry.surface === surface &&
+      entry.id === mediumComparisonId(mediumComparisonSources[surface as keyof typeof mediumComparisonSources]));
+    expect(medium?.viewport.width, surface + " exact medium viewport").toBe(1000);
+    expect(medium?.reference.viewportClass, surface + " medium class").toBe("medium");
+    expect(medium?.reference.comparisonEligible, surface + " same-scope comparison").toBe(true);
+    expect(medium?.referenceScreenshot, surface + " medium reference PNG").toBeDefined();
+  }
   const shared = signedPhaseSharedSurfaces[signedRenderedPhase] ?? [];
   expect([...new Set(entries.map((entry) => entry.surface))].sort(), "exact phase SURF coverage")
     .toEqual([...owned, ...shared].sort());
@@ -2114,7 +2168,7 @@ const validateSignedPhaseEvidence = (entries: readonly RenderedAcceptanceEntry[]
   expect(manifest.candidateSha).toBe(renderedAcceptanceCandidateSha);
   expect(manifest.evidenceKind).toBe("ia26_acceptance");
   expect(manifest.signedPhase).toBe(signedRenderedPhase);
-  expect(manifest.entries.map((entry) => entry.id).sort()).toEqual([...expectedIds].sort());
+  expect(manifest.entries.map((entry) => entry.id).sort()).toEqual([...expectedIds, ...expectedMediumIds].sort());
 };
 
 test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
@@ -2198,6 +2252,28 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   );
 
   const entries: RenderedAcceptanceEntry[] = [];
+  const capturePhaseOne = async (entry: RenderedAcceptanceInput, target?: Locator): Promise<void> => {
+    entries.push(await captureRenderedAcceptance(page, entry, target));
+    if (diagnosticCurrentState || renderedEvidenceKind !== "ia26_acceptance") return;
+    if (mediumComparisonSources[entry.surface as keyof typeof mediumComparisonSources] !== entry.id) return;
+    const previous = entry.viewport;
+    try {
+      const viewport = { width: 1000, height: 800 };
+      await page.setViewportSize(viewport);
+      // Context changes from docked panel to Drawer; this SURF uses the
+      // full-workbench reference, so do not retain the desktop locator.
+      const mediumTarget = entry.surface === "SURF-WI-CONTEXT-001" ? undefined : target;
+      if (entry.surface === "SURF-WI-CONTEXT-001") {
+        await expect(page.getByTestId("work-item-context-drawer")).toBeVisible();
+      }
+      entries.push(await captureRenderedAcceptance(page, {
+        ...entry, id: mediumComparisonId(entry.id), viewport,
+      }, mediumTarget));
+    } finally {
+      await page.setViewportSize(previous);
+      if (entry.surface === "SURF-WI-CONTEXT-001") await expect(page.getByTestId("work-item-context")).toBeVisible();
+    }
+  };
   const toolbar = page.getByTestId("workbench-toolbar");
   const accountUtility = toolbar.getByTestId("opencode-account-trigger");
   await expect(accountUtility).toContainText("OpenCode");
@@ -2215,7 +2291,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   })).toBe(true);
   await expect(toolbar.getByRole("radio")).toHaveCount(3);
 
-  entries.push(await captureRenderedAcceptance(page, {
+  await capturePhaseOne({
     id: "application-wide-light-active-account",
     workItemKind: "QUEUE",
     workflowStep: null,
@@ -2229,7 +2305,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       "GW-DOC-WORKBENCH-UX",
       "GW-DOC-INSTALLATION-READINESS",
     ],
-  }));
+  });
 
   if (phaseOneNegativeStates) {
     renderedAccountState = OpenCodeAccountStateSchema.parse({
@@ -2240,7 +2316,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     await page.reload();
     await expect(page.getByTestId("opencode-account-trigger")).toContainText("No account");
     await expect(page.getByTestId("opencode-account-trigger")).toContainText("Account required");
-    entries.push(await captureRenderedAcceptance(page, {
+    await capturePhaseOne({
       id: "diagnostic-application-wide-light-account-required",
       workItemKind: "QUEUE",
       workflowStep: null,
@@ -2255,7 +2331,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
         "GW-DOC-INSTALLATION-READINESS",
       ],
       captureScope: "full application viewport",
-    }));
+    });
     renderedAccountState = OpenCodeAccountStateSchema.parse({
       accounts: [{
         id: "cred_rendered_acceptance",
@@ -2276,7 +2352,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   await page.reload();
   await expect(page.getByTestId("installation-readiness")).toBeVisible();
   await expect(page.getByTestId("work-item-queue")).toBeVisible();
-  entries.push(await captureRenderedAcceptance(page, {
+  await capturePhaseOne({
     id: "application-wide-light-installation-readiness",
     workItemKind: "QUEUE",
     workflowStep: null,
@@ -2290,7 +2366,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       "GW-DOC-WORKBENCH-UX",
       "GW-DOC-INSTALLATION-READINESS",
     ],
-  }));
+  });
   renderedReadinessBlockers = [];
   await page.reload();
 
@@ -2313,7 +2389,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     ]) {
       await expect(readiness.getByText(label, { exact: true })).toBeVisible();
     }
-    entries.push(await captureRenderedAcceptance(page, {
+    await capturePhaseOne({
       id: "diagnostic-application-wide-light-readiness-all-blockers",
       workItemKind: "QUEUE",
       workflowStep: null,
@@ -2328,7 +2404,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
         "GW-DOC-WORKBENCH-UX",
       ],
       captureScope: "full application viewport",
-    }));
+    });
     renderedReadinessBlockers = [];
     await page.reload();
 
@@ -2350,7 +2426,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     });
     await page.reload({ waitUntil: "domcontentloaded" });
     await expect(page.getByText("Loading work items…", { exact: true })).toBeVisible();
-    entries.push(await captureRenderedAcceptance(page, {
+    await capturePhaseOne({
       id: "diagnostic-queue-wide-light-loading",
       workItemKind: "QUEUE",
       workflowStep: null,
@@ -2362,10 +2438,10 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       route: "/",
       authorityRefs: ["GW-DOC-WORKBENCH-UX"],
       captureScope: "full application viewport",
-    }));
+    });
     releaseLoading();
     await expect(page.getByText("No work items", { exact: true })).toBeVisible();
-    entries.push(await captureRenderedAcceptance(page, {
+    await capturePhaseOne({
       id: "diagnostic-queue-wide-light-true-empty",
       workItemKind: "QUEUE",
       workflowStep: null,
@@ -2377,7 +2453,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       route: "/",
       authorityRefs: ["GW-DOC-WORKBENCH-UX"],
       captureScope: "full application viewport",
-    }));
+    });
     await page.unroute("**/api/work-items**");
     await page.reload();
     await expect(page.getByRole("table", { name: "Work items" })).toBeVisible();
@@ -2402,7 +2478,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     await page.reload();
     await expect(page.getByText("Local browser session required", { exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Retry", exact: true })).toBeVisible();
-    entries.push(await captureRenderedAcceptance(page, {
+    await capturePhaseOne({
       id: "diagnostic-application-wide-light-browser-session-required",
       workItemKind: "QUEUE",
       workflowStep: null,
@@ -2414,7 +2490,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       route: "/",
       authorityRefs: ["GW-DOC-WORKBENCH-UX"],
       captureScope: "full application viewport",
-    }));
+    });
     await page.unroute("**/api/work-items**");
     await page.reload();
     await expect(page.getByRole("table", { name: "Work items" })).toBeVisible();
@@ -2446,7 +2522,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   await expect(diagnostics).not.toContainText("INVALID_SOURCE");
   await expect(page.getByRole("table", { name: "Work items" })).toBeVisible();
   await expect(page.getByText("Loading work queue...", { exact: true })).toHaveCount(0);
-  entries.push(await captureRenderedAcceptance(page, {
+  await capturePhaseOne({
     id: "queue-wide-light-source-diagnostic",
     workItemKind: "QUEUE",
     workflowStep: null,
@@ -2460,7 +2536,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       "GW-DOC-WORKBENCH-UX",
       "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM",
     ],
-  }));
+  });
   await page.unroute("**/api/work-item-sources/diagnostics");
   await page.route("**/api/work-item-sources/diagnostics", async (route) => {
     if (route.request().method() !== "GET") {
@@ -2473,7 +2549,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   const queue = page.getByTestId("work-item-queue");
   await expect(queue.locator(".order-workbench-surface-attention")).toHaveCount(0);
   await expect(queue.getByRole("heading", { name: "Work items", exact: true })).toBeVisible();
-  entries.push(await captureRenderedAcceptance(page, {
+  await capturePhaseOne({
     id: "queue-wide-light-populated",
     workItemKind: "QUEUE",
     workflowStep: null,
@@ -2487,7 +2563,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       "GW-DOC-WORKBENCH-UX",
       "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM",
     ],
-  }));
+  });
 
   await page.route("**/api/work-items**", async (route) => {
     const url = new URL(route.request().url());
@@ -2524,7 +2600,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   await expect(archivedRow.getByRole("button", {
     name: "Restore Rendered archived work item",
   })).toBeVisible();
-  entries.push(await captureRenderedAcceptance(page, {
+  await capturePhaseOne({
     id: "queue-wide-light-archived",
     workItemKind: "QUEUE",
     workflowStep: null,
@@ -2538,7 +2614,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       "GW-DOC-WORKBENCH-UX",
       "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM",
     ],
-  }));
+  });
   await archivedSearch.fill("");
   await page.getByRole("button", { name: "Hide archived" }).click();
   await page.unroute("**/api/work-items**");
@@ -2546,7 +2622,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   const noMatchSearch = page.getByLabel("Search work items");
   await noMatchSearch.fill("no rendered acceptance match");
   await expect(page.getByText("No matching work items", { exact: true })).toBeVisible();
-  entries.push(await captureRenderedAcceptance(page, {
+  await capturePhaseOne({
     id: "queue-wide-light-no-matches",
     workItemKind: "QUEUE",
     workflowStep: null,
@@ -2557,7 +2633,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     theme: "Light",
     route: "/",
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
-  }));
+  });
   await noMatchSearch.fill("");
   await page.setViewportSize({ width: 700, height: 800 });
   await expect(queue).toBeVisible();
@@ -2581,7 +2657,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   expect(narrowCellWrapping.every((style) =>
     style.wordBreak === "normal" && style.overflowWrap === "normal"
   )).toBe(true);
-  entries.push(await captureRenderedAcceptance(page, {
+  await capturePhaseOne({
     id: "queue-narrow-light-populated",
     workItemKind: "QUEUE",
     workflowStep: null,
@@ -2595,11 +2671,11 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       "GW-DOC-WORKBENCH-UX",
       "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
     ],
-  }));
+  });
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.getByRole("radio", { name: "Dark" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-  entries.push(await captureRenderedAcceptance(page, {
+  await capturePhaseOne({
     id: "application-queue-wide-dark",
     workItemKind: "QUEUE",
     workflowStep: null,
@@ -2613,32 +2689,32 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       "GW-DOC-WORKBENCH-UX",
       "GW-DOC-WORKBENCH-THEME-V1",
     ],
-  }));
-  entries.push(await captureRenderedAcceptance(page, {
+  });
+  await capturePhaseOne({
     id: "ia26-queue-wide-dark", workItemKind: "QUEUE", workflowStep: null,
     surface: "SURF-QUEUE-001", state: "operational-scan-dark", fixture: "populated Queue",
     viewport: { width: 1440, height: 900 }, theme: "Dark", route: "/",
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
-  }, page.getByTestId("work-item-queue")));
+  }, page.getByTestId("work-item-queue"));
   await page.setViewportSize({ width: 700, height: 800 });
-  entries.push(await captureRenderedAcceptance(page, {
+  await capturePhaseOne({
     id: "hux-app-queue-narrow-dark", workItemKind: "QUEUE", workflowStep: null,
     surface: "SURF-APP-001", state: "default", fixture: "populated Queue shared toolbar",
     viewport: { width: 700, height: 800 }, theme: "Dark", route: "/",
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
-  }));
+  });
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.getByRole("radio", { name: "Light" }).click();
-  entries.push(await captureRenderedAcceptance(page, {
+  await capturePhaseOne({
     id: "hux-app-queue-wide-light", workItemKind: "QUEUE", workflowStep: null,
     surface: "SURF-APP-001", state: "default", fixture: "populated Queue shared toolbar",
     viewport: { width: 1440, height: 900 }, theme: "Light", route: "/",
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
-  }));
+  });
   await page.getByRole("radio", { name: "System" }).click();
   await page.emulateMedia({ colorScheme: "light" });
   await expect(page.locator("html")).not.toHaveAttribute("data-theme");
-  entries.push(await captureRenderedAcceptance(page, {
+  await capturePhaseOne({
     id: "application-toolbar-wide-system-light",
     workItemKind: "QUEUE",
     workflowStep: null,
@@ -2653,21 +2729,21 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       "GW-DOC-WORKBENCH-THEME-V1",
     ],
     captureScope: "production application toolbar only",
-  }, page.getByTestId("workbench-toolbar")));
-  entries.push(await captureRenderedAcceptance(page, {
+  }, page.getByTestId("workbench-toolbar"));
+  await capturePhaseOne({
     id: "ia26-queue-system-light", workItemKind: "QUEUE", workflowStep: null,
     surface: "SURF-APP-001", state: "system-theme-effective-light", fixture: "populated Queue",
     viewport: { width: 1440, height: 900 }, theme: "System/light", route: "/",
     authorityRefs: ["GW-DOC-WORKBENCH-THEME-V1"],
-  }));
+  });
   await page.emulateMedia({ colorScheme: "dark" });
-  entries.push(await captureRenderedAcceptance(page, {
+  await capturePhaseOne({
     id: "ia26-queue-system-dark", workItemKind: "QUEUE", workflowStep: null,
     surface: "SURF-APP-001", state: "system-theme-effective-dark", fixture: "populated Queue",
     viewport: { width: 1440, height: 900 }, theme: "System/dark", route: "/",
     authorityRefs: ["GW-DOC-WORKBENCH-THEME-V1"],
-  }));
-  entries.push(await captureRenderedAcceptance(page, {
+  });
+  await capturePhaseOne({
     id: "application-toolbar-wide-system-dark",
     workItemKind: "QUEUE",
     workflowStep: null,
@@ -2682,7 +2758,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       "GW-DOC-WORKBENCH-THEME-V1",
     ],
     captureScope: "production application toolbar only",
-  }, page.getByTestId("workbench-toolbar")));
+  }, page.getByTestId("workbench-toolbar"));
   await page.getByRole("radio", { name: "Light" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
 
@@ -2714,7 +2790,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   );
   await expect(createDialog).not.toContainText(/(?:change|defect|investigation|audit)-v\d/i);
   await expect(createDialog.getByLabel("Title")).toHaveValue("Rendered acceptance change");
-  entries.push(await captureRenderedAcceptance(page, {
+  await capturePhaseOne({
     id: "create-work-item-wide-light-change",
     workItemKind: "CHANGE",
     workflowStep: "Work request",
@@ -2729,17 +2805,17 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       "GW-DOC-WORKBENCH-UX",
       "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM",
     ],
-  }, createDialog));
+  }, createDialog);
   await createDialog.getByRole("button", { name: "Cancel", exact: true }).click();
   await page.getByRole("radio", { name: "Dark" }).click();
   await openCreate();
-  entries.push(await captureRenderedAcceptance(page, {
+  await capturePhaseOne({
     id: "ia26-create-workitem-wide-dark", workItemKind: "CHANGE", workflowStep: "Work request",
     surface: "SURF-CREATE-001", state: "ordinary-change-populated-dark",
     fixture: "Create WorkItem deterministic CHANGE input", viewport: { width: 1440, height: 900 },
     theme: "Dark", route: "/", captureScope: "production Create dialog only",
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
-  }, createDialog));
+  }, createDialog);
   await createDialog.getByRole("button", { name: "Cancel", exact: true }).click();
   await page.getByRole("radio", { name: "Light" }).click();
 
@@ -2752,7 +2828,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   await linkedDialog.getByLabel("Title").fill("Rendered acceptance remediation");
   await expect(linkedDialog).toContainText("Completed parent Investigation · same project");
   await expect(linkedDialog).not.toContainText(completedInvestigation.id);
-  entries.push(await captureRenderedAcceptance(page, {
+  await capturePhaseOne({
     id: "create-linked-remediation-wide-light",
     workItemKind: "DEFECT",
     workflowStep: "Complete",
@@ -2767,7 +2843,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       "GW-DOC-WORKBENCH-UX",
       "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM",
     ],
-  }, linkedDialog));
+  }, linkedDialog);
   await linkedDialog.getByRole("button", { name: "Cancel", exact: true }).click();
   await backToQueue(page);
 
@@ -2780,14 +2856,24 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   const identity = page.getByTestId("workbench-identity");
   await expect(identity.getByRole("navigation", { name: "Work item navigation" }).getByRole("link", { name: "Back to queue" })).toBeVisible();
   await expect(identity.locator(".order-workbench-identity-primary").getByTestId("work-item-heading")).toBeVisible();
-  const expectIdentityOneRow = async (): Promise<void> => {
-    const centers = await identity.evaluate((node) => Array.from(node.children).map((child) => {
-      const bounds = child.getBoundingClientRect();
-      return bounds.top + bounds.height / 2;
-    }));
-    expect(Math.max(...centers) - Math.min(...centers)).toBeLessThanOrEqual(1);
-  };
-  await expectIdentityOneRow();
+  // HUX-11: navigation is subordinate and title is the dominant identity.
+  const identityHierarchy = await identity.evaluate((node) => {
+    const nav = node.querySelector(".order-workbench-identity-navigation")!;
+    const primary = node.querySelector(".order-workbench-identity-primary")!;
+    const title = primary.querySelector("h1")!;
+    const utilities = node.querySelector(".order-workbench-identity-utilities")!;
+    return {
+      navBottom: nav.getBoundingClientRect().bottom,
+      primaryTop: primary.getBoundingClientRect().top,
+      primaryRight: primary.getBoundingClientRect().right,
+      utilityLeft: utilities.getBoundingClientRect().left,
+      titleSize: Number.parseFloat(getComputedStyle(title).fontSize),
+      navSize: Number.parseFloat(getComputedStyle(nav.querySelector("a")!).fontSize),
+    };
+  });
+  expect(identityHierarchy.primaryTop).toBeGreaterThanOrEqual(identityHierarchy.navBottom);
+  expect(identityHierarchy.primaryRight).toBeLessThanOrEqual(identityHierarchy.utilityLeft);
+  expect(identityHierarchy.titleSize).toBeGreaterThan(identityHierarchy.navSize);
   const processRail = page.getByTestId("workflow-rail");
   await expect(processRail.locator(".order-workbench-process-marker")).toHaveCount(9);
   await expect(processRail.getByRole("button", { name: "Work request", exact: true }).locator(".order-workbench-rail-status")).toBeVisible();
@@ -2798,7 +2884,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   await expect(currentAttention).toBeVisible();
   await expect(currentAttention).not.toContainText("Current attention:");
 
-  entries.push(await captureRenderedAcceptance(page, {
+  await capturePhaseOne({
     id: "application-toolbar-workitem-wide-light",
     workItemKind: "CHANGE",
     workflowStep: "Work request",
@@ -2813,9 +2899,9 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
     ],
     captureScope: "production application toolbar only; WorkItem body excluded",
-  }, page.getByTestId("workbench-toolbar")));
+  }, page.getByTestId("workbench-toolbar"));
   await page.setViewportSize({ width: 1000, height: 800 });
-  entries.push(await captureRenderedAcceptance(page, {
+  await capturePhaseOne({
     id: "application-toolbar-workitem-medium-light",
     workItemKind: "CHANGE",
     workflowStep: "Work request",
@@ -2830,7 +2916,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
     ],
     captureScope: "production application toolbar only; WorkItem body excluded",
-  }, page.getByTestId("workbench-toolbar")));
+  }, page.getByTestId("workbench-toolbar"));
   await page.setViewportSize({ width: 1440, height: 900 });
 
   await page.getByRole("button", { name: "Edit title", exact: true }).click();
@@ -2839,7 +2925,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   await page.getByRole("button", { name: "Cancel title edit", exact: true }).click();
   await expect(page.getByRole("button", { name: "Start Research", exact: true })).toBeVisible();
 
-  entries.push(await captureRenderedAcceptance(page, {
+  await capturePhaseOne({
     id: "workitem-shell-wide-light-chrome",
     workItemKind: "CHANGE",
     workflowStep: "Work request",
@@ -2855,9 +2941,9 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
       "GW-DOC-WORKBENCH-THEME-V1",
     ],
-  }, shellChrome));
+  }, shellChrome);
 
-  entries.push(await captureRenderedAcceptance(page, {
+  await capturePhaseOne({
     id: "workitem-shell-wide-light-current-attention",
     workItemKind: "CHANGE",
     workflowStep: "Work request",
@@ -2872,13 +2958,13 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       "GW-DOC-WORKBENCH-UX",
       "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
     ],
-  }, currentAttention));
+  }, currentAttention);
 
   await page.getByRole("button", { name: "Context", exact: true }).click();
   const context = page.getByTestId("work-item-context");
   await expect(context).toBeVisible();
   await expect(context.getByRole("heading", { name: "WorkItem identity", exact: true })).toBeVisible();
-  entries.push(await captureRenderedAcceptance(page, {
+  await capturePhaseOne({
     id: "workitem-context-wide-light-selected-workitem",
     workItemKind: "CHANGE",
     workflowStep: "Work request",
@@ -2893,7 +2979,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       "GW-DOC-WORKBENCH-UX",
       "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
     ],
-  }, context));
+  }, context);
   await page.getByRole("button", { name: "Close context", exact: true }).click();
 
   await page.setViewportSize({ width: 700, height: 800 });
@@ -2904,7 +2990,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   await expect(
     page.getByLabel("Current application destination").getByText("Work item", { exact: true }),
   ).toBeVisible();
-  entries.push(await captureRenderedAcceptance(page, {
+  await capturePhaseOne({
     id: "application-toolbar-workitem-narrow-light",
     workItemKind: "CHANGE",
     workflowStep: "Work request",
@@ -2919,7 +3005,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
     ],
     captureScope: "production application toolbar only; WorkItem body excluded",
-  }, page.getByTestId("workbench-toolbar")));
+  }, page.getByTestId("workbench-toolbar"));
   const narrowIdentity = await identity.evaluate((node) => {
     const navigation = node.querySelector(".order-workbench-identity-navigation")!.getBoundingClientRect();
     const primary = node.querySelector(".order-workbench-identity-primary")!.getBoundingClientRect();
@@ -2931,7 +3017,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   expect(Math.abs(narrowIdentity.navigationTop - narrowIdentity.utilitiesTop)).toBeLessThanOrEqual(8);
   expect(narrowIdentity.primaryTop).toBeGreaterThanOrEqual(Math.max(narrowIdentity.navigationBottom, narrowIdentity.utilitiesBottom));
   expect(narrowIdentity.primaryWidth).toBeGreaterThan(narrowIdentity.identityWidth * 0.85);
-  entries.push(await captureRenderedAcceptance(page, {
+  await capturePhaseOne({
     id: "workitem-shell-narrow-light-chrome",
     workItemKind: "CHANGE",
     workflowStep: "Work request",
@@ -2946,8 +3032,8 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       "GW-DOC-WORKBENCH-UX",
       "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
     ],
-  }, shellChrome));
-  entries.push(await captureRenderedAcceptance(page, {
+  }, shellChrome);
+  await capturePhaseOne({
     id: "workitem-shell-narrow-light-current-attention",
     workItemKind: "CHANGE",
     workflowStep: "Work request",
@@ -2962,12 +3048,12 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       "GW-DOC-WORKBENCH-UX",
       "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
     ],
-  }, currentAttention));
+  }, currentAttention);
 
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.getByRole("link", { name: "Settings", exact: true }).click();
   await expect(page.getByTestId("settings-workspace")).toBeVisible();
-  entries.push(await captureRenderedAcceptance(page, {
+  await capturePhaseOne({
     id: "application-toolbar-settings-wide-light",
     workItemKind: "QUEUE",
     workflowStep: null,
@@ -2982,9 +3068,9 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
     ],
     captureScope: "production application toolbar only; Settings body excluded",
-  }, page.getByTestId("workbench-toolbar")));
+  }, page.getByTestId("workbench-toolbar"));
   await page.setViewportSize({ width: 1000, height: 800 });
-  entries.push(await captureRenderedAcceptance(page, {
+  await capturePhaseOne({
     id: "application-toolbar-settings-medium-light",
     workItemKind: "QUEUE",
     workflowStep: null,
@@ -2999,12 +3085,12 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
     ],
     captureScope: "production application toolbar only; Settings body excluded",
-  }, page.getByTestId("workbench-toolbar")));
+  }, page.getByTestId("workbench-toolbar"));
   await page.setViewportSize({ width: 700, height: 800 });
   await expect(
     page.getByLabel("Current application destination").getByText("Settings", { exact: true }),
   ).toBeVisible();
-  entries.push(await captureRenderedAcceptance(page, {
+  await capturePhaseOne({
     id: "application-toolbar-settings-narrow-light",
     workItemKind: "QUEUE",
     workflowStep: null,
@@ -3019,7 +3105,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
     ],
     captureScope: "production application toolbar only; Settings body excluded",
-  }, page.getByTestId("workbench-toolbar")));
+  }, page.getByTestId("workbench-toolbar"));
 
   // Bounded HUX-10/HUX-11 evidence: exercise the same shell over a real Review
   // destination, without changing or accepting the Review body.
@@ -3040,7 +3126,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
         await expect(page.locator("html")).toHaveAttribute("data-theme", theme.toLowerCase());
         await expect(page.getByTestId("workbench-identity").getByTestId("work-item-heading")).toBeVisible();
         await expect(page.getByTestId("workbench-toolbar").getByLabel("Current application destination")).toBeVisible();
-        entries.push(await captureRenderedAcceptance(page, {
+        await capturePhaseOne({
           id: (renderedEvidenceKind === "bounded_phase_acceptance" ? "bounded-" : "") +
             "hux-shell-approval-" + (viewport.width === 1440 ? "wide" : "narrow") + "-" + theme.toLowerCase(),
           workItemKind: "CHANGE",
@@ -3052,7 +3138,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
           theme,
           route: new URL(page.url()).pathname + new URL(page.url()).search,
           authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2", "GW-DOC-WORKBENCH-THEME-V1"],
-        }));
+        });
       }
     }
     await page.getByRole("radio", { name: "Light" }).click();
@@ -3175,6 +3261,17 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     target?: Locator,
   ): Promise<void> => {
     entries.push(await captureRenderedAcceptance(page, entry, target));
+    if (diagnosticCurrentState || renderedEvidenceKind !== "ia26_acceptance") return;
+    if (mediumComparisonSources[entry.surface as keyof typeof mediumComparisonSources] !== entry.id) return;
+    try {
+      const viewport = { width: 1000, height: 800 };
+      await page.setViewportSize(viewport);
+      entries.push(await captureRenderedAcceptance(page, {
+        ...entry, id: mediumComparisonId(entry.id), viewport,
+      }, target));
+    } finally {
+      await page.setViewportSize(entry.viewport);
+    }
   };
   const light = { width: 1440, height: 900 } as const;
   const narrow = { width: 700, height: 800 } as const;
@@ -4771,7 +4868,13 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   }
   expect(allEntries.some((entry) => entry.theme === "System/light")).toBe(true);
   expect(allEntries.some((entry) => entry.theme === "System/dark")).toBe(true);
-  expect(allEntries.some((entry) => entry.viewport.width === 1000)).toBe(true);
+  for (const surface of requiredSurfaces) {
+    const medium = allEntries.find(entry => entry.surface === surface &&
+      entry.id === mediumComparisonId(mediumComparisonSources[surface as keyof typeof mediumComparisonSources]));
+    expect(medium?.viewport.width, surface + " exact medium viewport").toBe(1000);
+    expect(medium?.reference.comparisonEligible, surface + " same-scope medium comparison").toBe(true);
+    expect(medium?.referenceScreenshot, surface + " medium reference PNG").toBeDefined();
+  }
   expect(allEntries.some((entry) =>
     entry.surface === "SURF-MAT-SOURCE-001" &&
     entry.viewport.width === 700 &&
