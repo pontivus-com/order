@@ -24,6 +24,7 @@ import {
   type StageCompletion,
   type WorkItemId,
 } from "../src/core/contracts.ts";
+import { canonicalApprovalPackageJson } from "../src/core/canonical.ts";
 import { renderWorkItemSourceMarkdown } from "../src/core/work-item-source.ts";
 import { startOrderDaemon } from "../src/daemon/server.ts";
 import { createCoordinatorRuntime } from "../src/daemon/runtime.ts";
@@ -667,6 +668,7 @@ const storePlanArtifacts = (
   });
   storeArtifact(database, plan);
   storeArtifact(database, r3);
+  storeArtifactDependency(database, r3.id, plan.id);
   return { plan, r3 };
 };
 
@@ -1785,7 +1787,10 @@ const seedExecutionFeedback = (
     id: newApprovalId(),
     workItemId: item.id,
     baselineCommit,
-    packageHash: sha256Text(title + "-package"),
+    packageHash: sha256Text(canonicalApprovalPackageJson({
+      workItemId: item.id, baselineCommit, sourceSha256: item.sourceSha256,
+      plan: artifacts.plan, r3: artifacts.r3, materialArtifacts: [],
+    })),
     planArtifactRefId: artifacts.plan.id,
     r3ArtifactRefId: artifacts.r3.id,
     sourceSha256: item.sourceSha256,
@@ -1838,7 +1843,12 @@ const historicalSelectionApproval = ApprovalSchema.parse({
   id: newApprovalId(),
   workItemId: historicalSelectionItem.id,
   baselineCommit,
-  packageHash: sha256Text("implementation-historical-selection-package"),
+  packageHash: sha256Text(canonicalApprovalPackageJson({
+    workItemId: historicalSelectionItem.id, baselineCommit,
+    sourceSha256: historicalSelectionItem.sourceSha256,
+    plan: historicalSelectionArtifacts.plan, r3: historicalSelectionArtifacts.r3,
+    materialArtifacts: [],
+  })),
   planArtifactRefId: historicalSelectionArtifacts.plan.id,
   r3ArtifactRefId: historicalSelectionArtifacts.r3.id,
   sourceSha256: historicalSelectionItem.sourceSha256,
@@ -2005,11 +2015,17 @@ const candidateDesign = ArtifactRefSchema.parse({
 });
 storeArtifact(database, candidateRequirements);
 storeArtifact(database, candidateDesign);
+storeArtifactDependency(database, candidateArtifacts.r3.id, candidateRequirements.id);
+storeArtifactDependency(database, candidateArtifacts.r3.id, candidateDesign.id);
 const approval = ApprovalSchema.parse({
   id: newApprovalId(),
   workItemId: candidateItem.id,
   baselineCommit,
-  packageHash: sha256Text("candidate-package"),
+  packageHash: sha256Text(canonicalApprovalPackageJson({
+    workItemId: candidateItem.id, baselineCommit, sourceSha256: candidateItem.sourceSha256,
+    plan: candidateArtifacts.plan, r3: candidateArtifacts.r3,
+    materialArtifacts: [candidateRequirements, candidateDesign],
+  })),
   planArtifactRefId: candidateArtifacts.plan.id,
   r3ArtifactRefId: candidateArtifacts.r3.id,
   sourceSha256: candidateItem.sourceSha256,
