@@ -931,6 +931,36 @@ describe("Order cross-boundary certification", () => {
     ]);
   });
 
+  it("rejects non-owning attention and outer-frame substitution of canonical primary compositions",()=>{
+    // The §8.17 production renderer and consumer inventory above is exhaustive.
+    // These are the additional semantic constraints on those existing owners,
+    // not a parallel renderer registry. Runtime tests exercise the selected branch.
+    const attentionViolation=(source:string)=>/<WorkbenchAttention\b|\battention\s*=/.test(source);
+    const directReviewViolation=(source:string)=>/<WorkbenchSurface\b|<WorkbenchAttention\b|\battention\s*=|\bbody\s*=/.test(source);
+    const nestedPrimaryViolation=(source:string)=>/<Workbench(?:Review|Document|Dialogue|Result)\b[\s\S]*?<Workbench(?:Review|Document|Dialogue|Result)\b/.test(source);
+    const reviewBodyEscape=(source:string)=>/\bbody\??\s*:\s*ReactNode|\bchildren\??\s*:\s*ReactNode/.test(source);
+    for(const owner of ["WorkItemQueue","EvidenceViewer","TerminalResult"]){
+      expect(attentionViolation(read("ui/src/"+owner+".tsx")),owner).toBe(false);
+    }
+    for(const owner of ["ProposalReview","ReadinessWorkspace","SignoffReview","AcceptanceWorkspace"]){
+      const source=read("ui/src/"+owner+".tsx");
+      // Acceptance's TaskPanel legitimately owns a body prop, never Review.
+      expect(directReviewViolation(source.replace(/<WorkbenchTaskPanel\b[\s\S]*?\/>/g,"")),owner).toBe(false);
+      expect(nestedPrimaryViolation(source),owner).toBe(false);
+    }
+    expect(reviewBodyEscape(read("ui/src/primitives/WorkbenchReview.tsx"))).toBe(false);
+    for(const owner of ["WorkItemQueue","EvidenceViewer","TerminalResult"]){
+      expect(attentionViolation("return <WorkbenchSurface attention={<WorkbenchAttention title='x'/>} material={<p/>}/>;"),owner).toBe(true);
+    }
+    for(const owner of ["ProposalReview","ReadinessWorkspace","SignoffReview"]){
+      expect(directReviewViolation("return <WorkbenchSurface material={<WorkbenchReview verdict={v} sections={s}/>}/>;"),owner).toBe(true);
+      expect(directReviewViolation("return <WorkbenchReview verdict={v} sections={s}/>;"),owner).toBe(false);
+    }
+    expect(nestedPrimaryViolation("return <WorkbenchReview sections={[{content:<WorkbenchDocument title='x'/>}]}/>;")).toBe(true);
+    expect(nestedPrimaryViolation("return <WorkbenchReview sections={[{content:<WorkbenchResourceList items={rows}/>}]}/>;")).toBe(false);
+    expect(reviewBodyEscape("type Props = {body?: ReactNode}")).toBe(true);
+  });
+
   it("keeps reference-driven presentation subordinate to Workbench and Astryx ownership", () => {
     const evidence = read("ui/src/EvidenceViewer.tsx");
     for (const required of [

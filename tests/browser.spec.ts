@@ -1276,38 +1276,70 @@ test("System, Light and Dark preserve representative Workbench semantic roles", 
   await authenticate(page, request);
   await page.setViewportSize({ width: 1280, height: 800 });
 
-  for (const theme of ["System", "Light", "Dark"] as const) {
+  const assertAttentionFree=async(root:Locator)=>{
+    await expect(root.locator(".order-workbench-attention,.order-workbench-surface-attention")).toHaveCount(0);
+  };
+  const assertPrimary=async(root:Locator,selector:string)=>{
+    const primaries=root.locator(".order-workbench-document,.order-workbench-dialogue,.order-workbench-review,.order-workbench-result");
+    await expect(root.locator(selector)).toHaveCount(1);
+    await expect(primaries).toHaveCount(1);
+  };
+  for (const [theme,scheme] of [["System","dark"],["System","light"],["Light","light"],["Dark","dark"]] as const) {
     await page.goto("/");
+    await page.emulateMedia({colorScheme:scheme});
     await page.getByRole("radio", { name: theme }).click();
-    await expect(page.getByTestId("work-item-queue")).toBeVisible();
+    const queue=page.getByTestId("work-item-queue");
+    await expect(queue).toBeVisible();
+    await expect(queue.getByRole("table")).toHaveCount(1);
+    await assertAttentionFree(queue);
 
     await page.getByRole("button", { name: "New work item" }).click();
-    await expect(page.getByRole("dialog", { name: "Create work item" })).toBeVisible();
+    const create=page.getByRole("dialog",{name:"Create work item"});
+    await expect(create).toBeVisible();
+    await expect(create.locator(".order-workbench-task-panel")).toHaveCount(1);
+    await expect(create.getByRole("radio",{name:"Change",exact:true})).toBeVisible();
     await page.getByRole("button", { name: "Cancel", exact: true }).click();
 
     await page.getByRole("link", { name: "Settings", exact: true }).click();
     await expect(page.getByTestId("settings-workspace")).toBeVisible();
+    await expect(page.getByTestId("workbench-settings-layout")).toHaveCount(1);
+    await expect(page.getByRole("link",{name:"Repositories",exact:true})).toBeVisible();
 
     await page.goto("/");
     await openWorkItem(page, "Implementation plan document visual");
     await expect(page.getByTestId("lifecycle-document-material")).toBeVisible();
+    const primary=page.getByTestId("workflow-step-workspace");
+    await assertPrimary(primary,".order-workbench-document");
     await page.getByRole("button", { name: "Context", exact: true }).click();
     await expect(page.getByTestId("work-item-context")).toBeVisible();
+    await expect(page.locator(".order-workbench-context-panel")).toHaveCount(1);
+    await assertPrimary(primary,".order-workbench-document");
+    await page.getByRole("button",{name:"Close context",exact:true}).click();
+    await expect(page.getByTestId("work-item-context")).toHaveCount(0);
 
     await page.goto("/");
     await openWorkItem(page, "Research open continuation");
     await expect(page.getByTestId("activity-detail")).toBeVisible();
     await expect(page.getByTestId("activity-composer")).toBeVisible();
+    await assertPrimary(page.getByTestId("workflow-step-workspace"),".order-workbench-dialogue");
 
     await page.goto("/");
     await openWorkItem(page, "Readiness ready after Plan");
-    await expect(page.getByTestId("review-workspace")).toBeVisible();
+    const readiness=page.getByTestId("review-workspace");
+    await expect(readiness).toBeVisible();
+    await assertPrimary(readiness,".order-workbench-review");
+    await expect(readiness.locator(".order-workbench-surface")).toHaveCount(0);
+    await assertAttentionFree(readiness);
+    await expect(readiness.getByTestId("review-verdict")).toBeVisible();
 
     await page.goto("/");
     await openWorkItem(page, "Verified candidate");
     await selectWorkflowStep(page, "Implementation");
-    await expect(page.getByTestId("execution-workspace")).toBeVisible();
+    const execution=page.getByTestId("execution-workspace");
+    await expect(execution).toBeVisible();
+    await expect(execution.getByRole("navigation",{name:"Approved tasks"})).toHaveCount(1);
     await selectWorkflowMaterial(page, "Independent review · Attempt 2");
+    await expect(execution.getByTestId("validation-matrix")).toBeVisible();
     const reviewEvidence = page
       .locator('[data-evidence-path="review.txt"]')
       .first()
@@ -1316,9 +1348,15 @@ test("System, Light and Dark preserve representative Workbench semantic roles", 
     await reviewEvidence.click();
     await expect(page.getByRole("heading", { name: "Evidence", exact: true })).toBeVisible();
     await expect(page.getByTestId("raw-content-view")).toBeVisible();
+    await assertAttentionFree(page.getByTestId("workflow-step-workspace"));
+    await expect(page.getByTestId("workflow-step-workspace").locator(".order-workbench-review,.order-workbench-document,.order-workbench-result")).toHaveCount(0);
     await page.getByRole("button", { name: "Back to workflow context" }).click();
+    await expect(reviewEvidence).toBeFocused();
     await selectWorkflowStep(page, "Complete");
-    await expect(page.getByTestId("result-workspace")).toBeVisible();
+    const result=page.getByTestId("result-workspace");
+    await expect(result).toBeVisible();
+    await assertPrimary(result,".order-workbench-result");
+    await assertAttentionFree(result);
   }
 });
 
@@ -7719,12 +7757,35 @@ test("terminal investigation and audit results remain closed and linked remediat
 }) => {
   await authenticate(page, request);
 
+  const assertNoDelivery=async(title:string)=>{
+    const item=await workItemForTitle(page,title);
+    const api=page.context().request;
+    const observations=await Promise.all(["runs","tasks","artifacts","current-approval"].map(async path=>{
+      const response=await api.get("/api/work-items/"+item.id+"/"+path);
+      expect(response.ok()).toBe(true);return response.json();
+    }));
+    expect(observations[0].every((run:{stage:string})=>run.stage==="R1")).toBe(true);
+    expect(observations[1]).toEqual([]);
+    expect(observations[2].every((artifact:{role:string})=>!["R2","DESIGN","PLAN","R3"].includes(artifact.role))).toBe(true);
+    expect(observations[3]).toBeNull();
+    for(const step of ["Requirements","Solution design","Implementation plan","Readiness review","Approval","Implementation","Acceptance"] as const){
+      await selectWorkflowStep(page,step);
+      await expect(page.getByTestId("workflow-step-workspace")).toContainText(step+" has not been reached");
+      await expect(page.getByTestId("result-workspace")).toHaveCount(0);
+      await expect(page.getByRole("button",{name:"Create linked remediation"})).toHaveCount(0);
+    }
+    await selectWorkflowStep(page,"Complete");
+    await expect(page.getByTestId("result-workspace")).toBeVisible();
+    const after=await api.get("/api/work-items/"+item.id+"/runs");
+    expect(await after.json()).toEqual(observations[0]);
+  };
   await openWorkItem(page, "Completed audit");
   await expect(page.getByTestId("result-workspace")).toContainText("Audit complete");
   await expect(page.getByTestId("result-material")).toContainText(
     "Evidence-backed audit verdict.",
   );
   await expect(page.getByRole("button", { name: "Create linked remediation" })).toBeVisible();
+  await assertNoDelivery("Completed audit");
   await backToQueue(page);
 
   await openWorkItem(page,"Completed investigation with competing artifact");
@@ -7740,6 +7801,7 @@ test("terminal investigation and audit results remain closed and linked remediat
   );
   await expect(page.getByTestId("result-material")).not.toContainText("Browser certification");
   await expect(page.getByRole("tablist")).toHaveCount(0);
+  await assertNoDelivery("Completed investigation");
   await selectWorkflowStep(page, "Research");
   await expect(page.getByTestId("markdown-readonly")).toContainText(
     "Evidence-backed conclusion.",
