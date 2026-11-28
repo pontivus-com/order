@@ -5084,7 +5084,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     await review.getByRole("button",{name:"Back to Acceptance",exact:true}).click();
     await expect(criterion).toBeFocused();
     if(integratedAcceptance){
-      await review.getByRole("button",{name:"View evidence",exact:true}).first().click();
+      await review.getByRole("button",{name:"Inspect changes",exact:true}).click();
       await expect(page.getByTestId("evidence-workspace")).toBeVisible();
       await captureDependent("SURF-MAT-EVIDENCE-001","qa-original","Acceptance","Native Acceptance original candidate patch");
       await page.getByRole("button",{name:"Back to workflow context",exact:true}).click();
@@ -5215,8 +5215,8 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
       await expect(review.getByTestId("review-verdict")).toContainText("Ready for retest");
       await captureAcceptance("retest-required","wide-light",light,"Light","Native Acceptance retest history");
       if(integratedAcceptance){
-        const successor=review.getByText("successor-review.txt",{exact:true}).first();
-        await successor.locator("xpath=ancestor::*[@role='listitem' or self::li][1]").getByRole("button",{name:"View evidence",exact:true}).click();
+        const successor=review.getByRole("button",{name:"View validation",exact:true});
+        await successor.click();
         await expect(page.getByTestId("evidence-workspace")).toBeVisible();
         await expect(page.getByTestId("raw-content-view")).toContainText("Independent assessment");
         await captureDependent("SURF-MAT-EVIDENCE-001","qa-successor","Acceptance","Native Acceptance successor evidence");
@@ -5264,6 +5264,15 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
       await openWorkItem(page,"Native Acceptance mixed candidate");
       await expect(review.getByTestId("review-verdict")).toContainText("Verified candidate");
       await expect(review.getByText("No change required",{exact:true})).toBeVisible();
+      const mixedResources=review.locator('[data-review-section="candidate"]');
+      await expect(mixedResources.getByRole("button",{name:"Inspect changes",exact:true})).toHaveCount(1);
+      await expect(mixedResources.getByRole("button",{name:"Prepare test copy",exact:true})).toHaveCount(1);
+      const noOpValidation=mixedResources.getByText("No-change proof",{exact:true}).locator("xpath=ancestor::*[@role='listitem' or self::li][1]").getByRole("button",{name:"View validation",exact:true});
+      await noOpValidation.click();
+      await expect(page.getByTestId("execution-task-detail")).toContainText("No change required");
+      await expect(page.getByTestId("validation-stage-V7")).toHaveCount(0);
+      await page.getByRole("button",{name:"Back to Acceptance",exact:true}).click();
+      await expect(noOpValidation).toBeFocused();
       await captureAcceptance("mixed-candidate","wide-light",light,"Light","Native Acceptance mixed candidate");
       await review.getByText("No change required",{exact:true}).locator("xpath=ancestor::*[@role='listitem' or self::li][1]").getByRole("button",{name:"Report finding for task",exact:true}).click();
       await expect(report).toContainText("Verify existing behavior needs no change");
@@ -5397,6 +5406,11 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
         await expect(review.getByTestId("review-verdict")).toContainText(fault==="CANDIDATE_PROOF_UNAVAILABLE"?"Candidate proof unavailable":"Authority changed");
         await expect(review.getByRole("button",{name:"Accept candidate",exact:true})).toHaveCount(0);
         await expect(review.getByRole("button",{name:"Report finding for task",exact:true})).toHaveCount(0);
+        if(fault==="CANDIDATE_PROOF_UNAVAILABLE"){
+          await expect(review.locator('[data-review-section="criteria"]').getByText("Member proof unavailable",{exact:true})).toBeVisible();
+          await expect(review.getByRole("button",{name:"Inspect changes",exact:true})).toHaveCount(0);
+          await expect(review.getByRole("button",{name:"View validation",exact:true})).toHaveCount(0);
+        }
         await captureAcceptance(state,"wide-light",light,"Light",title);
         const action=fault==="CANDIDATE_PROOF_UNAVAILABLE"?"Return to planning":"Reconcile authority";
         await review.getByRole("button",{name:action,exact:true}).click();
@@ -8151,6 +8165,30 @@ test("native Acceptance uses one exact current decision and historical round sta
   await expect(workspace.getByRole("button",{name:"Back to Acceptance",exact:true})).toBeVisible();
   await workspace.getByRole("button",{name:"Back to Acceptance",exact:true}).click();
   await expect(criterion).toBeFocused();
+  const criteriaSection=workspace.locator('[data-review-section="criteria"]');
+  const candidateSection=workspace.locator('[data-review-section="candidate"]');
+  await expect(criteriaSection.getByText("Member proof available",{exact:true})).toBeVisible();
+  const criterionProof=criteriaSection.getByRole("button",{name:"View evidence",exact:true});
+  await criterionProof.click();
+  await expect(page.getByTestId("execution-workspace")).toBeVisible();
+  await expect(page.getByTestId("validation-matrix")).toContainText("V7");
+  await page.getByRole("button",{name:"Back to Acceptance",exact:true}).click();
+  await expect(criterionProof).toBeFocused();
+  await expect(candidateSection.getByText("Changes",{exact:true})).toBeVisible();
+  await expect(candidateSection.getByText("Independent validation",{exact:true})).toBeVisible();
+  await expect(candidateSection.getByText("Manual test copy",{exact:true})).toBeVisible();
+  await expect(candidateSection.getByText("candidate.patch",{exact:true})).toHaveCount(0);
+  const changes=candidateSection.getByRole("button",{name:"Inspect changes",exact:true});
+  await changes.click();
+  await expect(page.getByTestId("evidence-workspace")).toBeVisible();
+  await expect(page.getByTestId("raw-content-view")).toContainText("export const a = 2;");
+  await page.getByRole("button",{name:"Back to workflow context",exact:true}).click();
+  await expect(changes).toBeFocused();
+  const validation=candidateSection.getByRole("button",{name:"View validation",exact:true});
+  await validation.click();
+  await expect(page.getByTestId("validation-matrix")).toContainText("V7");
+  await page.getByRole("button",{name:"Back to Acceptance",exact:true}).click();
+  await expect(validation).toBeFocused();
   await workspace.getByRole("button",{name:"Report finding for task",exact:true}).click();
   const reportDialog=page.getByRole("dialog",{name:"Report finding",exact:true});
   await reportDialog.getByLabel("Expected behavior").fill("draft retained");
@@ -8173,6 +8211,13 @@ test("native Acceptance uses one exact current decision and historical round sta
   await expect(workspace.getByTestId("review-verdict")).toContainText("Historical review");
   await expect(workspace.getByRole("button",{name:"Accept candidate",exact:true})).toHaveCount(0);
   await expect(workspace.getByRole("button",{name:"Report finding",exact:true})).toHaveCount(0);
+  await expect(workspace.getByRole("button",{name:"Prepare test copy",exact:true})).toHaveCount(0);
+  await expect(criteriaSection.getByText("Historical member proof",{exact:true})).toBeVisible();
+  await changes.click();
+  await expect(page.getByTestId("raw-content-view")).toContainText("export const a = 2;");
+  await page.getByRole("button",{name:"Back to workflow context",exact:true}).click();
+  await expect(changes).toBeFocused();
+  await expect(workspace.getByTestId("review-verdict")).toContainText("Historical review");
   await workspace.getByRole("button",{name:"Return to current review",exact:true}).click();
   await workspace.getByRole("button",{name:"Accept candidate",exact:true}).click();
   const dialog=page.getByRole("dialog",{name:"Accept candidate",exact:true});

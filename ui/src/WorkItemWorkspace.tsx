@@ -1422,7 +1422,10 @@ export const WorkItemWorkspace = ({
             onReturnCurrent={()=>requestSelection({step:workItem.stage,material:null})}
             onOpenEvidence={(selection,focusId)=>acceptanceInspection({kind:"EVIDENCE",selection},focusId)}
             onOpenDocument={(artifactId,focusId)=>acceptanceInspection({kind:"SUPPORTING_DOCUMENT",artifactId},focusId)}
-            onOpenCorrection={(taskId,runId)=>requestSelection({step:"EXECUTION",material:{kind:"EXECUTION_TASK",taskId,runId}},{step:selectedStep,material})}
+            onOpenAttempt={(taskId,runId,focusId)=>{
+              if(focusId!==undefined)setReturnFocusName(focusId);
+              requestSelection({step:"EXECUTION",material:{kind:"EXECUTION_TASK",taskId,runId}},{step:selectedStep,material});
+            }}
             onMutationError={reportMutationError} />
         </Suspense>:null}
       {material.kind === "EVIDENCE" && selectedStep !== "EXECUTION" ? (
@@ -1545,7 +1548,12 @@ export const WorkItemWorkspace = ({
           <ExecutionWorkspace
             workItem={workItem}
             material={material}
-            tasks={workItem.stage === "EXECUTION" ? currentExecutionTasks : tasks}
+            tasks={workItem.stage === "EXECUTION" ?
+              returnSelection?.step==="AWAITING_ACCEPTANCE"&&material.kind==="EXECUTION_TASK"&&
+                !currentExecutionTasks.some(task=>task.id===material.taskId)
+                  ? tasks.filter(task=>task.approvalId===tasks.find(value=>value.id===material.taskId)?.approvalId)
+                  : currentExecutionTasks
+              : tasks}
             runs={runs}
             runEvents={allRunEvents}
             artifacts={allArtifacts}

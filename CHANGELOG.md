@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Complete Native Acceptance member and criterion evidence inspection, explicit Changes/Independent validation/Manual test copy resources, no-change proof, exact historical return and focus, and explicit submission, retest and final decision context. Extend browser certification for current, historical, mixed and missing-proof cases.
+
 - Use the canonical deterministic JSON owner for Acceptance identity rechecks at command commit, consistent with authority observation.
 
 - Reconcile protected PLAN inspection, lifecycle serialization and terminal linked-remediation dependency ownership with exact named-import enforcement.

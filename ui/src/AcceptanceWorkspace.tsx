@@ -29,13 +29,13 @@ const formTitles: Record<FormAction,string> = {
 };
 
 export const AcceptanceWorkspace = ({workItem,material,approvals,histories,historyPending,historyError,input,decision,
-  signedArtifacts,active,onDirtyChange,onSelectMaterial,onReturnCurrent,onOpenEvidence,onOpenDocument,onOpenCorrection,onMutationError}:Readonly<{
+  signedArtifacts,active,onDirtyChange,onSelectMaterial,onReturnCurrent,onOpenEvidence,onOpenDocument,onOpenAttempt,onMutationError}:Readonly<{
   workItem:WorkItem; material:Material; approvals:readonly Approval[]; histories:readonly CandidateReviewEvent[];
   historyPending:boolean; historyError:unknown; input:Parameters<typeof deriveAcceptanceDecision>[0];
   decision:ReturnType<typeof deriveAcceptanceDecision>; signedArtifacts:readonly ArtifactRef[];
   active:boolean; onDirtyChange:(dirty:boolean)=>void;
   onSelectMaterial:(material:Material)=>void; onReturnCurrent:()=>void; onOpenEvidence:(selection:EvidenceSelection,focusId?:string)=>void;
-  onOpenDocument:(artifactId:ArtifactRef["id"],focusId?:string)=>void; onOpenCorrection:(taskId:string,runId:string)=>void; onMutationError:(error:unknown)=>void;
+  onOpenDocument:(artifactId:ArtifactRef["id"],focusId?:string)=>void; onOpenAttempt:(taskId:string,runId:string,focusId?:string)=>void; onMutationError:(error:unknown)=>void;
 }>) => {
   const queryClient=useQueryClient();
   const {approval,history,round,latest,visibleHistory}=resolveAcceptanceSelection(material,approvals,histories,input.approval);
@@ -92,9 +92,54 @@ export const AcceptanceWorkspace = ({workItem,material,approvals,histories,histo
       const rounds=reconstructCandidateRounds(approval,input.tasks,input.runs,input.runEvents,history);
       members=rounds.get(round.id)??[];
       dispositions=candidateFindingDispositions(visibleHistory,rounds,input.tasks,input.runs,input.runEvents);
-    } catch { observationError=true; }
+    } catch { members=[]; observationError=true; }
   }
   const memberFor=(id:string)=>input.runEvents.find(event=>event.id===members.find(member=>member[0]===id)?.[1]);
+  // Resolve only the selected round's admitted member and its explicit proof
+  // references. The core round fold owns admission; this is presentation only.
+  const memberProof=(id:string)=>{
+    const member=memberFor(id);
+    if(member?.event.tag==="TASK_ALREADY_SATISFIED")return {member,state:undefined,validation:[]};
+    if(member?.event.tag!=="CANDIDATE_RECORDED")return undefined;
+    const recorded=member.event;
+    const state=input.runEvents.find(value=>value.id===recorded.candidateStateEventId);
+    if(state?.event.tag!=="CANDIDATE_STATE_RECORDED")return undefined;
+    const validation=recorded.validationEventIds.flatMap(eventId=>{
+      const event=input.runEvents.find(value=>value.id===eventId);
+      return event===undefined?[]:[event];
+    });
+    return {member,state,validation};
+  };
+  const proofAvailable=(id:string)=>memberProof(id)!==undefined&&
+    (!current||input.diagnostic===null&&decision.tag!=="NONE");
+  const memberMeaning=(id:string)=>{
+    const member=memberFor(id);
+    if(member===undefined)return "Member proof unavailable";
+    if(!proofAvailable(id))return member.event.tag==="TASK_ALREADY_SATISFIED"?"Recorded no-change result":"Recorded candidate";
+    return member.event.tag==="TASK_ALREADY_SATISFIED"?"No change required":"Verified candidate";
+  };
+  const validationResources=(id:string)=>{
+    const proof=memberProof(id);
+    if(proof===undefined)return [];
+    // All validation references are bound by the admitted CANDIDATE_RECORDED
+    // event. Repeated references to the same immutable file are one resource.
+    return [...new Map(proof.validation.flatMap(event=>eventEvidence(event).map(ref=>
+      [event.runId+":"+ref.relativePath,{runId:event.runId,relativePath:ref.relativePath}] as const))).values()];
+  };
+  const inspectValidation=(id:string,focusId:string)=>{
+    const proof=memberProof(id);
+    if(proof===undefined||!proofAvailable(id))return;
+    const resources=validationResources(id);
+    // When a single actual evidence file is recorded, inspect its bytes. If
+    // proof consists of the durable attempt events (or several files), the
+    // existing exact attempt owner exposes the full proof without picking an
+    // arbitrary file or inventing V0–V7 for an admitted no-change result.
+    if(resources.length===1&&resources[0]!==undefined){
+      onOpenEvidence({kind:"EVIDENCE",...resources[0]},focusId);
+    }else{
+      onOpenAttempt(id,proof.member.runId,focusId);
+    }
+  };
   const actionAllowed=(action:"REPORT"|"PREPARE_TEST_COPY",id:string)=> {
     const member=memberFor(id);
     try{return member!==undefined&&candidateMemberActionIsAdmitted(input,current,action,id,member.id);}catch{return false;}
@@ -205,6 +250,16 @@ export const AcceptanceWorkspace = ({workItem,material,approvals,histories,histo
     return {id:event.id+":"+ref.relativePath,label:ref.relativePath,detail:ref.mediaType,
       action:<WorkbenchAction label="View evidence" testId={id} onClick={()=>onOpenEvidence({kind:"EVIDENCE",runId:event.runId,relativePath:ref.relativePath},id)}/>};
   }));
+  const memberEvidenceRows=(id:string,context:string)=>{
+    const proof=memberProof(id);
+    if(proof===undefined||!proofAvailable(id))return [];
+    const resources=validationResources(id);
+    return resources.map((resource,index)=>{
+      const focusId="qa-member-validation:"+context+":"+id+":"+index;
+      return {id:focusId,label:resources.length===1?"Current member validation":"Current member validation "+(index+1),
+        action:<WorkbenchAction label="View evidence" testId={focusId} onClick={()=>onOpenEvidence({kind:"EVIDENCE",...resource},focusId)}/>};
+    });
+  };
   const findingDetails=(entry:ReturnType<typeof reportEntries>[number],inspect=true)=>{
     const retest=visibleHistory.findLast(value=>value.event.tag==="RETEST_FAILED"&&value.event.findingId===entry.id);
     const disposition=visibleHistory.findLast(value=>value.event.tag==="DISPOSITION"&&value.event.findingId===entry.id);
@@ -287,19 +342,34 @@ export const AcceptanceWorkspace = ({workItem,material,approvals,histories,histo
       <MultiSelector label="Supporting evidence" options={evidenceOptions(taskId)} value={evidenceIds} onChange={setEvidenceIds} width="100%"/>
       <WorkbenchResourceList items={evidenceActions(input.runEvents.filter(event=>evidenceIds.includes(event.id)),"form-report")}/>
     </>:null}
-    {form.action==="SUBMIT"?<MultiSelector label="Findings" options={eligibleReports.filter(entry=>entry.event.taskId===taskId).map(entry=>({value:entry.id,label:entry.event.observed}))} value={findingIds} onChange={setFindingIds} width="100%"/>:null}
+    {form.action==="SUBMIT"?<>
+      <MultiSelector label="Findings" options={eligibleReports.filter(entry=>entry.event.taskId===taskId).map(entry=>({value:entry.id,label:entry.event.observed}))} value={findingIds} onChange={setFindingIds} width="100%"/>
+      <WorkbenchResourceList label="Selected findings" items={eligibleReports.filter(entry=>entry.event.taskId===taskId&&findingIds.includes(entry.id)).map(entry=>({id:entry.id,label:entry.event.observed}))}/>
+      <p>Independent review and any required correction will be queued against this exact member. Other findings remain open.</p>
+    </>:null}
     {form.action==="RETEST"?<>
       {choice("Finding",findingIds[0]??"",id=>{setFindingIds([id]);setEvidenceIds([]);},reports.filter(entry=>findingAllowed("RETEST",entry.id)).map(entry=>({value:entry.id,label:entry.event.observed})))}
-      {chosenReport?findingDetails(chosenReport,false):null}
+      {chosenReport?<>{findingDetails(chosenReport,false)}
+        <WorkbenchFacts items={[
+          {id:"current-member",label:"Current member proof",value:memberMeaning(chosenReport.event.taskId)},
+        ]}/>
+        <WorkbenchResourceList items={memberEvidenceRows(chosenReport.event.taskId,"retest")}/>
+      </>:null}
       <RadioList label="Retest outcome" value={outcome} onChange={setOutcome} isRequired><RadioListItem value="RESOLVED" label="Correction confirmed"/><RadioListItem value="FAILED" label="Defect still present"/></RadioList>
       {outcome==="FAILED"?field("Observed behavior",observed,setObserved):null}
     </>:null}
+    {form.action==="RETURN"?form.decision.tag==="REANALYSE_NO_OP"?
+      <WorkbenchResourceList label="No-change findings requiring reanalysis" items={reports.filter(entry=>form.decision.tag==="REANALYSE_NO_OP"&&form.decision.findingIds.includes(entry.id)).map(entry=>({id:entry.id,label:entry.event.observed}))}/>:
+      <p>The exact candidate proof is unavailable. Planning must be reconsidered before further implementation.</p>:null}
     {form.action==="RETEST"||form.action==="WITHDRAW"||form.action==="RETURN"?field("Rationale",rationale,setRationale):null}
     {form.action==="RETEST"&&outcome==="FAILED"?<MultiSelector label="Supporting evidence" options={evidenceOptions(chosenReport?.event.taskId??"")} value={evidenceIds} onChange={setEvidenceIds} width="100%"/>:null}
     {form.action==="WITHDRAW"&&chosenReport?findingDetails(chosenReport,false):null}
     {form.action==="WITHDRAW"?<>{affirmation("This is not a known unmet signed obligation")}<Selector label="Follow-up WorkItem" value={followup} onChange={setFollowup} options={[{value:"",label:"None"},...(followupsQuery.data??[]).filter(item=>item.projectId===workItem.projectId&&item.id!==workItem.id).map(item=>({value:item.id,label:item.title}))]} width="100%"/></>:null}
-    {form.action==="ACCEPT"?<><WorkbenchResourceList items={tasks.map(task=>({id:task.id,label:task.objective}))}/>{affirmation("No known unmet signed obligations")}</>:null}
-    {form.action==="COPY"?<p>Prepare an isolated local copy of the selected candidate. No delivery or overwrite is performed.</p>:field("Your name",actor,setActor)}
+    {form.action==="ACCEPT"?<><WorkbenchResourceList items={tasks.map(task=>({id:task.id,label:task.objective,detail:memberMeaning(task.id)}))}/>{affirmation("No known unmet signed obligations")}</>:null}
+    {form.action==="COPY"?<>
+      {chosenTask===undefined?null:<WorkbenchFacts items={[{id:"member",label:"Candidate",value:chosenTask.objective}]}/>}
+      <p>Prepare an isolated local copy of the selected candidate. No execution, delivery or overwrite is performed.</p>
+    </>:field("Your name",actor,setActor)}
   </>;
   if(!active)return null;
   return <>
@@ -308,27 +378,36 @@ export const AcceptanceWorkspace = ({workItem,material,approvals,histories,histo
       {id:"criteria",title:"Acceptance criteria",content:<>{tasks.map(task=><WorkbenchResourceList key={task.id} label={task.objective}
         items={task.acceptanceRefs.map(ref=>{
           const id="criterion:overview:"+task.id+":"+ref;
-          return {id:ref,label:ref,detail:current&&input.currentProof!==null?"Member proof available":"Historical criterion reference",
-            action:<WorkbenchAction label="Open criterion" testId={id} loading={criterionPending===id} disabled={criterionPending!==null||approval===null}
-              onClick={()=>{void openCriterion(task.id,ref,id);}}/>};
+          const proofId=id+":member-proof";
+          return {id:ref,label:ref,detail:proofAvailable(task.id)?current?"Member proof available":"Historical member proof":"Member proof unavailable",
+            action:<><WorkbenchAction label="Open criterion" testId={id} loading={criterionPending===id} disabled={criterionPending!==null||approval===null}
+              onClick={()=>{void openCriterion(task.id,ref,id);}}/>
+              {proofAvailable(task.id)?<WorkbenchAction label="View evidence" testId={proofId} onClick={()=>inspectValidation(task.id,proofId)}/>:null}</>};
         })}
         empty={<p>No signed criterion references.</p>}/>)}</>},
       {id:"candidate",title:"Candidate and evidence",content:<>
         {observationError?<WorkbenchNotice tone="warning" title="Exact member evidence unavailable"/>:null}
         {tasks.map(task=>{
-          const member=memberFor(task.id);if(member===undefined)return null;
-          const state=member.event.tag==="CANDIDATE_RECORDED"?input.runEvents.find(event=>event.id===(member.event.tag==="CANDIDATE_RECORDED"?member.event.candidateStateEventId:"")):undefined;
-          return <WorkbenchResourceList key={task.id} label={task.objective} items={[
-            {id:task.id,label:member.event.tag==="TASK_ALREADY_SATISFIED"?"No change required":"Verified candidate",
-              action:<>{actionAllowed("PREPARE_TEST_COPY",task.id)?<WorkbenchAction label="Prepare test copy" onClick={()=>open("COPY",task.id)}/>:null}
-                {actionAllowed("REPORT",task.id)?<WorkbenchAction label="Report finding for task" onClick={()=>open("REPORT",task.id)}/>:null}</>},
-            ...evidenceActions([member,...(state?[state]:[]),...input.runEvents.filter(event=>event.runId===member.runId&&event.event.tag.startsWith("VALIDATION_"))],"member:"+task.id)
+          const proof=memberProof(task.id);
+          const state=proof?.state;
+          const changesId="qa-changes:"+task.id;
+          const validationId="qa-validation:"+task.id;
+          return <WorkbenchResourceList key={task.id} items={[
+            {id:task.id,label:task.objective,detail:memberMeaning(task.id),
+              action:actionAllowed("REPORT",task.id)?<WorkbenchAction label="Report finding for task" onClick={()=>open("REPORT",task.id)}/>:undefined},
+            ...(state?.event.tag==="CANDIDATE_STATE_RECORDED"&&proofAvailable(task.id)?[{id:changesId,label:"Changes",
+              action:<WorkbenchAction label="Inspect changes" testId={changesId}
+                onClick={()=>{if(state.event.tag==="CANDIDATE_STATE_RECORDED")onOpenEvidence({kind:"EVIDENCE",runId:state.runId,relativePath:state.event.patch.relativePath},changesId);}}/>}]:[]),
+            ...(proof!==undefined&&proofAvailable(task.id)?[{id:validationId,label:proof.member.event.tag==="TASK_ALREADY_SATISFIED"?"No-change proof":"Independent validation",
+              action:<WorkbenchAction label="View validation" testId={validationId} onClick={()=>inspectValidation(task.id,validationId)}/>}]:[]),
+            ...(actionAllowed("PREPARE_TEST_COPY",task.id)?[{id:"qa-copy:"+task.id,label:"Manual test copy",
+              action:<WorkbenchAction label="Prepare test copy" onClick={()=>open("COPY",task.id)}/>}]:[])
           ]}/>;
         })}
-        <WorkbenchResourceList items={artifacts.map(artifact=>({id:artifact.id,label:lifecycleArtifactLabel(artifact.role),detail:artifact.repositoryPath,
+        <WorkbenchResourceList items={artifacts.map(artifact=>({id:artifact.id,label:lifecycleArtifactLabel(artifact.role),detail:"Read-only signed material",
           action:<WorkbenchAction label="Open document" onClick={()=>onOpenDocument(artifact.id)}/> }))}/>
       </>},
-      {id:"findings",title:"QA findings",content:<>{report===undefined?<>{tasks.map(task=><WorkbenchResourceList key={task.id} label={task.objective} items={reports.filter(entry=>entry.event.taskId===task.id).map(entry=>({id:entry.id,label:entry.event.observed,
+      {id:"findings",title:"QA findings",content:<>{report===undefined?<>{tasks.map(task=><WorkbenchResourceList key={task.id} label={task.objective} items={reports.filter(entry=>entry.event.taskId===task.id).map(entry=>({id:entry.id,label:entry.event.observed,detail:task.objective,
         meta:<WorkbenchStatus tone="neutral" label={dispositions.get(entry.id)==="DISPOSED"?"Disposed":dispositions.get(entry.id)==="RETEST_REQUIRED"?"Retest required":dispositions.get(entry.id)==="RETEST_FAILED"?"Retest failed":"Open"}/>,
         action:<WorkbenchAction label="Inspect finding" onClick={()=>setSelectedFinding(entry.id)}/> }))}/>)}{reports.length===0?<p>No findings reported.</p>:null}</>:<>
         <WorkbenchAction label="Back to findings" onClick={()=>setSelectedFinding(null)}/>
@@ -343,7 +422,7 @@ export const AcceptanceWorkspace = ({workItem,material,approvals,histories,histo
           if(event.tag!=="REVIEW_STARTED")return [];
           const run=input.runs.find(value=>value.id===event.runId);
           if(run?.executionTaskId==null)return [];
-          return [{id:entry.id,label:"Independent correction review",detail:new Date(entry.occurredAt).toLocaleString(),action:<WorkbenchAction label="View correction" onClick={()=>onOpenCorrection(run.executionTaskId!,run.id)}/> }];
+          return [{id:entry.id,label:"Independent correction review",detail:new Date(entry.occurredAt).toLocaleString(),action:<WorkbenchAction label="View correction" testId={"qa-correction:"+entry.id} onClick={()=>onOpenAttempt(run.executionTaskId!,run.id,"qa-correction:"+entry.id)}/> }];
         })}/></>}
     ]} decisions={primaryAction()}/>
     <WorkbenchTaskPanel open={form!==null&&discard===null} title={form===null?"Acceptance":formTitles[form.action]} onOpenChange={next=>{if(!next)closeForm();}}
