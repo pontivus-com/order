@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Record targeted R3 for the amended 0.6.0 specification after integrated alignment; preserve prior local evidence and require a separate exact-package authorization before remaining implementation.
+
 - Consolidate G-F41/G-F42 definition revalidation into one impact review; retain unaffected evidence and verify the actual scope, dependencies and downstream proof without repeating unchanged audits.
 
 - Clarify minimum-change verification: test the actual change, material producer/carrier/consumer dependencies and side effects; retain unaffected evidence, and do not turn non-blocking findings or identity-only changes into repeated semantic review. Preserve mandatory signed admission and final certification.
