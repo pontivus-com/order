@@ -581,6 +581,13 @@ const server = Bun.serve({
             ? '[{"tag":"REVIEW_PASSED","minimumChange":"MINIMUM_SUFFICIENT","minimumChangeSummary":null,"evidence":[]}]'
             : '[{"tag":"REVIEW_FAILED","classification":"REVIEW_FAILURE","summary":"target still needs repair or V4 inputs are incomplete","evidence":[]}]';
         }
+        if (text.includes("Immutable submitted QA events")) {
+          const eventsLine=text.split("\\n").find(line=>line.startsWith("[{")&&line.includes('"tag":"SUBMIT"'));
+          const submission=JSON.parse(eventsLine)[0];
+          const payload=JSON.parse(output)[0];
+          payload.qaAssessments=submission.event.findingIds.map(findingId=>({findingId,verdict:payload.tag==="REVIEW_PASSED"?"SATISFIED":"FAIL_REPAIRABLE",rationale:"independent fixture review",evidence:[]}));
+          output=JSON.stringify([payload]);
+        }
       } else if (mode === "stage-durable-history") {
         writeFileSync(join(own, "durable-history-prompt"), text);
         output = '[{"tag":"AGENT_MESSAGE_FINAL","text":"history captured for inspection","evidence":[]}]';
@@ -6919,7 +6926,32 @@ describe("daemon control plane", () => {
           providerEventIndex >= 0 &&
           diagnosticIndex < providerEventIndex;
       });
+      const history=await coord.observeCandidateReviewEvents(runtime,work,approval.id,1);
+      const opening=history[0];
+      const hash=opening.event.candidateHash;
+      const rejected=async fn=>{try{await fn();return false;}catch{return true;}};
+      const testCopy=await coord.prepareAcceptanceTestCopy(runtime,work,approval.id,hash,1,tasks[0].id,recorded.id);
+      const fs=await import("node:fs");
+      const isolated=fs.readFileSync(testCopy+"/src/target.ts","utf8")==="fixed\\n"&&testCopy!==repositoryRoot;
+      fs.rmSync(testCopy.slice(0,testCopy.lastIndexOf("/")),{recursive:true,force:true});
+      const report=await coord.recordCandidateReviewDecision(runtime,work,approval.id,hash,1,"human",{tag:"REPORT",candidateHash:hash,taskId:tasks[0].id,candidateEventId:recorded.id,acceptanceRefs:[],expected:"correct",observed:"manual concern",reproduction:"inspect",impact:"functional",evidence:[]});
+      const premature=await rejected(()=>coord.recordCandidateReviewDecision(runtime,work,approval.id,hash,2,"human",{tag:"ACCEPT"}));
+      const stale=await rejected(()=>coord.recordCandidateReviewDecision(runtime,work,approval.id,hash,1,"human",{tag:"SUBMIT",candidateHash:hash,findingIds:[report.id]}));
+      const submitted=await coord.recordCandidateReviewDecision(runtime,work,approval.id,hash,2,"human",{tag:"SUBMIT",candidateHash:hash,findingIds:[report.id]});
+      const queued=await coord.observeCandidateReviewEvents(runtime,work,approval.id,3);
+      const correction=await coord.runCoordinatorTick(runtime);
+      const returned=coord.getWorkItem(runtime,work);
+      const round=await coord.observeCandidateReviewEvents(runtime,work,approval.id,5);
+      const freshHash=round[4].event.candidateHash;
+      const retest=await coord.recordCandidateReviewDecision(runtime,work,approval.id,freshHash,5,"human",{tag:"DISPOSITION",candidateHash:freshHash,findingId:report.id,outcome:"RESOLVED",rationale:"manual retest confirmed",followupWorkItemId:null,withdrawalAttestation:null});
+      const accepted=await coord.recordCandidateReviewDecision(runtime,work,approval.id,freshHash,6,"human",{tag:"ACCEPT"});
+      const final=coord.getWorkItem(runtime,work);
+      const finalApproval=await coord.observeCurrentApproval(runtime,work);
+      const finalHistory=await coord.observeCandidateReviewEvents(runtime,work,approval.id);
+      const duplicate=await rejected(()=>coord.recordCandidateReviewDecision(runtime,work,approval.id,freshHash,6,"human",{tag:"ACCEPT"}));
+      const acceptance={isolated,premature,stale,queued:queued.at(-1).id===submitted.id,correction:correction.result,returned:returned.stage,changedHash:freshHash!==hash,retest:retest.event.tag,final:final.stage,finalOutcome:final.outcome,actor:accepted.actor,finalApproval:finalApproval.id===approval.id,history:finalHistory.map(value=>value.event.tag),duplicate};
       console.log(JSON.stringify({
+        acceptance,
         tick,
         workItem,
         taskState: tasks[0].state,
@@ -6970,10 +7002,11 @@ describe("daemon control plane", () => {
 
     expect(output.tick.result).toBe("STARTED");
     expect(output.workItem, JSON.stringify(output)).toMatchObject({
-      stage: "COMPLETE",
-      status: "COMPLETE",
-      outcome: "CANDIDATE_DONE",
+      stage: "AWAITING_ACCEPTANCE",
+      status: "ACTIVE",
+      outcome: null,
     });
+    expect(output).toMatchObject({acceptance:{isolated:true,premature:true,stale:true,queued:true,correction:"STARTED",returned:"AWAITING_ACCEPTANCE",changedHash:true,retest:"DISPOSITION",final:"COMPLETE",finalOutcome:"CANDIDATE_DONE",actor:"human",finalApproval:true,history:["OPENED","REPORT","SUBMIT","REVIEW_STARTED","REVIEW_COMPLETED","DISPOSITION","ACCEPT"],duplicate:true}});
     expect(output.taskState).toBe("CANDIDATE_DONE");
     expect(output.roles, JSON.stringify(output)).toEqual(["BUILDER", "REVIEWER", "REMEDIATOR", "REVIEWER"]);
     expect(output.remediationCount).toBe(1);
