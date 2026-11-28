@@ -167,7 +167,7 @@ export const SignoffReview = ({
       packageHash:selection.packageHash,...detail});
   const [approvedBy, setApprovedBy] = useState("");
 
-  const currentApproval = workItem.stage === "AWAITING_SIGNOFF" && selectedApproval === null;
+  const currentApproval = workItem.stage === "AWAITING_SIGNOFF" && selectedApproval === null && selection.approvalId === undefined;
   const currentTasks = packageValue?.taskBlock.tasks ?? [];
   const approvalCompleted = selectedApproval !== null;
   const packageArtifacts = artifacts
@@ -420,7 +420,7 @@ export const SignoffReview = ({
       ]
       : [...taskDetailSections(selectedTask)];
   const reviewSections = [
-    ...(selectedTask === null && approvals.length > 0 ? [{
+    ...(selectedTask === null && (approvals.some(approval=>approval.id!==selectedApproval?.id) || selectedApproval !== null && workItem.stage==="AWAITING_SIGNOFF") ? [{
       id:"approval-history", title:"Approval history",
       content:<WorkbenchResourceList items={[
         ...(workItem.stage === "AWAITING_SIGNOFF" && selectedApproval !== null ? [{

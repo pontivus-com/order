@@ -232,8 +232,10 @@ export const WorkItemWorkspace = ({
   });
   const explicitApproval = explicitMaterial?.kind === "APPROVAL_PACKAGE" ? explicitMaterial : null;
   const selectedApproval = explicitApproval?.approvalId === undefined
-    ? workItem.stage === "AWAITING_SIGNOFF" ? null : currentApproval ?? approvalsQuery.data?.at(-1) ?? null
+    ? workItem.stage === "AWAITING_SIGNOFF" ? null : currentApproval ??
+      (currentApprovalQuery.isPending && currentApprovalRequired ? null : approvalsQuery.data?.at(-1) ?? null)
     : approvalsQuery.data?.find(approval => approval.id === explicitApproval.approvalId) ?? null;
+  const selectedApprovalUnresolved = explicitApproval?.approvalId !== undefined && selectedApproval === null;
   const selectedApprovalArtifactsQuery = useQuery({
     queryKey: workbenchQueryKeys.approvalArtifacts(workItem.id, selectedApproval?.id ?? null),
     queryFn: () => {
@@ -620,6 +622,7 @@ export const WorkItemWorkspace = ({
     dirtyDocument: dirty,
   });
   const material: WorkflowMaterial = resolvedMaterial.kind !== "APPROVAL_PACKAGE" ? resolvedMaterial :
+    selectedApprovalUnresolved ? resolvedMaterial :
     selectedApproval !== null ? {
       kind: "APPROVAL_PACKAGE", approvalId: selectedApproval.id,
       ...(resolvedMaterial.approvalId === selectedApproval.id ? {
@@ -682,6 +685,7 @@ export const WorkItemWorkspace = ({
   const selectedDocumentMaterialState = selectedDocumentArtifact === null
     ? null : materialStateForArtifact(selectedDocumentArtifact);
 
+  const currentStepSelectedForMaterial = selectedStep === workItem.stage;
   const explicitStageArtifactId =
     explicitMaterial?.kind === "STAGE_DOCUMENT"
       ? explicitMaterial.artifactId
@@ -694,6 +698,7 @@ export const WorkItemWorkspace = ({
     if (
       explicitStageArtifactId === null ||
       explicitStageArtifactStillCurrent ||
+      !currentStepSelectedForMaterial ||
       selectedStageArtifact === null
     ) {
       return;
@@ -705,6 +710,7 @@ export const WorkItemWorkspace = ({
   }, [
     explicitStageArtifactId,
     explicitStageArtifactStillCurrent,
+    currentStepSelectedForMaterial,
     selectedStageArtifact?.id,
   ]);
 
@@ -1160,9 +1166,12 @@ export const WorkItemWorkspace = ({
                   }
                 : null;
 
+  const inspectingCurrentPackage = currentStepSelected && material.kind === "APPROVAL_PACKAGE" &&
+    material.approvalId === undefined && material.packageHash !== undefined &&
+    material.packageHash === packageHash;
   const inspectedHistorical =
     !currentStepSelected ||
-    materialIdentity !== canonicalCurrentMaterialIdentity;
+    (materialIdentity !== canonicalCurrentMaterialIdentity && !inspectingCurrentPackage);
 
   const currentOwnerAction =
     canRetry ? (
@@ -1236,9 +1245,19 @@ export const WorkItemWorkspace = ({
       />
     );
 
+  const currentRequestId = currentStageInteraction?.tag === "REQUIRED_INPUT" ? currentStageInteraction.requestEventId : null;
+  const currentRequest = currentRequestId === null ? undefined :
+    allRunEvents.find(event => event.id === currentRequestId &&
+      event.runId === currentStageRun?.id && event.event.tag === "HUMAN_INPUT_REQUESTED");
+  const currentInspectionReason = currentRequest?.event.tag === "HUMAN_INPUT_REQUESTED"
+    ? currentRequest.event.question
+    : currentAttention === "PROPOSAL_DECISION" ? "A document change requires your decision."
+    : currentAttention === "PROPOSAL_ADOPTION" ? "The current document change is being applied."
+    : currentAttention === "CONVERGING" ? "The current workflow state is being refreshed."
+    : summaryBlocker?.description;
   const historicalReturn =
     inspectedHistorical && currentMaterialAction !== undefined
-      ? currentMaterialAction
+      ? <>{currentInspectionReason === undefined ? null : <span>{currentInspectionReason}</span>}{currentMaterialAction}</>
       : undefined;
 
   const currentInteractionAttention =
@@ -1409,7 +1428,7 @@ export const WorkItemWorkspace = ({
             workItem={workItem}
             reviewNotice={currentReviewNotice}
             reviewAction={currentMaterialAction}
-            packageValue={selectedApproval === null ? signoffPackageQuery.data ?? null : null}
+            packageValue={selectedApproval === null && workItem.stage === "AWAITING_SIGNOFF" ? signoffPackageQuery.data ?? null : null}
             packageFetching={selectedApproval === null && signoffPackageQuery.isFetching}
             packageError={selectedApproval === null ? signoffPackageQuery.error : null}
             packageStale={selectedApproval === null && packageStaleOwner !== null}
@@ -1419,11 +1438,12 @@ export const WorkItemWorkspace = ({
             onSelectionChange={(next) => requestSelection({step:"AWAITING_SIGNOFF",material:next})}
             materialStateForArtifact={materialStateForArtifact}
             artifacts={selectedApproval !== null ? selectedApprovalArtifactsQuery.data ?? [] : prospectiveArtifactsQuery.data ?? []}
-            artifactsPending={approvalsQuery.isPending || (selectedApproval !== null
+            artifactsPending={approvalsQuery.isPending || (currentApprovalRequired && currentApprovalQuery.isPending) || (selectedApproval !== null
               ? selectedApprovalArtifactsQuery.isPending || selectedApprovalArtifactsQuery.isFetching
               : packageHash !== null && (prospectiveArtifactsQuery.isPending || prospectiveArtifactsQuery.isFetching))}
-            artifactsError={approvalsQuery.error ?? (selectedApproval !== null
-              ? selectedApprovalArtifactsQuery.error : prospectiveArtifactsQuery.error)}
+            artifactsError={approvalsQuery.error ?? (selectedApprovalUnresolved
+              ? new TypeError("Selected Approval is unavailable")
+              : selectedApproval !== null ? selectedApprovalArtifactsQuery.error : prospectiveArtifactsQuery.error)}
             tasks={selectedApproval === null ? [] : tasks.filter(task => task.approvalId === selectedApproval.id)}
             tasksPending={tasksQuery.isPending}
             tasksError={tasksQuery.error}

@@ -49,7 +49,7 @@ export const WorkItemContext=({workItem,selectedStep,selectedMaterial,selectedDo
   const tasksQuery=useQuery({
     queryKey:workbenchQueryKeys.tasks(workItem.id),
     queryFn:()=>api.listExecutionTasks(workItem.id),
-    enabled:material.kind==="EXECUTION_TASK",
+    enabled:material.kind==="EXECUTION_TASK"||(material.kind==="APPROVAL_PACKAGE"&&material.approvalId!==undefined&&material.taskId!==undefined),
   });
   const diagnosticsQuery=useQuery({queryKey:workbenchQueryKeys.workItemSourceDiagnostics,queryFn:api.listWorkItemSourceDiagnostics});
   const diagnostics=(diagnosticsQuery.data??[]).filter((item)=>item.workItemId===workItem.id||item.path===workItem.sourcePath);
@@ -72,9 +72,10 @@ export const WorkItemContext=({workItem,selectedStep,selectedMaterial,selectedDo
     :null;
   const selectedTask=material.kind==="EXECUTION_TASK"
     ?(tasksQuery.data??[]).find((task)=>task.id===material.taskId)??null
-    :null;
+    :material.kind==="APPROVAL_PACKAGE"&&material.approvalId!==undefined
+      ?(tasksQuery.data??[]).find(task=>task.id===material.taskId&&task.approvalId===material.approvalId)??null:null;
   const selectedPackage=material.kind==="APPROVAL_PACKAGE"&&material.approvalId===undefined&&workItem.stage==="AWAITING_SIGNOFF"
-    ?signoffPackageQuery.data??null
+    ?signoffPackageQuery.data?.packageHash===material.packageHash ? signoffPackageQuery.data??null : null
     :null;
   const approvalsQuery=useQuery({
     queryKey:workbenchQueryKeys.approvals(workItem.id),
@@ -145,7 +146,7 @@ export const WorkItemContext=({workItem,selectedStep,selectedMaterial,selectedDo
             <WorkbenchNotice tone={tasksQuery.isPending?"info":"warning"} title={tasksQuery.isPending?"Resolving selected task":"Selected task identity unavailable"}/>
           ):null}
           {((selectedTask!==null&&selectedApproval===null)||
-            (material.kind==="APPROVAL_PACKAGE"&&workItem.stage==="AWAITING_SIGNOFF"&&selectedPackage===null)||
+            (material.kind==="APPROVAL_PACKAGE"&&material.approvalId===undefined&&workItem.stage==="AWAITING_SIGNOFF"&&selectedPackage===null)||
             (material.kind==="APPROVAL_PACKAGE"&&finalApprovalQuery.isError))?(
             <WorkbenchNotice tone="warning" title="Selected approval identity unavailable"/>
           ):null}
@@ -207,6 +208,9 @@ export const WorkItemContext=({workItem,selectedStep,selectedMaterial,selectedDo
               {id:"package-hash",label:"Package hash",value:<code data-testid="context-signoff-package-hash">{(selectedApproval??selectedPackage)?.packageHash}</code>,emphasis:"strong"},
               {id:"package-source",label:"Source SHA",value:<code>{(selectedApproval??selectedPackage)?.sourceSha256}</code>},
               {id:"package-baseline",label:"Baseline",value:<code>{(selectedApproval??selectedPackage)?.baselineCommit}</code>},
+              ...(material.kind==="APPROVAL_PACKAGE"&&material.taskId!==undefined&&selectedPackage?.taskBlock.tasks.some(task=>task.id===material.taskId)?[
+                {id:"prospective-task",label:"Plan task id",value:<code>{material.taskId}</code>},
+              ]:[]),
               ...(selectedApproval===null?[]:[
                 {id:"signed-approval-id",label:"Approval id",value:<code>{selectedApproval.id}</code>},
                 {id:"signed-plan-id",label:"Signed PLAN ArtifactRef",value:<code>{selectedApproval.planArtifactRefId}</code>},
