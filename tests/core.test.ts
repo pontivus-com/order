@@ -2256,7 +2256,7 @@ describe("closed Workbench workflow-state kernel", () => {
         tag: "RECONCILE_AUTHORITY",
         owner: "R1",
       }),
-    ).toThrow(/AWAITING_SIGNOFF/);
+    ).toThrow(/active Approval or Acceptance/);
   });
 
   it("derives PROCESSING, OPEN, REQUIRED_INPUT and CLOSED from canonical Run history", () => {
