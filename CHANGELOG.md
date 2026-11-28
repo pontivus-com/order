@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Extend actual installer transaction proof to direct v3→v4 migration, preserved legacy completion, original DB/WAL/SHM custody, rollback and secondary compensation; retain separate unchanged-schema v4 proof (IA36).
+
 - Reject contradictory historical candidate proof that claims V6 PASS despite independent CHANGE_BLOAT evidence, for both original and replacement Acceptance rounds (IA35).
 
 - Prepare native Acceptance review event contracts, immutable candidate-round membership and exact finding/assessment policy (IA35; activation requires the complete IA35–IA38 cutover).

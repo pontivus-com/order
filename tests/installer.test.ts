@@ -507,7 +507,8 @@ type InstallerTransactionFixture = Readonly<{
   failCleanup?: "config" | "application" | "launcher" | "unit";
   readinessToken?: "missing" | "invalid";
   bind?: string;
-  legacyDatabaseVersion?: 1 | 2 | 3;
+  legacyDatabaseVersion?: 1 | 2 | 3 | 4;
+  v3MigrationCorrupt?: boolean;
   repositoryNativeV2?: Readonly<{ root: string; activeExecution: boolean }>;
   legacyRootInWal?: boolean;
   loseDatabaseArchive?: boolean;
@@ -641,13 +642,26 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
       const sha = "sha256:" + crypto.createHash("sha256").update(markdown).digest("hex");
       const db = openOrderDatabase(fixture.stateRoot);
       try {
-        db.exec("ALTER TABLE workItems DROP COLUMN archived; PRAGMA user_version = 2;");
+        db.exec("DROP TABLE candidateReviewEvents; ALTER TABLE workItems DROP COLUMN archived; PRAGMA user_version = 2;");
         db.query("INSERT INTO workItems VALUES (?1,'installer-fixture',?2,'Migration fixture','origin',?3,'ACTIVE',NULL,'[]','2026-11-11T03:30:00.000Z')")
           .run(migrationWorkItem, fixture.project, fixture.repositoryNativeV2.activeExecution ? "EXECUTION" : "PLAN");
         db.query("INSERT INTO workItemSources VALUES (?1,'change-v1','legacy.md',?2,NULL)").run(migrationWorkItem, sha);
         db.exec("CREATE TABLE sentinel(value TEXT NOT NULL) STRICT; INSERT INTO sentinel VALUES ('original');");
       } finally { db.close(); }
       if (fixture.databaseSidecars) leaveWal("UPDATE sentinel SET value='original WAL';", "original WAL", 2);
+    } else if (fixture.legacyDatabaseVersion === 3 || fixture.legacyDatabaseVersion === 4) {
+      const { openOrderDatabase } = await import("./src/shell/sqlite.ts");
+      const db = openOrderDatabase(fixture.stateRoot);
+      try {
+        if (fixture.legacyDatabaseVersion === 3) db.exec("DROP TABLE candidateReviewEvents; PRAGMA user_version = 3;");
+        db.exec("CREATE TABLE sentinel(value TEXT NOT NULL) STRICT; INSERT INTO sentinel VALUES ('original');");
+        db.query("INSERT INTO workItems VALUES (?1,'installer-fixture',?2,'Legacy complete','origin','COMPLETE','COMPLETE','CANDIDATE_DONE','[]',0,'2026-11-11T03:30:00.000Z')").run(migrationWorkItem,fixture.project);
+        if (fixture.v3MigrationCorrupt) db.exec("DROP TABLE artifactDependencies;");
+      } finally { db.close(); }
+      if (fixture.databaseSidecars) {
+        leaveWal("UPDATE sentinel SET value='original WAL';", "original WAL", fixture.legacyDatabaseVersion);
+        if (fixture.absentOriginalSidecar) fs.unlinkSync(databasePath + fixture.absentOriginalSidecar);
+      }
     } else if (fixture.legacyDatabaseVersion !== undefined) {
       const db = new Database(databasePath, { create: true, strict: true });
       db.exec("CREATE TABLE sentinel(value TEXT NOT NULL) STRICT; INSERT INTO sentinel VALUES (\'original\'); PRAGMA user_version = " + fixture.legacyDatabaseVersion + ";");
@@ -771,6 +785,16 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
                   workItem: db.query("SELECT stage, archived FROM workItems WHERE id=?1").get(migrationWorkItem),
                   source: db.query("SELECT sourcePath, sourceSha256 FROM workItemSources WHERE workItemId=?1").get(migrationWorkItem),
                   document: readBytes(path.join(fixture.project, migrationTarget)),
+                };
+              } finally { db.close(); }
+            } else if (fixture.legacyDatabaseVersion === 3) {
+              const db = new Database(databasePath, { create: false, readonly: true, strict: true });
+              try {
+                migrationObservation = {
+                  version: db.query("PRAGMA user_version").get().user_version,
+                  workItem: db.query("SELECT stage,status,outcome,archived FROM workItems WHERE id=?1").get(migrationWorkItem),
+                  reviewCount: db.query("SELECT count(*) AS count FROM candidateReviewEvents").get().count,
+                  sentinel: db.query("SELECT value FROM sentinel").get().value,
                 };
               } finally { db.close(); }
             } else if (fixture.legacyDatabaseVersion === 1 || fixture.legacyDatabaseVersion === 2) {
@@ -2194,10 +2218,10 @@ describe("actual IA25 installer transaction", () => {
   }, 120_000);
 
   it.each(["pre-start-replaced", "pre-start-content-drift", "pre-start-disappearance"] as const)(
-    "preserves unarchived v3 sidecars and blocks startup on %s", databaseFault => {
+    "preserves unarchived v4 sidecars and blocks startup on %s", databaseFault => {
       const fixture = transactionFixture();
       createPriorDeployment(fixture);
-      const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes", legacyDatabaseVersion: 3,
+      const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes", legacyDatabaseVersion: 4,
         databaseSidecars: true, databaseFault, databaseFaultSuffix: "-wal", readiness: { ready: true, blockers: [] } });
       expect(outcome.failure).toContain("unarchived database custody incomplete");
       expect(outcome.restartObservations).toEqual([]);
@@ -2215,10 +2239,10 @@ describe("actual IA25 installer transaction", () => {
       }
     }, 120_000);
 
-  it("blocks v3 prior restart on detectable sidecar replacement during compensation without inventing an archive", () => {
+  it("blocks v4 prior restart on detectable sidecar replacement during compensation without inventing an archive", () => {
     const fixture = transactionFixture();
     createPriorDeployment(fixture);
-    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes", legacyDatabaseVersion: 3,
+    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes", legacyDatabaseVersion: 4,
       databaseSidecars: true, databaseFault: "candidate-drift", databaseFaultSuffix: "-wal",
       failRestart: true, readiness: { ready: true, blockers: [] } });
     expect(outcome.failure).toContain("injected host failure");
@@ -2250,7 +2274,7 @@ describe("actual IA25 installer transaction", () => {
         expect(outcome.restartObservations.map((entry: { deployment: string }) => entry.deployment)).toEqual(["prior"]);
         expect(existsSync(document)).toBe(false);
       } else {
-        expect(outcome.migrationObservation).toMatchObject({ version: 3, workItem: { stage: "R1", archived: 0 },
+        expect(outcome.migrationObservation).toMatchObject({ version: 4, workItem: { stage: "R1", archived: 0 },
           source: { sourcePath: path }, document: source.toString("base64") });
         expect(readFileSync(document)).toEqual(source);
       }
@@ -2274,16 +2298,81 @@ describe("actual IA25 installer transaction", () => {
       expect(readFileSync(join(legacyRoot, "legacy.md"))).toEqual(source);
     }, 120_000);
 
-  it("does not mutate or archive a current v3 database with WAL/SHM present", () => {
+  it("does not mutate or archive a current v4 database with WAL/SHM present", () => {
     const fixture = transactionFixture();
     createPriorDeployment(fixture);
-    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes", legacyDatabaseVersion: 3,
+    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes", legacyDatabaseVersion: 4,
       databaseSidecars: true, failRestart: true, readiness: { ready: true, blockers: [] } });
     expect(outcome.failure).toContain("injected host failure");
     expect(outcome.databaseNamespace.map((value: string | null, index: number) =>
       value === outcome.originalNamespace[index])).toEqual([true, true, true]);
     expect(outcome.stateEntries.some((name: string) => name.includes(".legacy-v") || name.startsWith(".installer-sqlite-probe."))).toBe(false);
     expect(outcome.activity).toBe("active");
+  }, 120_000);
+
+  it.each(["success", "migration", "activation", "readiness", "marker"] as const)(
+    "migrates direct v3 through the actual installer and preserves exact rollback custody: %s", scenario => {
+      const fixture = transactionFixture();
+      createPriorDeployment(fixture);
+      const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes", legacyDatabaseVersion: 3,
+        databaseSidecars: true, v3MigrationCorrupt: scenario === "migration",
+        failRestart: scenario === "activation", failMarkerWrite: scenario === "marker",
+        readiness: scenario === "readiness" ? { ready: false, blockers: ["MODEL_INVALID"] } : { ready: true, blockers: [] } });
+      expect(outcome.originalNamespace.every((value: string | null) => value !== null)).toBe(true);
+      if (scenario !== "migration") {
+        expect(outcome.migrationObservation).toEqual({ version: 4,
+          workItem: { stage: "COMPLETE", status: "COMPLETE", outcome: "CANDIDATE_DONE", archived: 0 },
+          reviewCount: 0, sentinel: "original WAL" });
+      }
+      if (scenario === "success") {
+        expect(outcome.failure).toBeNull();
+        expect(outcome.marker).toBe(outcome.sourceCommit + "\n");
+        for (const [index, suffix] of ["", "-wal", "-shm"].entries()) {
+          const archive = outcome.stateEntries.find((name: string) => name.startsWith("order.sqlite3" + suffix + ".legacy-v3."));
+          expect(typeof archive).toBe("string");
+          expect(readFileSync(join(fixture.stateRoot, archive)).toString("base64")).toBe(outcome.originalNamespace[index]);
+        }
+      } else {
+        expect(outcome.failure).toContain(scenario === "migration" ? "v3 schema table membership is inconsistent" :
+          scenario === "activation" ? "injected host failure" : scenario === "readiness" ? "MODEL_INVALID" : "injected partial marker temporary write");
+        expect(outcome.failure).not.toContain("rollback incomplete");
+        expect(outcome.marker).toBe("b".repeat(40) + "\n");
+        expect(outcome.databaseNamespace).toEqual(outcome.originalNamespace);
+        expect(outcome.configBytes).toBe(outcome.originalConfig);
+        expect(outcome.activity).toBe("active");
+        expect(outcome.restartObservations.map((entry: { deployment: string }) => entry.deployment))
+          .toEqual(scenario === "migration" ? ["prior"] : ["candidate", "prior"]);
+      }
+    }, 120_000);
+
+  it.each(["archive", "copy", "partial-copy"] as const)(
+    "restores direct v3 namespace after %s preparation failure", databaseFault => {
+      const fixture = transactionFixture();
+      createPriorDeployment(fixture);
+      const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes", legacyDatabaseVersion: 3,
+        databaseSidecars: true, databaseFault, databaseFaultSuffix: "-wal", readiness: { ready: true, blockers: [] } });
+      expect(outcome.failure).toContain(databaseFault === "archive" ? "injected archive rename" :
+        databaseFault === "copy" ? "injected database copy" : "injected partial database copy");
+      expect(outcome.databaseNamespace).toEqual(outcome.originalNamespace);
+      expect(outcome.configBytes).toBe(outcome.originalConfig);
+      expect(outcome.restartObservations).toEqual([{ deployment: "prior", databaseMatchesOriginal: true, configMatchesOriginal: true }]);
+      expect(outcome.activity).toBe("active");
+    }, 120_000);
+
+  it("retains direct v3 original archive and prevents unsafe restart after secondary compensation failure", () => {
+    const fixture = transactionFixture();
+    createPriorDeployment(fixture);
+    const outcome = runInstallerTransaction({ ...fixture, establishedHistory: "yes", legacyDatabaseVersion: 3,
+      databaseSidecars: true, databaseFault: "copy-and-restore", databaseFaultSuffix: "-wal",
+      readiness: { ready: true, blockers: [] } });
+    expect(outcome.failure).toContain("injected partial database copy");
+    expect(outcome.failure).toContain("injected archive restoration");
+    expect(outcome.failure).toContain("database inspection or preparation custody incomplete");
+    const archive = outcome.stateEntries.find((name: string) => name.startsWith("order.sqlite3-wal.legacy-v3."));
+    expect(typeof archive).toBe("string");
+    expect(readFileSync(join(fixture.stateRoot, archive)).toString("base64")).toBe(outcome.originalNamespace[1]);
+    expect(outcome.restartObservations).toEqual([]);
+    expect(outcome.activity).toBe("inactive");
   }, 120_000);
 
   it.each(["-wal", "-shm"] as const)("retains exact original after partial copy and compensation failure at %s", databaseFaultSuffix => {
