@@ -1301,6 +1301,42 @@ describe("actual IA25 installer transaction", () => {
     expect(updated.stdout).toContain("OPENCODE_ACCOUNT_REQUIRED");
   }, 180_000);
 
+  it.each(["v3-unavailable", "v4-unavailable", "v4-incomplete", "absent"] as const)(
+    "retains configuration on affirmatively established recovery: %s", kind => {
+      const fixture = transactionFixture();
+      createPriorDeployment(fixture);
+      const configPath = join(fixture.stateRoot, "config.json");
+      const missingTarget = join(fixture.home, "unavailable-target");
+      const missingReference = join(fixture.home, "unavailable-reference");
+      const model = { providerID: "retained-provider", id: "retained-model" };
+      const existing = kind === "absent" ? null : kind === "v4-incomplete"
+        ? { version: 4, model: null, repositoryRoots: [], referenceRoots: [missingReference] }
+        : { version: kind === "v3-unavailable" ? 3 : 4, model,
+            repositoryRoots: [missingTarget], referenceRoots: [missingReference] };
+      if (existing === null) rmSync(configPath);
+      else writeFileSync(configPath, JSON.stringify(existing) + "\n", { mode: 0o600 });
+      const recordRoot = tempDir("order-established-transaction-provider-");
+      const providerRecordPath = join(recordRoot, "calls.jsonl");
+      const binary = createFakeOpenCode(recordRoot, { recordPath: providerRecordPath });
+      const outcome = runInstallerTransaction({ ...fixture, binary, providerRecordPath, establishedHistory: "y",
+        readiness: { ready: false, blockers: ["OPENCODE_ACCOUNT_REQUIRED"] },
+        ...(kind === "absent" ? { readinessStatus: 503 } : {}),
+      });
+      expect(outcome.failure).toBeNull();
+      expect(outcome.prompts).toHaveLength(1);
+      expect(outcome.prompts[0]).toContain("Did installation admission previously complete");
+      expect(outcome.config).toEqual(existing === null
+        ? { version: 4, model: null, repositoryRoots: [], referenceRoots: [] }
+        : { ...existing, version: 4 });
+      expect(existsSync(providerRecordPath)).toBe(false);
+      expect(outcome.marker).toBe(outcome.sourceCommit + "\n");
+      expect(outcome.events.find((event: { command: string[] }) => event.command[0] === "readiness"))
+        .toMatchObject({ marker: true, auth: true });
+      expect(outcome.stdout).toContain("Order updated successfully.");
+      expect(outcome.stdout).toContain(kind === "absent"
+        ? "Productive readiness could not be confirmed" : "OPENCODE_ACCOUNT_REQUIRED");
+    }, 120_000);
+
   it.each(([3, 4] as const).flatMap(version =>
     (["missing", "file", "symlink"] as const).map(kind => ({ version, kind }))))(
     "repairs v$version retained $kind roots before the installed provider is invoked", ({ version, kind }) => {

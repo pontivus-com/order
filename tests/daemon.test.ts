@@ -987,6 +987,62 @@ describe("daemon control plane", () => {
     expect(output.ambiguous).toBe(true);
   }, 30_000);
 
+  it("rejects missing or injected signed closure membership without mutating observations", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-signed-membership-");
+    const output = bunEval(seedSignoffScript(repository, state) + `
+      const fs = await import("node:fs");
+      const members = await coord.observeApprovalArtifacts(runtime, work, approval.id);
+      const material = members.find(member => member.role === "VERIFICATION_MATERIAL");
+      if (!material) throw new Error("fixture signed verification material missing");
+      const edges = database.query("SELECT artifactRefId, dependsOnArtifactRefId FROM artifactDependencies WHERE dependsOnArtifactRefId=?1").all(material.id);
+      if (edges.length === 0) throw new Error("fixture signed dependency missing");
+      database.query("DELETE FROM artifactDependencies WHERE dependsOnArtifactRefId=?1").run(material.id);
+      const changes = () => database.query("SELECT total_changes() AS n").get().n;
+      const rejection = async (id = work) => {
+        const before = changes();
+        let error = null;
+        try { await coord.observeApprovalArtifacts(runtime, id, approval.id); }
+        catch (failure) { error = String(failure); }
+        return { error, observational: changes() === before };
+      };
+      const missing = await rejection();
+      for (const edge of edges) sql.storeArtifactDependency(database, edge.artifactRefId, edge.dependsOnArtifactRefId);
+      const extra = await authority.currentFileArtifact(runtime, coord.getWorkItem(runtime, work), "src/target.ts", "GOVERNANCE", "P1");
+      sql.storeArtifactDependency(database, approval.r3ArtifactRefId, extra.id);
+      const injected = await rejection();
+      database.query("DELETE FROM artifactDependencies WHERE artifactRefId=?1 AND dependsOnArtifactRefId=?2")
+        .run(approval.r3ArtifactRefId, extra.id);
+      const other = await coord.createWorkItem(runtime, {
+        projectId: "fixture", schemaId: "change-v1", title: "other work", concernIds: [],
+      });
+      const foreign = await rejection(other.id);
+      sql.updateWorkItemLifecycle(database, work, { stage: "PLAN", status: "ACTIVE", outcome: null });
+      fs.appendFileSync(repositoryRoot + "/AGENTS.md", "\\nchanged working authority\\n");
+      const before = changes();
+      const historical = await coord.observeApprovalArtifacts(runtime, work, approval.id);
+      const current = await coord.observeCurrentApproval(runtime, work);
+      const unchanged = changes() === before;
+      console.log(JSON.stringify({ missing, injected, foreign, current, unchanged,
+        sameMembership: JSON.stringify(historical.map(member => member.id).sort()) ===
+          JSON.stringify(members.map(member => member.id).sort()),
+        stage: coord.getWorkItem(runtime, work).stage }));
+      database.close();
+    `) as {
+      missing: { error: string | null; observational: boolean };
+      injected: { error: string | null; observational: boolean };
+      foreign: { error: string | null; observational: boolean };
+      current: null; unchanged: boolean; sameMembership: boolean; stage: string;
+    };
+    expect(output.missing.error).toContain("signed package hash");
+    expect(output.injected.error).toContain("signed package hash");
+    expect(output.foreign.error).toContain("Approval does not exist for WorkItem");
+    expect(output.missing.observational && output.injected.observational && output.foreign.observational).toBe(true);
+    expect(output.current).toBeNull();
+    expect(output.unchanged && output.sameMembership).toBe(true);
+    expect(output.stage).toBe("PLAN");
+  }, 30_000);
+
   it.each(["bare", "reversed", "wrong-context", "duplicate", "return"] as const)(
     "does not admit sign-off from defective R3 completion evidence: %s", fault => {
       const repository = createRepository();

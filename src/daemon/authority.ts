@@ -1046,6 +1046,20 @@ export const verifyApprovalClosureBytes = async (
 }>> => {
   const workItem = getWorkItem(runtime, approval.workItemId);
   const closure = approvalClosure(runtime, approval);
+  // Individual valid blobs do not establish complete signed membership.
+  // Recompute the existing P6 package identity from the immutable closure
+  // and signed source hash, never from the current WorkItem source.
+  const packageHash = sha256Text(canonicalApprovalPackageJson({
+    workItemId: approval.workItemId,
+    baselineCommit: approval.baselineCommit,
+    sourceSha256: approval.sourceSha256,
+    plan: closure.plan,
+    r3: closure.r3,
+    materialArtifacts: closure.material,
+  }));
+  if (packageHash !== approval.packageHash) {
+    throw new TypeError("approval closure does not match the signed package hash");
+  }
   for (const artifact of [closure.plan, closure.r3, ...closure.material]) {
     if (
       artifact.workItemId !== workItem.id ||
