@@ -25,9 +25,15 @@ import {
   selectedContextArtifactId,
   runEventPlane,
   runEventPresentation,
+  stageCompletionProductLabel,
+  workflowMaterialIdentity,
+  bindProspectiveApprovalSelection,
+  prospectiveApprovalIsSuperseded,
+  exactReadinessPackageDocuments,
   workflowRunEvents,
   readinessOutcomeLabel,
   runStatusLabel,
+  runTerminalClassificationLabel,
   workOutcomeProductLabel,
   workflowStepState,
   type ProposalSelection,
@@ -243,6 +249,15 @@ const resolveFixtureMaterial = (
   });
 };
 
+describe("IA32 execution feedback", () => {
+  it("humanizes recorded terminal classification without fabricating a failure event", () => {
+    expect(runTerminalClassificationLabel("PRECONDITION_FAILED")).toBe("An execution prerequisite failed.");
+    expect(runTerminalClassificationLabel("PROVIDER_FAILURE")).toBe("The agent provider failed.");
+    expect(runTerminalClassificationLabel("COORDINATOR_INTERRUPTED")).toBe("The implementation attempt was interrupted.");
+    expect(runTerminalClassificationLabel(null)).toContain("no matching terminal failure reason");
+  });
+});
+
 describe("workflow presentation policy", () => {
   it("binds Context to exact ArtifactRef identity rather than same-path bytes or a foreign WorkItem", () => {
     const item = workItem("PLAN");
@@ -256,7 +271,8 @@ describe("workflow presentation policy", () => {
     expect(resolveContextArtifact(item.id, id, [foreign, current, historical])).toEqual(historical);
     expect(resolveContextArtifact(item.id, id, [current, foreign])).toBeNull();
     expect(selectedContextArtifactId({ kind: "SOURCE_DOCUMENT" }, reported)).toBeNull();
-    expect(selectedContextArtifactId({ kind: "APPROVAL_PACKAGE" }, reported)).toBe(current.id);
+    expect(selectedContextArtifactId({ kind: "APPROVAL_PACKAGE", artifactId: current.id }, reported)).toBe(current.id);
+    expect(selectedContextArtifactId({ kind: "APPROVAL_PACKAGE" }, reported)).toBeNull();
     expect(selectedContextArtifactId({ kind: "APPROVAL_PACKAGE" }, null)).toBeNull();
   });
 
@@ -267,7 +283,54 @@ describe("workflow presentation policy", () => {
     );
     expect(presentation).not.toMatch(/data-theme|prefers-color-scheme|colorScheme|localStorage/);
   });
+  it("binds Approval identity to its exact parent and selected child", () => {
+    const first: WorkflowMaterial = { kind: "APPROVAL_PACKAGE", approvalId: `approval_${uuidA}` };
+    const second: WorkflowMaterial = { kind: "APPROVAL_PACKAGE", approvalId: `approval_${uuidB}` };
+    expect(workflowMaterialIdentity(first)).not.toBe(workflowMaterialIdentity(second));
+    expect(workflowMaterialIdentity({ ...first, artifactId: `artifact_${uuidC}` }))
+      .not.toBe(workflowMaterialIdentity(first));
+    expect(workflowMaterialIdentity({ ...first, taskId: `task_${uuidD}` }))
+      .not.toBe(workflowMaterialIdentity(first));
+    expect(workflowMaterialIdentity({kind:"APPROVAL_PACKAGE",packageHash:hash}))
+      .not.toBe(workflowMaterialIdentity(first));
+  });
+
+  it("preserves prospective package and child identity on a superseding observation", () => {
+    const first = bindProspectiveApprovalSelection({ kind: "APPROVAL_PACKAGE" }, hash);
+    const detail = { ...first, taskId: "T1" };
+    const replacementHash = `sha256:${"b".repeat(64)}`;
+    expect(bindProspectiveApprovalSelection(detail, replacementHash)).toEqual(detail);
+    expect(prospectiveApprovalIsSuperseded(detail, replacementHash)).toBe(true);
+    expect(prospectiveApprovalIsSuperseded(detail, hash)).toBe(false);
+    expect(bindProspectiveApprovalSelection(detail, null)).toEqual(detail);
+    const replacement = bindProspectiveApprovalSelection({ kind: "APPROVAL_PACKAGE" }, replacementHash);
+    expect(replacement).toEqual({ kind: "APPROVAL_PACKAGE", packageHash: replacementHash });
+    expect(prospectiveApprovalIsSuperseded(replacement, replacementHash)).toBe(false);
+  });
+
+  it("admits reviewed documents only from a closure containing the exact R3 root", () => {
+    const root = artifact("R3", uuidB);
+    const plan = artifact("PLAN", uuidC);
+    const competing = ArtifactRefSchema.parse({ ...root, id: "artifact_" + uuidD });
+    const foreign = ArtifactRefSchema.parse({ ...plan, workItemId: "work_" + uuidE });
+    expect(exactReadinessPackageDocuments(root, [root, plan])).toEqual([plan]);
+    expect(exactReadinessPackageDocuments(root, [competing, plan])).toBeNull();
+    expect(exactReadinessPackageDocuments(root, [root, foreign])).toBeNull();
+    expect(exactReadinessPackageDocuments(root, [root, root, plan])).toBeNull();
+    expect(exactReadinessPackageDocuments(root, [plan])).toBeNull();
+  });
+
   it("uses explicit canonical product labels and typed Readiness outcomes", () => {
+    expect(stageCompletionProductLabel({stage:"R1",outcome:"CONFIRMED"})).toBe("Research confirmed the work request");
+    expect(stageCompletionProductLabel({stage:"R1",outcome:"DISPROVEN"})).toBe("Research disproved the work request");
+    expect(stageCompletionProductLabel({stage:"R1",outcome:"DUPLICATE"})).toBe("Duplicate work identified");
+    expect(stageCompletionProductLabel({stage:"R1",outcome:"ALREADY_SATISFIED"})).toBe("Work already satisfied");
+    expect(stageCompletionProductLabel({stage:"R1",outcome:"INVESTIGATION_COMPLETE"})).toBe("Investigation complete");
+    expect(stageCompletionProductLabel({stage:"R1",outcome:"AUDIT_COMPLETE"})).toBe("Audit complete");
+    expect(stageCompletionProductLabel({stage:"R2",outcome:"ACCEPTED"})).toBe("Requirements accepted");
+    expect(stageCompletionProductLabel({stage:"DESIGN",outcome:"ACCEPTED"})).toBe("Solution design accepted");
+    expect(stageCompletionProductLabel({stage:"PLAN",outcome:"ACCEPTED"})).toBe("Implementation plan accepted");
+    expect(stageCompletionProductLabel({stage:"R3",outcome:"READY_FOR_SIGNOFF"})).toBe("Ready for sign-off");
     expect(workOutcomeProductLabel(null)).toBe("Complete");
     expect(workOutcomeProductLabel("DISPROVEN")).toBe("Disproven");
     expect(workOutcomeProductLabel("DUPLICATE")).toBe("Duplicate");
@@ -501,7 +564,7 @@ describe("workflow presentation policy", () => {
       runs: [],
       artifacts: [],
       approvalPackageAvailable: false,
-    })).toEqual({ kind: "STEP_STATE" });
+    })).toEqual({ kind: "APPROVAL_PACKAGE" });
 
     const executionTask = task(uuidC, "RUNNING");
     const run = executionRun(executionTask, "RUNNING", uuidD);

@@ -1,5 +1,16 @@
 import {
   ApprovalSchema,
+  AbsoluteDirectoryPathSchema,
+  CandidateReviewEventSchema,
+  QaReportCommandSchema,
+  QaSubmitCommandSchema,
+  QaRetestFailedCommandSchema,
+  QaDispositionCommandSchema,
+  QaReanalysisCommandSchema,
+  QaAcceptCommandSchema,
+  QaPrepareTestCopyCommandSchema,
+  ReconcileWorkItemSourcesCommandSchema,
+  type CandidateReviewEvent,
   ArtifactRefSchema,
   CommitWorkItemDocumentationSchema,
   ConnectRepositorySchema,
@@ -40,6 +51,7 @@ import {
   WorkItemSourceReconciliationSchema,
   WorkItemSourceSnapshotSchema,
   type Approval,
+  type AuthorityRef,
   type ArtifactRef,
   type CommitWorkItemDocumentation,
   type ConnectRepository,
@@ -68,6 +80,7 @@ import {
   type RunEvent,
   type RunEventId,
   type RunId,
+  type Sha256,
   type SignoffPackage,
   type SetWorkItemArchived,
   type UpdateConfiguredModel,
@@ -269,9 +282,84 @@ export const listApprovals = async (workItemId: WorkItemId): Promise<readonly Ap
 export const listApprovalArtifacts = async (
   workItemId: WorkItemId,
   approvalId: Approval["id"],
-): Promise<readonly ArtifactRef[]> =>
-  ArtifactRefSchema.array().parse(await json(
-    `/api/work-items/${encodeURIComponent(workItemId)}/approvals/${encodeURIComponent(approvalId)}/artifacts`,
+  criterion?: Readonly<{ taskId: ExecutionTask["id"]; acceptanceRef: AuthorityRef }>,
+): Promise<readonly ArtifactRef[]> => {
+  const query = criterion === undefined ? "" : "?" + new URLSearchParams({
+    taskId: criterion.taskId, acceptanceRef: criterion.acceptanceRef,
+  }).toString();
+  const artifacts = ArtifactRefSchema.array().parse(await json(
+    `/api/work-items/${encodeURIComponent(workItemId)}/approvals/${encodeURIComponent(approvalId)}/artifacts${query}`,
+  ));
+  if (criterion !== undefined && artifacts.length !== 1) throw new TypeError("Expected exactly one signed criterion document");
+  return artifacts;
+};
+
+const approvalQaPath = (workItemId: WorkItemId, approvalId: Approval["id"]): string =>
+  `/api/work-items/${encodeURIComponent(workItemId)}/approvals/${encodeURIComponent(approvalId)}`;
+
+export const listCandidateReviewEvents = async (
+  workItemId: WorkItemId, approvalId: Approval["id"], expectedReviewSequence?: number,
+): Promise<readonly CandidateReviewEvent[]> =>
+  CandidateReviewEventSchema.array().parse(await json(
+    approvalQaPath(workItemId, approvalId) + "/qa-events" +
+      (expectedReviewSequence === undefined ? "" : "?expectedReviewSequence=" + expectedReviewSequence),
+  ));
+
+export const reportCandidateFinding = async (
+  workItemId: WorkItemId, approvalId: Approval["id"], command: ReturnType<typeof QaReportCommandSchema.parse>,
+): Promise<CandidateReviewEvent> =>
+  CandidateReviewEventSchema.parse(await json(
+    approvalQaPath(workItemId, approvalId) + "/qa/report", mutation("POST", QaReportCommandSchema.parse(command)),
+  ));
+
+export const submitCandidateFindings = async (
+  workItemId: WorkItemId, approvalId: Approval["id"], command: ReturnType<typeof QaSubmitCommandSchema.parse>,
+): Promise<CandidateReviewEvent> =>
+  CandidateReviewEventSchema.parse(await json(
+    approvalQaPath(workItemId, approvalId) + "/qa/submit", mutation("POST", QaSubmitCommandSchema.parse(command)),
+  ));
+
+export const recordCandidateRetestFailure = async (
+  workItemId: WorkItemId, approvalId: Approval["id"], command: ReturnType<typeof QaRetestFailedCommandSchema.parse>,
+): Promise<CandidateReviewEvent> =>
+  CandidateReviewEventSchema.parse(await json(
+    approvalQaPath(workItemId, approvalId) + "/qa/retest-failed", mutation("POST", QaRetestFailedCommandSchema.parse(command)),
+  ));
+
+export const recordCandidateDisposition = async (
+  workItemId: WorkItemId, approvalId: Approval["id"], command: ReturnType<typeof QaDispositionCommandSchema.parse>,
+): Promise<CandidateReviewEvent> =>
+  CandidateReviewEventSchema.parse(await json(
+    approvalQaPath(workItemId, approvalId) + "/qa/disposition", mutation("POST", QaDispositionCommandSchema.parse(command)),
+  ));
+
+export const requestCandidateReanalysis = async (
+  workItemId: WorkItemId, approvalId: Approval["id"], command: ReturnType<typeof QaReanalysisCommandSchema.parse>,
+): Promise<CandidateReviewEvent> =>
+  CandidateReviewEventSchema.parse(await json(
+    approvalQaPath(workItemId, approvalId) + "/qa/reanalysis", mutation("POST", QaReanalysisCommandSchema.parse(command)),
+  ));
+
+export const acceptCandidate = async (
+  workItemId: WorkItemId, approvalId: Approval["id"], command: ReturnType<typeof QaAcceptCommandSchema.parse>,
+): Promise<CandidateReviewEvent> =>
+  CandidateReviewEventSchema.parse(await json(
+    approvalQaPath(workItemId, approvalId) + "/qa/accept", mutation("POST", QaAcceptCommandSchema.parse(command)),
+  ));
+
+export const prepareCandidateTestCopy = async (
+  workItemId: WorkItemId, approvalId: Approval["id"], command: ReturnType<typeof QaPrepareTestCopyCommandSchema.parse>,
+): Promise<string> =>
+  AbsoluteDirectoryPathSchema.parse(await json(
+    approvalQaPath(workItemId, approvalId) + "/qa/prepare-test-copy", mutation("POST", QaPrepareTestCopyCommandSchema.parse(command)),
+  ));
+
+export const reconcileAcceptanceSource = async (
+  workItemId: WorkItemId, expectedApprovalId: Approval["id"], expectedReviewSequence: number,
+): Promise<WorkItemSourceReconciliation> =>
+  WorkItemSourceReconciliationSchema.parse(await json(
+    "/api/work-item-sources/reconcile",
+    mutation("POST", ReconcileWorkItemSourcesCommandSchema.parse({workItemId, expectedApprovalId, expectedReviewSequence})),
   ));
 
 export const listExecutionTasks = async (
@@ -279,6 +367,14 @@ export const listExecutionTasks = async (
 ): Promise<readonly ExecutionTask[]> =>
   ExecutionTaskSchema.array().parse(await json(
     `/api/work-items/${encodeURIComponent(workItemId)}/tasks`,
+  ));
+
+export const listSignoffPackageArtifacts = async (
+  workItemId: WorkItemId,
+  expectedPackageHash: Sha256,
+): Promise<readonly ArtifactRef[]> =>
+  ArtifactRefSchema.array().parse(await json(
+    `/api/work-items/${encodeURIComponent(workItemId)}/signoff-package/artifacts?expectedPackageHash=${encodeURIComponent(expectedPackageHash)}`,
   ));
 
 export const getSignoffPackage = async (

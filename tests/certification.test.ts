@@ -650,6 +650,7 @@ describe("Order cross-boundary certification", () => {
       .map((entry) => entry.name)
       .sort();
     expect(renderers).toEqual([
+      "AcceptanceWorkspace.tsx",
       "ActivityComposer.tsx",
       "ActivityWorkspace.tsx",
       "CreateWorkItem.tsx",
@@ -787,6 +788,7 @@ describe("Order cross-boundary certification", () => {
       "WorkItemWorkspace.tsx",
     ]);
     expect(consumersOf("WorkbenchReview")).toEqual([
+      "AcceptanceWorkspace.tsx",
       "ProposalReview.tsx",
       "ReadinessWorkspace.tsx",
       "SignoffReview.tsx",
@@ -801,6 +803,7 @@ describe("Order cross-boundary certification", () => {
       "ActivityWorkspace.tsx",
     ]);
     expect(consumersOf("WorkbenchConfirmation")).toEqual([
+      "AcceptanceWorkspace.tsx",
       "DocumentWorkspace.tsx",
       "OpenCodeAccountSettings.tsx",
       "SettingsWorkspace.tsx",
@@ -822,6 +825,7 @@ describe("Order cross-boundary certification", () => {
     ]);
     expect(consumersOf("WorkbenchResult")).toEqual(["TerminalResult.tsx"]);
     expect(consumersOf("WorkbenchFacts")).toEqual([
+      "AcceptanceWorkspace.tsx",
       "DocumentWorkspace.tsx",
       "ExecutionWorkspace.tsx",
       "OpenCodeAccountSettings.tsx",
@@ -851,6 +855,7 @@ describe("Order cross-boundary certification", () => {
       "WorkflowRail.tsx",
     ]);
     expect(consumersOf("WorkbenchResourceList")).toEqual([
+      "AcceptanceWorkspace.tsx",
       "ExecutionWorkspace.tsx",
       "PreSignoffStageWorkspace.tsx",
       "ReadinessWorkspace.tsx",
@@ -910,6 +915,7 @@ describe("Order cross-boundary certification", () => {
       "WorkItemQueue.tsx",
     ]);
     expect(consumersOf("WorkbenchTaskPanel")).toEqual([
+      "AcceptanceWorkspace.tsx",
       "app.tsx",
     ]);
     expect(consumersOf("WorkbenchTimeline")).toEqual([
@@ -961,7 +967,11 @@ describe("Order cross-boundary certification", () => {
     expect(readiness).toContain("requiredInputOwnsAttention ||");
     expect(readiness).toContain('material.kind === "EVIDENCE"');
     expect(readiness).toContain('material.kind === "SUPPORTING_DOCUMENT"');
-    expect(readiness).toContain('title: "Package documents"');
+    expect(readiness).toContain('title: beforeReview ? "Package documents before review" : "Package documents"');
+    expect(readiness).toContain('const beforeReview = workItem.stage === "R3" && latestRun === null');
+    expect(readiness).toContain("exactReadinessPackageDocuments(readinessArtifact, prospectiveClosureQuery.data)");
+    expect(readiness).toContain("exactReadinessPackageDocuments(readinessArtifact, signedClosureQuery.data)");
+    expect(readiness).toContain('title="Exact reviewed package unavailable"');
     expect(readiness).toContain('title: "Readiness attempts"');
     expect(readiness).not.toContain("order-review-readiness-");
     expect(readiness).not.toContain("currentness={");
@@ -988,7 +998,8 @@ describe("Order cross-boundary certification", () => {
       .toBeLessThan(documentChangeView.indexOf('label="View exact diff"'));
 
     const proposal = read("ui/src/PreSignoffStageWorkspace.tsx");
-    expect(proposal).toContain('if (material.kind === "PROPOSAL") return primary;');
+    expect(proposal).toContain('if (material.kind === "PROPOSAL") return <>');
+    expect(proposal).toContain('{primary}');
     expect(proposal).toContain("documentAttention?: ReactNode");
     expect(proposal).toContain("historicalReturn?: ReactNode");
     expect(proposal).toContain("stateNotice?: ReactNode");
@@ -1013,9 +1024,9 @@ describe("Order cross-boundary certification", () => {
     expect(approval).toContain("WorkbenchResourceList");
     expect(approval).toContain("packageStale?: boolean");
     expect(approval).toContain(
-      'historicalArtifact={packageStale || materialStateForArtifact(selectedArtifact)?.tag === "HISTORICAL" ? selectedArtifact : undefined}',
+      'historicalArtifact={selectedArtifact}',
     );
-    expect(approval).toContain("embeddedReadOnly={packageStale}");
+    expect(approval).toContain("embeddedReadOnly={packageStale || packageSuperseded}");
     expect(approval).toContain('label="Back to Approval"');
     expect(approval).not.toContain("order-review-approval-");
     expect(approval).not.toContain("MetadataList");
@@ -1028,9 +1039,9 @@ describe("Order cross-boundary certification", () => {
     expect(approval).not.toContain('label="Open ');
 
     const workspace = read("ui/src/WorkItemWorkspace.tsx");
-    expect(workspace).toContain("packageStale={packageStaleOwner !== null}");
+    expect(workspace).toContain("packageStale={selectedApproval === null && packageStaleOwner !== null}");
     expect(workspace).toContain(
-      "artifacts={packageStaleOwner !== null ? allArtifacts : artifacts}",
+      "artifacts={supersededProspective ? supersededArtifacts : selectedApproval !== null ? selectedApprovalArtifactsQuery.data ?? [] : prospectiveArtifactsQuery.data ?? []}",
     );
     expect(workspace).toContain('selectedStep === "AWAITING_SIGNOFF"');
     expect(workspace).toContain("api.listArtifacts(workItem.id)");
@@ -1053,6 +1064,9 @@ describe("Order cross-boundary certification", () => {
     expect(execution).toContain("<WorkbenchFacts");
     expect(execution).toContain("<WorkbenchSection");
     expect(execution).not.toContain('className="order-implementation-scope"');
+    expect(execution).toContain("terminalExecutionFailureEvent(latestOwnerRun, runEvents)");
+    expect(execution).toContain("executionTaskRuns(task.id, runs)");
+    expect(execution).not.toContain('className="order-implementation-heading"');
     expect(execution).toContain('label="Signed task details"');
     expect(execution).toContain('data-testid="validation-matrix"');
     expect(execution).toContain("lifecycleArtifactLabel(artifact.role)");
@@ -1092,7 +1106,7 @@ describe("Order cross-boundary certification", () => {
     expect(rail).toContain("aria-pressed={item.selected}");
     expect(rail).toContain('hidden={item.state !== "current"}');
     expect(execution).toContain('label="Task overview"');
-    expect(execution).toContain('label: "Validation boundary"');
+    expect(execution).toContain('label: "Task validation boundary"');
 
     expect(documentWorkspace).not.toContain("RequirementsAuthorityFacts");
     expect(documentWorkspace).not.toContain('aria-label="Requirements authority"');
@@ -1332,11 +1346,18 @@ describe("Order cross-boundary certification", () => {
     expect(lifecycle).toContain("validationBoundaryFromEvents");
     expect(lifecycle).toContain('run.role === "REMEDIATOR"');
     expect(lifecycle).toContain("REMEDIATOR trigger must identify VALIDATION_FAILED");
-    expect(lifecycle).toContain("REMEDIATOR failure must belong to the current ExecutionTask");
+    expect(lifecycle).toContain("trigger must belong to an earlier Run of the current ExecutionTask and baseline");
+    expect(lifecycle).toContain("causalRun(trigger)");
+    expect(lifecycle).toContain("predecessor.baselineCommit !== run.baselineCommit");
+    expect(lifecycle).toContain("predecessor.workItemId !== run.workItemId");
+    expect(lifecycle).toContain("predecessor.attempt >= run.attempt");
     expect(lifecycle).toContain('run.role === "REVIEWER"');
     expect(lifecycle).toContain("REVIEWER trigger must identify CANDIDATE_STATE_RECORDED");
     expect(lifecycle).toContain("REVIEWER candidate must belong to the current ExecutionTask");
-    expect(lifecycle).toContain("candidateRun.triggerEventId === run.triggerEventId");
+    expect(lifecycle).not.toContain("candidateRun.triggerEventId === run.triggerEventId");
+    expect(lifecycle).toContain("causalRun(candidateEvent)");
+    expect(lifecycle).toContain("return validationBoundaryFromEvents(runEvents)");
+    expect(lifecycle).toContain("event.stage !== validationOrder[expectedIndex]");
     expect(lifecycle).not.toContain("export const sourceChangeLifecycleState");
     expect(lifecycle).toContain("proposal has duplicate disposition");
     expect(lifecycle).toContain("rejected proposal cannot have adoption intent");
@@ -1449,8 +1470,12 @@ describe("Order cross-boundary certification", () => {
     expect(workspace).toContain("signoffPackageQuery.isFetching");
     expect(workspace).toContain("api.listExecutionTasks(workItem.id)");
     expect(workspace).toContain("api.listArtifacts(workItem.id)");
-    expect(workspace).toContain("packageValue={signoffPackageQuery.data ?? null}");
-    expect(workspace).toContain("tasks={tasks}");
+    expect(workspace).toContain("packageValue={supersededProspective ? supersededPackage : selectedApproval === null && workItem.stage === \"AWAITING_SIGNOFF\" ? signoffPackageQuery.data ?? null : null}");
+    expect(workspace).toContain("packageSuperseded={supersededProspective}");
+    expect(workspace).toContain("workbenchQueryKeys.observedSignoffPackage(workItem.id, supersededHash)");
+    expect(workspace).toContain("workbenchQueryKeys.signoffPackageArtifacts(workItem.id, supersededHash)");
+    expect(workspace).toContain("artifacts={supersededProspective ? supersededArtifacts : selectedApproval !== null ? selectedApprovalArtifactsQuery.data ?? [] : prospectiveArtifactsQuery.data ?? []}");
+    expect(workspace).toContain("tasks={selectedApproval === null ? [] : tasks.filter(task => task.approvalId === selectedApproval.id)}");
     expect(workspace).toContain("runs={runs}");
     expect(workspace).toContain("artifacts={allArtifacts}");
 
@@ -1512,7 +1537,7 @@ describe("Order cross-boundary certification", () => {
     expect(execution).toContain('currentOwnerTask?.id === selectedTask.id');
     expect(execution).toContain('selectedTask.state === "CANDIDATE_DONE"');
     expect(execution).toContain('selectedTask.state === "ALREADY_SATISFIED"');
-    expect(execution).toContain('label: "Validation boundary"');
+    expect(execution).toContain('label: "Task validation boundary"');
     const attemptValidation = execution.slice(execution.indexOf("const ValidationSummary ="), execution.indexOf("const ValidationSummary =") + execution.slice(execution.indexOf("const ValidationSummary =")).indexOf("\n};") + 3);
     expect(attemptValidation).toContain("latestValidationEvent(events, stage)");
     expect(attemptValidation).not.toContain("ValidationBoundary");
@@ -2629,7 +2654,9 @@ describe("0.6.0 Wave 4 Workbench and product-language certification", () => {
     expect(preSignoff).not.toContain('aria-label="Related workflow material"');
     expect(preSignoff).not.toContain('aria-label="Supporting workflow material"');
 
-    expect(readiness).toContain('event.event.completion.stage === "R3"');
+    expect(readiness).toContain("admittedStageCompletion(workItem.id, selectedRun, runEvents)");
+    expect(readiness).toContain("artifact.id === completion.artifactRefIds[0]");
+    expect(readiness).toContain("readinessContentQuery.isSuccess");
     expect(readiness).toContain("readinessOutcomeLabel(outcome)");
     expect(readiness).toContain("WorkbenchReview");
     expect(readiness).toContain("verdict={{");
@@ -2639,7 +2666,11 @@ describe("0.6.0 Wave 4 Workbench and product-language certification", () => {
     expect(approval).not.toContain('data-testid="approval-readiness-summary"');
     expect(approval).not.toContain("WorkbenchDisclosure");
     expect(approval).toContain('title: "Package documents"');
-    expect(approval).toContain('title: currentApproval ? "Signed tasks" : "Approved tasks"');
+    expect(approval).toContain('title: packageSuperseded ? "Historical proposed tasks" : currentApproval ? "Signed tasks" : "Approved tasks"');
+    expect(approval).toContain('const currentApproval = !packageSuperseded && workItem.stage === "AWAITING_SIGNOFF"');
+    expect(approval).toContain("if (packageSuperseded || packageValue === null || packageStale");
+    expect(approval).toContain("currentApproval &&");
+    expect(approval).toContain('label: "Inspected package is no longer current"');
     expect(approval).not.toContain('aria-label="Package material"');
     expect(readiness).not.toContain("embeddedReadOnly");
     expect(readiness).not.toContain("READY_FOR_SIGNOFF");

@@ -176,7 +176,7 @@ export const PreSignoffStageWorkspace = ({
         const artifact = artifacts.find((candidate) => candidate.id === material.artifactId);
         const state = artifact === undefined ? null : materialStateForArtifact(artifact);
         return <LifecycleDocumentMaterial workItem={workItem} artifactId={material.artifactId}
-          materialState={state} historicalArtifact={state?.tag === "HISTORICAL" ? artifact : undefined}
+          materialState={state} historicalArtifact={state?.tag === "HISTORICAL" || state?.tag === "SIGNED_LOCKED" ? artifact : undefined}
           mutationsDisabled={authoringMutationsDisabled} authoringBlockedReason={authoringBlockedReason}
           onDirtyChange={onDirtyChange} onOpenArtifactEvidence={onOpenArtifactEvidence}
           onContextDocumentChange={onContextDocumentChange} onMutationError={onMutationError} />;
@@ -188,7 +188,7 @@ export const PreSignoffStageWorkspace = ({
         const state = artifact === undefined ? null : materialStateForArtifact(artifact);
         return <ReadOnlyLifecycleDocumentMaterial workItem={workItem}
           artifactId={material.artifactId} materialState={state}
-          historicalArtifact={state?.tag === "HISTORICAL" ? artifact : undefined}
+          historicalArtifact={state?.tag === "HISTORICAL" || state?.tag === "SIGNED_LOCKED" ? artifact : undefined}
           onOpenArtifactEvidence={onOpenArtifactEvidence} onContextDocumentChange={onContextDocumentChange} />;
       }
       case "PROPOSAL": return <ProposalReview workItem={workItem}
@@ -209,7 +209,10 @@ export const PreSignoffStageWorkspace = ({
     }
   })();
 
-  if (material.kind === "PROPOSAL") return primary;
+  if (material.kind === "PROPOSAL") return <>
+    {historicalReturn === undefined ? null : <div className="order-inline-actions">{historicalReturn}</div>}
+    {primary}
+  </>;
 
   const inspectingSupportingDocument =
     material.kind === "SOURCE_DOCUMENT" || material.kind === "SUPPORTING_DOCUMENT";

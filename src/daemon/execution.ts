@@ -1,5 +1,8 @@
 import {
   type Approval,
+  type CandidateReviewEvent,
+  CandidateReviewEventSchema,
+  CandidateMembersSchema,
   type EvidenceRef,
   type ExecutionTask,
   type ExecutionTaskId,
@@ -25,10 +28,20 @@ import {
   decideOperationalRecovery,
   executionTaskIsEligible,
   isPostSignoffRole,
+  qaReviewAssessmentsAreAdmitted,
   semanticRepairIsAllowed,
 } from "../core/execution.ts";
 import {
   deriveExecutionOwner,
+  candidateSubmissionEvents,
+  initialCandidateMembers,
+  admittedCandidateMember,
+  candidateMembershipCanonicalJson,
+  reconstructCandidateRounds,
+  verifyCandidateRoundHashes,
+  candidateFindingDispositions,
+  deriveAcceptanceDecision,
+  linkedSubmission,
   routeApprovalStale,
   routeValidationFailure,
   transitionWorkItem,
@@ -52,25 +65,30 @@ import {
 } from "../shell/opencode.ts";
 import {
   byteEqual,
+  newCandidateReviewEventId,
   newRunId,
   nowIsoDateTime,
   readRunEvidenceBytes,
   sha256,
+  sha256Text,
   workspacePathForRun,
 } from "../shell/runtime.ts";
 import {
   blockExecutionTasksForApproval,
   countRunningExecutionTasks,
   loadApprovals,
+  loadCandidateReviewEvents,
+  loadTaskStatesForApproval,
   loadRunningExecutionTaskLinks,
   loadRunningRunForExecutionTask,
   loadRunsForExecutionTask,
   reconstructExecutionTask,
   setExecutionTaskState,
+  storeCandidateReviewEvent,
   updateWorkItemLifecycle,
   withTransaction,
 } from "../shell/sqlite.ts";
-import { type ActiveProvider, type CoordinatorRuntime } from "./runtime.ts";
+import { type ActiveProvider, type CoordinatorRuntime, withWorkItemOperatorMutation } from "./runtime.ts";
 import {
   appendRunEvent,
   createAgentActivityRecorder,
@@ -96,12 +114,18 @@ import {
   currentMaterialFresh,
   currentApprovalForWorkItem,
   approvalContext,
+  approvalContextForRun,
+  observeCurrentCandidateReview,
+  requireCurrentAcceptanceIdentity,
+  acceptanceObservationCodeForFailure,
+  staleAuthorityOwnerForFailure,
   canonicalTasksForApproval,
   getApproval,
   getWorkItem,
   signedPlanBytes,
   type ResolvedContext,
 } from "./authority.ts";
+import { isSourceBoundaryFailure } from "./work-item-source.ts";
 import {
   appendValidationFailed,
   appendValidationPassed,
@@ -127,11 +151,20 @@ export const executionPrompt = async (
       : role === "REVIEWER"
         ? "Independently review the replayed candidate against the signed task and resolved authority. Compare the exact actual changed paths with the signed changeSurface forecast. Any unforecast production path is acceptable only when it is the minimum same-layer physical decomposition needed to preserve an already-resolved responsibility/effect boundary with no semantic-owner, public-contract, state, dependency, validation-contract or behavior change; otherwise fail. Explicitly check module cohesion/decomposition and minimum change. File length alone is not the criterion. Do not edit. If V4 semantics fail, emit REVIEW_FAILED. If V4 semantics pass, emit REVIEW_PASSED with minimumChange=MINIMUM_SUFFICIENT and minimumChangeSummary=null when no removable surface exists, or minimumChange=CHANGE_BLOAT with a non-empty minimumChangeSummary identifying the removable surface when the candidate is semantically correct but unnecessarily large."
         : "Correct only the proven triggering failure in the replayed candidate. Preserve declared module responsibilities and do not broaden scope.";
+  const { state: _mutableState, ...immutableTask } = task;
   return [
     `Order execution role: ${role}`,
     roleInstruction,
     "Return only a JSON array of canonical provider-emittable RunEventPayload values for this role.",
-    `ExecutionTask: ${canonicalJson(task)}`,
+    `ExecutionTask: ${canonicalJson(context.qa === undefined ? task : immutableTask)}`,
+    context.qa === undefined ? "" : [
+      "Exact QA correction trigger: " + context.qa.triggerEventId,
+      "Immutable submitted QA events (original report and any preceding failed retest; historical observations are not automatically current evidence):",
+      canonicalJson(context.qa.events),
+      role === "REVIEWER"
+        ? "Independently assess every submitted finding exactly once in qaAssessments with verdict, rationale and verified evidence. PASS requires all findings SATISFIED or NOT_REPRODUCED and the ordinary V4 review to pass. Route UPSTREAM findings to BLOCKED_FOR_REANALYSIS, FAIL_REPAIRABLE to REVIEW_FAILURE unless upstream is required. Ordinary V4 may fail an independent obligation even if all findings pass. Do not edit or issue human disposition."
+        : "Correct only the proven triggering failure and retain exact submitted finding context; do not issue reviewer assessment or human disposition.",
+    ].join("\n"),
     failure === undefined ? "" : `Triggering failure: ${canonicalJson(failure)}`,
     reviewerInputs ?? "",
     "Resolved canonical sources:",
@@ -155,22 +188,48 @@ export const getCandidateEvent = (
   return event;
 };
 
+const reviewerCandidateForRun = (runtime: CoordinatorRuntime, run: Run, approval: Approval): RunEvent => {
+  if (run.triggerEventId === null || run.role !== "REVIEWER") throw new TypeError("REVIEWER requires exact trigger");
+  const trigger = getRunEvent(runtime, run.triggerEventId);
+  if (trigger.event.tag === "CANDIDATE_STATE_RECORDED") return trigger;
+  if (trigger.event.tag !== "CANDIDATE_RECORDED") throw new TypeError("Run trigger does not identify a candidate state");
+  const history = loadCandidateReviewEvents(runtime.database, approval.id);
+  const starts = history.filter(value => value.event.tag === "REVIEW_STARTED" && value.event.runId === run.id);
+  const start = starts[0];
+  if (starts.length !== 1 || start?.event.tag !== "REVIEW_STARTED") throw new TypeError("candidate replay requires exact QA admission");
+  const input = candidateSubmissionEvents(approval.id, history, start.event.submissionId);
+  const prior = getRun(runtime, trigger.runId);
+  if (prior.role !== "REVIEWER" || prior.status !== "COMPLETED" || prior.terminalClassification !== "CANDIDATE_DONE" ||
+      prior.workItemId !== run.workItemId || prior.executionTaskId !== run.executionTaskId ||
+      prior.baselineCommit !== run.baselineCommit || prior.attempt >= run.attempt ||
+      input.some(value => value.event.tag === "REPORT" && value.event.taskId !== run.executionTaskId)) {
+    throw new TypeError("QA replay trigger has foreign candidate lineage");
+  }
+  const candidate = getCandidateEvent(runtime, trigger.event.candidateStateEventId);
+  const owner = getRun(runtime, candidate.runId);
+  if (owner.workItemId !== run.workItemId || owner.executionTaskId !== run.executionTaskId ||
+      owner.baselineCommit !== run.baselineCommit || owner.attempt >= prior.attempt ||
+      (owner.role !== "BUILDER" && owner.role !== "REMEDIATOR")) throw new TypeError("QA replay candidate state is foreign");
+  return candidate;
+};
+
 export const candidateForRun = (
   runtime: CoordinatorRuntime,
   run: Run,
+  approval: Approval,
 ): RunEvent | null => {
   if (run.role === "BUILDER") return null;
   if (run.triggerEventId === null) {
     throw new TypeError("post-builder Run requires a triggerEventId");
   }
-  if (run.role === "REVIEWER") return getCandidateEvent(runtime, run.triggerEventId);
+  if (run.role === "REVIEWER") return reviewerCandidateForRun(runtime, run, approval);
 
   const failure = getRunEvent(runtime, run.triggerEventId);
   const failureRun = getRun(runtime, failure.runId);
   if (failureRun.role !== "REVIEWER" || failureRun.triggerEventId === null) {
     throw new TypeError("REMEDIATOR failure lineage does not resolve to a REVIEWER candidate");
   }
-  return getCandidateEvent(runtime, failureRun.triggerEventId);
+  return reviewerCandidateForRun(runtime, failureRun, approval);
 };
 
 export const loadCandidateCapture = (
@@ -227,26 +286,42 @@ export const setWorkItemExecutionBlocked = (
   updateWorkItemLifecycle(runtime.database, workItemId, transition);
 };
 
-export const maybeCompleteWorkItem = async (
-  runtime: CoordinatorRuntime,
-  approval: Approval,
-): Promise<void> => {
-  const tasks = await canonicalTasksForApproval(runtime, approval);
+// Called inside the same transaction that finalizes the task/Run.
+const completeExecutionAggregate = (
+  runtime: CoordinatorRuntime, approval: Approval, plan: Uint8Array, finalizedRun: Run, member?: RunEvent,
+): void => {
+  const tasks = loadTaskStatesForApproval(runtime.database,approval.id).map(([id])=>reconstructExecutionTask(runtime.database,id,plan));
   const aggregate = aggregateTaskCompletion(tasks);
-  const outcome = aggregate.outcome;
-  if (!aggregate.complete || outcome === null) return;
-  if (
-    outcome !== "ALREADY_SATISFIED" &&
-    outcome !== "CANDIDATE_DONE"
-  ) {
-    throw new TypeError("completed execution aggregate has invalid outcome");
+  if(!aggregate.complete||aggregate.outcome===null) return;
+  const current = getWorkItem(runtime,approval.workItemId);
+  if(current.stage!=="EXECUTION"||current.status!=="ACTIVE"||currentApprovalForWorkItem(runtime,current.id)?.id!==approval.id) throw new TypeError("execution aggregate owner changed");
+  const history=loadCandidateReviewEvents(runtime.database,approval.id);
+  if(aggregate.outcome==="CANDIDATE_DONE") {
+    const runs=listRuns(runtime,current.id);
+    const events=runs.flatMap(run=>listRunEvents(runtime,run.id));
+    let event: CandidateReviewEvent;
+    if(history.length===0) {
+      const members=initialCandidateMembers(approval,tasks,runs,events,history);
+      event=CandidateReviewEventSchema.parse({id:newCandidateReviewEventId(),approvalId:approval.id,sequence:1,occurredAt:nowIsoDateTime(),actor:null,event:{tag:"OPENED",candidateHash:sha256Text(candidateMembershipCanonicalJson(approval.id,members))}});
+    } else {
+      const submissionId=linkedSubmission(finalizedRun,runs,events,history);
+      if(submissionId===null||member===undefined||member.event.tag!=="CANDIDATE_RECORDED") throw new TypeError("Acceptance return requires exact QA candidate");
+      const priorRounds=reconstructCandidateRounds(approval,tasks,runs,events,history);
+      const prior=Array.from(priorRounds.values()).at(-1);
+      if(prior===undefined) throw new TypeError("prior Acceptance round missing");
+      const replacement=admittedCandidateMember(approval,tasks,runs,events,member.id);
+      const members=CandidateMembersSchema.parse(prior.map(value=>value[0]===replacement[0]?replacement:value));
+      event=CandidateReviewEventSchema.parse({id:newCandidateReviewEventId(),approvalId:approval.id,sequence:history.length+1,occurredAt:nowIsoDateTime(),actor:null,event:{tag:"REVIEW_COMPLETED",submissionId,candidateHash:sha256Text(candidateMembershipCanonicalJson(approval.id,members)),candidateEventId:member.id}});
+    }
+    const next=[...history,event];
+    const rounds=reconstructCandidateRounds(approval,tasks,runs,events,next);
+    verifyCandidateRoundHashes(next,new Map([...rounds].map(([id,members])=>[id,sha256Text(candidateMembershipCanonicalJson(approval.id,members))])));
+    candidateFindingDispositions(next,rounds,tasks,runs,events);
+    storeCandidateReviewEvent(runtime.database,event);
+  } else if(aggregate.outcome!=="ALREADY_SATISFIED"||history.length!==0) {
+    throw new TypeError("invalid execution aggregate outcome");
   }
-  const current = getWorkItem(runtime, approval.workItemId);
-  const transition = transitionWorkItem(current, {
-    tag: "EXECUTION_COMPLETED",
-    outcome,
-  });
-  updateWorkItemLifecycle(runtime.database, approval.workItemId, transition);
+  updateWorkItemLifecycle(runtime.database,current.id,transitionWorkItem(current,{tag:"EXECUTION_COMPLETED",outcome:aggregate.outcome}));
 };
 
 export const blockOldApprovalAndReturn = (
@@ -396,7 +471,7 @@ export const executeMutatingRun = async (
     throw new TypeError("mutating execution Run must be BUILDER or REMEDIATOR");
   }
   const workItem = getWorkItem(runtime, run.workItemId);
-  const context = await approvalContext(runtime, approval, task, run.role);
+  const context = await approvalContextForRun(runtime, approval, task, run);
   const workspace = workspaceForRun(runtime, run.id);
   const closure = approvalClosure(runtime, approval);
   const protectedPaths = [
@@ -404,7 +479,7 @@ export const executeMutatingRun = async (
     closure.r3,
     ...closure.material,
   ].map((artifact) => artifact.repositoryPath);
-  const parentCandidate = candidateForRun(runtime, run);
+  const parentCandidate = candidateForRun(runtime, run, approval);
   try {
     if (parentCandidate === null) {
       await createFreshCheckout(
@@ -592,6 +667,7 @@ export const executeMutatingRun = async (
     if (!(await executionAuthorityIsFreshForSuccess(runtime, run, approval, task))) {
       return;
     }
+    const plan = await signedPlanBytes(runtime,approval);
     const finalized = withTransaction(runtime.database, () => {
       if (!runAcceptsFinalization(runtime, run.id)) return false;
       updateRun(runtime, run.id, {
@@ -600,10 +676,10 @@ export const executeMutatingRun = async (
         endedAt: nowIsoDateTime(),
       });
       markTaskState(runtime, task.id, "ALREADY_SATISFIED");
+      completeExecutionAggregate(runtime,approval,plan,getRun(runtime,run.id));
       return true;
     });
     if (!finalized) return;
-    await maybeCompleteWorkItem(runtime, approval);
     return;
   }
   if (run.role === "BUILDER" && capture.changedPaths.length === 0) {
@@ -772,7 +848,7 @@ export const executeReviewerRun = async (
   approval: Approval,
 ): Promise<void> => {
   if (run.role !== "REVIEWER") throw new TypeError("review execution Run must be REVIEWER");
-  const candidateEvent = candidateForRun(runtime, run);
+  const candidateEvent = candidateForRun(runtime, run, approval);
   if (candidateEvent === null) throw new TypeError("REVIEWER requires candidate trigger");
   const capture = loadCandidateCapture(runtime, candidateEvent);
   const workItem = getWorkItem(runtime, run.workItemId);
@@ -830,7 +906,7 @@ export const executeReviewerRun = async (
     return;
   }
 
-  const context = await approvalContext(runtime, approval, task, run.role);
+  const context = await approvalContextForRun(runtime, approval, task, run);
   let reviewEvents: readonly RunEvent[];
   let diagnosticEvidence: readonly EvidenceRef[] = [];
   try {
@@ -867,6 +943,12 @@ export const executeReviewerRun = async (
       },
       createAgentActivityRecorder(runtime, run.id),
     );
+    const submission = context.qa?.events[0];
+    const submitted = submission?.event.tag === "SUBMIT" ? submission.event.findingIds : null;
+    const results = payloads.filter(value => value.tag === "REVIEW_PASSED" || value.tag === "REVIEW_FAILED");
+    if (results.length !== 1 || !qaReviewAssessmentsAreAdmitted(results[0]!, submitted)) {
+      throw new TypeError("REVIEWER result lacks exact admitted QA assessment set");
+    }
     const accepted = persistExecutionProviderEvents(runtime, run, payloads);
     if (accepted === null) return;
     reviewEvents = accepted;
@@ -1014,9 +1096,10 @@ export const executeReviewerRun = async (
     return event.id;
   });
 
+  const plan=await signedPlanBytes(runtime,approval);
   const finalized = withTransaction(runtime.database, () => {
     if (!runAcceptsFinalization(runtime, run.id)) return false;
-    appendRunEvent(runtime, run.id, {
+    const member=appendRunEvent(runtime, run.id, {
       tag: "CANDIDATE_RECORDED",
       candidateStateEventId: candidateEvent.id,
       validationEventIds: ordered,
@@ -1027,10 +1110,10 @@ export const executeReviewerRun = async (
       endedAt: nowIsoDateTime(),
     });
     markTaskState(runtime, task.id, "CANDIDATE_DONE");
+    completeExecutionAggregate(runtime,approval,plan,getRun(runtime,run.id),member);
     return true;
   });
   if (!finalized) return;
-  await maybeCompleteWorkItem(runtime, approval);
 };
 
 export const executePostSignoffRun = async (
@@ -1126,14 +1209,36 @@ export const continuationForRunningTask = async (
     throw new TypeError("ExecutionTask Run history contains STAGE role");
   }
   const lastRole = last.role;
-  const continuationRole: Exclude<RunRole, "STAGE"> =
-    last.terminalClassification === "PROVIDER_FAILURE" ||
-    last.terminalClassification === "COORDINATOR_INTERRUPTED"
-      ? lastRole
-      : listRunEvents(runtime, last.id).some((event) => event.event.tag === "CANDIDATE_STATE_RECORDED")
-        ? "REVIEWER"
-        : "REMEDIATOR";
-  const context = await approvalContext(runtime, approval, task, continuationRole);
+  const qaHistory = loadCandidateReviewEvents(runtime.database, approval.id);
+  const submissionId = qaHistory.length === 0 ? null : linkedSubmission(last, history,
+    history.flatMap(value => listRunEvents(runtime, value.id)), qaHistory);
+  const createContinuation = async (
+    role: Exclude<RunRole, "STAGE">, triggerEventId: RunEventId | null, operationalReplacement = false,
+  ): Promise<Run> => {
+    if (submissionId !== null && triggerEventId === null) throw new TypeError("QA continuation lacks exact trigger");
+    const context = await approvalContext(runtime, approval, task, role, submissionId === null ? undefined :
+      { submissionId, triggerEventId: triggerEventId! });
+    const replacesDirect = operationalReplacement && submissionId !== null && qaHistory.some(value =>
+      value.event.tag === "REVIEW_STARTED" && value.event.runId === last.id && value.event.submissionId === submissionId);
+    return withTransaction(runtime.database, () => {
+      const current = getWorkItem(runtime, workItem.id);
+      if (current.stage !== "EXECUTION" || current.status !== "ACTIVE" || currentApprovalForWorkItem(runtime, workItem.id)?.id !== approval.id ||
+          latestRunForTask(runtime, task.id)?.id !== last.id || activeExecutionRun(runtime, task.id) !== null) {
+        throw new TypeError("execution continuation identity changed");
+      }
+      const currentReview = loadCandidateReviewEvents(runtime.database, approval.id);
+      if (canonicalJson(currentReview) !== canonicalJson(qaHistory)) throw new TypeError("QA continuation review sequence changed");
+      const next = createExecutionRun(runtime, current, task, approval, role, triggerEventId, context.contextHash);
+      if (replacesDirect && submissionId !== null) {
+        storeCandidateReviewEvent(runtime.database, {
+          id: newCandidateReviewEventId(), approvalId: approval.id, sequence: currentReview.length + 1,
+          occurredAt: nowIsoDateTime(), actor: null,
+          event: { tag: "REVIEW_STARTED", submissionId, runId: next.id },
+        });
+      }
+      return next;
+    });
+  };
 
   if (
     last.terminalClassification === "PROVIDER_FAILURE" ||
@@ -1151,33 +1256,13 @@ export const continuationForRunningTask = async (
       });
       return null;
     }
-    return withTransaction(runtime.database, () =>
-      createExecutionRun(
-        runtime,
-        workItem,
-        task,
-        approval,
-        lastRole,
-        last.triggerEventId,
-        context.contextHash,
-      )
-    );
+    return createContinuation(lastRole, last.triggerEventId, true);
   }
 
   const candidate = listRunEvents(runtime, last.id)
     .findLast((event) => event.event.tag === "CANDIDATE_STATE_RECORDED");
   if (candidate !== undefined) {
-    return withTransaction(runtime.database, () =>
-      createExecutionRun(
-        runtime,
-        workItem,
-        task,
-        approval,
-        "REVIEWER",
-        candidate.id,
-        context.contextHash,
-      )
-    );
+    return createContinuation("REVIEWER", candidate.id);
   }
 
   const failure = listRunEvents(runtime, last.id)
@@ -1201,17 +1286,7 @@ export const continuationForRunningTask = async (
       });
       return null;
     }
-    return withTransaction(runtime.database, () =>
-      createExecutionRun(
-        runtime,
-        workItem,
-        task,
-        approval,
-        "REMEDIATOR",
-        failure.id,
-        context.contextHash,
-      )
-    );
+    return createContinuation("REMEDIATOR", failure.id);
   }
 
   if (task.state === "RUNNING") {
@@ -1331,13 +1406,57 @@ export const startEligibleTask = async (
   for (const approval of approvals) {
     const workItem = getWorkItem(runtime, approval.workItemId);
     if (!repositoryRoots.includes(workItem.repositoryRoot)) continue;
-    if (workItem.stage !== "EXECUTION" || workItem.status !== "ACTIVE") continue;
+    if (workItem.status !== "ACTIVE" || currentApprovalForWorkItem(runtime, workItem.id)?.id !== approval.id) continue;
+    if (workItem.stage==="AWAITING_ACCEPTANCE") {
+      const history=loadCandidateReviewEvents(runtime.database,approval.id);
+      const submission=history.findLast(value=>value.event.tag==="SUBMIT");
+      if(submission?.event.tag!=="SUBMIT"||history.some(value=>value.event.tag==="REVIEW_COMPLETED"&&value.event.submissionId===submission.id)) continue;
+      const started=await withWorkItemOperatorMutation(runtime,workItem.id,async()=>{
+        let proof: Awaited<ReturnType<typeof observeCurrentCandidateReview>>;
+        try { proof=await observeCurrentCandidateReview(runtime,workItem.id,approval.id,history.length); }
+        catch(error) { if(acceptanceObservationCodeForFailure(error)!==null||staleAuthorityOwnerForFailure(error)!==null||isSourceBoundaryFailure(error)) return null; throw error; }
+        const decision=deriveAcceptanceDecision({...proof,current:true,coherent:true,mutationConflict:false,currentProof:proof.history,diagnostic:null});
+        if(decision.tag!=="QUEUED"||decision.submissionId!==submission.id) throw new TypeError("queued QA submission changed");
+        const input=candidateSubmissionEvents(approval.id,proof.history,submission.id);
+        const report=input.find(value=>value.event.tag==="REPORT");
+        if(report?.event.tag!=="REPORT") throw new TypeError("queued QA report missing");
+        const taskId=report.event.taskId;
+        const task=proof.tasks.find(value=>value.id===taskId);
+        const member=Array.from(proof.rounds.values()).at(-1)?.find(value=>value[0]===taskId);
+        if(task===undefined||task.state!=="CANDIDATE_DONE"||member===undefined) throw new TypeError("queued QA member is not eligible");
+        const context=await approvalContext(runtime,approval,task,"REVIEWER",{submissionId:submission.id,triggerEventId:member[1]});
+        const rechecked=await observeCurrentCandidateReview(runtime,workItem.id,approval.id,history.length);
+        if(canonicalJson(rechecked.history)!==canonicalJson(proof.history)||canonicalJson(rechecked.tasks)!==canonicalJson(proof.tasks)) throw new TypeError("queued QA admission changed");
+        return withTransaction(runtime.database,()=>{
+          const current=requireCurrentAcceptanceIdentity(runtime,workItem.id,approval.id,history.length);
+          if(canonicalJson(current.history)!==canonicalJson(history)||countRunningExecutionTasks(runtime.database)!==0) throw new TypeError("queued QA identity or global execution owner changed");
+          markTaskState(runtime,task.id,"RUNNING");
+          const run=createExecutionRun(runtime,current.workItem,{...task,state:"RUNNING"},approval,"REVIEWER",member[1],context.contextHash);
+          storeCandidateReviewEvent(runtime.database,{id:newCandidateReviewEventId(),approvalId:approval.id,sequence:history.length+1,occurredAt:nowIsoDateTime(),actor:null,event:{tag:"REVIEW_STARTED",submissionId:submission.id,runId:run.id}});
+          const updated=transitionWorkItem(current.workItem,{tag:"QA_REVIEW_STARTED"});
+          updateWorkItemLifecycle(runtime.database,workItem.id,updated);
+          return {workItem:{...current.workItem,...updated},approval,task:{...task,state:"RUNNING" as const},run};
+        });
+      });
+      if(started!==null) return started;
+      continue;
+    }
+    if(workItem.stage!=="EXECUTION") continue;
     const tasks = await canonicalTasksForApproval(runtime, approval);
     const task = tasks.find((candidate) => executionTaskIsEligible(candidate, tasks));
     if (task === undefined) continue;
+    if(!(await currentMaterialFresh(runtime,approval))) continue;
+    const plan = await signedPlanBytes(runtime, approval);
     const context = await approvalContext(runtime, approval, task, "BUILDER");
 
     const run = withTransaction(runtime.database, () => {
+      const current = getWorkItem(runtime, workItem.id);
+      const currentTasks = tasks.map(value => reconstructExecutionTask(runtime.database, value.id, plan));
+      if (current.stage !== "EXECUTION" || current.status !== "ACTIVE" ||
+          currentApprovalForWorkItem(runtime, workItem.id)?.id !== approval.id ||
+          currentTasks.find(value => executionTaskIsEligible(value, currentTasks))?.id !== task.id) {
+        throw new TypeError("ordinary task admission identity or eligibility changed");
+      }
       const existing = countRunningExecutionTasks(runtime.database);
       if (existing !== 0) {
         throw new TypeError("another ExecutionTask became RUNNING");

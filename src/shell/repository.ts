@@ -1042,3 +1042,19 @@ export const commitDocumentationPaths = async (
 
   return committed;
 };
+
+/** Isolated manual-test checkout; no Run or retained proof mutation. */
+export const prepareCandidateTestCopy = async (
+  sourceRepositoryRoot: string, baselineCommit: GitCommit,
+  expected: Readonly<{patch: Uint8Array; patchSha256: Sha256; changedPaths: readonly RepositoryPath[]}>,
+): Promise<string> => {
+  const parent = mkdtempSync(join(tmpdir(),"order-acceptance-"));
+  const workspace = join(parent,"candidate");
+  try {
+    await replayAndVerifyCandidate(sourceRepositoryRoot,workspace,baselineCommit,expected);
+    return realpathSync(workspace);
+  } catch (error) {
+    rmSync(parent,{recursive:true,force:true});
+    throw error;
+  }
+};

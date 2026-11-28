@@ -1,6 +1,9 @@
 import type { QueryClient } from "@tanstack/react-query";
 import type {
   ApprovalId,
+  AuthorityRef,
+  ExecutionTaskId,
+  Sha256,
   ArtifactRefId,
   EvidencePath,
   OpenCodeAccountLoginAttemptId,
@@ -40,12 +43,22 @@ export const workbenchQueryKeys = {
     ["lifecycleArtifacts", workItemId] as const,
   signoffPackage: (workItemId: WorkItemId) =>
     ["signoffPackage", workItemId] as const,
+  observedSignoffPackage: (workItemId: WorkItemId, packageHash: Sha256) =>
+    ["observedSignoffPackage", workItemId, packageHash] as const,
+  signoffPackageArtifacts: (workItemId: WorkItemId, packageHash: Sha256 | null) =>
+    ["signoffPackage", workItemId, packageHash, "artifacts"] as const,
   currentApproval: (workItemId: WorkItemId) =>
     ["currentApproval", workItemId] as const,
   approvals: (workItemId: WorkItemId) =>
     ["approvals", workItemId] as const,
-  approvalArtifacts: (workItemId: WorkItemId, approvalId: ApprovalId) =>
+  approvalArtifacts: (workItemId: WorkItemId, approvalId: ApprovalId | null) =>
     ["approvals", workItemId, approvalId, "artifacts"] as const,
+  approvalCriterion: (workItemId: WorkItemId, approvalId: ApprovalId, taskId: ExecutionTaskId, acceptanceRef: AuthorityRef) =>
+    ["approvals", workItemId, approvalId, "artifacts", taskId, acceptanceRef] as const,
+  qaHistory: (workItemId: WorkItemId, approvalId: ApprovalId | null) =>
+    ["approvals", workItemId, approvalId, "qa-events"] as const,
+  qaProof: (workItemId: WorkItemId, approvalId: ApprovalId | null, sequence: number | null) =>
+    ["approvals", workItemId, approvalId, "qa-events", "current", sequence] as const,
   tasks: (workItemId: WorkItemId) =>
     ["tasks", workItemId] as const,
   runs: (workItemId: WorkItemId) =>

@@ -10,6 +10,7 @@ import {
   type RunEvent,
   type WorkItem,
 } from "../../src/core/contracts.ts";
+import { reconstructCandidateRounds, candidateFindingDispositions } from "../../src/core/lifecycle.ts";
 import * as api from "./http.ts";
 import { workbenchQueryKeys } from "./query-keys.ts";
 import {
@@ -85,6 +86,32 @@ export const TerminalResult = ({
     workItem.outcome === "AUDIT_COMPLETE";
   const candidateDone = workItem.outcome === "CANDIDATE_DONE";
 
+  const finalApprovalQuery = useQuery({
+    queryKey: workbenchQueryKeys.currentApproval(workItem.id),
+    queryFn: () => api.getCurrentApproval(workItem.id),
+    enabled: candidateDone,
+  });
+  const finalApprovalId = finalApprovalQuery.data?.id ?? null;
+  const qaHistoryQuery = useQuery({
+    queryKey: workbenchQueryKeys.qaHistory(workItem.id, finalApprovalId),
+    queryFn: () => {
+      if (finalApprovalId === null) throw new TypeError("Final Approval identity unavailable");
+      return api.listCandidateReviewEvents(workItem.id, finalApprovalId);
+    },
+    enabled: candidateDone && finalApprovalId !== null,
+    retry: false,
+  });
+  const accepted = qaHistoryQuery.data?.find(entry => entry.event.tag === "ACCEPT");
+  const acceptanceProvenance = finalApprovalQuery.isError || qaHistoryQuery.isError
+    ? "Acceptance provenance unavailable."
+    : finalApprovalQuery.isPending || (finalApprovalId !== null && qaHistoryQuery.isPending)
+      ? "Loading acceptance provenance…"
+      : accepted !== undefined && accepted.actor !== null
+        ? "Accepted by " + accepted.actor + " · " + new Date(accepted.occurredAt).toLocaleString()
+        : qaHistoryQuery.isSuccess && qaHistoryQuery.data.length === 0
+          ? "Legacy completion: no human acceptance recorded."
+          : "Acceptance provenance unavailable.";
+
   const artifactsQuery = useQuery({
     queryKey: workbenchQueryKeys.lifecycleArtifacts(workItem.id),
     queryFn: () => api.listLifecycleArtifacts(workItem.id),
@@ -139,11 +166,24 @@ export const TerminalResult = ({
     enabled: selectedArtifact !== null,
   });
 
-  const candidateEvidence = verifiedCandidateProofEvents(
-    tasksQuery.data ?? [],
-    candidateRuns,
-    eventQueries.flatMap((query) => query.data ?? []),
-  ).flatMap((event: RunEvent) => {
+  const allEvents=eventQueries.flatMap(query=>query.data??[]);
+  const exactProofEvents=(()=>{
+    if(!qaHistoryQuery.isSuccess||finalApprovalQuery.data==null)return [];
+    const history=qaHistoryQuery.data;
+    if(history.length===0)return verifiedCandidateProofEvents((tasksQuery.data??[]).filter(task=>task.approvalId===finalApprovalId),candidateRuns,allEvents);
+    if(accepted?.event.tag!=="ACCEPT")return [];
+    try{
+      const rounds=reconstructCandidateRounds(finalApprovalQuery.data,tasksQuery.data??[],candidateRuns,allEvents,history);
+      candidateFindingDispositions(history,rounds,tasksQuery.data??[],candidateRuns,allEvents);
+      return accepted.event.candidateMembers.flatMap(([,id])=>{
+        const member=allEvents.find(event=>event.id===id);
+        if(member?.event.tag!=="CANDIDATE_RECORDED")return [];
+        const ids=[member.event.candidateStateEventId,...member.event.validationEventIds];
+        return ids.flatMap(id=>allEvents.filter(event=>event.id===id));
+      });
+    }catch{return [];}
+  })();
+  const candidateEvidence = exactProofEvents.flatMap((event: RunEvent) => {
     const run = candidateRuns.find((candidate) => candidate.id === event.runId);
     return run === undefined ? [] : eventEvidence(event).map((proof) => ({
       runId: run.id,
@@ -173,6 +213,7 @@ export const TerminalResult = ({
       resources={candidateDone ? {
         title: "Verified candidate resources",
         content: <div data-testid="candidate-result-material">
+          <p>{acceptanceProvenance}</p>
           {runsQuery.isPending || tasksQuery.isPending ||
           eventQueries.some((query) => query.isPending) ? (
             <WorkbenchState

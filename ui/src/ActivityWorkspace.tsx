@@ -64,7 +64,7 @@ export const StageRunMaterial = ({
 }>) => {
   const [inputError, setInputError] = useState<unknown>(null);
   const stageRuns = runs.filter((run) => run.role === "STAGE" && run.stage === stage);
-  const selectedRun = stageRuns.find((run) => run.id === selectedRunId) ?? latestStageRun(stageRuns, stage);
+  const selectedRun = selectedRunId === null ? latestStageRun(stageRuns, stage) : stageRuns.find((run) => run.id === selectedRunId) ?? null;
   const cancel = useMutation({
     mutationFn: () => {
       if (selectedRun === null || selectedRun.id !== currentRunId ||

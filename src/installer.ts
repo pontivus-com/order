@@ -1180,6 +1180,19 @@ export const runInstaller = async (
       process.stdout.write("Order installer — migrated WorkItem documentation into target repositories; retained legacy source root as backup: " +
         configuredSetup.legacyV2Config.workItemRoot + "\n");
     }
+    // v2 transformation above produces v3; direct v3 and transformed v2
+    // candidates use the same existing archive and compensation ownership.
+    if (databaseArchive !== null && databaseArchive.preparedCandidates.size > 0) {
+      if (databaseCandidates === undefined) throw new TypeError("database candidate custody unavailable before v4 migration");
+      sqliteUpgradeModule.requireInstallerDatabaseCandidates(databaseCustody, databaseCandidates, !databaseCandidateEffectsStarted);
+      databaseWriterBaseline = databaseCandidates;
+      databaseCandidates = undefined;
+      databaseCandidateEffectsStarted = true;
+      sqliteUpgradeModule.migrateOrderDatabaseV3ToV4(databaseArchive, databaseWriterBaseline);
+      databaseCandidates = sqliteUpgradeModule.observeInstallerDatabaseCandidates(databaseCustody, true, databaseWriterBaseline, true);
+      sqliteUpgradeModule.requireInstallerDatabaseCandidates(databaseCustody, databaseCandidates, false);
+      process.stdout.write("Order installer — verified additive SQLite v4 migration\n");
+    }
     step("installing and starting user service");
     activateService(locations, launcher, prior, environment,
       identity => { unitPublished = identity; },

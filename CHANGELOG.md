@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Integrate the retained native Acceptance lifecycle, typed review events, v4 persistence/migration, execution/recovery and Workbench consumer candidate under renewed T1 authority; extend the existing signed artifact observation with exact task/criterion resolution, retaining historical read and current proof independence. Phase certification remains required.
+
 - Record targeted R3 for the amended 0.6.0 specification after integrated alignment; preserve prior local evidence and require a separate exact-package authorization before remaining implementation.
 
 - Consolidate G-F41/G-F42 definition revalidation into one impact review; retain unaffected evidence and verify the actual scope, dependencies and downstream proof without repeating unchanged audits.

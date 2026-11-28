@@ -1,5 +1,9 @@
 import {
   type Approval,
+  type CandidateReviewEvent,
+  type CandidateReviewEventId,
+  type Run,
+  type RunEventId,
   ApprovalSchema,
   type AuthorityRef,
   AuthorityRefSchema,
@@ -30,6 +34,13 @@ import {
 import {
   admittedStageCompletion,
   admittedTerminalR1Artifact,
+  candidateFindingDispositions,
+  candidateMembershipCanonicalJson,
+  verifyCandidateRoundHashes,
+  orderedCandidateReviewEvents,
+  candidateSubmissionEvents,
+  linkedSubmission,
+  reconstructCandidateRounds,
   artifactReturnOwner,
   routeApprovalStale,
   transitionWorkItem,
@@ -64,6 +75,7 @@ import {
 import {
   expandRepositoryPatterns,
   loadValidatedProjectManifest,
+  parseProjectManifestText,
   repositoryPatternMatches,
   resolveAuthorityRef,
   resolveAuthoritySources,
@@ -87,8 +99,10 @@ import {
 } from "../shell/runtime.ts";
 import {
   findArtifactSnapshot,
+  blockExecutionTasksForApproval,
   loadApproval,
   loadApprovalsForWorkItem,
+  loadCandidateReviewEvents,
   loadArtifact,
   loadArtifactDependencyEdges,
   loadArtifactDependencyEdgesForOwners,
@@ -108,7 +122,7 @@ import {
   type CoordinatorRuntime,
   withWorkItemOperatorMutation,
 } from "./runtime.ts";
-import { getRun, listRunEvents, listRuns } from "./run.ts";
+import { getRun, getRunEvent, listRunEvents, listRuns, validatePayloadEvidence } from "./run.ts";
 import {
   currentWorkItemSource,
   isSourceBoundaryFailure,
@@ -180,7 +194,7 @@ export const observeCurrentApproval = async (
   workItemId: WorkItemId,
 ): Promise<Approval | null> => {
   const workItem = getWorkItem(runtime, workItemId);
-  if (workItem.stage !== "EXECUTION" && workItem.stage !== "COMPLETE") return null;
+  if (workItem.stage !== "EXECUTION" && workItem.stage !== "AWAITING_ACCEPTANCE" && workItem.stage !== "COMPLETE") return null;
   if (workItem.stage === "COMPLETE") {
     const runs = listRuns(runtime, workItemId);
     const terminalR1 = admittedTerminalR1Artifact(
@@ -222,21 +236,186 @@ export const observeApprovalHistory = (
   return loadApprovalsForWorkItem(runtime.database, workItemId);
 };
 
+const signedCriterionResolver = async (
+  runtime: CoordinatorRuntime,
+  approval: Approval,
+  closure: Awaited<ReturnType<typeof verifyApprovalClosureBytes>>,
+): Promise<(ref: AuthorityRef) => ArtifactRef> => {
+  const workItem = getWorkItem(runtime, approval.workItemId);
+  const signed = [closure.plan, closure.r3, ...closure.material];
+  const manifests = signed.filter(value => value.role === "PROJECT_MANIFEST");
+  if (manifests.length !== 1) throw new TypeError("signed project manifest membership is inconsistent");
+  const manifestBytes = await readCommittedFile(workItem.repositoryRoot, approval.baselineCommit, manifests[0]!.repositoryPath);
+  // Keep parse/identity failures distinct from operational repository reads.
+  let manifest: ProjectManifest;
+  try {
+    manifest = parseProjectManifestText(new TextDecoder("utf-8", { fatal: true }).decode(manifestBytes));
+  } catch (error) {
+    throw new TypeError("signed project manifest is invalid", { cause: error });
+  }
+  return (ref) => {
+    const path = resolveAuthorityRef(manifest, ref);
+    const matches = signed.filter(value => value.repositoryPath === path && value.role === "GOVERNANCE");
+    if (matches.length !== 1) throw new TypeError("signed criterion does not resolve to an exact authority ArtifactRef");
+    return matches[0]!;
+  };
+};
+
 export const observeApprovalArtifacts = async (
   runtime: CoordinatorRuntime,
   workItemId: WorkItemId,
   approvalId: Approval["id"],
+  taskId?: ExecutionTaskId,
+  acceptanceRef?: AuthorityRef,
 ): Promise<readonly ArtifactRef[]> => {
   getWorkItem(runtime, workItemId);
   const approval = getApproval(runtime, approvalId);
   if (approval.workItemId !== workItemId) throw new TypeError("Approval does not exist for WorkItem");
+  if ((taskId === undefined) !== (acceptanceRef === undefined)) {
+    throw new TypeError("criterion observation requires both task and reference");
+  }
   const closure = await verifyApprovalClosureBytes(runtime, approval);
   if (closure.plan.role !== "PLAN" || closure.r3.role !== "R3") {
     throw new TypeError("Approval closure root identity is inconsistent");
   }
+  if (taskId !== undefined && acceptanceRef !== undefined) {
+    const tasks = await canonicalTasksForApproval(runtime, approval);
+    const task = tasks.find(value => value.id === taskId);
+    if (task === undefined) throw new TypeError("execution task does not exist for Approval");
+    if (!task.acceptanceRefs.includes(acceptanceRef)) {
+      throw new TypeError("reference is not a signed acceptance criterion of this task");
+    }
+    const resolve = await signedCriterionResolver(runtime, approval, closure);
+    return [resolve(acceptanceRef)];
+  }
   return [...new Map([closure.plan, closure.r3, ...closure.material].map((artifact) =>
     [artifact.id, artifact] as const)).values()];
 };
+
+// History is an observational read independent of source or candidate availability.
+export const observeCandidateReviewHistory = (
+  runtime: CoordinatorRuntime, workItemId: WorkItemId, approvalId: Approval["id"],
+): readonly CandidateReviewEvent[] => {
+  getWorkItem(runtime, workItemId);
+  const approval = getApproval(runtime, approvalId);
+  if (approval.workItemId !== workItemId) throw new TypeError("Approval does not exist for WorkItem");
+  return orderedCandidateReviewEvents(approvalId, loadCandidateReviewEvents(runtime.database, approvalId));
+};
+
+type AcceptanceObservationCode = "SOURCE_AUTHORITY_STALE" | "CANDIDATE_PROOF_UNAVAILABLE";
+const acceptanceObservationFailure = (orderCode: AcceptanceObservationCode, message: string) =>
+  Object.assign(new TypeError(message), { orderCode });
+
+export const acceptanceObservationCodeForFailure = (error: unknown): AcceptanceObservationCode | null => {
+  if (!(error instanceof TypeError) || !("orderCode" in error)) return null;
+  return error.orderCode === "SOURCE_AUTHORITY_STALE" || error.orderCode === "CANDIDATE_PROOF_UNAVAILABLE" ? error.orderCode : null;
+};
+
+export const requireCurrentAcceptanceIdentity = (
+  runtime: CoordinatorRuntime, workItemId: WorkItemId, approvalId: Approval["id"], sequence: number,
+) => {
+  const workItem = getWorkItem(runtime, workItemId);
+  const approval = getApproval(runtime, approvalId);
+  if (approval.workItemId !== workItemId) throw new TypeError("Approval does not exist for WorkItem");
+  const history = observeCandidateReviewHistory(runtime, workItemId, approvalId);
+  if (workItem.stage !== "AWAITING_ACCEPTANCE" || workItem.status !== "ACTIVE" ||
+      currentApprovalForWorkItem(runtime, workItemId)?.id !== approvalId || history.length !== sequence ||
+      history[0]?.event.tag !== "OPENED" ||
+      history.some(value => value.event.tag === "ACCEPT" || value.event.tag === "REANALYSIS_REQUESTED")) {
+    throw new TypeError("current Acceptance identity or review sequence changed");
+  }
+  const runs = listRuns(runtime, workItemId);
+  if (runs.some(value => value.status === "RUNNING" || value.status === "WAITING_FOR_INPUT")) {
+    throw new TypeError("current Acceptance has an active Run");
+  }
+  const rows = taskRowsForApproval(runtime, approvalId);
+  if (rows.length === 0 || rows.some(value => value.state !== "CANDIDATE_DONE" && value.state !== "ALREADY_SATISFIED")) {
+    throw new TypeError("current Acceptance task state is incoherent");
+  }
+  return { workItem, approval, history, runs, rows };
+};
+
+// A proof read never materializes a draft, a Run, a checkout or an event.
+// Source/material diagnostics must precede candidate evidence diagnostics.
+export const observeCurrentCandidateReview = async (
+  runtime: CoordinatorRuntime, workItemId: WorkItemId, approvalId: Approval["id"], sequence: number,
+) => {
+  const before = requireCurrentAcceptanceIdentity(runtime, workItemId, approvalId, sequence);
+  const { workItem, approval, history, runs } = before;
+  const recheck = () => {
+    const after = requireCurrentAcceptanceIdentity(runtime, workItemId, approvalId, sequence);
+    if (canonicalJson(after) !== canonicalJson(before)) throw new TypeError("current Acceptance observation changed");
+  };
+  try {
+    const source = await currentWorkItemSource(runtime, workItemId);
+    if (source.sha256 !== approval.sourceSha256) {
+      throw acceptanceObservationFailure("SOURCE_AUTHORITY_STALE", "signed WorkItem source changed");
+    }
+    const freshness = await approvalFreshness(runtime, approval);
+    if (!freshness.fresh) {
+      // A source change during material inspection must not become material R1.
+      const currentSource = await currentWorkItemSource(runtime, workItemId);
+      if (currentSource.sha256 !== approval.sourceSha256) throw acceptanceObservationFailure("SOURCE_AUTHORITY_STALE", "signed WorkItem source changed");
+      throw staleAuthorityFailure(routeApprovalStale(freshness.changedOwners), "signed material authority changed");
+    }
+    const closure = await verifyApprovalClosureBytes(runtime, approval);
+    const tasks = await canonicalTasksForApproval(runtime, approval);
+    const events = runs.flatMap(value => listRunEvents(runtime, value.id));
+    let rounds: ReturnType<typeof reconstructCandidateRounds>;
+    try {
+      const resolve = await signedCriterionResolver(runtime, approval, closure);
+      for (const task of tasks) {
+        for (const ref of task.acceptanceRefs) resolve(ref);
+      }
+      rounds = reconstructCandidateRounds(approval, tasks, runs, events, history);
+      verifyCandidateRoundHashes(history, new Map([...rounds].map(([id, members]) =>
+        [id, sha256Text(candidateMembershipCanonicalJson(approval.id, members))])));
+    } catch (error) {
+      if (!(error instanceof TypeError) && !(error instanceof Error && error.name === "ZodError")) throw error;
+      throw acceptanceObservationFailure("CANDIDATE_PROOF_UNAVAILABLE", error.message);
+    }
+    // Malformed stream semantics are a state conflict, not missing candidate proof.
+    candidateFindingDispositions(history, rounds, tasks, runs, events);
+    const required = new Set<RunEventId>();
+    for (const members of rounds.values()) {
+      for (const [, id] of members) {
+        required.add(id);
+        const member = events.find(value => value.id === id);
+        if (member?.event.tag === "CANDIDATE_RECORDED") {
+          required.add(member.event.candidateStateEventId);
+          for (const validation of member.event.validationEventIds) required.add(validation);
+          for (const event of events.filter(value => value.runId === member.runId && value.event.tag === "REVIEW_PASSED")) required.add(event.id);
+        }
+      }
+    }
+    for (const entry of history) {
+      if (entry.event.tag === "REPORT" || entry.event.tag === "RETEST_FAILED") {
+        for (const id of entry.event.evidence) required.add(id);
+      }
+    }
+    try {
+      for (const id of required) {
+        const event = events.find(value => value.id === id);
+        if (event === undefined) throw new TypeError("required candidate evidence event missing");
+        validatePayloadEvidence(runtime, event.runId, event.event);
+      }
+    } catch (error) {
+      if (!(error instanceof TypeError)) throw error;
+      throw acceptanceObservationFailure("CANDIDATE_PROOF_UNAVAILABLE", error.message);
+    }
+    recheck();
+    return { approval, history, tasks, runs, runEvents: events, rounds };
+  } catch (error) {
+    recheck();
+    throw error;
+  }
+};
+
+export const observeCandidateReviewEvents = async (
+  runtime: CoordinatorRuntime, workItemId: WorkItemId, approvalId: Approval["id"], sequence?: number,
+): Promise<readonly CandidateReviewEvent[]> => sequence === undefined
+  ? observeCandidateReviewHistory(runtime, workItemId, approvalId)
+  : (await observeCurrentCandidateReview(runtime, workItemId, approvalId, sequence)).history;
 
 export const taskRowsForApproval = (
   runtime: CoordinatorRuntime,
@@ -339,6 +518,7 @@ export type ResolvedContext = Readonly<{
   artifacts: readonly ArtifactRef[];
   p1Paths: readonly RepositoryPath[];
   contextHash: Sha256;
+  qa?: Readonly<{ triggerEventId: RunEventId; events: readonly CandidateReviewEvent[] }>;
 }>;
 
 const resolvedContext = (
@@ -1134,6 +1314,7 @@ export const approvalContext = async (
   approval: Approval,
   task: ExecutionTask,
   role: Exclude<RunRole, "STAGE">,
+  qa?: Readonly<{ submissionId: CandidateReviewEventId; triggerEventId: RunEventId }>,
 ): Promise<ResolvedContext> => {
   const validated = await revalidateWorkItemSource(runtime, approval.workItemId);
   if (validated.workItem.sourceSha256 !== approval.sourceSha256) {
@@ -1153,13 +1334,49 @@ export const approvalContext = async (
       )
       .map((artifact) => artifact.repositoryPath),
   );
+  let qaContext: ResolvedContext["qa"];
+  if (qa !== undefined) {
+    if (role === "BUILDER" || task.approvalId !== approval.id) throw new TypeError("QA context requires exact signed reviewer or remediator");
+    const history = loadCandidateReviewEvents(runtime.database, approval.id);
+    const input = candidateSubmissionEvents(approval.id, history, qa.submissionId);
+    const trigger = getRunEvent(runtime, qa.triggerEventId);
+    const triggerRun = getRun(runtime, trigger.runId);
+    if (triggerRun.workItemId !== approval.workItemId || triggerRun.executionTaskId !== task.id ||
+        triggerRun.baselineCommit !== approval.baselineCommit ||
+        input.some(value => value.event.tag === "REPORT" && value.event.taskId !== task.id)) {
+      throw new TypeError("QA context must bind the exact submitted task and trigger");
+    }
+    const tasks = await canonicalTasksForApproval(runtime, approval);
+    const runs = listRuns(runtime, approval.workItemId);
+    const events = runs.flatMap(value => listRunEvents(runtime, value.id));
+    const rounds = reconstructCandidateRounds(approval, tasks, runs, events, history);
+    const submission = input[0]!;
+    candidateFindingDispositions(history.filter(value => value.sequence <= submission.sequence), rounds, tasks, runs, events);
+    const memberRound = history.findLast(value => value.sequence < submission.sequence &&
+      (value.event.tag === "OPENED" || value.event.tag === "REVIEW_COMPLETED"));
+    const member = memberRound === undefined ? undefined : rounds.get(memberRound.id)?.find(([id]) => id === task.id);
+    const direct = role === "REVIEWER" && trigger.event.tag === "CANDIDATE_RECORDED" && member?.[1] === trigger.id;
+    const successor = linkedSubmission(triggerRun, runs, events, history) === submission.id &&
+      (role === "REVIEWER" ? trigger.event.tag === "CANDIDATE_STATE_RECORDED" : trigger.event.tag === "VALIDATION_FAILED");
+    if (!direct && !successor) throw new TypeError("QA context trigger is outside the exact submission lineage");
+    for (const entry of input) {
+      if (entry.event.tag !== "REPORT" && entry.event.tag !== "RETEST_FAILED") continue;
+      for (const id of entry.event.evidence) {
+        const evidence = getRunEvent(runtime, id);
+        validatePayloadEvidence(runtime, evidence.runId, evidence.event);
+      }
+    }
+    qaContext = { triggerEventId: qa.triggerEventId, events: input };
+  }
+  const { state: _mutableState, ...immutableTask } = task;
   const contextHash = sha256Text(
     canonicalJson({
       stage: "EXECUTION",
       role,
       workItemId: approval.workItemId,
       sourceSha256: approval.sourceSha256,
-      task,
+      task: qaContext === undefined ? task : immutableTask,
+      ...(qaContext === undefined ? {} : { triggerEventId: qaContext.triggerEventId, qaEvents: qaContext.events }),
       resolvedAuthority: authority,
       materialArtifacts: sortedMaterialProjection(material),
     }),
@@ -1172,7 +1389,28 @@ export const approvalContext = async (
       .filter((artifact) => artifact.authorityLayer === "P1")
       .map((artifact) => artifact.repositoryPath),
     contextHash,
+    ...(qaContext === undefined ? {} : { qa: qaContext }),
   };
+};
+
+// Reconstruct the same immutable context after admission, without a second
+// context store or an input derived from mutable task state.
+export const approvalContextForRun = async (
+  runtime: CoordinatorRuntime, approval: Approval, task: ExecutionTask, run: Run,
+): Promise<ResolvedContext> => {
+  if (run.role === "STAGE" || run.workItemId !== approval.workItemId ||
+      run.executionTaskId !== task.id || task.approvalId !== approval.id ||
+      run.baselineCommit !== approval.baselineCommit) throw new TypeError("execution context Run identity conflict");
+  const history = loadCandidateReviewEvents(runtime.database, approval.id);
+  if (history.length === 0) return approvalContext(runtime, approval, task, run.role);
+  const runs = listRuns(runtime, approval.workItemId);
+  const events = runs.flatMap(value => listRunEvents(runtime, value.id));
+  const submissionId = linkedSubmission(run, runs, events, history);
+  if (submissionId === null) return approvalContext(runtime, approval, task, run.role);
+  if (run.triggerEventId === null) throw new TypeError("QA Run lacks exact trigger");
+  const context = await approvalContext(runtime, approval, task, run.role, { submissionId, triggerEventId: run.triggerEventId });
+  if (context.contextHash !== run.contextHash) throw new TypeError("QA Run context hash mismatch");
+  return context;
 };
 
 const currentApprovalMaterialSet = async (
@@ -1614,6 +1852,27 @@ const persistCommittedApprovalClosure = (
   }
 };
 
+export const observeSignoffPackageArtifacts = async (
+  runtime: CoordinatorRuntime,
+  workItemId: WorkItemId,
+  expectedPackageHash: Sha256,
+): Promise<readonly ArtifactRef[]> => {
+  const prepared = await computeSignoffPackage(runtime, workItemId);
+  if (prepared.packageHash !== expectedPackageHash) {
+    throw new TypeError("sign-off package identity changed");
+  }
+  const persisted = [...new Set([prepared.conformedR3.id,
+    ...dependencyClosure(runtime, prepared.conformedR3.id)])]
+    .sort().map(id => getArtifact(runtime, id));
+  const committed = [prepared.plan, prepared.r3, ...prepared.material];
+  if (persisted.some(artifact => artifact.workItemId !== workItemId) ||
+      persisted.length !== committed.length ||
+      !approvalMaterialIsFresh(persisted, committed)) {
+    throw new TypeError("prospective sign-off closure identity is inconsistent");
+  }
+  return persisted;
+};
+
 export const signoffPackageForWorkItem = async (
   runtime: CoordinatorRuntime,
   workItemId: WorkItemId,
@@ -1678,12 +1937,25 @@ export const reconcileWorkItemAuthority = (
   runtime: CoordinatorRuntime,
   workItemId: WorkItemId,
   expectedOwner: UpstreamReturnStage,
+  acceptance?: Readonly<{expectedApprovalId:Approval["id"];expectedReviewSequence:number}>,
 ): Promise<WorkItem> =>
-  withWorkItemOperatorMutation(
-    runtime,
-    workItemId,
-    () => reconcileWorkItemAuthorityUnlocked(runtime, workItemId, expectedOwner),
-  );
+  withWorkItemOperatorMutation(runtime,workItemId,async()=>{
+    if(acceptance===undefined) return reconcileWorkItemAuthorityUnlocked(runtime,workItemId,expectedOwner);
+    const {expectedApprovalId,expectedReviewSequence}=acceptance;
+    const before=requireCurrentAcceptanceIdentity(runtime,workItemId,expectedApprovalId,expectedReviewSequence);
+    for(let i=0;i<2;i++){
+      try { await observeCurrentCandidateReview(runtime,workItemId,expectedApprovalId,expectedReviewSequence); }
+      catch(error) { if(staleAuthorityOwnerForFailure(error)===expectedOwner) continue; throw error; }
+      throw new TypeError("signed material authority is current");
+    }
+    return withTransaction(runtime.database,()=>{
+      const current=requireCurrentAcceptanceIdentity(runtime,workItemId,expectedApprovalId,expectedReviewSequence);
+      if(canonicalJson(current)!==canonicalJson(before)) throw new TypeError("Acceptance authority return identity changed");
+      blockExecutionTasksForApproval(runtime.database,expectedApprovalId);
+      updateWorkItemLifecycle(runtime.database,workItemId,transitionWorkItem(current.workItem,{tag:"RECONCILE_AUTHORITY",owner:expectedOwner}));
+      return getWorkItem(runtime,workItemId);
+    });
+  });
 
 const signOffWorkItemUnlocked = async (
   runtime: CoordinatorRuntime,

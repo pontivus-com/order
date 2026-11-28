@@ -5,6 +5,11 @@ import { orderVersion } from "../src/version.ts";
 
 import {
   ApprovalSchema,
+  CandidateReviewEventSchema,
+  CandidateReviewEventIdSchema,
+  CandidateMembersSchema,
+  RunEventIdSchema,
+  QaReanalysisCommandSchema,
   ArtifactRefSchema,
   EvidencePathSchema,
   ExecutionTaskSchema,
@@ -19,6 +24,7 @@ import {
   SignedTaskBlockSchema,
   WorkItemSchema,
   type ApprovalId,
+  type CandidateReviewEventPayload,
   type ArtifactRef,
   type ArtifactRefId,
   type ExecutionTask,
@@ -56,7 +62,18 @@ import {
   admittedTerminalR1Artifact,
   artifactReturnOwner,
   deriveCurrentAttention,
+  candidateMembershipCanonicalJson,
+  reconstructCandidateRounds,
+  verifyCandidateRoundHashes,
+  candidateFindingDispositions,
+  deriveAcceptanceDecision,
+  candidateMemberActionIsAdmitted,
+  candidateFindingActionIsAdmitted,
+  candidateSubmitIsAdmitted,
+  candidateSubmissionEvents,
   deriveExecutionOwner,
+  executionTaskRuns,
+  terminalExecutionFailureEvent,
   durableDecisionCompletionIsAdmitted,
   artifactHasCurrentStageConformance,
   deriveMaterialPresentationState,
@@ -110,6 +127,7 @@ import {
   materializeExecutionTasks,
   parseSignedTaskBlockFromPlan,
   providerEventIsAdmitted,
+  qaReviewAssessmentsAreAdmitted,
   semanticRepairIsAllowed,
 } from "../src/core/execution.ts";
 
@@ -2203,10 +2221,21 @@ describe("closed Workbench workflow-state kernel", () => {
         outcome: "CANDIDATE_DONE",
       }),
     ).toEqual({
-      stage: "COMPLETE",
-      status: "COMPLETE",
-      outcome: "CANDIDATE_DONE",
+      stage: "AWAITING_ACCEPTANCE",
+      status: "ACTIVE",
+      outcome: null,
     });
+    const acceptance = WorkItemSchema.parse({...execution,stage:"AWAITING_ACCEPTANCE"});
+    expect(transitionWorkItem(acceptance,{tag:"CANDIDATE_ACCEPTED"})).toEqual({
+      stage:"COMPLETE",status:"COMPLETE",outcome:"CANDIDATE_DONE",
+    });
+    expect(transitionWorkItem(acceptance,{tag:"QA_REVIEW_STARTED"})).toEqual({
+      stage:"EXECUTION",status:"ACTIVE",outcome:null,
+    });
+    expect(transitionWorkItem(execution,{tag:"EXECUTION_COMPLETED",outcome:"ALREADY_SATISFIED"})).toEqual({
+      stage:"COMPLETE",status:"COMPLETE",outcome:"ALREADY_SATISFIED",
+    });
+    expect(()=>transitionWorkItem(execution,{tag:"CANDIDATE_ACCEPTED"})).toThrow();
     expect(() =>
       transitionWorkItem(research, {
         tag: "EXECUTION_RETURN",
@@ -2227,7 +2256,7 @@ describe("closed Workbench workflow-state kernel", () => {
         tag: "RECONCILE_AUTHORITY",
         owner: "R1",
       }),
-    ).toThrow(/AWAITING_SIGNOFF/);
+    ).toThrow(/active Approval or Acceptance/);
   });
 
   it("derives PROCESSING, OPEN, REQUIRED_INPUT and CLOSED from canonical Run history", () => {
@@ -2647,6 +2676,10 @@ describe("closed Workbench workflow-state kernel", () => {
       true,
       true,
     )).toEqual({ tag: "SIGNED_LOCKED" });
+    expect(deriveMaterialPresentationState(false, "REACHED_HISTORICAL", { tag: "CURRENT" }, false, true))
+      .toEqual({ tag: "SIGNED_LOCKED" });
+    expect(() => deriveMaterialPresentationState(false, "UNREACHED", { tag: "CURRENT" }, false, true))
+      .toThrow();
   });
 
   it("scopes stale currentness to the changed owner and downstream stages", () => {
@@ -2939,7 +2972,25 @@ describe("closed Workbench workflow-state kernel", () => {
         [run, reviewerOne, reviewerTwo],
         [candidateEvent, ...reviewerPasses],
       ),
-    ).toEqual({ tag: "PASSED_THROUGH", stage: "V3" });
+    ).toEqual({ tag: "PASSED_THROUGH", stage: "V0" });
+    const staleFailure = RunEventSchema.parse({
+      ...reviewerPasses[3],
+      id: "event_babababa-baba-4aba-8aba-babababababa",
+      sequence: 5,
+      event: { tag: "VALIDATION_FAILED", stage: "V4", classification: "REVIEW_FAILURE", summary: "older attempt failed", evidence: [] },
+    });
+    expect(deriveValidationBoundary(owner, [runningTask], [reviewerTwo, run, reviewerOne],
+      [candidateEvent, ...reviewerPasses, staleFailure])).toEqual({ tag: "PASSED_THROUGH", stage: "V0" });
+    const wrongBaseline = RunSchema.parse({ ...reviewerTwo, baselineCommit: "b".repeat(40) });
+    expect(() => deriveValidationBoundary(owner, [runningTask], [run, wrongBaseline],
+      [candidateEvent, ...reviewerPasses])).toThrow(/baseline/);
+
+    const outOfOrder = RunEventSchema.parse({
+      ...reviewerPasses[4],
+      event: { tag: "VALIDATION_PASSED", stage: "V2", evidence: [] },
+    });
+    expect(() => deriveValidationBoundary(owner, [runningTask], [run, reviewerTwo],
+      [candidateEvent, outOfOrder])).toThrow(/ordered V0/);
 
     const malformedReviewer = RunSchema.parse({
       ...reviewerTwo,
@@ -3072,6 +3123,27 @@ describe("closed Workbench workflow-state kernel", () => {
         [v0, v1],
       ),
     ).toEqual({ tag: "COMPLETE" });
+  });
+
+  it("selects only matching terminal execution failure evidence from the exact task attempt", () => {
+    const task = baseTask(`task_${uuidA}`, "BLOCKED");
+    const run = baseRun({ status: "BLOCKED", terminalClassification: "PRECONDITION_FAILED", endedAt: "2026-11-11T03:30:10.000Z" });
+    const other = baseRun({ id: `run_${uuidB}`, executionTaskId: baseTask(`task_${uuidB}`, "RUNNING").id, attempt: 9 });
+    const checkpoint = RunEventSchema.parse({ id: `event_${uuidA}`, runId: run.id, sequence: 1,
+      occurredAt: run.startedAt, event: { tag: "GATE_FAILED", gateId: "test", classification: "TEST_FAILURE", evidence: [] } });
+    const cause = RunEventSchema.parse({ ...checkpoint, id: `event_${uuidB}`, sequence: 2,
+      event: { tag: "STAGE_BLOCKED", owningStage: "EXECUTION", reason: "Required input is unavailable" } });
+    const mismatch = RunEventSchema.parse({ ...checkpoint, id: `event_${uuidC}`, sequence: 3,
+      event: { tag: "VALIDATION_FAILED", stage: "V3", classification: "TEST_FAILURE", summary: "unrelated classification", evidence: [] } });
+    const foreign = RunEventSchema.parse({ ...cause, id: `event_${uuidD}`, runId: other.id, sequence: 4 });
+    expect(executionTaskRuns(task.id, [other, run])).toEqual([run]);
+    expect(terminalExecutionFailureEvent(run, [foreign, mismatch, cause, checkpoint])).toEqual(cause);
+    expect(terminalExecutionFailureEvent(run, [foreign, mismatch, checkpoint])).toBeNull();
+    expect(terminalExecutionFailureEvent(baseRun(), [cause, checkpoint])).toBeNull();
+    const provider = RunSchema.parse({ ...run, status: "FAILED", terminalClassification: "PROVIDER_FAILURE" });
+    const providerFailure = RunEventSchema.parse({ ...cause, event: { tag: "PROVIDER_FAILED", detail: "Provider disconnected", evidence: [] } });
+    expect(terminalExecutionFailureEvent(provider, [checkpoint, providerFailure, mismatch])).toEqual(providerFailure);
+    expect(terminalExecutionFailureEvent(provider, [cause, mismatch])).toBeNull();
   });
 
   it("projects every current-attention and rail-marker variant", () => {
@@ -3256,7 +3328,8 @@ describe("closed Workbench workflow-state kernel", () => {
 
     const reached = deriveReachedStages(active, [failed], [], [], []);
     const rail = deriveWorkflowRail(active, reached, attention, recovery, "PLAN");
-    expect(rail).toHaveLength(9);
+    expect(rail).toHaveLength(10);
+    expect(rail.find(item=>item.stage==="AWAITING_ACCEPTANCE")?.reach).toBe("UNREACHED");
     expect(rail.filter((item) => item.reach === "CURRENT")).toHaveLength(1);
     expect(rail.find((item) => item.stage === "R1")?.marker).toBe("ACTION_REQUIRED");
     expect(rail.find((item) => item.stage === "PLAN")?.marker).toBeNull();
@@ -3399,5 +3472,176 @@ describe("closed Workbench workflow-state kernel", () => {
       "R1",
     );
     expect(staleRail.find((item) => item.stage === "R1")?.marker).toBe("STALE");
+  });
+});
+
+
+describe("native Acceptance preparation", () => {
+  const identity = (prefix: string, n: number): string =>
+    prefix + "_00000000-0000-4000-8000-" + String(n).padStart(12, "0");
+  const time = "2026-11-28T00:00:00.000Z";
+  const approval = ApprovalSchema.parse({
+    id: identity("approval", 1), workItemId: identity("work", 1), baselineCommit: commitA,
+    packageHash: hashA, planArtifactRefId: identity("artifact", 1), r3ArtifactRefId: identity("artifact", 2),
+    sourceSha256: hashB, approvedBy: "human", approvedAt: time,
+  });
+  const task = (n: number, state: ExecutionTask["state"]) => ExecutionTaskSchema.parse({
+    ...baseTask(identity("task", n), state), approvalId: approval.id, acceptanceRefs: ["GW-FR-TEST"],
+  });
+  const tasks = [task(1, "CANDIDATE_DONE"), task(2, "ALREADY_SATISFIED")];
+  const run = (n: number, taskId: ExecutionTaskId, role: Run["role"], attempt: number,
+    triggerEventId: RunEventId | null, terminalClassification: Run["terminalClassification"]) => RunSchema.parse({
+    ...baseRun(), id: identity("run", n), workItemId: approval.workItemId, executionTaskId: taskId,
+    role, attempt, triggerEventId, status: "COMPLETED", terminalClassification, startedAt: time, endedAt: time,
+  });
+  const event = (n: number, owner: Run, sequence: number, payload: RunEvent["event"]) => RunEventSchema.parse({
+    id: identity("event", n), runId: owner.id, sequence, occurredAt: time, event: payload,
+  });
+  const builder = run(1, tasks[0]!.id, "BUILDER", 1, null, null);
+  const state = event(1, builder, 1, { tag: "CANDIDATE_STATE_RECORDED", patch: {
+    relativePath: "candidate/patch.diff", sha256: hashA, mediaType: "text/x-diff",
+  }, changedPaths: ["src/a.ts"] });
+  const reviewer = run(2, tasks[0]!.id, "REVIEWER", 2, state.id, "CANDIDATE_DONE");
+  const reviewed = (owner: Run, base: number, assessments: Extract<RunEvent["event"], {tag:"REVIEW_PASSED"}>["qaAssessments"] = undefined) => {
+    const evidence = [{ relativePath: "review.txt", sha256: hashA, mediaType: "text/plain" }];
+    const results = (["V0","V1","V2","V3","V4","V5","V6","V7"] as const).map((stage,index) =>
+      event(base+index, owner, index < 4 ? index+1 : index+2, { tag:"VALIDATION_PASSED", stage, evidence }));
+    const review = event(base+8, owner, 5, { tag: "REVIEW_PASSED", minimumChange: "MINIMUM_SUFFICIENT", minimumChangeSummary: null,
+      evidence, ...(assessments === undefined ? {} : {qaAssessments: assessments}) });
+    const result = event(base+9, owner, 10, { tag:"CANDIDATE_RECORDED", candidateStateEventId: state.id,
+      validationEventIds: results.map(value => value.id) });
+    return {events: [...results.slice(0,4),review,...results.slice(4),result], result, review};
+  };
+  const prior = reviewed(reviewer, 10);
+  const noOpRun = run(3, tasks[1]!.id, "BUILDER", 1, null, "ALREADY_SATISFIED");
+  const noOp = event(30, noOpRun, 1, {tag:"TASK_ALREADY_SATISFIED", summary:"Already satisfied"});
+  const baseRuns = [builder, reviewer, noOpRun];
+  const baseEvents = [state,...prior.events,noOp];
+  const reviewEvent = (n:number, payload: CandidateReviewEventPayload) =>
+    CandidateReviewEventSchema.parse({ id:identity("review",n), approvalId:approval.id, sequence:n, occurredAt:time,
+      actor:payload.tag === "OPENED" || payload.tag === "REVIEW_STARTED" || payload.tag === "REVIEW_COMPLETED" ? null : " human ", event:payload });
+  const opened = reviewEvent(1,{tag:"OPENED",candidateHash:hashA});
+  const report = (n:number, taskIndex:number, candidateEventId:RunEventId) => reviewEvent(n,{tag:"REPORT",candidateHash:hashA,
+    taskId:tasks[taskIndex]!.id,candidateEventId,acceptanceRefs:[],expected:"expected",observed:"observed",reproduction:"steps",impact:"impact",evidence:[]});
+  it("validates strict review identity, actors, branch-specific commands and canonical membership", () => {
+    expect(CandidateReviewEventIdSchema.safeParse(identity("review",1)).success).toBe(true);
+    expect(RunEventIdSchema.safeParse(identity("review",1)).success).toBe(false);
+    expect(CandidateReviewEventSchema.safeParse({...opened,actor:"human"}).success).toBe(false);
+    expect(CandidateReviewEventSchema.safeParse({...report(2,0,prior.result.id),actor:" "}).success).toBe(false);
+    expect(QaReanalysisCommandSchema.safeParse({expectedCandidateHash:null,expectedReviewSequence:1,actor:"human",reason:"CANDIDATE_PROOF_UNAVAILABLE",findingIds:[],owner:"PLAN",rationale:"missing patch"}).success).toBe(true);
+    expect(QaReanalysisCommandSchema.safeParse({expectedCandidateHash:hashA,expectedReviewSequence:1,actor:"human",reason:"CANDIDATE_PROOF_UNAVAILABLE",findingIds:[],owner:"PLAN",rationale:"missing patch"}).success).toBe(false);
+    const members = CandidateMembersSchema.parse([[tasks[0]!.id,prior.result.id],[tasks[1]!.id,noOp.id]]);
+    expect(candidateMembershipCanonicalJson(approval.id,members)).toBe(JSON.stringify([approval.id,members]));
+    expect(CandidateMembersSchema.safeParse([...members].reverse()).success).toBe(false);
+  });
+  it("rejects contradictory V6 pass in original and replacement candidate proof", () => {
+    const bloatReview = (entry: RunEvent): RunEvent => entry.event.tag === "REVIEW_PASSED"
+      ? RunEventSchema.parse({ ...entry, event: { ...entry.event, minimumChange: "CHANGE_BLOAT", minimumChangeSummary: "Remove unnecessary change" } })
+      : entry;
+    expect(reconstructCandidateRounds(approval, tasks, baseRuns, baseEvents, [opened]).get(opened.id))
+      .toEqual([[tasks[0]!.id, prior.result.id], [tasks[1]!.id, noOp.id]]);
+    expect(() => reconstructCandidateRounds(approval, tasks, baseRuns, baseEvents.map(bloatReview), [opened]))
+      .toThrow(/V6 requires independently reviewed minimum-sufficient change/);
+    const finding = report(2, 0, prior.result.id);
+    const submit = reviewEvent(3, { tag: "SUBMIT", candidateHash: hashA, findingIds: [finding.id] });
+    const correction = run(4, tasks[0]!.id, "REVIEWER", 3, prior.result.id, "CANDIDATE_DONE");
+    const result = reviewed(correction, 40, [{ findingId: finding.id, verdict: "SATISFIED", rationale: "Verified correction", evidence: [] }]);
+    const started = reviewEvent(4, { tag: "REVIEW_STARTED", submissionId: submit.id, runId: correction.id });
+    const completed = reviewEvent(5, { tag: "REVIEW_COMPLETED", submissionId: submit.id, candidateHash: hashB, candidateEventId: result.result.id });
+    const history = [opened, finding, submit, started, completed];
+    const runs = [...baseRuns, correction];
+    expect(reconstructCandidateRounds(approval, tasks, runs, [...baseEvents, ...result.events], history).get(completed.id))
+      .toEqual([[tasks[0]!.id, result.result.id], [tasks[1]!.id, noOp.id]]);
+    expect(() => reconstructCandidateRounds(approval, tasks, runs, [...baseEvents, ...result.events.map(bloatReview)], history))
+      .toThrow(/V6 requires independently reviewed minimum-sufficient change/);
+  });
+  it("derives per-action currentness and exact candidate membership independently of the primary decision", () => {
+    const first = report(2,0,prior.result.id);
+    const noOpFinding = report(3,1,noOp.id);
+    const inputFor = (history: readonly ReturnType<typeof reviewEvent>[]) => ({
+      current:true, coherent:true, mutationConflict:false, approval, history, currentProof:history,
+      diagnostic:null, rounds:reconstructCandidateRounds(approval,tasks,baseRuns,baseEvents,history), tasks, runs:baseRuns, runEvents:baseEvents,
+    });
+    const input = inputFor([opened,first,noOpFinding]);
+    expect(deriveAcceptanceDecision(input)).toEqual({tag:"REANALYSE_NO_OP",findingIds:[noOpFinding.id]});
+    expect(candidateMemberActionIsAdmitted(input,true,"REPORT",tasks[1]!.id,noOp.id)).toBe(true);
+    expect(candidateMemberActionIsAdmitted(input,true,"PREPARE_TEST_COPY",tasks[1]!.id,noOp.id)).toBe(false);
+    expect(candidateMemberActionIsAdmitted(input,true,"PREPARE_TEST_COPY",tasks[0]!.id,prior.result.id)).toBe(true);
+    expect(candidateMemberActionIsAdmitted(input,true,"REPORT",tasks[1]!.id,prior.result.id)).toBe(false);
+    expect(candidateMemberActionIsAdmitted(input,false,"REPORT",tasks[0]!.id,prior.result.id)).toBe(false);
+    expect(candidateMemberActionIsAdmitted({...input,currentProof:null},true,"REPORT",tasks[0]!.id,prior.result.id)).toBe(false);
+    expect(candidateFindingActionIsAdmitted(input,true,"WITHDRAW",first.id)).toBe(true);
+    expect(candidateFindingActionIsAdmitted(input,false,"WITHDRAW",first.id)).toBe(false);
+    expect(candidateFindingActionIsAdmitted(input,true,"RETEST",first.id)).toBe(false);
+    expect(candidateSubmitIsAdmitted(input,true,[first.id])).toBe(false);
+    const onlyCandidate = inputFor([opened,first]);
+    expect(candidateSubmitIsAdmitted(onlyCandidate,true,[first.id])).toBe(true);
+    expect(candidateSubmitIsAdmitted(onlyCandidate,true,[first.id,first.id])).toBe(false);
+    expect(candidateSubmitIsAdmitted(onlyCandidate,false,[first.id])).toBe(false);
+    const submit = reviewEvent(3,{tag:"SUBMIT",candidateHash:hashA,findingIds:[first.id]});
+    const queued = inputFor([opened,first,submit]);
+    expect(deriveAcceptanceDecision(queued)).toEqual({tag:"QUEUED",submissionId:submit.id});
+    expect(candidateMemberActionIsAdmitted(queued,true,"REPORT",tasks[0]!.id,prior.result.id)).toBe(false);
+    expect(candidateFindingActionIsAdmitted(queued,true,"WITHDRAW",first.id)).toBe(false);
+    expect(candidateSubmitIsAdmitted(queued,true,[first.id])).toBe(false);
+    expect(deriveAcceptanceDecision({...queued,diagnostic:{code:"CANDIDATE_PROOF_UNAVAILABLE",message:"missing",sourceDiagnostic:null,staleAuthorityOwner:null}})).toEqual({tag:"REANALYSE_PROOF_UNAVAILABLE"});
+  });
+  it("selects exact ordered QA submission inputs including only each latest preceding failed retest", () => {
+    const first = report(2,0,prior.result.id);
+    const second = report(3,0,prior.result.id);
+    const unrelated = report(4,1,noOp.id);
+    const failed = (n:number,findingId:typeof first.id, observed:string) =>
+      reviewEvent(n,{tag:"RETEST_FAILED",findingId,candidateHash:hashB,observed,rationale:"reproduced",evidence:[]});
+    const earlier = failed(5,first.id,"earlier");
+    const other = failed(6,unrelated.id,"unrelated");
+    const latest = failed(7,first.id,"latest");
+    const submit = reviewEvent(8,{tag:"SUBMIT",candidateHash:hashB,findingIds:[second.id,first.id]});
+    const later = failed(9,first.id,"later");
+    // This tests the immutable selector; semantic admission is separately
+    // enforced by the round/disposition fold before context selection.
+    const history = [opened,first,second,unrelated,earlier,other,latest,submit,later];
+    expect(candidateSubmissionEvents(approval.id,history,submit.id)).toEqual([submit,second,first,latest]);
+    expect(candidateSubmissionEvents(approval.id,history.slice(0,-1),submit.id)).toEqual([submit,second,first,latest]);
+    expect(()=>candidateSubmissionEvents(approval.id,history,first.id)).toThrow(/submission missing/);
+    const foreign = reviewEvent(8,{tag:"SUBMIT",candidateHash:hashB,findingIds:[first.id,unrelated.id]});
+    expect(()=>candidateSubmissionEvents(approval.id,[...history.slice(0,7),foreign],foreign.id)).toThrow(/one task/);
+    expect(()=>candidateSubmissionEvents(approval.id,history.map(value=>value.id===second.id?{...value,approvalId:identity("approval",2)} as typeof value:value),submit.id)).toThrow(/stream identity/);
+  });
+  it("reconstructs exact historical replacement and reopens disposed reports without absorbing other open reports", () => {
+    const first = report(2,0,prior.result.id);
+    const withdrawal = reviewEvent(3,{tag:"DISPOSITION",findingId:first.id,candidateHash:hashA,outcome:"WITHDRAWN",rationale:"mistaken report",followupWorkItemId:null,withdrawalAttestation:"NOT_A_KNOWN_UNMET_OBLIGATION"});
+    const submitted = report(4,0,prior.result.id);
+    const other = report(5,0,prior.result.id);
+    const unchanged = report(6,1,noOp.id);
+    const submit = reviewEvent(7,{tag:"SUBMIT",candidateHash:hashA,findingIds:[submitted.id]});
+    const correction = run(4,tasks[0]!.id,"REVIEWER",3,prior.result.id,"CANDIDATE_DONE");
+    const result = reviewed(correction,40,[{findingId:submitted.id,verdict:"NOT_REPRODUCED",rationale:"independent evaluation",evidence:[{relativePath:"review.txt",sha256:hashA,mediaType:"text/plain"}]}]);
+    const started = reviewEvent(8,{tag:"REVIEW_STARTED",submissionId:submit.id,runId:correction.id});
+    const completed = reviewEvent(9,{tag:"REVIEW_COMPLETED",submissionId:submit.id,candidateHash:hashB,candidateEventId:result.result.id});
+    const history = [opened,first,withdrawal,submitted,other,unchanged,submit,started,completed];
+    const runs = [...baseRuns,correction], events = [...baseEvents,...result.events];
+    const rounds = reconstructCandidateRounds(approval,tasks,runs,events,history);
+    expect(rounds.get(opened.id)).toEqual([[tasks[0]!.id,prior.result.id],[tasks[1]!.id,noOp.id]]);
+    expect(rounds.get(completed.id)).toEqual([[tasks[0]!.id,result.result.id],[tasks[1]!.id,noOp.id]]);
+    verifyCandidateRoundHashes(history,new Map([[opened.id,hashA],[completed.id,hashB]]));
+    expect(()=>verifyCandidateRoundHashes(history,new Map([[opened.id,hashA],[completed.id,hashA]]))).toThrow(/hash mismatch/);
+    const findings = candidateFindingDispositions(history,rounds,tasks,runs,events);
+    expect(findings.get(first.id)).toBe("RETEST_REQUIRED");
+    expect(findings.get(submitted.id)).toBe("RETEST_REQUIRED");
+    expect(findings.get(other.id)).toBe("OPEN");
+    expect(findings.get(unchanged.id)).toBe("OPEN");
+    const input = {current:true,coherent:true,mutationConflict:false,approval,history,currentProof:history,diagnostic:null,rounds,tasks,runs,runEvents:events};
+    expect(deriveAcceptanceDecision(input)).toEqual({tag:"REANALYSE_NO_OP",findingIds:[unchanged.id]});
+    expect(deriveAcceptanceDecision({...input,currentProof:null})).toEqual({tag:"NONE"});
+    expect(deriveAcceptanceDecision({...input,diagnostic:{code:"SOURCE_AUTHORITY_STALE",message:"source",sourceDiagnostic:null,staleAuthorityOwner:null}})).toEqual({tag:"RECONCILE_SOURCE"});
+    expect(deriveAcceptanceDecision({...input,diagnostic:{code:"STALE_AUTHORITY",message:"material",sourceDiagnostic:null,staleAuthorityOwner:"R1"}})).toEqual({tag:"RECONCILE_AUTHORITY",owner:"R1"});
+    expect(deriveAcceptanceDecision({...input,diagnostic:{code:"CANDIDATE_PROOF_UNAVAILABLE",message:"patch",sourceDiagnostic:null,staleAuthorityOwner:null}})).toEqual({tag:"REANALYSE_PROOF_UNAVAILABLE"});
+    const failedRetest=reviewEvent(10,{tag:"RETEST_FAILED",findingId:submitted.id,candidateHash:hashB,observed:"still failing",rationale:"reproduced",evidence:[]});
+    expect(candidateFindingDispositions([...history,failedRetest],rounds,tasks,runs,events).get(submitted.id)).toBe("RETEST_FAILED");
+    expect(()=>candidateFindingDispositions([...history,failedRetest,reviewEvent(11,{tag:"DISPOSITION",findingId:submitted.id,candidateHash:hashB,outcome:"WITHDRAWN",rationale:"waive",followupWorkItemId:null,withdrawalAttestation:"NOT_A_KNOWN_UNMET_OBLIGATION"})],rounds,tasks,runs,events)).toThrow(/independent supporting/);
+    expect(()=>reconstructCandidateRounds(approval,tasks,runs,events.filter(value=>value.id!==prior.result.id),history)).toThrow();
+    expect(qaReviewAssessmentsAreAdmitted(result.review.event,[submitted.id])).toBe(true);
+    expect(qaReviewAssessmentsAreAdmitted(result.review.event,[other.id])).toBe(false);
+    expect(qaReviewAssessmentsAreAdmitted(result.review.event,null)).toBe(false);
   });
 });

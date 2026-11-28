@@ -119,6 +119,9 @@ export const writeRunEvidence = (
 };
 
 export const evidenceRefsInPayload = (event: RunEventPayload): readonly EvidenceRef[] => {
+  if (event.tag === "REVIEW_PASSED" || event.tag === "REVIEW_FAILED") {
+    return [...event.evidence, ...(event.qaAssessments ?? []).flatMap(assessment => assessment.evidence)];
+  }
   if ("evidence" in event && Array.isArray(event.evidence)) return event.evidence;
   if (event.tag === "CANDIDATE_STATE_RECORDED") return [event.patch];
   return [];

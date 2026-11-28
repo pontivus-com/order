@@ -25,6 +25,7 @@ import {
   type WorkItemId,
 } from "../src/core/contracts.ts";
 import { canonicalApprovalPackageJson } from "../src/core/canonical.ts";
+import { candidateMembershipCanonicalJson } from "../src/core/lifecycle.ts";
 import { renderWorkItemSourceMarkdown } from "../src/core/work-item-source.ts";
 import { startOrderDaemon } from "../src/daemon/server.ts";
 import { createCoordinatorRuntime } from "../src/daemon/runtime.ts";
@@ -33,6 +34,9 @@ import {
   getWorkItem,
   listExecutionTasks,
   resolveStageContext,
+  signOffWorkItem,
+  signoffPackageForWorkItem,
+  observeCurrentCandidateReview,
 } from "../src/daemon/authority.ts";
 import {
   appendRunEvent,
@@ -50,6 +54,7 @@ import {
 import {
   newApprovalId,
   newArtifactRefId,
+  newCandidateReviewEventId,
   newExecutionTaskId,
   newRunEventId,
   newRunId,
@@ -65,6 +70,7 @@ import {
   storeApproval,
   storeArtifact,
   storeArtifactDependency,
+  storeCandidateReviewEvent,
   storeExecutionTask,
   storeRun,
   storeRunEvent,
@@ -452,6 +458,14 @@ No unresolved defect blocks the exact governed package.
 ## Package judgment
 
 The current package is coherent and ready for Approval.
+
+## Adversarial findings
+
+The review assessed contradictory authority and missing verification evidence.
+
+## Evidence
+
+The exact conformed artifact identifies the reviewed package.
 `;
 const manifestText = `version = 1
 projectId = "order-e2e"
@@ -1224,6 +1238,11 @@ const seedBlockedReadinessItem = async (
     contextHash,
   });
   appendRunEvent(seedRuntime, run.id, {
+    tag: "STAGE_COMPLETED",
+    completion: { stage: "R3", outcome: "READY_FOR_SIGNOFF" },
+    artifactRefIds: [output.id],
+  });
+  appendRunEvent(seedRuntime, run.id, {
     tag: "STAGE_BLOCKED",
     reason: "Readiness review is blocked by a canonical finding.",
     owningStage: "R3",
@@ -1624,9 +1643,45 @@ for (const [title, planPath] of [
   await seedLifecycle(item, planPath);
 }
 
+const nativeAcceptanceItem=workItem("Native Acceptance review","AWAITING_SIGNOFF","ACTIVE",null);
+storeWorkItem(database,nativeAcceptanceItem);
+await seedLifecycle(nativeAcceptanceItem);
 git("add", "--", workItemsRoot);
 git("commit", "-q", "-m", "browser WorkItem sources");
 baselineCommit = await resolveHeadCommit(repositoryRoot);
+
+const nativePackage=await signoffPackageForWorkItem(seedRuntime,nativeAcceptanceItem.id);
+const nativeApproval=await signOffWorkItem(seedRuntime,nativeAcceptanceItem.id,nativePackage.packageHash,"browser-signoff");
+const nativeTasks=await listExecutionTasks(seedRuntime,nativeAcceptanceItem.id);
+if(nativeTasks.length!==1)throw new TypeError("Native Acceptance fixture requires one signed task");
+const nativeTask=nativeTasks[0]!;
+const nativeBuilder=RunSchema.parse({
+  id:newRunId(),workItemId:nativeAcceptanceItem.id,executionTaskId:nativeTask.id,stage:"EXECUTION",
+  mode:"UNATTENDED",role:"BUILDER",triggerEventId:null,status:"COMPLETED",attempt:1,
+  baselineCommit:nativeApproval.baselineCommit,contextHash:sha256Text("native-acceptance-builder"),
+  providerSessionId:null,terminalClassification:"CANDIDATE_DONE",startedAt:stamp,endedAt:stamp,
+});
+storeRun(database,nativeBuilder);
+const nativePatch=encoder.encode("diff --git a/src/a.ts b/src/a.ts\n--- a/src/a.ts\n+++ b/src/a.ts\n@@ -1 +1 @@\n-export const a = 1;\n+export const a = 2;\n");
+const nativeState=persistEvent(nativeBuilder.id,1,{tag:"CANDIDATE_STATE_RECORDED",changedPaths:["src/a.ts"],patch:{
+  relativePath:"candidate.patch",sha256:writeRunEvidenceBytes(stateRoot,nativeBuilder.id,"candidate.patch",nativePatch),mediaType:"text/x-diff"
+}});
+const nativeReviewer=RunSchema.parse({...nativeBuilder,id:newRunId(),role:"REVIEWER",triggerEventId:nativeState.id,attempt:2,contextHash:sha256Text("native-acceptance-reviewer")});
+storeRun(database,nativeReviewer);
+const nativeValidationIds=[];
+let nativeSequence=1;
+for(const stage of ["V0","V1","V2","V3","V4","V5","V6","V7"] as const){
+  if(stage==="V4")persistEvent(nativeReviewer.id,nativeSequence++,{tag:"REVIEW_PASSED",minimumChange:"MINIMUM_SUFFICIENT",minimumChangeSummary:null,evidence:[]});
+  nativeValidationIds.push(persistEvent(nativeReviewer.id,nativeSequence++,{tag:"VALIDATION_PASSED",stage,evidence:[]}).id);
+}
+const nativeMember=persistEvent(nativeReviewer.id,nativeSequence,{tag:"CANDIDATE_RECORDED",candidateStateEventId:nativeState.id,validationEventIds:nativeValidationIds});
+const nativeHash=sha256Text(candidateMembershipCanonicalJson(nativeApproval.id,[[nativeTask.id,nativeMember.id]]));
+withTransaction(database,()=>{
+  setExecutionTaskState(database,nativeTask.id,"CANDIDATE_DONE");
+  storeCandidateReviewEvent(database,{id:newCandidateReviewEventId(),approvalId:nativeApproval.id,sequence:1,occurredAt:stamp,actor:null,event:{tag:"OPENED",candidateHash:nativeHash}});
+  updateWorkItemLifecycle(database,nativeAcceptanceItem.id,{stage:"AWAITING_ACCEPTANCE",status:"ACTIVE",outcome:null});
+});
+await observeCurrentCandidateReview(seedRuntime,nativeAcceptanceItem.id,nativeApproval.id,1);
 
 writeFileSync(
   join(repositoryRoot, "docs", "stale-approval-plan.md"),
@@ -1938,12 +1993,12 @@ const failedBuilderRun = RunSchema.parse({
   mode: "UNATTENDED",
   role: "BUILDER",
   triggerEventId: null,
-  status: "FAILED",
+  status: "COMPLETED",
   attempt: 1,
   baselineCommit,
   contextHash: sha256Text("failed-builder-context"),
   providerSessionId: null,
-  terminalClassification: "TEST_FAILURE",
+  terminalClassification: null,
   startedAt: stamp,
   endedAt: stamp,
 });
@@ -1953,11 +2008,27 @@ persistEvent(failedBuilderRun.id, 1, {
   gateId: "typecheck",
   evidence: [],
 });
-const failedGateEvent = persistEvent(failedBuilderRun.id, 2, {
+persistEvent(failedBuilderRun.id, 2, {
   tag: "GATE_FAILED",
   gateId: "test",
   classification: "TEST_FAILURE",
   evidence: [],
+});
+
+// A failed signed checkpoint is not a reviewer trigger. The builder
+// corrects within scope and records an actual candidate for independent review.
+persistEvent(failedBuilderRun.id, 3, {
+  tag: "GATE_PASSED", gateId: "test", evidence: [],
+});
+const failedCandidatePatch = encoder.encode("diff --git a/src/a.ts b/src/a.ts\n");
+const failedCandidate = persistEvent(failedBuilderRun.id, 4, {
+  tag: "CANDIDATE_STATE_RECORDED",
+  patch: {
+    relativePath: "candidate.patch",
+    sha256: writeRunEvidenceBytes(stateRoot, failedBuilderRun.id, "candidate.patch", failedCandidatePatch),
+    mediaType: "text/x-diff",
+  },
+  changedPaths: ["src/a.ts"],
 });
 
 const failedReviewerRun = RunSchema.parse({
@@ -1967,7 +2038,7 @@ const failedReviewerRun = RunSchema.parse({
   stage: "EXECUTION",
   mode: "UNATTENDED",
   role: "REVIEWER",
-  triggerEventId: failedGateEvent.id,
+  triggerEventId: failedCandidate.id,
   status: "FAILED",
   attempt: nextAttempt(seedRuntime, failedExecution.item.id, "EXECUTION", failedExecution.task.id),
   baselineCommit,
@@ -1978,13 +2049,16 @@ const failedReviewerRun = RunSchema.parse({
   endedAt: stamp,
 });
 storeRun(database, failedReviewerRun);
-persistEvent(failedReviewerRun.id, 1, {
+for (const [index, stage] of (["V0", "V1", "V2", "V3"] as const).entries()) {
+  persistEvent(failedReviewerRun.id, index + 1, { tag: "VALIDATION_PASSED", stage, evidence: [] });
+}
+persistEvent(failedReviewerRun.id, 5, {
   tag: "REVIEW_FAILED",
   classification: "REVIEW_FAILURE",
   summary: "Independent review rejected the candidate.",
   evidence: [],
 });
-persistEvent(failedReviewerRun.id, 2, {
+persistEvent(failedReviewerRun.id, 6, {
   tag: "VALIDATION_FAILED",
   stage: "V4",
   classification: "REVIEW_FAILURE",

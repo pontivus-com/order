@@ -581,6 +581,13 @@ const server = Bun.serve({
             ? '[{"tag":"REVIEW_PASSED","minimumChange":"MINIMUM_SUFFICIENT","minimumChangeSummary":null,"evidence":[]}]'
             : '[{"tag":"REVIEW_FAILED","classification":"REVIEW_FAILURE","summary":"target still needs repair or V4 inputs are incomplete","evidence":[]}]';
         }
+        if (text.includes("Immutable submitted QA events")) {
+          const eventsLine=text.split("\\n").find(line=>line.startsWith("[{")&&line.includes('"tag":"SUBMIT"'));
+          const submission=JSON.parse(eventsLine)[0];
+          const payload=JSON.parse(output)[0];
+          payload.qaAssessments=submission.event.findingIds.map(findingId=>({findingId,verdict:payload.tag==="REVIEW_PASSED"?"SATISFIED":"FAIL_REPAIRABLE",rationale:"independent fixture review",evidence:[]}));
+          output=JSON.stringify([payload]);
+        }
       } else if (mode === "stage-durable-history") {
         writeFileSync(join(own, "durable-history-prompt"), text);
         output = '[{"tag":"AGENT_MESSAGE_FINAL","text":"history captured for inspection","evidence":[]}]';
@@ -931,6 +938,43 @@ describe("daemon control plane", () => {
     expect(result.leaked).toBe(false);
   }, 30_000);
 
+  it("observes only the exact prospective conformed closure without persisting an Approval", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-prospective-closure-");
+    const output = bunEval(seedSignoffScript(repository, state, `
+      const changes = () => database.query("SELECT total_changes() AS n").get().n;
+      const before = changes();
+      const prospective = await coord.computeSignoffPackage(runtime, work);
+      const members = await coord.observeSignoffPackageArtifacts(runtime, work, prospective.packageHash);
+      const again = await coord.observeSignoffPackageArtifacts(runtime, work, prospective.packageHash);
+      let mismatch = false;
+      try { await coord.observeSignoffPackageArtifacts(runtime, work, rt.sha256Text("other package")); }
+      catch (error) { mismatch = String(error).includes("identity changed"); }
+      const proof = {
+        ids: members.map(member => member.id).sort(),
+        expected: [...new Set([outputs.R3.id, ...authority.dependencyClosure(runtime, outputs.R3.id)])].sort(),
+        hasPlan: members.some(member => member.id === outputs.PLAN.id),
+        same: JSON.stringify(members) === JSON.stringify(again),
+        mismatch,
+        observational: before === changes(),
+      };
+    `) + `
+      const beforeSignedRead = changes();
+      let unavailableAfterApproval = false;
+      try { await coord.observeSignoffPackageArtifacts(runtime, work, prospective.packageHash); }
+      catch { unavailableAfterApproval = true; }
+      console.log(JSON.stringify({...proof, unavailableAfterApproval, signedReadObservational: beforeSignedRead === changes()}));
+      database.close();
+    `) as {ids:string[];expected:string[];hasPlan:boolean;same:boolean;mismatch:boolean;observational:boolean;unavailableAfterApproval:boolean;signedReadObservational:boolean};
+    expect(output.ids).toEqual(output.expected);
+    expect(output.hasPlan).toBe(true);
+    expect(output.same).toBe(true);
+    expect(output.mismatch).toBe(true);
+    expect(output.observational).toBe(true);
+    expect(output.unavailableAfterApproval).toBe(true);
+    expect(output.signedReadObservational).toBe(true);
+  }, 30_000);
+
   it("observes exact Approval identity, immutable membership and successful final task aggregate", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-approval-observation-");
@@ -985,6 +1029,50 @@ describe("daemon control plane", () => {
     expect(output.terminal).toBeNull();
     expect(output.retainedHistory).toEqual([output.approval]);
     expect(output.ambiguous).toBe(true);
+  }, 30_000);
+
+  it("resolves an exact signed task criterion observationally even after live authority drift", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-signed-criterion-");
+    const ref = "GW-FR-098-READINESS-AUTHORITY-TOPOLOGY-REVIEW";
+    const plan = fixturePlan.replace('"acceptanceRefs":[]', '"acceptanceRefs":["' + ref + '"]');
+    const output = bunEval(seedSignoffScript(repository, state, "", "human", "change-v1", plan) + `
+      const fs = await import("node:fs");
+      const server = await import("./src/daemon/server.ts");
+      const ref = ${JSON.stringify(ref)};
+      const tasks = await coord.listExecutionTasks(runtime, work);
+      const task = tasks[0];
+      const changes = () => database.query("SELECT total_changes() AS n").get().n;
+      const before = changes();
+      const full = await coord.observeApprovalArtifacts(runtime, work, approval.id);
+      const exact = await coord.observeApprovalArtifacts(runtime, work, approval.id, task.id, ref);
+      const denied = async (id, key) => {
+        try { await coord.observeApprovalArtifacts(runtime, work, approval.id, id, key); return null; }
+        catch (error) { return server.classifyHttpFailure(error).code; }
+      };
+      const absent = await denied("task_00000000-0000-4000-8000-000000000000", ref);
+      const unsigned = await denied(task.id, "GW-DOC-WORK-LIFECYCLE-V1");
+      const noWrites = changes() === before;
+      sql.updateWorkItemLifecycle(database, work, { stage: "PLAN", status: "ACTIVE", outcome: null });
+      const manifest = repositoryRoot + "/pontivus-order.toml";
+      fs.writeFileSync(manifest, fs.readFileSync(manifest, "utf8").replace(ref+' = "AGENTS.md"', ref+' = "docs/r2.md"'));
+      fs.appendFileSync(repositoryRoot + "/AGENTS.md", "\\nlive drift\\n");
+      const historicalBefore = changes();
+      const historical = await coord.observeApprovalArtifacts(runtime, work, approval.id, task.id, ref);
+      console.log(JSON.stringify({
+        length: exact.length, exact: exact[0], member: full.find(x => x.id === exact[0]?.id),
+        absent, unsigned, noWrites, historical, historicalNoWrites: changes() === historicalBefore,
+        sameFull: JSON.stringify(await coord.observeApprovalArtifacts(runtime, work, approval.id)) === JSON.stringify(full),
+      }));
+      database.close();
+    `) as { length: number; exact: { repositoryPath: string }; member: unknown; absent: string; unsigned: string; noWrites: boolean; historical: unknown[]; historicalNoWrites: boolean; sameFull: boolean };
+    expect(output.length).toBe(1);
+    expect(output.exact.repositoryPath).toBe("AGENTS.md");
+    expect(output.exact).toEqual(output.member);
+    expect(output.absent).toBe("NOT_FOUND");
+    expect(output.unsigned).toBe("CURRENT_STATE_CONFLICT");
+    expect(output.noWrites && output.historicalNoWrites && output.sameFull).toBe(true);
+    expect(output.historical).toEqual([output.exact]);
   }, 30_000);
 
   it("rejects missing or injected signed closure membership without mutating observations", () => {
@@ -6882,7 +6970,32 @@ describe("daemon control plane", () => {
           providerEventIndex >= 0 &&
           diagnosticIndex < providerEventIndex;
       });
+      const history=await coord.observeCandidateReviewEvents(runtime,work,approval.id,1);
+      const opening=history[0];
+      const hash=opening.event.candidateHash;
+      const rejected=async fn=>{try{await fn();return false;}catch{return true;}};
+      const testCopy=await coord.prepareAcceptanceTestCopy(runtime,work,approval.id,hash,1,tasks[0].id,recorded.id);
+      const fs=await import("node:fs");
+      const isolated=fs.readFileSync(testCopy+"/src/target.ts","utf8")==="fixed\\n"&&testCopy!==repositoryRoot;
+      fs.rmSync(testCopy.slice(0,testCopy.lastIndexOf("/")),{recursive:true,force:true});
+      const report=await coord.recordCandidateReviewDecision(runtime,work,approval.id,hash,1,"human",{tag:"REPORT",candidateHash:hash,taskId:tasks[0].id,candidateEventId:recorded.id,acceptanceRefs:[],expected:"correct",observed:"manual concern",reproduction:"inspect",impact:"functional",evidence:[]});
+      const premature=await rejected(()=>coord.recordCandidateReviewDecision(runtime,work,approval.id,hash,2,"human",{tag:"ACCEPT"}));
+      const stale=await rejected(()=>coord.recordCandidateReviewDecision(runtime,work,approval.id,hash,1,"human",{tag:"SUBMIT",candidateHash:hash,findingIds:[report.id]}));
+      const submitted=await coord.recordCandidateReviewDecision(runtime,work,approval.id,hash,2,"human",{tag:"SUBMIT",candidateHash:hash,findingIds:[report.id]});
+      const queued=await coord.observeCandidateReviewEvents(runtime,work,approval.id,3);
+      const correction=await coord.runCoordinatorTick(runtime);
+      const returned=coord.getWorkItem(runtime,work);
+      const round=await coord.observeCandidateReviewEvents(runtime,work,approval.id,5);
+      const freshHash=round[4].event.candidateHash;
+      const retest=await coord.recordCandidateReviewDecision(runtime,work,approval.id,freshHash,5,"human",{tag:"DISPOSITION",candidateHash:freshHash,findingId:report.id,outcome:"RESOLVED",rationale:"manual retest confirmed",followupWorkItemId:null,withdrawalAttestation:null});
+      const accepted=await coord.recordCandidateReviewDecision(runtime,work,approval.id,freshHash,6,"human",{tag:"ACCEPT"});
+      const final=coord.getWorkItem(runtime,work);
+      const finalApproval=await coord.observeCurrentApproval(runtime,work);
+      const finalHistory=await coord.observeCandidateReviewEvents(runtime,work,approval.id);
+      const duplicate=await rejected(()=>coord.recordCandidateReviewDecision(runtime,work,approval.id,freshHash,6,"human",{tag:"ACCEPT"}));
+      const acceptance={isolated,premature,stale,queued:queued.at(-1).id===submitted.id,correction:correction.result,returned:returned.stage,changedHash:freshHash!==hash,retest:retest.event.tag,final:final.stage,finalOutcome:final.outcome,actor:accepted.actor,finalApproval:finalApproval.id===approval.id,history:finalHistory.map(value=>value.event.tag),duplicate};
       console.log(JSON.stringify({
+        acceptance,
         tick,
         workItem,
         taskState: tasks[0].state,
@@ -6933,10 +7046,11 @@ describe("daemon control plane", () => {
 
     expect(output.tick.result).toBe("STARTED");
     expect(output.workItem, JSON.stringify(output)).toMatchObject({
-      stage: "COMPLETE",
-      status: "COMPLETE",
-      outcome: "CANDIDATE_DONE",
+      stage: "AWAITING_ACCEPTANCE",
+      status: "ACTIVE",
+      outcome: null,
     });
+    expect(output).toMatchObject({acceptance:{isolated:true,premature:true,stale:true,queued:true,correction:"STARTED",returned:"AWAITING_ACCEPTANCE",changedHash:true,retest:"DISPOSITION",final:"COMPLETE",finalOutcome:"CANDIDATE_DONE",actor:"human",finalApproval:true,history:["OPENED","REPORT","SUBMIT","REVIEW_STARTED","REVIEW_COMPLETED","DISPOSITION","ACCEPT"],duplicate:true}});
     expect(output.taskState).toBe("CANDIDATE_DONE");
     expect(output.roles, JSON.stringify(output)).toEqual(["BUILDER", "REVIEWER", "REMEDIATOR", "REVIEWER"]);
     expect(output.remediationCount).toBe(1);
@@ -7003,9 +7117,9 @@ describe("daemon control plane", () => {
     };
 
     expect(output.workItem).toMatchObject({
-      stage: "COMPLETE",
-      status: "COMPLETE",
-      outcome: "CANDIDATE_DONE",
+      stage: "AWAITING_ACCEPTANCE",
+      status: "ACTIVE",
+      outcome: null,
     });
     expect(output.eventTags).toContain("GATE_CHECKPOINT_REQUESTED");
     expect(output.eventTags).toContain("GATE_PASSED");
@@ -7267,9 +7381,9 @@ describe("daemon control plane", () => {
     expect(output.v6Passes).toBe(1);
     expect(output.task.state).toBe("CANDIDATE_DONE");
     expect(output.workItem).toMatchObject({
-      stage: "COMPLETE",
-      status: "COMPLETE",
-      outcome: "CANDIDATE_DONE",
+      stage: "AWAITING_ACCEPTANCE",
+      status: "ACTIVE",
+      outcome: null,
     });
   }, 30_000);
 
@@ -7361,7 +7475,7 @@ describe("daemon control plane", () => {
 
     expect(output.sameActionKey).toBe(true);
     expect(output.firstTwoRoles).toEqual(["BUILDER", "BUILDER"]);
-    expect(output.final, JSON.stringify(output)).toMatchObject({ status: "COMPLETE", stage: "COMPLETE" });
+    expect(output.final, JSON.stringify(output)).toMatchObject({ status: "ACTIVE", stage: "AWAITING_ACCEPTANCE" });
 
     const repository2 = createRepository();
     const state2 = tempDir("order-daemon-operational-block-");
@@ -8729,4 +8843,131 @@ describe("daemon control plane", () => {
     });
   });
 
+});
+
+describe("native QA assessment evidence", () => {
+  it("validates nested review evidence before persistence and authorizes its exact persisted Run read", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-qa-evidence-");
+    const output = bunEval(`
+      ${seedSignoffScript(repository,state)}
+      const execution = await import("./src/daemon/execution.ts");
+      const task = (await coord.listExecutionTasks(runtime,work))[0];
+      const running = {...task,state:"RUNNING"};
+      sql.setExecutionTaskState(database,task.id,"RUNNING");
+      const context = await authority.approvalContext(runtime,approval,running,"BUILDER");
+      const run = execution.createExecutionRun(runtime,coord.getWorkItem(runtime,work),running,approval,"BUILDER",null,context.contextHash);
+      const findingId = "review_00000000-0000-4000-8000-000000000001";
+      const bytes = new TextEncoder().encode("independent evidence");
+      const evidence = runStore.writeRunEvidence(runtime,run.id,"qa/assessment.txt",bytes,"text/plain");
+      const review = {tag:"REVIEW_PASSED",minimumChange:"MINIMUM_SUFFICIENT",minimumChangeSummary:null,evidence:[],
+        qaAssessments:[{findingId,verdict:"SATISFIED",rationale:"verified",evidence:[evidence]}]};
+      const rejected = (fn) => { try { fn(); return false; } catch { return true; } };
+      const bad = {...review,qaAssessments:[{...review.qaAssessments[0],evidence:[{...evidence,sha256:"sha256:"+"0".repeat(64)}]}]};
+      const missing = {...review,qaAssessments:[{...review.qaAssessments[0],evidence:[{...evidence,relativePath:"qa/missing.txt"}]}]};
+      const before = runStore.listRunEvents(runtime,run.id).length;
+      const badRejected = rejected(()=>runStore.persistProviderEvents(runtime,run,[bad]));
+      const missingRejected = rejected(()=>runStore.persistProviderEvents(runtime,run,[missing]));
+      const unchanged = runStore.listRunEvents(runtime,run.id).length===before;
+      runStore.persistProviderEvents(runtime,run,[review]);
+      const read = new TextDecoder().decode(runStore.readReferencedEvidence(runtime,run.id,"qa/assessment.txt"));
+      console.log(JSON.stringify({badRejected,missingRejected,unchanged,read,refs:runStore.evidenceRefsInPayload(review),evidence}));
+      database.close();
+    `) as {badRejected:boolean;missingRejected:boolean;unchanged:boolean;read:string;refs:unknown[];evidence:unknown};
+    expect(output).toMatchObject({badRejected:true,missingRejected:true,unchanged:true,read:"independent evidence"});
+    expect(output.refs).toEqual([output.evidence]);
+  },30_000);
+});
+
+describe("native QA immutable execution context", () => {
+  it("binds exact submitted events and trigger without mutable task state or future Run identity", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-qa-context-");
+    const output = bunEval(`
+      ${seedSignoffScript(repository,state)}
+      const execution = await import("./src/daemon/execution.ts");
+      const core = await import("./src/core/lifecycle.ts");
+      const task = (await coord.listExecutionTasks(runtime,work))[0];
+      sql.setExecutionTaskState(database,task.id,"RUNNING");
+      const running = {...task,state:"RUNNING"};
+      const workItem = coord.getWorkItem(runtime,work);
+      const ordinary = await authority.approvalContext(runtime,approval,running,"BUILDER");
+      const builder = execution.createExecutionRun(runtime,workItem,running,approval,"BUILDER",null,ordinary.contextHash);
+      const patch = runStore.writeRunEvidence(runtime,builder.id,"candidate/patch.diff",new TextEncoder().encode("patch"),"text/x-diff");
+      const candidateState = runStore.appendRunEvent(runtime,builder.id,{tag:"CANDIDATE_STATE_RECORDED",patch,changedPaths:["src/target.ts"]});
+      runStore.updateRun(runtime,builder.id,{status:"COMPLETED",endedAt:timestamp});
+      const ordinaryReview = await authority.approvalContext(runtime,approval,running,"REVIEWER");
+      const reviewer = execution.createExecutionRun(runtime,workItem,running,approval,"REVIEWER",candidateState.id,ordinaryReview.contextHash);
+      const validations = [];
+      for (const stage of ["V0","V1","V2","V3","V4","V5","V6","V7"]) {
+        if(stage==="V4") runStore.appendRunEvent(runtime,reviewer.id,{tag:"REVIEW_PASSED",minimumChange:"MINIMUM_SUFFICIENT",minimumChangeSummary:null,evidence:[]});
+        validations.push(runStore.appendRunEvent(runtime,reviewer.id,{tag:"VALIDATION_PASSED",stage,evidence:[]}));
+      }
+      const member = runStore.appendRunEvent(runtime,reviewer.id,{tag:"CANDIDATE_RECORDED",candidateStateEventId:candidateState.id,validationEventIds:validations.map(value=>value.id)});
+      runStore.updateRun(runtime,reviewer.id,{status:"COMPLETED",terminalClassification:"CANDIDATE_DONE",endedAt:timestamp});
+      sql.setExecutionTaskState(database,task.id,"CANDIDATE_DONE");
+      const hash=rt.sha256Text(core.candidateMembershipCanonicalJson(approval.id,[[task.id,member.id]]));
+      const append=(sequence,actor,event)=>{const value={id:rt.newCandidateReviewEventId(),approvalId:approval.id,sequence,occurredAt:timestamp,actor,event};sql.storeCandidateReviewEvent(database,value);return value;};
+      const opened=append(1,null,{tag:"OPENED",candidateHash:hash});
+      // Exact current proof is observational; history remains inspectable even
+      // after the current source or evidence has become unavailable.
+      sql.updateWorkItemLifecycle(database,work,{stage:"AWAITING_ACCEPTANCE",status:"ACTIVE",outcome:null});
+      const fs=await import("node:fs");
+      const changes=()=>database.query("SELECT total_changes() AS n").get().n;
+      const beforeProof=changes();
+      const proof=await coord.observeCandidateReviewEvents(runtime,work,approval.id,1);
+      const sourceFile=repositoryRoot+"/"+workItem.sourcePath;
+      const originalSource=fs.readFileSync(sourceFile);
+      const patchFile=rt.statePaths(runtime.stateRoot).evidence+"/"+builder.id+"/candidate/patch.diff";
+      const originalPatch=fs.readFileSync(patchFile);
+      const diagnostic=async sequence=>{try{await coord.observeCandidateReviewEvents(runtime,work,approval.id,sequence);return null;}catch(error){return (await import("./src/daemon/server.ts")).classifyHttpFailure(error).code;}};
+      fs.writeFileSync(patchFile,"corrupt");
+      const proofMissing=await diagnostic(1);
+      fs.appendFileSync(sourceFile,"\\nChanged work request.\\n");
+      const staleBeforeProof=await diagnostic(1);
+      fs.writeFileSync(sourceFile,originalSource);
+      fs.unlinkSync(patchFile);
+      fs.rmdirSync(patchFile.slice(0,patchFile.lastIndexOf("/")));
+      const missing=await diagnostic(1);
+      const noEvidenceReadEffects=!fs.existsSync(patchFile.slice(0,patchFile.lastIndexOf("/")));
+      const history=await coord.observeCandidateReviewEvents(runtime,work,approval.id);
+      const sequenceConflict=await diagnostic(0);
+      fs.mkdirSync(patchFile.slice(0,patchFile.lastIndexOf("/")));
+      fs.writeFileSync(patchFile,originalPatch);
+      const observational=changes()===beforeProof&&proof[0].id===opened.id&&history[0].id===opened.id;
+      sql.updateWorkItemLifecycle(database,work,{stage:"EXECUTION",status:"ACTIVE",outcome:null});
+
+      const report=append(2,"human",{tag:"REPORT",candidateHash:hash,taskId:task.id,candidateEventId:member.id,acceptanceRefs:[],expected:"expected",observed:"observed",reproduction:"steps",impact:"impact",evidence:[candidateState.id]});
+      const submit=append(3,"human",{tag:"SUBMIT",candidateHash:hash,findingIds:[report.id]});
+      const qa={submissionId:submit.id,triggerEventId:member.id};
+      const done=await authority.approvalContext(runtime,approval,{...task,state:"CANDIDATE_DONE"},"REVIEWER",qa);
+      const active=await authority.approvalContext(runtime,approval,running,"REVIEWER",qa);
+      const replay=execution.createExecutionRun(runtime,workItem,running,approval,"REVIEWER",member.id,active.contextHash);
+      append(4,null,{tag:"REVIEW_STARTED",submissionId:submit.id,runId:replay.id});
+      const reloaded=await authority.approvalContextForRun(runtime,approval,running,replay);
+      const replayState=execution.candidateForRun(runtime,replay,approval);
+      const prompt=await execution.executionPrompt(workItem,"REVIEWER",running,reloaded);
+      const rejects=async fn=>{try{await fn();return false;}catch{return true;}};
+      const wrongTrigger=await rejects(()=>authority.approvalContext(runtime,approval,running,"REVIEWER",{...qa,triggerEventId:candidateState.id}));
+      const wrongHash=await rejects(()=>authority.approvalContextForRun(runtime,approval,running,{...replay,contextHash:ordinaryReview.contextHash}));
+      sql.setExecutionTaskState(database,task.id,"RUNNING");
+      runStore.updateRun(runtime,replay.id,{status:"FAILED",terminalClassification:"PROVIDER_FAILURE",endedAt:timestamp});
+      const replacement=await execution.continuationForRunningTask(runtime,workItem,running,approval);
+      const replacementHistory=sql.loadCandidateReviewEvents(database,approval.id);
+      const replacementContext=await authority.approvalContextForRun(runtime,approval,running,replacement);
+      console.log(JSON.stringify({stable:done.contextHash===active.contextHash&&active.contextHash===reloaded.contextHash,
+        replayExact:replayState.id===candidateState.id,
+        replacementExact:replacement.id!==replay.id&&replacement.triggerEventId===replay.triggerEventId&&
+          replacementContext.contextHash===replay.contextHash&&replacementHistory.at(-1).event.runId===replacement.id&&
+          replacementHistory.at(-1).event.submissionId===submit.id,
+        observational,proofMissing,staleBeforeProof,missing,noEvidenceReadEffects,sequenceConflict,
+        ordinaryDifferent:ordinaryReview.contextHash!==active.contextHash,
+        events:reloaded.qa.events.map(value=>value.id),expected:[submit.id,report.id],
+        promptContains:prompt.includes(JSON.stringify(report.id))&&prompt.includes(member.id)&&!prompt.includes('"state":"RUNNING"'),
+        wrongTrigger,wrongHash}));
+      database.close();
+    `) as {stable:boolean;ordinaryDifferent:boolean;events:string[];expected:string[];promptContains:boolean;wrongTrigger:boolean;wrongHash:boolean;replayExact:boolean;replacementExact:boolean};
+    expect(output).toMatchObject({stable:true,ordinaryDifferent:true,promptContains:true,wrongTrigger:true,wrongHash:true,replayExact:true,replacementExact:true,observational:true,proofMissing:"CANDIDATE_PROOF_UNAVAILABLE",staleBeforeProof:"SOURCE_AUTHORITY_STALE",missing:"CANDIDATE_PROOF_UNAVAILABLE",noEvidenceReadEffects:true,sequenceConflict:"CURRENT_STATE_CONFLICT"});
+    expect(output.events).toEqual(output.expected);
+  },30_000);
 });

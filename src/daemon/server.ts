@@ -11,6 +11,14 @@ import { extname, resolve, sep } from "node:path";
 import { orderVersion } from "../version.ts";
 import {
   ApprovalIdSchema,
+  AuthorityRefSchema,
+  QaReportCommandSchema,
+  QaSubmitCommandSchema,
+  QaRetestFailedCommandSchema,
+  QaDispositionCommandSchema,
+  QaReanalysisCommandSchema,
+  QaAcceptCommandSchema,
+  QaPrepareTestCopyCommandSchema,
   ArtifactRefIdSchema,
   CommitWorkItemDocumentationSchema,
   ConnectRepositorySchema,
@@ -25,6 +33,7 @@ import {
   OpenCodeAccountLoginAttemptIdSchema,
   OrderHttpErrorSchema,
   ReconcileWorkItemAuthoritySchema,
+  ReconcileWorkItemSourcesCommandSchema,
   RemoveOpenCodeAccountSchema,
   RenameOpenCodeAccountSchema,
   StartOpenCodeAccountLoginSchema,
@@ -64,16 +73,22 @@ import {
   observeCurrentApproval,
   observeApprovalHistory,
   observeApprovalArtifacts,
+  observeCandidateReviewEvents,
+  acceptanceObservationCodeForFailure,
+  recordCandidateReviewDecision,
+  prepareAcceptanceTestCopy,
   listProjects,
   listWorkItemSchemas,
   listRunEvents,
   listRuns,
   listWorkItems,
   signoffPackageForWorkItem,
+  observeSignoffPackageArtifacts,
   readArtifactContent,
   readArtifactProposalTarget,
   readReferencedEvidence,
   reconcileSources,
+  reconcileAcceptanceSource,
   reconcileWorkItemAuthority,
   rejectArtifactProposal,
   resumeWorkItem,
@@ -254,6 +269,9 @@ export const classifyHttpFailure = (
       staleAuthorityOwner,
     };
   }
+
+  const acceptanceCode = acceptanceObservationCodeForFailure(error);
+  if (acceptanceCode !== null) return { status: 409, code: acceptanceCode, message: (error as Error).message, sourceDiagnostic: null, staleAuthorityOwner: null };
 
   if (
     error instanceof TypeError &&
@@ -761,12 +779,10 @@ const routeApi = async (
   }
 
   if (request.method === "POST" && url.pathname === "/api/work-item-sources/reconcile") {
-    const body = await readJsonBody(request);
-    requireKeys(body, []);
-    return jsonResponse(await reconcileSources(
-      runtime,
-      await readyRepositoryRoots(runtime.config),
-    ));
+    const body=await parseRequest(async()=>ReconcileWorkItemSourcesCommandSchema.parse(await readJsonBody(request)));
+    return jsonResponse("workItemId" in body
+      ? await reconcileAcceptanceSource(runtime,body.workItemId,body.expectedApprovalId,body.expectedReviewSequence)
+      : await reconcileSources(runtime,await readyRepositoryRoots(runtime.config),true));
   }
 
   if (
@@ -856,7 +872,70 @@ const routeApi = async (
     }
     if (parts[3] === "approvals" && parts.length === 6 && parts[5] === "artifacts" && request.method === "GET") {
       const approvalId = await parseRequest(() => ApprovalIdSchema.parse(parts[4]));
-      return jsonResponse(await observeApprovalArtifacts(runtime, workItemId, approvalId));
+      const entries = [...url.searchParams.entries()];
+      if (entries.length === 0) return jsonResponse(await observeApprovalArtifacts(runtime, workItemId, approvalId));
+      const taskIds = url.searchParams.getAll("taskId");
+      const refs = url.searchParams.getAll("acceptanceRef");
+      if (entries.length !== 2 || taskIds.length !== 1 || refs.length !== 1 ||
+          refs[0]!.trim().length === 0 || refs[0]!.includes("\0")) {
+        throw badRequest("expected exactly one taskId and one acceptanceRef");
+      }
+      const taskId = await parseRequest(() => ExecutionTaskIdSchema.parse(taskIds[0]));
+      const acceptanceRef = await parseRequest(() => AuthorityRefSchema.parse(refs[0]));
+      return jsonResponse(await observeApprovalArtifacts(runtime, workItemId, approvalId, taskId, acceptanceRef));
+    }
+    if (parts[3] === "approvals" && parts.length === 6 && parts[5] === "qa-events" && request.method === "GET") {
+      const approvalId = await parseRequest(() => ApprovalIdSchema.parse(parts[4]));
+      const entries = [...url.searchParams.entries()];
+      let sequence: number | undefined;
+      if (entries.length !== 0) {
+        const entry = entries[0]!;
+        if (entries.length !== 1 || entry[0] !== "expectedReviewSequence" ||
+            !/^(0|[1-9][0-9]*)$/.test(entry[1]) || !Number.isSafeInteger(Number(entry[1]))) {
+          throw badRequest("expected exactly one canonical expectedReviewSequence");
+        }
+        sequence = Number(entry[1]);
+      }
+      return jsonResponse(await observeCandidateReviewEvents(runtime, workItemId, approvalId, sequence));
+    }
+    if(parts[3]==="approvals"&&parts[5]==="qa"&&parts.length===7&&request.method==="POST") {
+      const approvalId=await parseRequest(()=>ApprovalIdSchema.parse(parts[4]));
+      const body=await readJsonBody(request);
+      switch(parts[6]) {
+        case "report": {
+          const {actor,expectedCandidateHash,expectedReviewSequence,...fields}=await parseRequest(()=>QaReportCommandSchema.parse(body));
+          return jsonResponse(await recordCandidateReviewDecision(runtime,workItemId,approvalId,expectedCandidateHash,expectedReviewSequence,actor,{tag:"REPORT",candidateHash:expectedCandidateHash,...fields}));
+        }
+        case "submit": {
+          const {actor,expectedCandidateHash,expectedReviewSequence,...fields}=await parseRequest(()=>QaSubmitCommandSchema.parse(body));
+          return jsonResponse(await recordCandidateReviewDecision(runtime,workItemId,approvalId,expectedCandidateHash,expectedReviewSequence,actor,{tag:"SUBMIT",candidateHash:expectedCandidateHash,...fields}));
+        }
+        case "retest-failed": {
+          const {actor,expectedCandidateHash,expectedReviewSequence,...fields}=await parseRequest(()=>QaRetestFailedCommandSchema.parse(body));
+          return jsonResponse(await recordCandidateReviewDecision(runtime,workItemId,approvalId,expectedCandidateHash,expectedReviewSequence,actor,{tag:"RETEST_FAILED",candidateHash:expectedCandidateHash,...fields}));
+        }
+        case "disposition": {
+          const {actor,expectedCandidateHash,expectedReviewSequence,...fields}=await parseRequest(()=>QaDispositionCommandSchema.parse(body));
+          return jsonResponse(await recordCandidateReviewDecision(runtime,workItemId,approvalId,expectedCandidateHash,expectedReviewSequence,actor,{tag:"DISPOSITION",candidateHash:expectedCandidateHash,...fields}));
+        }
+        case "reanalysis": {
+          const command=await parseRequest(()=>QaReanalysisCommandSchema.parse(body));
+          const {actor,expectedReviewSequence,expectedCandidateHash}=command;
+          const payload=command.reason==="NO_OP_CHALLENGE"
+            ? {tag:"REANALYSIS_REQUESTED" as const,reason:command.reason,candidateHash:command.expectedCandidateHash,findingIds:command.findingIds,owner:command.owner,rationale:command.rationale}
+            : {tag:"REANALYSIS_REQUESTED" as const,reason:command.reason,candidateHash:null,findingIds:command.findingIds,owner:command.owner,rationale:command.rationale};
+          return jsonResponse(await recordCandidateReviewDecision(runtime,workItemId,approvalId,expectedCandidateHash,expectedReviewSequence,actor,payload));
+        }
+        case "accept": {
+          const {actor,expectedCandidateHash,expectedReviewSequence}=await parseRequest(()=>QaAcceptCommandSchema.parse(body));
+          return jsonResponse(await recordCandidateReviewDecision(runtime,workItemId,approvalId,expectedCandidateHash,expectedReviewSequence,actor,{tag:"ACCEPT"}));
+        }
+        case "prepare-test-copy": {
+          const {expectedCandidateHash,expectedReviewSequence,taskId,candidateEventId}=await parseRequest(()=>QaPrepareTestCopyCommandSchema.parse(body));
+          return jsonResponse(await prepareAcceptanceTestCopy(runtime,workItemId,approvalId,expectedCandidateHash,expectedReviewSequence,taskId,candidateEventId));
+        }
+        default: throw badRequest("unknown QA command");
+      }
     }
     if (parts[3] === "tasks" && parts.length === 4 && request.method === "GET") {
       return jsonResponse(await listExecutionTasks(runtime, workItemId));
@@ -879,6 +958,14 @@ const routeApi = async (
         await startCurrentExecutionTask(runtime, workItemId, executionTaskId),
         201,
       );
+    }
+    if (parts[3] === "signoff-package" && parts.length === 5 &&
+        parts[4] === "artifacts" && request.method === "GET") {
+      const expected = await parseRequest(() => {
+        const values = url.searchParams.getAll("expectedPackageHash");
+        return Sha256Schema.parse(values.length === 1 ? values[0] : undefined);
+      });
+      return jsonResponse(await observeSignoffPackageArtifacts(runtime, workItemId, expected));
     }
     if (parts[3] === "signoff-package" && parts.length === 4 && request.method === "GET") {
       return jsonResponse(await signoffPackageForWorkItem(runtime, workItemId));
@@ -913,6 +1000,7 @@ const routeApi = async (
         runtime,
         workItemId,
         body.expectedOwner,
+        "expectedApprovalId" in body ? body : undefined,
       ));
     }
     if (parts[3] === "signoff" && parts.length === 4 && request.method === "POST") {

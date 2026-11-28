@@ -1,4 +1,7 @@
 import type {
+  Approval,
+  CandidateReviewEvent,
+  Sha256,
   ArtifactRef,
   EvidencePath,
   ExecutionTask,
@@ -11,6 +14,8 @@ import type {
 } from "../../src/core/contracts.ts";
 import {
   reachStateForStage,
+  linkedSubmission,
+  candidateSubmissionEvents,
   latestApprovalTasks,
   type CurrentAttentionTag,
   type ExecutionOwner,
@@ -49,6 +54,26 @@ export const readinessOutcomeLabel = (
     case "RETURN_TO_REQUIREMENTS": return "Return to Requirements";
     case "RETURN_TO_DESIGN": return "Return to Solution design";
     case "RETURN_TO_PLAN": return "Return to Implementation plan";
+  }
+};
+
+export const stageCompletionProductLabel = (
+  completion: StageCompletionEvent["completion"],
+): string => {
+  switch (completion.stage) {
+    case "R3": return readinessOutcomeLabel(completion.outcome);
+    case "R2": return "Requirements accepted";
+    case "DESIGN": return "Solution design accepted";
+    case "PLAN": return "Implementation plan accepted";
+    case "R1":
+      switch (completion.outcome) {
+        case "CONFIRMED": return "Research confirmed the work request";
+        case "DISPROVEN": return "Research disproved the work request";
+        case "DUPLICATE": return "Duplicate work identified";
+        case "ALREADY_SATISFIED": return "Work already satisfied";
+        case "INVESTIGATION_COMPLETE": return "Investigation complete";
+        case "AUDIT_COMPLETE": return "Audit complete";
+      }
   }
 };
 
@@ -112,6 +137,7 @@ export const workflowSteps: readonly WorkflowStepPresentation[] = [
   { stage: "R3", label: "Readiness review", purpose: "Independently verify that the work is ready" },
   { stage: "AWAITING_SIGNOFF", label: "Approval", purpose: "Review and authorize the exact package" },
   { stage: "EXECUTION", label: "Implementation", purpose: "Execute and verify the approved change" },
+  { stage: "AWAITING_ACCEPTANCE", label: "Acceptance", purpose: "Review and accept the verified candidate" },
   { stage: "COMPLETE", label: "Complete", purpose: "Inspect the final outcome" },
 ];
 
@@ -133,16 +159,51 @@ export type WorkflowMaterial =
   | Readonly<{ kind: "SUPPORTING_DOCUMENT"; artifactId: ArtifactRef["id"] }>
   | Readonly<{ kind: "PROPOSAL"; runId: Run["id"]; eventId: RunEventId }>
   | Readonly<{ kind: "READINESS_REVIEW" }>
-  | Readonly<{ kind: "APPROVAL_PACKAGE" }>
+  | Readonly<{ kind: "APPROVAL_PACKAGE"; approvalId?: Approval["id"]; packageHash?: Sha256; artifactId?: ArtifactRef["id"]; taskId?: string }>
   | Readonly<{
       kind: "EXECUTION_TASK";
       taskId: ExecutionTask["id"];
       runId: Run["id"] | null;
     }>
   | Readonly<{ kind: "EVIDENCE"; selection: EvidenceSelection }>
+  | Readonly<{ kind: "ACCEPTANCE_REVIEW"; approvalId?: Approval["id"]; roundId?: string; findingId?: string }>
   | Readonly<{ kind: "TERMINAL_RESULT" }>
   | Readonly<{ kind: "STEP_STATE" }>
   | Readonly<{ kind: "UNREACHED" }>;
+
+// Keep an explicitly inspected prospective package pinned until the operator
+// deliberately selects another package. An unbound overview may bind once.
+export const bindProspectiveApprovalSelection = (
+  selection: Extract<WorkflowMaterial, { kind: "APPROVAL_PACKAGE" }>,
+  currentPackageHash: Sha256 | null,
+): Extract<WorkflowMaterial, { kind: "APPROVAL_PACKAGE" }> =>
+  selection.approvalId !== undefined || selection.packageHash !== undefined || currentPackageHash === null
+    ? selection
+    : { kind: "APPROVAL_PACKAGE", packageHash: currentPackageHash };
+
+export const prospectiveApprovalIsSuperseded = (
+  selection: Extract<WorkflowMaterial, { kind: "APPROVAL_PACKAGE" }>,
+  currentPackageHash: Sha256 | null,
+): boolean =>
+  selection.approvalId === undefined && selection.packageHash !== undefined &&
+  currentPackageHash !== null && selection.packageHash !== currentPackageHash;
+
+// Only the server's exact root-plus-dependency closure can establish package
+// membership. The general artifact inventory cannot establish this relation.
+export const exactReadinessPackageDocuments = (
+  root: ArtifactRef,
+  closure: readonly ArtifactRef[],
+): readonly ArtifactRef[] | null => {
+  if (root.role !== "R3" ||
+      closure.some(artifact => artifact.workItemId !== root.workItemId) ||
+      new Set(closure.map(artifact => artifact.id)).size !== closure.length ||
+      !closure.some(artifact => artifact.id === root.id && artifact.role === "R3" &&
+        artifact.repositoryPath === root.repositoryPath && artifact.sha256 === root.sha256 &&
+        artifact.authorityLayer === root.authorityLayer && artifact.gitCommit === root.gitCommit)) return null;
+  return closure.filter(artifact =>
+    artifact.role === "R1" || artifact.role === "R2" ||
+    artifact.role === "DESIGN" || artifact.role === "PLAN");
+};
 
 // Exact identity, not a repository-path lookup. Document consumers report
 // the ArtifactRef they actually opened; source identity remains separate.
@@ -154,10 +215,10 @@ export type ContextDocumentIdentity = Readonly<{
 
 export const selectedContextArtifactId = (
   material: WorkflowMaterial,
-  document: ContextDocumentIdentity | null,
+  _document: ContextDocumentIdentity | null,
 ): ArtifactRef["id"] | null => {
   if (material.kind === "STAGE_DOCUMENT" || material.kind === "SUPPORTING_DOCUMENT") return material.artifactId;
-  if (material.kind === "APPROVAL_PACKAGE") return document?.artifactId ?? null;
+  if (material.kind === "APPROVAL_PACKAGE") return material.artifactId ?? null;
   return null;
 };
 
@@ -194,6 +255,7 @@ export const workflowMaterialLabel = (
     case "APPROVAL_PACKAGE": return "Approval package";
     case "EXECUTION_TASK": return "Implementation task";
     case "EVIDENCE": return "Evidence";
+    case "ACCEPTANCE_REVIEW": return "Acceptance review";
     case "TERMINAL_RESULT": return "Final outcome";
     case "STEP_STATE": return "Workflow step";
     case "UNREACHED": return "Not yet reached";
@@ -224,11 +286,14 @@ export const workflowMaterialIdentity = (
   switch (material.kind) {
     case "SOURCE_DOCUMENT":
     case "READINESS_REVIEW":
-    case "APPROVAL_PACKAGE":
     case "TERMINAL_RESULT":
     case "STEP_STATE":
     case "UNREACHED":
       return material.kind;
+    case "ACCEPTANCE_REVIEW":
+      return [material.kind, material.approvalId ?? "current", material.roundId ?? "latest", material.findingId ?? ""].join(":");
+    case "APPROVAL_PACKAGE":
+      return [material.kind,material.approvalId??material.packageHash??"unresolved",material.artifactId??"",material.taskId??""].join(":");
     case "STAGE_RUN":
       return material.kind + ":" + material.runId;
     case "STAGE_DOCUMENT":
@@ -354,8 +419,7 @@ const selectedMaterialIsAvailable = (
     case "READINESS_REVIEW":
       return input.selectedStep === "R3";
     case "APPROVAL_PACKAGE":
-      return input.selectedStep === "AWAITING_SIGNOFF" &&
-        input.approvalPackageAvailable === true;
+      return input.selectedStep === "AWAITING_SIGNOFF";
     case "EXECUTION_TASK":
       return input.selectedStep === "EXECUTION" &&
         (input.tasks ?? []).some((task) => task.id === selection.taskId) &&
@@ -369,6 +433,7 @@ const selectedMaterialIsAvailable = (
         );
     case "EVIDENCE":
       return true;
+    case "ACCEPTANCE_REVIEW": return input.selectedStep === "AWAITING_ACCEPTANCE";
     case "TERMINAL_RESULT":
       return input.selectedStep === "COMPLETE" &&
         input.workItem.stage === "COMPLETE";
@@ -566,11 +631,14 @@ export const resolveWorkflowMaterial = (
   if (stepState === "UNREACHED") return { kind: "UNREACHED" };
 
   if (input.selectedStep === "AWAITING_SIGNOFF") {
-    return input.approvalPackageAvailable === true
-      ? { kind: "APPROVAL_PACKAGE" }
-      : { kind: "STEP_STATE" };
+    if (explicitIsAvailable && explicit?.kind === "APPROVAL_PACKAGE") return explicit;
+    return { kind: "APPROVAL_PACKAGE" };
   }
 
+  if (input.selectedStep === "AWAITING_ACCEPTANCE") {
+    if (explicitIsAvailable && explicit !== null) return explicit;
+    return { kind: "ACCEPTANCE_REVIEW" };
+  }
   if (input.selectedStep === "EXECUTION") {
     if (
       explicitIsAvailable &&
@@ -615,6 +683,28 @@ export const runStatusLabel = (status: Run["status"]): string => {
   }
   const exhaustive: never = status;
   return exhaustive;
+};
+
+export const runTerminalClassificationLabel = (
+  classification: Run["terminalClassification"],
+): string => {
+  switch (classification) {
+    case "TEST_FAILURE": return "Required tests failed.";
+    case "REVIEW_FAILURE": return "Independent review failed.";
+    case "SPEC_INVALID": return "The approved specification is invalid.";
+    case "APPROVAL_STALE": return "The approved authority is no longer current.";
+    case "SCOPE_BREACH": return "Changes exceeded the approved scope.";
+    case "GOVERNANCE_BREACH": return "A governing requirement was violated.";
+    case "CHANGE_BLOAT": return "Review identified unnecessary changes.";
+    case "ENVIRONMENT_BLOCKED": return "The execution environment is blocked.";
+    case "PROVIDER_FAILURE": return "The agent provider failed.";
+    case "PRECONDITION_FAILED": return "An execution prerequisite failed.";
+    case "BLOCKED_FOR_REANALYSIS": return "The work requires upstream reanalysis.";
+    case "COORDINATOR_INTERRUPTED": return "The implementation attempt was interrupted.";
+    case "CANDIDATE_DONE":
+    case "ALREADY_SATISFIED":
+    case null: return "The approved task is blocked; no matching terminal failure reason is available.";
+  }
 };
 
 export const runRoleLabel = (role: Run["role"]): string => {
@@ -732,7 +822,7 @@ export const runEventPresentation = (
     case "STAGE_COMPLETED":
       return {
         label: "Workflow step completed",
-        detail: `${workflowPresentation(payload.completion.stage).label}: ${payload.completion.outcome.replaceAll("_", " ").toLowerCase()}`,
+        detail: stageCompletionProductLabel(payload.completion),
         tone: "success",
       };
     case "STAGE_BLOCKED":
@@ -879,4 +969,17 @@ export const lifecycleArtifactLabel = (
     case "GOVERNANCE": return "Governance";
     case "VERIFICATION_MATERIAL": return "Verification material";
   }
+};
+
+export const executionQaSubmissionEvents = (
+  task: ExecutionTask,
+  run: Run,
+  runs: readonly Run[],
+  runEvents: readonly RunEvent[],
+  reviewEvents: readonly CandidateReviewEvent[],
+): readonly CandidateReviewEvent[] | null => {
+  const history = reviewEvents.filter(entry => entry.approvalId === task.approvalId);
+  if (history.length === 0) return null;
+  const submissionId = linkedSubmission(run, runs, runEvents, history);
+  return submissionId === null ? null : candidateSubmissionEvents(task.approvalId, history, submissionId);
 };

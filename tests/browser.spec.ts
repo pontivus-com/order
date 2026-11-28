@@ -975,6 +975,7 @@ const selectWorkflowStep = async (
     | "Readiness review"
     | "Approval"
     | "Implementation"
+    | "Acceptance"
     | "Complete",
 ): Promise<void> => {
   const button = page
@@ -3348,11 +3349,26 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     try {
       const viewport = { width: 1000, height: 800 };
       await page.setViewportSize(viewport);
+      const settingsCapture = entry.surface.startsWith("SURF-SET-") ||
+        entry.surface === "SURF-CONF-REPO-DISCONNECT-001" ||
+        entry.surface === "SURF-CONF-OC-REMOVE-001";
+      if (settingsCapture) {
+        await expect(page.getByTestId("workbench-settings-layout"))
+          .toHaveAttribute("data-responsive-class", "medium");
+        if (target !== undefined) await expect(target, entry.id + " medium selected Settings task").toBeVisible();
+      }
       entries.push(await captureRenderedAcceptance(page, {
         ...entry, id: mediumComparisonId(entry.id), viewport,
       }, target));
     } finally {
       await page.setViewportSize(entry.viewport);
+    }
+    if (entry.surface.startsWith("SURF-SET-") ||
+        entry.surface === "SURF-CONF-REPO-DISCONNECT-001" ||
+        entry.surface === "SURF-CONF-OC-REMOVE-001") {
+      await expect(page.getByTestId("workbench-settings-layout"))
+        .toHaveAttribute("data-responsive-class", referenceViewportClass(entry.viewport)!);
+      if (target !== undefined) await expect(target, entry.id + " restored Settings task").toBeVisible();
     }
   };
   const light = { width: 1440, height: 900 } as const;
@@ -3434,6 +3450,26 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   await repositories.getByRole("button", { name: "Add repository" }).click();
   const addRepository = repositories.getByTestId("add-repository-form");
   await expect(addRepository).toBeVisible();
+  if (!diagnosticCurrentState) {
+    // A responsive layout change must not reset an unsubmitted Settings
+    // task or its input. Do not reopen or reconstruct the form to pass.
+    const exactRoot = addRepository.getByLabel("Exact Git root");
+    await exactRoot.fill("/tmp/order-responsive-unsaved-repository");
+    const settingsLayout = page.getByTestId("workbench-settings-layout");
+    for (const viewport of [
+      { width: 1000, height: 800 },
+      { width: 700, height: 800 },
+      light,
+    ]) {
+      await page.setViewportSize(viewport);
+      await expect(settingsLayout).toHaveAttribute("data-responsive-class",
+        viewport.width >= 1280 ? "wide" : viewport.width >= 800 ? "medium" : "narrow");
+      await expect(addRepository, "responsive Settings task must remain mounted").toBeVisible();
+      await expect(exactRoot, "unsubmitted repository root must survive reflow")
+        .toHaveValue("/tmp/order-responsive-unsaved-repository");
+    }
+    await exactRoot.fill("");
+  }
   await capture({
     id: "ia26-settings-repository-add-wide-light",
     workItemKind: "QUEUE",
@@ -3446,6 +3482,8 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     route: routeValue(),
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }, addRepository);
+  await expect(addRepository.getByRole("button", { name: "Cancel add repository" }),
+    "repository task must survive the medium evidence capture").toBeVisible();
   await addRepository.getByRole("button", { name: "Cancel add repository" }).click();
 
   const repositoryTable = repositories.getByRole("table", { name: "Connected repositories" });
@@ -3467,6 +3505,8 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     route: routeValue(),
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM"],
   }, moveDocuments);
+  await expect(moveDocuments.getByTestId("move-workitem-documents")).toBeVisible();
+  await expect(moveDocuments.getByRole("button", { name: "Cancel move" })).toBeVisible();
   await moveDocuments.getByRole("button", { name: "Cancel move" }).click();
 
   await repositoryRow.getByRole("button", { name: /^Disconnect / }).click();
@@ -3504,6 +3544,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
 
   await openCode.getByRole("button", { name: "Rename beta@example.com" }).click();
   const renameAccount = page.getByTestId("rename-opencode-account");
+  await expect(renameAccount).toBeVisible();
   await capture({
     id: "ia26-settings-opencode-rename-wide-light",
     workItemKind: "QUEUE",
@@ -3566,6 +3607,8 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     route: routeValue(),
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-OPENCODE-INTEGRATION-V1"],
   }, loginAttempt);
+  await expect(loginAttempt).toContainText("Waiting for sign-in");
+  await expect(loginAttempt.getByRole("button", { name: "Cancel OpenCode sign-in" })).toBeVisible();
   await loginAttempt.getByRole("button", { name: "Cancel OpenCode sign-in" }).click();
   await expect(openCode.getByRole("button", { name: "Add account" })).toBeVisible();
 
@@ -4083,7 +4126,13 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   await documentDetails.click();
   await expect(planMaterial.getByLabel("Document location")).toContainText("Repository path");
   await expect(planMaterial.getByLabel("Document location")).toContainText("WorkItem documents");
+  const taskInspection = planMaterial.getByTestId("plan-task-inspection");
+  await expect(taskInspection).toContainText("Prove the browser candidate surface");
+  for (const label of ["Dependencies", "Scope", "Exclusions", "Expected change surface (forecast)", "Acceptance", "Gates", "Authority", "Concerns"]) {
+    await expect(taskInspection).toContainText(label);
+  }
   await documentDetails.click();
+  await expect(taskInspection).not.toBeVisible();
   const planEditor = await openMarkdownEditor(page, "Implementation plan document Markdown source");
   await capture({
     id: "ia26-lifecycle-document-editor-wide-light",
@@ -4456,6 +4505,8 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   const readinessReview = page.getByTestId("review-workspace");
   await expect(readinessReview.getByTestId("review-verdict")).toContainText("Ready for sign-off");
   await expect(readinessReview.getByText("Loading readiness findings…", { exact: true })).toHaveCount(0);
+  await expect(readinessReview).toContainText("The review assessed contradictory authority and missing verification evidence.");
+  await expect(readinessReview).toContainText("The exact conformed artifact identifies the reviewed package.");
   await expect(readinessReview.getByRole("button", { name: "Return to Approval", exact: true })).toBeVisible();
   await capture({
     id: "ia26-readiness-review-wide-light",
@@ -4698,6 +4749,13 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
 
   await openWorkItem(page, "Failed implementation feedback");
   await expect(page.getByTestId("workflow-rail").locator('li[data-state="current"][data-tone="danger"] .order-workbench-rail-status')).toHaveText("Blocked");
+  await expect(execution.getByText("Semantic review failed. Resolve this blocker before resuming the approved task.", { exact: true })).toBeVisible();
+  await expect(execution.getByLabel("Task overview")).toContainText("Current boundary: failed at V4");
+  await selectWorkflowMaterial(page, "Implementation agent · Attempt 1");
+  await expect(execution.getByText("Semantic review failed. Resolve this blocker before resuming the approved task.", { exact: true })).toBeVisible();
+  await expect(execution.getByTestId("validation-matrix")).toContainText("No validation results in this attempt");
+  await expect(execution.getByRole("button", { name: "Resume resolved blocker" })).toBeVisible();
+  await selectWorkflowMaterial(page, "Independent review · Attempt 2");
   await capture({
     id: "ia26-implementation-blocked-wide-light",
     workItemKind: "CHANGE",
@@ -5932,12 +5990,14 @@ test("P5 keeps current execution ownership independent from historical selection
   const detail = page.getByTestId("execution-task-detail");
   await expect(detail).toContainText("Completed prerequisite");
   await expect(detail).toContainText("No change required");
+  await expect(page.getByTestId("execution-workspace")).toContainText("Current boundary: not started");
   await expect(page.getByRole("button", { name: "Start current task", exact: true }))
     .toBeVisible();
 
   for (const width of [1000, 700]) {
     await page.setViewportSize({ width, height: 800 });
     await expect(detail).toContainText("Completed prerequisite");
+    await expect(page.getByTestId("execution-workspace")).toContainText("Current boundary: not started");
     await expect(page.getByRole("button", { name: "Approved tasks", exact: true }))
       .toBeVisible();
     await expect(page.getByRole("button", { name: "Start current task", exact: true }))
@@ -6665,6 +6725,48 @@ test("Readiness keeps verdict and findings primary while subordinate material ch
   await expect(page.getByRole("button", { name: "Sign off exact package" })).toHaveCount(0);
 });
 
+test("Approval retains the inspected package when a different prospective hash is observed", async ({ page, request }) => {
+  await authenticate(page, request);
+  await openWorkItem(page, "Awaiting sign-off");
+  const review = page.getByTestId("review-workspace");
+  await expect(review.getByTestId("review-verdict")).toContainText("Ready for sign-off");
+  await review.getByRole("button", { name: "View task 1", exact: true }).click();
+  await page.getByLabel("Approved by").fill("old-package-operator");
+  await page.getByRole("button", { name: "Context", exact: true }).click();
+  const hash = page.getByTestId("context-signoff-package-hash");
+  await expect(hash).toHaveText(/^sha256:[0-9a-f]{64}$/);
+  const originalHash = (await hash.textContent())!;
+  await page.getByRole("button", { name: "Close context", exact: true }).click();
+  const item = await workItemForTitle(page, "Awaiting sign-off");
+  const packagePath = "/api/work-items/" + item.id + "/signoff-package";
+  const replacementHash = "sha256:" + (originalHash === "sha256:" + "b".repeat(64) ? "c" : "b").repeat(64);
+  const originalClosure = await page.context().request.get(packagePath + "/artifacts?expectedPackageHash=" + encodeURIComponent(originalHash));
+  expect(originalClosure.ok()).toBe(true);
+  const members = await originalClosure.json();
+  await page.route("**" + packagePath, async route => {
+    const response = await route.fetch();
+    const body = await response.json();
+    await route.fulfill({ response, json: { ...body, packageHash: replacementHash } });
+  });
+  await page.route("**" + packagePath + "/artifacts?**", async route => {
+    if (new URL(route.request().url()).searchParams.get("expectedPackageHash") === replacementHash) {
+      await route.fulfill({ json: members });
+    } else {
+      await route.continue();
+    }
+  });
+  // Opening Context mounts another observer of the current package query.
+  await page.getByRole("button", { name: "Context", exact: true }).click();
+  await expect(review.getByTestId("review-verdict")).toContainText("Inspected package is no longer current");
+  await expect(review).toContainText("Prove the browser candidate surface");
+  await expect(hash).toHaveText(originalHash);
+  await expect(review.getByRole("button", { name: "Sign off exact package" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Close context", exact: true }).click();
+  await review.getByRole("button", { name: "Return to Approval", exact: true }).click();
+  await expect(review.getByTestId("review-verdict")).toContainText("Ready for sign-off");
+  await expect(page.getByLabel("Approved by")).toHaveValue("");
+});
+
 test("proposal decisions are primary, mutation-safe, and Approval keeps sign-off attached to selected material", async ({
   page,
   request,
@@ -6773,6 +6875,23 @@ test("proposal decisions are primary, mutation-safe, and Approval keeps sign-off
   const packageHash = page.getByTestId("context-signoff-package-hash");
   await expect(packageHash).toHaveText(/^sha256:[0-9a-f]{64}$/);
   await expect(packageHash).toBeVisible();
+  const approvalItem = await workItemForTitle(page, "Awaiting sign-off");
+  const observedHash = await packageHash.textContent();
+  const closurePath = "/api/work-items/" + approvalItem.id + "/signoff-package/artifacts";
+  const exactPath = closurePath + "?expectedPackageHash=" + encodeURIComponent(observedHash!);
+  const exactResponse = await page.context().request.get(exactPath);
+  expect(exactResponse.status()).toBe(200);
+  const exactMembers = ArtifactRefSchema.array().parse(await exactResponse.json());
+  expect(exactMembers.every(member => member.workItemId === approvalItem.id)).toBe(true);
+  expect(exactMembers.filter(member => member.role === "PLAN")).toHaveLength(1);
+  expect(exactMembers.filter(member => member.role === "R3")).toHaveLength(1);
+  expect(new Set(exactMembers.map(member => member.id)).size).toBe(exactMembers.length);
+  const repeated = await page.context().request.get(exactPath);
+  expect(await repeated.json()).toEqual(exactMembers);
+  expect((await page.context().request.get(closurePath)).status()).toBe(400);
+  expect((await page.context().request.get(closurePath + "?expectedPackageHash=bad")).status()).toBe(400);
+  expect((await page.context().request.get(exactPath + "&expectedPackageHash=" + encodeURIComponent(observedHash!))).status()).toBe(400);
+  expect((await page.context().request.get(closurePath + "?expectedPackageHash=sha256:" + "0".repeat(64))).status()).toBe(409);
   await expect(page.getByTestId("workflow-step-index")).toHaveCount(0);
   await page.getByRole("button", { name: "Close context", exact: true }).click();
 
@@ -7316,4 +7435,34 @@ test("candidate Complete surface and reached Implementation expose V0-V7, exact 
       .first()
       .getByRole("button", { name: "Evidence: review.txt" }),
   ).toBeFocused();
+});
+
+test("native Acceptance uses one exact current decision and historical round stays read-only", async ({page,request})=>{
+  await authenticate(page,request);
+  await openWorkItem(page,"Native Acceptance review");
+  const rail=page.getByTestId("workflow-rail");
+  await expect(rail.getByRole("button",{name:"Acceptance",exact:true})).toHaveAttribute("aria-current","step");
+  const workspace=page.getByTestId("workflow-step-workspace");
+  await expect(workspace.getByRole("heading",{name:"Acceptance",exact:true})).toBeVisible();
+  await expect(workspace.locator("[data-review-section]")).toHaveCount(4);
+  await expect(workspace.getByTestId("review-verdict")).toContainText("Verified candidate");
+  await expect(workspace.getByRole("button",{name:"Accept candidate",exact:true})).toBeEnabled();
+  await workspace.getByRole("button",{name:"Inspect round",exact:true}).click();
+  await expect(workspace.getByTestId("review-verdict")).toContainText("Historical review");
+  await expect(workspace.getByRole("button",{name:"Accept candidate",exact:true})).toHaveCount(0);
+  await expect(workspace.getByRole("button",{name:"Report finding",exact:true})).toHaveCount(0);
+  await workspace.getByRole("button",{name:"Return to current review",exact:true}).click();
+  await workspace.getByRole("button",{name:"Accept candidate",exact:true}).click();
+  const dialog=page.getByRole("dialog",{name:"Accept candidate",exact:true});
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole("button",{name:"Accept candidate",exact:true})).toBeDisabled();
+  await dialog.getByLabel("Your name").fill("Browser QA operator");
+  await dialog.getByText("I confirm",{exact:true}).click();
+  await expect(dialog.getByRole("button",{name:"Accept candidate",exact:true})).toBeEnabled();
+  await dialog.getByRole("button",{name:"Accept candidate",exact:true}).click();
+  await expect(rail.getByRole("button",{name:"Complete",exact:true})).toHaveAttribute("aria-current","step");
+  await expect(page.getByTestId("candidate-result-material")).toContainText("Accepted by Browser QA operator");
+  await selectWorkflowStep(page,"Acceptance");
+  await expect(workspace.getByTestId("review-verdict")).toContainText("Accepted candidate");
+  await expect(workspace.getByRole("button",{name:"Accept candidate",exact:true})).toHaveCount(0);
 });

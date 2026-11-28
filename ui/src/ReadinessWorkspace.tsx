@@ -12,6 +12,7 @@ import {
 } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
 import { workbenchQueryKeys } from "./query-keys.ts";
+import { admittedStageCompletion } from "../../src/core/lifecycle.ts";
 import type {
   CurrentAttentionTag,
   MaterialPresentationState,
@@ -22,6 +23,7 @@ import { ReadOnlyLifecycleDocumentMaterial } from "./DocumentWorkspace.tsx";
 import { EvidenceViewer } from "./EvidenceViewer.tsx";
 import {
   eventEvidence,
+  exactReadinessPackageDocuments,
   lifecycleArtifactLabel,
   materialPresentationStateLabel,
   readinessOutcomeLabel,
@@ -36,13 +38,6 @@ import { WorkbenchReview } from "./primitives/WorkbenchReview.tsx";
 import { WorkbenchState } from "./primitives/WorkbenchState.tsx";
 import { WorkbenchIcon } from "./primitives/WorkbenchIcon.tsx";
 
-const packageRoles = new Set<ArtifactRef["role"]>([
-  "R1",
-  "R2",
-  "DESIGN",
-  "PLAN",
-]);
-
 const decodeCanonicalMarkdown = (bytes: Uint8Array): string | null => {
   try {
     const parsed = MarkdownTextSchema.safeParse(
@@ -54,32 +49,29 @@ const decodeCanonicalMarkdown = (bytes: Uint8Array): string | null => {
   }
 };
 
+// The typed Run verdict owns the Review verdict. Keep every remaining
+// governed section rather than selecting findings by a title whitelist.
 const readinessFindingsMarkdown = (markdown: string): string | null => {
   const selected: string[] = [];
-  let includedHeadingLevel: number | null = null;
+  let excludedHeadingLevel: number | null = null;
   let fence: string | null = null;
   for (const line of markdown.split("\n")) {
     const fenceMatch = /^\s{0,3}(`{3,}|~{3,})/.exec(line)?.[1] ?? null;
     if (fenceMatch !== null) {
       if (fence === null) fence = fenceMatch;
       else if (fence[0] === fenceMatch[0] && fenceMatch.length >= fence.length) fence = null;
-      if (includedHeadingLevel !== null) selected.push(line);
+      if (excludedHeadingLevel === null) selected.push(line);
       continue;
     }
-    const heading = fence === null ? /^(#{2,6})\s+(.+?)\s*$/.exec(line) : null;
+    const heading = fence === null ? /^(#{1,6})\s+(.+?)\s*$/.exec(line) : null;
     if (heading !== null) {
       const level = heading[1]!.length;
       const label = heading[2]!.trim().toLowerCase();
-      if (includedHeadingLevel !== null && level > includedHeadingLevel) {
-        selected.push(line);
-        continue;
-      }
-      includedHeadingLevel =
-        label === "findings" || label === "r3 findings" || label === "package judgment"
-          ? level : null;
-      continue;
+      if (excludedHeadingLevel !== null && level > excludedHeadingLevel) continue;
+      excludedHeadingLevel = label === "readiness verdict" || label === "verdict" ? level : null;
+      if (excludedHeadingLevel !== null || level === 1) continue;
     }
-    if (includedHeadingLevel !== null) selected.push(line);
+    if (excludedHeadingLevel === null) selected.push(line);
   }
   const value = selected.join("\n").trim();
   return value.length === 0 ? null : value;
@@ -90,8 +82,8 @@ export const ReadinessWorkspace = ({
   runs,
   runEvents,
   artifacts,
+  currentLifecycleArtifacts,
   material,
-  materialState,
   materialStateForArtifact,
   reviewNotice,
   reviewAction,
@@ -113,6 +105,7 @@ export const ReadinessWorkspace = ({
   runs: readonly Run[];
   runEvents: readonly RunEvent[];
   artifacts: readonly ArtifactRef[];
+  currentLifecycleArtifacts: readonly ArtifactRef[];
   material: WorkflowMaterial;
   materialState: MaterialPresentationState | null;
   materialStateForArtifact: (artifact: ArtifactRef) => MaterialPresentationState | null;
@@ -132,8 +125,23 @@ export const ReadinessWorkspace = ({
   onMutationRefresh: (acceptedEvent?: RunEvent) => Promise<void>;
   onMutationError?: (error: unknown) => void;
 }>) => {
-  const readinessArtifact =
-    artifacts.find((artifact) => artifact.role === "R3") ?? null;
+  const stageRuns = [...runs]
+    .filter((run) => run.role === "STAGE" && run.stage === "R3")
+    .sort(
+      (left, right) =>
+        right.attempt - left.attempt ||
+        right.startedAt.localeCompare(left.startedAt) ||
+        right.id.localeCompare(left.id),
+    );
+  const latestRun = stageRuns[0] ?? null;
+  const selectedRun = material.kind === "STAGE_RUN"
+    ? stageRuns.find(run => run.id === material.runId) ?? null : latestRun;
+  const completion = selectedRun === null ? null :
+    admittedStageCompletion(workItem.id, selectedRun, runEvents);
+  const matchingArtifacts = completion === null ? [] :
+    artifacts.filter(artifact => artifact.id === completion.artifactRefIds[0] &&
+      artifact.workItemId === workItem.id && artifact.role === "R3");
+  const readinessArtifact = matchingArtifacts.length === 1 ? matchingArtifacts[0]! : null;
   const readinessContentQuery = useQuery({
     queryKey: workbenchQueryKeys.artifactContent(readinessArtifact?.id ?? null),
     queryFn: () => {
@@ -153,31 +161,9 @@ export const ReadinessWorkspace = ({
       ? null
       : readinessFindingsMarkdown(readinessMarkdown);
 
-  const stageRuns = [...runs]
-    .filter((run) => run.role === "STAGE" && run.stage === "R3")
-    .sort(
-      (left, right) =>
-        right.attempt - left.attempt ||
-        right.startedAt.localeCompare(left.startedAt) ||
-        right.id.localeCompare(left.id),
-    );
-  const latestRun = stageRuns[0] ?? null;
-  const completion =
-    latestRun === null
-      ? null
-      : [...runEvents]
-        .filter(
-          (event) =>
-            event.runId === latestRun.id &&
-            event.event.tag === "STAGE_COMPLETED" &&
-            event.event.completion.stage === "R3",
-        )
-        .sort((left, right) => right.sequence - left.sequence)[0] ?? null;
-  const outcome =
-    completion?.event.tag === "STAGE_COMPLETED" &&
-      completion.event.completion.stage === "R3"
-      ? completion.event.completion.outcome
-      : null;
+  const outcome = completion?.completion.stage === "R3" &&
+    readinessArtifact !== null && readinessContentQuery.isSuccess &&
+    readinessMarkdown !== null ? completion.completion.outcome : null;
 
   const verdict =
     outcome !== null
@@ -219,10 +205,54 @@ export const ReadinessWorkspace = ({
           ? "Readiness returned ownership to the upstream stage named in the findings."
           : "The review did not establish readiness for sign-off.";
 
-  const packageArtifacts = artifacts
-    .filter((artifact) => packageRoles.has(artifact.role))
-    .sort((left, right) =>
-      left.repositoryPath.localeCompare(right.repositoryPath));
+  const prospectivePackageQuery = useQuery({
+    queryKey: workbenchQueryKeys.signoffPackage(workItem.id),
+    queryFn: () => api.getSignoffPackage(workItem.id),
+    enabled: readinessArtifact !== null && workItem.stage === "AWAITING_SIGNOFF",
+  });
+  const prospectiveHash = workItem.stage === "AWAITING_SIGNOFF" &&
+    prospectivePackageQuery.isSuccess ? prospectivePackageQuery.data.packageHash : null;
+  const prospectiveClosureQuery = useQuery({
+    queryKey: workbenchQueryKeys.signoffPackageArtifacts(workItem.id, prospectiveHash),
+    queryFn: () => {
+      if (prospectiveHash === null) throw new TypeError("prospective package hash required");
+      return api.listSignoffPackageArtifacts(workItem.id, prospectiveHash);
+    },
+    enabled: readinessArtifact !== null && prospectiveHash !== null,
+    retry: false,
+  });
+  const approvalHistoryQuery = useQuery({
+    queryKey: workbenchQueryKeys.approvals(workItem.id),
+    queryFn: () => api.listApprovals(workItem.id),
+    enabled: readinessArtifact !== null,
+  });
+  const matchingApproval = readinessArtifact === null ? null :
+    approvalHistoryQuery.data?.find(approval => approval.workItemId === workItem.id &&
+      approval.r3ArtifactRefId === readinessArtifact.id) ?? null;
+  const signedClosureQuery = useQuery({
+    queryKey: workbenchQueryKeys.approvalArtifacts(workItem.id, matchingApproval?.id ?? null),
+    queryFn: () => {
+      if (matchingApproval === null) throw new TypeError("exact Approval identity required");
+      return api.listApprovalArtifacts(workItem.id, matchingApproval.id);
+    },
+    enabled: matchingApproval !== null,
+    retry: false,
+  });
+  // Before any review has established a verdict, current upstream documents
+  // are inspection inputs, not a claim about a reviewed dependency closure.
+  const beforeReview = workItem.stage === "R3" && latestRun === null;
+  const packageArtifacts = beforeReview
+    ? currentLifecycleArtifacts.filter(artifact => artifact.workItemId === workItem.id &&
+      (artifact.role === "R1" || artifact.role === "R2" || artifact.role === "DESIGN" || artifact.role === "PLAN"))
+    : readinessArtifact === null ? null :
+    (prospectiveHash !== null && prospectiveClosureQuery.isSuccess && !prospectiveClosureQuery.isFetching
+      ? exactReadinessPackageDocuments(readinessArtifact, prospectiveClosureQuery.data) : null) ??
+    (matchingApproval !== null && signedClosureQuery.isSuccess && !signedClosureQuery.isFetching
+      ? exactReadinessPackageDocuments(readinessArtifact, signedClosureQuery.data) : null);
+  const packagePending = readinessArtifact !== null && (approvalHistoryQuery.isFetching ||
+    (workItem.stage === "AWAITING_SIGNOFF" && prospectivePackageQuery.isFetching) ||
+    (prospectiveHash !== null && prospectiveClosureQuery.isFetching) ||
+    (matchingApproval !== null && signedClosureQuery.isFetching));
 
   const selectedSupportingArtifact =
     material.kind === "SUPPORTING_DOCUMENT"
@@ -314,7 +344,7 @@ export const ReadinessWorkspace = ({
               workItem={workItem}
               artifactId={selectedSupportingArtifact.id}
               materialState={selectedSupportingMaterialState}
-              historicalArtifact={selectedSupportingMaterialState?.tag === "HISTORICAL" ? selectedSupportingArtifact : undefined}
+              historicalArtifact={selectedSupportingMaterialState?.tag === "HISTORICAL" || selectedSupportingMaterialState?.tag === "SIGNED_LOCKED" ? selectedSupportingArtifact : undefined}
               onOpenArtifactEvidence={onOpenArtifactEvidence}
               onContextDocumentChange={onContextDocumentChange}
             />
@@ -336,11 +366,14 @@ export const ReadinessWorkspace = ({
   const historicalRunSelected =
     material.kind === "STAGE_RUN" &&
     material.runId !== currentRunId;
+  const activeDialogueSelected = material.kind === "STAGE_RUN" &&
+    currentInteraction !== null && currentInteraction.tag !== "CLOSED";
 
   if (
     selectedSecondary !== null &&
     (
       requiredInputOwnsAttention ||
+      activeDialogueSelected ||
       historicalRunSelected ||
       material.kind === "SUPPORTING_DOCUMENT"
     )
@@ -349,6 +382,7 @@ export const ReadinessWorkspace = ({
       <div className={material.kind === "SUPPORTING_DOCUMENT" ? "order-document-inspection" : "order-readiness-dialogue"} data-testid="review-workspace">
         {requiredInputOwnsAttention ? null : (
           <div className="order-inline-actions">
+            {reviewAction}
             <WorkbenchAction
               label="Back to Readiness review"
               tone="ghost"
@@ -365,14 +399,17 @@ export const ReadinessWorkspace = ({
     return <div data-testid="review-workspace">{selectedSecondary}</div>;
   }
 
+  const exactMaterialState = readinessArtifact === null ? null : materialStateForArtifact(readinessArtifact);
   const materialCurrentness =
-    materialState === null
+    exactMaterialState === null
       ? undefined
-      : materialPresentationStateLabel(materialState);
+      : materialPresentationStateLabel(exactMaterialState);
   const currentness =
     materialCurrentness === verdict ? undefined : materialCurrentness;
 
-  const packageItems = packageArtifacts.map((artifact) => ({
+  const packageItems = [...(packageArtifacts ?? [])]
+    .sort((left, right) => left.repositoryPath.localeCompare(right.repositoryPath))
+    .map((artifact) => ({
       id: "package-" + artifact.id,
       label: lifecycleArtifactLabel(artifact.role),
       action: (
@@ -481,10 +518,15 @@ export const ReadinessWorkspace = ({
           },
           {
             id: "package",
-            title: "Package documents",
-            content: packageItems.length === 0
-              ? <WorkbenchState kind="empty" title="No package documents" />
-              : <WorkbenchResourceList items={packageItems} />,
+            title: beforeReview ? "Package documents before review" : "Package documents",
+            content: packageArtifacts === null
+              ? packagePending
+                ? <WorkbenchState kind="loading" title="Resolving exact reviewed package…" />
+                : <WorkbenchState kind="empty" title="Exact reviewed package unavailable"
+                    description="Package membership cannot be established for this Readiness result." />
+              : packageItems.length === 0
+                ? <WorkbenchState kind="empty" title="No package documents" />
+                : <WorkbenchResourceList items={packageItems} />,
           },
           {
             id: "evidence",

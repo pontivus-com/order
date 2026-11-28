@@ -22,6 +22,7 @@ import {
   ExecutionTaskIdSchema,
   IsoDateTimeSchema,
   RunEventIdSchema,
+  CandidateReviewEventIdSchema,
   RunIdSchema,
   Sha256Schema,
   WorkItemIdSchema,
@@ -31,6 +32,7 @@ import {
   type EvidencePath,
   type IsoDateTime,
   type RunEventId,
+  type CandidateReviewEventId,
   type RunId,
   type Sha256,
   type WorkItemId,
@@ -79,6 +81,9 @@ export const newRunId = (): RunId =>
 
 export const newRunEventId = (): RunEventId =>
   generatedId("event", (value) => RunEventIdSchema.parse(value));
+
+export const newCandidateReviewEventId = (): CandidateReviewEventId =>
+  generatedId("review", (value) => CandidateReviewEventIdSchema.parse(value));
 
 export const secureTokenHex = (): string => {
   const bytes = crypto.getRandomValues(new Uint8Array(32));
@@ -178,19 +183,23 @@ const runEvidenceTarget = (
   stateRoot: string,
   runId: RunId,
   relativePath: EvidencePath,
+  create: boolean,
 ): string => {
   const root = join(statePaths(stateRoot).evidence, RunIdSchema.parse(runId));
-  mkdirSync(root, { recursive: true, mode: 0o700 });
-  if (lstatSync(root).isSymbolicLink()) {
-    throw new TypeError("Run evidence root may not be a symlink");
+  if (create) mkdirSync(root, { recursive: true, mode: 0o700 });
+  const rootStat = lstatSync(root, { throwIfNoEntry: false });
+  if (rootStat === undefined) throw new TypeError("referenced evidence does not exist");
+  if (!rootStat.isDirectory() || rootStat.isSymbolicLink()) {
+    throw new TypeError("Run evidence root must be a real directory");
   }
 
   const parts = EvidencePathSchema.parse(relativePath).split("/");
   let current = root;
   for (const part of parts.slice(0, -1)) {
     current = join(current, part);
-    if (!existsSync(current)) mkdirSync(current, { mode: 0o700 });
-    const stat = lstatSync(current);
+    if (create && !existsSync(current)) mkdirSync(current, { mode: 0o700 });
+    const stat = lstatSync(current, { throwIfNoEntry: false });
+    if (stat === undefined) throw new TypeError("referenced evidence does not exist");
     if (!stat.isDirectory() || stat.isSymbolicLink()) {
       throw new TypeError("evidence parent must be a real directory");
     }
@@ -214,7 +223,7 @@ export const writeRunEvidenceBytes = (
   relativePath: EvidencePath,
   bytes: Uint8Array,
 ): Sha256 => {
-  const target = runEvidenceTarget(stateRoot, runId, relativePath);
+  const target = runEvidenceTarget(stateRoot, runId, relativePath, true);
   const digest = sha256(bytes);
 
   if (existsSync(target)) {
@@ -253,9 +262,9 @@ export const readRunEvidenceBytes = (
   runId: RunId,
   relativePath: EvidencePath,
 ): Uint8Array => {
-  const target = runEvidenceTarget(stateRoot, runId, relativePath);
-  if (!existsSync(target)) throw new TypeError("referenced evidence does not exist");
-  const stat = lstatSync(target);
+  const target = runEvidenceTarget(stateRoot, runId, relativePath, false);
+  const stat = lstatSync(target, { throwIfNoEntry: false });
+  if (stat === undefined) throw new TypeError("referenced evidence does not exist");
   if (!stat.isFile() || stat.isSymbolicLink()) {
     throw new TypeError("referenced evidence is not a regular file");
   }

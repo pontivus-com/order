@@ -5,6 +5,8 @@ import { join } from "node:path";
 import {
   ApprovalIdSchema,
   ApprovalSchema,
+  CandidateReviewEventSchema,
+  type CandidateReviewEvent,
   ArtifactRefIdSchema,
   ArtifactRefSchema,
   ExecutionTaskIdSchema,
@@ -42,6 +44,18 @@ import { canonicalJson } from "../core/canonical.ts";
 import { parseSignedTaskBlockFromPlan } from "../core/execution.ts";
 import { workItemSourcePathForId } from "../core/work-item-source.ts";
 import { ensureSupportedStateRoot, sha256, statePaths } from "./runtime.ts";
+
+const candidateReviewSchemaSql = `
+CREATE TABLE candidateReviewEvents (
+  id TEXT PRIMARY KEY,
+  approvalId TEXT NOT NULL REFERENCES approvals(id),
+  sequence INTEGER NOT NULL CHECK (sequence >= 1),
+  occurredAt TEXT NOT NULL,
+  actor TEXT CHECK (actor IS NULL OR length(trim(actor)) > 0),
+  eventJson TEXT NOT NULL CHECK (json_valid(eventJson)),
+  UNIQUE (approvalId, sequence)
+) STRICT;
+`;
 
 const schemaSql = `
 CREATE TABLE workItems (
@@ -138,6 +152,7 @@ CREATE TABLE runEvents (
   eventJson TEXT NOT NULL CHECK (json_valid(eventJson)),
   UNIQUE (runId, sequence)
 ) STRICT;
+${candidateReviewSchemaSql}
 `;
 
 const recordRow = (value: unknown): Readonly<Record<string, unknown>> => {
@@ -229,33 +244,31 @@ const verifyCapabilities = (database: Database): void => {
 const userVersion = (database: Database): number =>
   queryIntegerScalar(database, "PRAGMA user_version;", "user_version");
 
-const ensureV3ArchivedProjection = (database: Database): void => {
-  const columns = database.query("PRAGMA table_info(workItems);").all()
-    .map((row) => recordRow(row).name);
-  if (columns.includes("archived")) return;
-  database.exec(
-    "ALTER TABLE workItems ADD COLUMN archived INTEGER NOT NULL DEFAULT 0 CHECK (archived IN (0, 1));",
-  );
+const requireV4ReviewSchema = (database: Database): void => {
+  const row = database.query("SELECT sql FROM sqlite_master WHERE type='table' AND name='candidateReviewEvents';").get();
+  if (row === null) throw new TypeError("Order SQLite v4 review table is missing");
+  const actual = recordRow(row).sql;
+  if (typeof actual !== "string" ||
+      actual.replace(/\s+/g, " ").trim().replace(/;$/, "") !== candidateReviewSchemaSql.replace(/\s+/g, " ").trim().replace(/;$/, "")) {
+    throw new TypeError("Order SQLite v4 review table contract is inconsistent");
+  }
 };
 
 const initializeSchema = (database: Database): void => {
   const version = userVersion(database);
-  if (version === 3) {
-    ensureV3ArchivedProjection(database);
+  if (version === 4) {
+    requireV4ReviewSchema(database);
     return;
   }
   if (version !== 0) {
-    throw new TypeError(`unsupported Order SQLite schema version: ${version}`);
+    throw new TypeError(`unsupported Order SQLite schema version: ${version}; installer migration required`);
   }
-
   database.transaction(() => {
     database.exec(schemaSql);
-    database.exec("PRAGMA user_version = 3;");
+    requireV4ReviewSchema(database);
+    database.exec("PRAGMA user_version = 4;");
   })();
-
-  if (userVersion(database) !== 3) {
-    throw new TypeError("Order SQLite schema initialization did not set user_version=3");
-  }
+  if (userVersion(database) !== 4) throw new TypeError("Order SQLite schema initialization did not set user_version=4");
 };
 
 const removeSqliteFiles = (path: string): void => {
@@ -325,7 +338,7 @@ const requireInstallerDatabaseRoot = (archive: InstallerDatabaseCustody): void =
 };
 
 // Invocation-local filesystem custody is independent of rollback-archive
-// policy. A current v3 or absent database has no archive to restore.
+// policy. A current v4 or absent database has no archive to restore.
 export type InstallerDatabaseCustody = Readonly<{
   stateRoot: string;
   rootIdentity: InstallerDatabaseRootIdentity;
@@ -416,7 +429,7 @@ export const readLegacyWorkItemRepositoryRootsForInstall = (
   // Opening the original directly, even readonly, can mutate its WAL index.
   return probeInstallerDatabase(stateRoot, originals, database => {
     const version = userVersion(database);
-    if (version === 3 || version === 2) return [];
+    if (version === 4 || version === 3 || version === 2) return [];
     if (version !== 1) {
       throw new TypeError(
         `unsupported Order SQLite schema version during update: ${version}`,
@@ -605,7 +618,7 @@ export const prepareOrderDatabaseForInstall = (
       throw new TypeError("installer database state root changed during preparation: " + stateRoot);
     }
   } catch (error) { onIncompleteRestore(); throw error; }
-  if (version === null || version === 3) {
+  if (version === null || version === 4) {
     const preparedCandidates = new Map<string, InstallerDatabaseFileIdentity>();
     for (const original of originals) {
       if (original.identity !== null) preparedCandidates.set(original.path, original.identity);
@@ -618,7 +631,7 @@ export const prepareOrderDatabaseForInstall = (
     catch (error) { onIncompleteRestore(); throw error; }
     return null;
   }
-  if (version !== 1 && version !== 2) {
+  if (version !== 1 && version !== 2 && version !== 3) {
     throw new TypeError(`unsupported Order SQLite schema version during update: ${version}`);
   }
 
@@ -637,7 +650,7 @@ export const prepareOrderDatabaseForInstall = (
       effects.rename(original.path, original.path + suffix);
       moved.push(original);
     }
-    if (version === 2) {
+    if (version === 2 || version === 3) {
       for (const original of moved) {
         requireInstallerDatabaseRoot(archive);
         copyInstallerDatabaseOriginal(original, original.path + suffix, original.path,
@@ -761,7 +774,7 @@ export const requireInstallerDatabaseCandidates = (
 };
 
 // The same post-quiescence custody test protects both destructive legacy
-// compensation and non-mutating v3/fresh restart admission.
+// compensation and non-mutating v4/fresh restart admission.
 const requireInstallerDatabaseCompensationCandidate = (
   path: string,
   candidates: ReadonlyMap<string, InstallerDatabaseCandidate | null>,
@@ -845,6 +858,8 @@ export const openOrderDatabase = (stateRoot: string): Database => {
   });
 
   try {
+    const version = userVersion(database);
+    if (version !== 0 && version !== 4) throw new TypeError(`unsupported Order SQLite schema version: ${version}; installer migration required`);
     configureDatabase(database);
     verifyCapabilities(database);
     initializeSchema(database);
@@ -1072,6 +1087,53 @@ export const migrateOrderDatabaseV2ToV3 = (
   }
 };
 
+// Installer-only v3→v4 migration. Existing archive/copy custody remains the
+// sole owner of original bytes; never migrate the only original database.
+export const migrateOrderDatabaseV3ToV4 = (
+  archive: LegacyDatabaseArchive,
+  candidates: ReadonlyMap<string, InstallerDatabaseCandidate | null>,
+): void => {
+  const path = statePaths(archive.stateRoot).database;
+  if (!archive.preparedCandidates.has(path) ||
+      (!archive.suffix.startsWith(".legacy-v2.") && !archive.suffix.startsWith(".legacy-v3."))) {
+    throw new TypeError("v3→v4 requires an archived original and verified migration candidate");
+  }
+  requireInstallerDatabaseCandidates(archive, candidates, false);
+  const database = new Database(path, { create: false, strict: true });
+  try {
+    configureDatabase(database);
+    verifyCapabilities(database);
+    if (userVersion(database) !== 3) throw new TypeError("v3→v4 requires exact schema version 3");
+    const originalTables = database.query("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name;")
+      .all().map(row => recordRow(row).name);
+    if (originalTables.some(name => typeof name !== "string") ||
+        !["workItems", "workItemSources", "artifactRefs", "artifactDependencies", "approvals", "executionTasks", "runs", "runEvents"].every(name => originalTables.includes(name)) ||
+        originalTables.includes("candidateReviewEvents")) throw new TypeError("v3 schema table membership is inconsistent");
+    // All old table rows, not merely counts, must be identical inside the
+    // additive schema transaction. No historical completion is synthesized.
+    const snapshot = (): string => canonicalJson(originalTables.map(name => {
+      if (typeof name !== "string") throw new TypeError("invalid table name");
+      const quoted = '"' + name.replaceAll('"', '""') + '"';
+      const rows = database.query("SELECT * FROM " + quoted).all().map(row => canonicalJson(recordRow(row))).sort();
+      return [name, rows];
+    }));
+    database.transaction(() => {
+      const before = snapshot();
+      database.exec(candidateReviewSchemaSql);
+      requireV4ReviewSchema(database);
+      if (snapshot() !== before) throw new TypeError("v3→v4 altered historical rows");
+      if (database.query("PRAGMA foreign_key_check;").all().length !== 0 ||
+          queryTextScalar(database, "PRAGMA integrity_check;", "integrity_check") !== "ok") {
+        throw new TypeError("v3→v4 integrity verification failed");
+      }
+      database.exec("PRAGMA user_version = 4;");
+      if (userVersion(database) !== 4) throw new TypeError("v3→v4 failed to establish schema version");
+    })();
+  } finally {
+    database.close();
+  }
+};
+
 export const loadWorkItems = (
   database: Database,
 ): readonly WorkItem[] =>
@@ -1275,6 +1337,44 @@ export const storeRunEvent = (
       value.occurredAt,
       canonicalJson(value.event),
     );
+};
+
+export const loadCandidateReviewEvents = (
+  database: Database, approvalId: ApprovalId,
+): readonly CandidateReviewEvent[] => {
+  const id = ApprovalIdSchema.parse(approvalId);
+  const rows = database.query(
+    "SELECT id, approvalId, sequence, occurredAt, actor, eventJson FROM candidateReviewEvents WHERE approvalId=?1 ORDER BY sequence;",
+  ).all(id);
+  return rows.map((value, index) => {
+    const row = recordRow(value);
+    const event = CandidateReviewEventSchema.parse({
+      id: row.id, approvalId: row.approvalId, sequence: row.sequence, occurredAt: row.occurredAt,
+      actor: row.actor, event: persistedJson(row.eventJson),
+    });
+    if (event.approvalId !== id || event.sequence !== index + 1 || event.actor !== row.actor ||
+        canonicalJson(event.event) !== row.eventJson) {
+      throw new TypeError("persisted CandidateReviewEvent stream is not canonical");
+    }
+    return event;
+  });
+};
+
+// Call inside the existing owning WorkItem transaction. The append checks
+// sequence and exact canonical carrier; FK and UNIQUE remain enforced by SQL.
+export const storeCandidateReviewEvent = (
+  database: Database, input: CandidateReviewEvent,
+): void => {
+  const event = CandidateReviewEventSchema.parse(input);
+  const history = loadCandidateReviewEvents(database, event.approvalId);
+  if (event.sequence !== history.length + 1 ||
+      (history.length === 0) !== (event.event.tag === "OPENED") ||
+      history.some(entry => entry.id === event.id || entry.event.tag === "ACCEPT" || entry.event.tag === "REANALYSIS_REQUESTED")) {
+    throw new TypeError("CandidateReviewEvent append identity or sequence conflict");
+  }
+  database.query(
+    "INSERT INTO candidateReviewEvents(id, approvalId, sequence, occurredAt, actor, eventJson) VALUES (?1,?2,?3,?4,?5,?6);",
+  ).run(event.id, event.approvalId, event.sequence, event.occurredAt, event.actor, canonicalJson(event.event));
 };
 
 export const storeRun = (

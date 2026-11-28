@@ -282,6 +282,7 @@ export const ApprovalIdSchema = z.string().regex(new RegExp(`^approval_${uuidV4}
 export const ExecutionTaskIdSchema = z.string().regex(new RegExp(`^task_${uuidV4}$`));
 export const RunIdSchema = z.string().regex(new RegExp(`^run_${uuidV4}$`));
 export const RunEventIdSchema = z.string().regex(new RegExp(`^event_${uuidV4}$`));
+export const CandidateReviewEventIdSchema = z.string().regex(new RegExp(`^review_${uuidV4}$`));
 
 export type ProjectId = z.infer<typeof ProjectIdSchema>;
 export type ConcernId = z.infer<typeof ConcernIdSchema>;
@@ -325,6 +326,7 @@ export type ApprovalId = z.infer<typeof ApprovalIdSchema>;
 export type ExecutionTaskId = z.infer<typeof ExecutionTaskIdSchema>;
 export type RunId = z.infer<typeof RunIdSchema>;
 export type RunEventId = z.infer<typeof RunEventIdSchema>;
+export type CandidateReviewEventId = z.infer<typeof CandidateReviewEventIdSchema>;
 
 
 export const WorkItemKindSchema = z.enum([
@@ -519,9 +521,23 @@ export const UpstreamReturnStageSchema = z.enum([
   "R3",
 ]);
 
-export const ReconcileWorkItemAuthoritySchema = z.strictObject({
-  expectedOwner: UpstreamReturnStageSchema,
-});
+export const ReconcileWorkItemAuthoritySchema = z.union([
+  z.strictObject({ expectedOwner: UpstreamReturnStageSchema }),
+  z.strictObject({
+    expectedOwner: UpstreamReturnStageSchema,
+    expectedApprovalId: ApprovalIdSchema,
+    expectedReviewSequence: z.number().int().nonnegative(),
+  }),
+]);
+
+export const ReconcileWorkItemSourcesCommandSchema = z.union([
+  z.strictObject({}),
+  z.strictObject({
+    workItemId: WorkItemIdSchema,
+    expectedApprovalId: ApprovalIdSchema,
+    expectedReviewSequence: z.number().int().nonnegative(),
+  }),
+]);
 
 export const StableHttpErrorCodeSchema = z.string()
   .regex(/^[A-Z][A-Z0-9_]*$/);
@@ -591,6 +607,7 @@ export const WorkStageSchema = z.enum([
   "R3",
   "AWAITING_SIGNOFF",
   "EXECUTION",
+  "AWAITING_ACCEPTANCE",
   "COMPLETE",
 ]);
 export const WorkStatusSchema = z.enum(["ACTIVE", "BLOCKED", "COMPLETE"]);
@@ -777,7 +794,7 @@ export const RunSchema = z
       if (value.executionTaskId !== null || value.triggerEventId !== null || value.mode !== "INTERACTIVE") {
         ctx.addIssue({ code: "custom", message: "STAGE run must be interactive and pre-signoff" });
       }
-      if (value.stage === "EXECUTION" || value.stage === "COMPLETE") {
+      if (value.stage === "EXECUTION" || value.stage === "AWAITING_ACCEPTANCE" || value.stage === "COMPLETE") {
         ctx.addIssue({ code: "custom", message: "STAGE run cannot use aggregate execution/complete stage" });
       }
     } else {
@@ -810,6 +827,94 @@ export const EvidenceRefSchema = z.strictObject({
 });
 
 export type EvidenceRef = Readonly<z.infer<typeof EvidenceRefSchema>>;
+
+// P6 §38: one canonical append-only human/coordinator review stream.
+const qaText = z.string().refine(value => value.trim().length > 0 && !value.includes("\0"), "nonblank QA text without NUL required");
+const qaActor = z.string().trim().min(1).refine(value => !value.includes("\0"), "actor must not contain NUL");
+const qaEvidenceIds = z.array(RunEventIdSchema).refine(unique, "duplicate evidence IDs").readonly();
+const qaFindingIds = z.array(CandidateReviewEventIdSchema).min(1).refine(unique, "duplicate finding IDs").readonly();
+const qaRefs = z.array(AuthorityRefSchema).refine(unique, "duplicate criteria").readonly();
+export const CandidateMemberSchema = z.tuple([ExecutionTaskIdSchema, RunEventIdSchema]).readonly();
+export const CandidateMembersSchema = z.array(CandidateMemberSchema).min(1).refine(
+  members => members.every((member, index) => index === 0 || members[index - 1]![0] < member[0]) &&
+    unique(members.map(member => member[1])),
+  "candidate membership must be task-ID ordered, unique and exact",
+).readonly();
+export type CandidateMembers = z.infer<typeof CandidateMembersSchema>;
+
+const reportFields = {
+  taskId: ExecutionTaskIdSchema, candidateEventId: RunEventIdSchema,
+  acceptanceRefs: qaRefs, expected: qaText, observed: qaText,
+  reproduction: qaText, impact: qaText, evidence: qaEvidenceIds,
+};
+const retestFailedFields = {
+  findingId: CandidateReviewEventIdSchema, observed: qaText, rationale: qaText, evidence: qaEvidenceIds,
+};
+const dispositionFields = {
+  findingId: CandidateReviewEventIdSchema, outcome: z.enum(["RESOLVED", "WITHDRAWN"]),
+  rationale: qaText, followupWorkItemId: WorkItemIdSchema.nullable(),
+  withdrawalAttestation: z.literal("NOT_A_KNOWN_UNMET_OBLIGATION").nullable(),
+};
+const dispositionAttestationAgrees = (value: {
+  outcome: "RESOLVED" | "WITHDRAWN"; withdrawalAttestation: "NOT_A_KNOWN_UNMET_OBLIGATION" | null;
+}): boolean => (value.outcome === "WITHDRAWN") === (value.withdrawalAttestation !== null);
+const reanalysisFields = { owner: z.literal("PLAN"), rationale: qaText };
+const noOpReanalysis = { reason: z.literal("NO_OP_CHALLENGE"), findingIds: qaFindingIds, ...reanalysisFields };
+const proofReanalysis = { reason: z.literal("CANDIDATE_PROOF_UNAVAILABLE"), findingIds: z.tuple([]).readonly(), ...reanalysisFields };
+
+export const CandidateReviewEventPayloadSchema = z.discriminatedUnion("tag", [
+  z.strictObject({ tag: z.literal("OPENED"), candidateHash: Sha256Schema }),
+  z.strictObject({ tag: z.literal("REPORT"), candidateHash: Sha256Schema, ...reportFields }),
+  z.strictObject({ tag: z.literal("SUBMIT"), candidateHash: Sha256Schema, findingIds: qaFindingIds }),
+  z.strictObject({ tag: z.literal("RETEST_FAILED"), candidateHash: Sha256Schema, ...retestFailedFields }),
+  z.discriminatedUnion("reason", [
+    z.strictObject({ tag: z.literal("REANALYSIS_REQUESTED"), candidateHash: Sha256Schema, ...noOpReanalysis }),
+    z.strictObject({ tag: z.literal("REANALYSIS_REQUESTED"), candidateHash: z.null(), ...proofReanalysis }),
+  ]),
+  z.strictObject({ tag: z.literal("REVIEW_STARTED"), submissionId: CandidateReviewEventIdSchema, runId: RunIdSchema }),
+  z.strictObject({ tag: z.literal("REVIEW_COMPLETED"), submissionId: CandidateReviewEventIdSchema,
+    candidateHash: Sha256Schema, candidateEventId: RunEventIdSchema }),
+  z.strictObject({ tag: z.literal("DISPOSITION"), candidateHash: Sha256Schema, ...dispositionFields })
+    .refine(dispositionAttestationAgrees, "disposition requires its exact attestation"),
+  z.strictObject({ tag: z.literal("ACCEPT"), candidateHash: Sha256Schema, candidateMembers: CandidateMembersSchema }),
+]);
+export type CandidateReviewEventPayload = Readonly<z.infer<typeof CandidateReviewEventPayloadSchema>>;
+
+export const CandidateReviewEventSchema = z.strictObject({
+  id: CandidateReviewEventIdSchema, approvalId: ApprovalIdSchema, sequence: z.number().int().positive(),
+  occurredAt: IsoDateTimeSchema, actor: qaActor.nullable(), event: CandidateReviewEventPayloadSchema,
+}).superRefine((value, ctx) => {
+  const coordinator = value.event.tag === "OPENED" || value.event.tag === "REVIEW_STARTED" || value.event.tag === "REVIEW_COMPLETED";
+  if (coordinator !== (value.actor === null)) {
+    ctx.addIssue({ code: "custom", message: "QA coordinator events require null actor; human decisions require actor" });
+  }
+});
+export type CandidateReviewEvent = Readonly<z.infer<typeof CandidateReviewEventSchema>>;
+
+const qaExpected = { expectedCandidateHash: Sha256Schema, expectedReviewSequence: z.number().int().nonnegative() };
+const qaHuman = { ...qaExpected, actor: qaActor };
+export const QaReportCommandSchema = z.strictObject({ ...qaHuman, ...reportFields });
+export const QaSubmitCommandSchema = z.strictObject({ ...qaHuman, findingIds: qaFindingIds });
+export const QaRetestFailedCommandSchema = z.strictObject({ ...qaHuman, ...retestFailedFields });
+export const QaDispositionCommandSchema = z.strictObject({ ...qaHuman, ...dispositionFields })
+  .refine(dispositionAttestationAgrees, "disposition requires its exact attestation");
+export const QaReanalysisCommandSchema = z.union([
+  z.strictObject({ ...qaHuman, ...noOpReanalysis }),
+  z.strictObject({ ...qaHuman, expectedCandidateHash: z.null(), ...proofReanalysis }),
+]);
+export const QaAcceptCommandSchema = z.strictObject(qaHuman);
+export const QaPrepareTestCopyCommandSchema = z.strictObject({
+  ...qaExpected, taskId: ExecutionTaskIdSchema, candidateEventId: RunEventIdSchema,
+});
+
+export const QaFindingAssessmentSchema = z.strictObject({
+  findingId: CandidateReviewEventIdSchema,
+  verdict: z.enum(["SATISFIED", "NOT_REPRODUCED", "FAIL_REPAIRABLE", "UPSTREAM"]),
+  rationale: qaText, evidence: z.array(EvidenceRefSchema).readonly(),
+});
+export type QaFindingAssessment = Readonly<z.infer<typeof QaFindingAssessmentSchema>>;
+const qaAssessments = z.array(QaFindingAssessmentSchema).min(1)
+  .refine(values => unique(values.map(value => value.findingId)), "duplicate QA finding assessments").readonly();
 
 export const ProviderTurnOutcomeSchema = z.enum([
   "SUCCEEDED",
@@ -997,6 +1102,7 @@ const RunEventPayloadBaseSchema = z.union([
     tag: z.literal("REVIEW_PASSED"),
     minimumChange: z.enum(["MINIMUM_SUFFICIENT", "CHANGE_BLOAT"]).optional(),
     minimumChangeSummary: z.string().min(1).nullable().optional(),
+    qaAssessments: qaAssessments.optional(),
     evidence: evidenceArray,
   }).superRefine((value, ctx) => {
     const historical =
@@ -1037,6 +1143,7 @@ const RunEventPayloadBaseSchema = z.union([
     tag: z.literal("REVIEW_FAILED"),
     classification: z.literal("REVIEW_FAILURE"),
     summary: z.string(),
+    qaAssessments: qaAssessments.optional(),
     evidence: evidenceArray,
   }),
   z.strictObject({
@@ -1044,6 +1151,7 @@ const RunEventPayloadBaseSchema = z.union([
     classification: z.literal("BLOCKED_FOR_REANALYSIS"),
     returnTo: z.enum(["R1", "R2", "DESIGN", "PLAN"]),
     summary: z.string(),
+    qaAssessments: qaAssessments.optional(),
     evidence: evidenceArray,
   }),
   z.strictObject({ tag: z.literal("VALIDATION_PASSED"), stage: ValidationStageSchema, evidence: evidenceArray }),
