@@ -469,7 +469,7 @@ Additional same-layer physical splits are permitted only by the architecture-pre
 Dependency direction:
 
 ```text
-ui -------------> browser-safe core schemas + pure lifecycle policy
+ui -------------> browser-safe core schemas + pure lifecycle policy + exact PLAN inspection parser exception below
 ui -------------> daemon HTTP
 
 cli ------------> daemon startup/HTTP transport
@@ -484,7 +484,7 @@ shell ----------> core schemas where needed
 core -----------> no effectful Order module
 ```
 
-The browser-safe UI/core boundary is exact: UI may import canonical schemas/types from `src/core/contracts.ts` and the pure lifecycle policy owner `src/core/lifecycle.ts`. UI consumes that lifecycle owner for WorkItem transition/editability policy and the closed `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2` workflow-state language: STAGE interaction/input, reached state, proposal decision/adoption, currentness normalization, execution owner/validation boundary, recovery, coherence, current attention and workflow-rail projection. These are pure in-process decisions over canonical facts only; they are not persistence/transport/browser-state models. No other core policy module becomes a UI workflow-semantics dependency through this exception.
+The browser-safe UI/core boundary is exact: UI may import canonical schemas/types from `src/core/contracts.ts` and the pure lifecycle policy owner `src/core/lifecycle.ts`. UI consumes that lifecycle owner for WorkItem transition/editability policy and the closed `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2` workflow-state language: STAGE interaction/input, reached state, proposal decision/adoption, currentness normalization, execution owner/validation boundary, recovery, coherence, current attention and workflow-rail projection. These are pure in-process decisions over canonical facts only; they are not persistence/transport/browser-state models. No other core policy module becomes a UI workflow-semantics dependency through this exception. For inspection of exact governed PLAN bytes only, `ui/src/DocumentWorkspace.tsx` may directly import the two named pure functions `parseSignedTaskBlockFromPlan` and `admitSignedTaskBlockForSchema` from the existing canonical `src/core/execution.ts` parser owner. This is a closed, consumer-and-symbol-specific exception, not a general UI dependency on execution policy: no namespace/default/dynamic/re-export import, other execution symbols, other UI consumer, task creation, execution admission, sign-off, new parser or effect boundary. The functions consume exact bytes and schema identity, return the existing canonical task block or reject, and remain shared with daemon execution admission. The architecture fitness sensor enforces the exact named-import edge; PLAN inspection grants no execution authority.
 
 Forbidden dependency directions:
 
@@ -1353,7 +1353,7 @@ The exact open/rename/fsync semantics used by Markdown writes must remain ground
 `tests/architecture.test.ts` must:
 
 - register the new core, shared file-write shell, source shell and daemon modules in the explicit ownership/dependency sensors;
-- keep UI imports limited to browser-safe canonical contracts;
+- keep UI imports within the exact browser-safe core dependency boundary in §7;
 - preserve filesystem effect ownership at shell boundaries;
 - detect forbidden alternative source parsers/catalogs where mechanically practical;
 - preserve current no-class/no-DTO/no-service/repository/controller constraints.

@@ -216,7 +216,7 @@ const verifyCampaignReviewedInputs = (
     }
     const scope = new Set(task.scope);
     const exclusions = new Set(task.exclusions);
-    if (scope.size !== 61 || exclusions.size !== 59 || task.scope.length !== scope.size || task.exclusions.length !== exclusions.size || [...scope].some((path) => exclusions.has(path))) {
+    if (scope.size !== 62 || exclusions.size !== 58 || task.scope.length !== scope.size || task.exclusions.length !== exclusions.size || [...scope].some((path) => exclusions.has(path))) {
       throw new Error("invalid exact T1 scope/exclusions");
     }
     const allowed = normal ? scope : new Set(exactField("bounded paths", "([^\\r\\n]+)").split(", "));
@@ -384,8 +384,8 @@ describe("architecture fitness", () => {
       mkdirSync(join(root, "item"));
       const plan = "\x60\x60\x60order-tasks\n" + JSON.stringify({ tasks: [{
         id: "T1",
-        scope: ["a.ts", "CHANGELOG.md", ...Array.from({ length: 59 }, (_, i) => "scope-" + i)],
-        exclusions: ["protected.md", ...Array.from({ length: 58 }, (_, i) => "excluded-" + i)],
+        scope: ["a.ts", "CHANGELOG.md", ...Array.from({ length: 60 }, (_, i) => "scope-" + i)],
+        exclusions: ["protected.md", ...Array.from({ length: 57 }, (_, i) => "excluded-" + i)],
       }] }) + "\n\x60\x60\x60\n";
       const baselineInputs = new Map([
         ["a.ts", "100644\t" + blob("old\n")],
@@ -529,9 +529,17 @@ describe("architecture fitness", () => {
           if (["shell", "daemon", "cli"].includes(targetLayer)) {
             violations.push(`${sourcePath} -> ${targetPath}: UI may not depend on ${targetLayer}`);
           }
+          const exactPlanParserImport =
+            sourcePath === "ui/src/DocumentWorkspace.tsx" &&
+            targetPath === "src/core/execution.ts" &&
+            specifier === "../../src/core/execution.ts" &&
+            importSpecifiers(sourceText(sourcePath)).filter(candidate =>
+              resolvedRepositoryImport(sourcePath, candidate) === targetPath).length === 1 &&
+            /^import\s+\{\s*admitSignedTaskBlockForSchema\s*,\s*parseSignedTaskBlockFromPlan\s*\}\s+from\s+"\.\.\/\.\.\/src\/core\/execution\.ts";$/m.test(sourceText(sourcePath));
           if (
             targetLayer === "core" &&
-            !["src/core/contracts.ts", "src/core/lifecycle.ts"].includes(targetPath)
+            !["src/core/contracts.ts", "src/core/lifecycle.ts"].includes(targetPath) &&
+            !exactPlanParserImport
           ) {
             violations.push(
               `${sourcePath} -> ${targetPath}: UI may import only browser-safe canonical contracts or lifecycle policy from core`,
@@ -3254,9 +3262,9 @@ describe("architecture fitness", () => {
     const designSurface = [...designSurfaceSection.matchAll(/^- `([^\`]+)`(?:\s+—.*)?$/gm)].map(
       (match) => match[1],
     );
-    if (designSurface.length !== 61 || duplicates(designSurface).length > 0) {
+    if (designSurface.length !== 62 || duplicates(designSurface).length > 0) {
       violations.push(
-        "DESIGN implementation forecast must contain 61 unique paths; found " +
+        "DESIGN implementation forecast must contain 62 unique paths; found " +
           designSurface.length,
       );
     }
@@ -3432,9 +3440,9 @@ describe("architecture fitness", () => {
             task.gateIds ?? [],
             ["architecture", "browser", "build", "dependency-lock", "test", "typecheck"],
           );
-          if ((task.scope ?? []).length !== 61 || duplicates(task.scope ?? []).length > 0) {
+          if ((task.scope ?? []).length !== 62 || duplicates(task.scope ?? []).length > 0) {
             violations.push(
-              "T1 hard scope must contain the exact 61 unique forecast paths; found " +
+              "T1 hard scope must contain the exact 62 unique forecast paths; found " +
                 (task.scope ?? []).length,
             );
           }
@@ -3464,9 +3472,9 @@ describe("architecture fitness", () => {
         for (const excluded of task?.exclusions ?? []) {
           if ((task?.scope ?? []).includes(excluded)) violations.push("T1 scope overlaps exclusion: " + excluded);
         }
-        if (signedSurface.length !== 61 || duplicates(signedSurface).length > 0) {
+        if (signedSurface.length !== 62 || duplicates(signedSurface).length > 0) {
           violations.push(
-            "PLAN signed T1 changeSurface must contain 61 unique paths; found " +
+            "PLAN signed T1 changeSurface must contain 62 unique paths; found " +
               signedSurface.length,
           );
         }
@@ -3479,9 +3487,9 @@ describe("architecture fitness", () => {
         const documentedSurface = [...surfaceSection.matchAll(/^- \`([^\`]+)\`$/gm)].map(
           (match) => match[1],
         );
-        if (documentedSurface.length !== 61 || duplicates(documentedSurface).length > 0) {
+        if (documentedSurface.length !== 62 || duplicates(documentedSurface).length > 0) {
           violations.push(
-            "PLAN documented candidate surface must contain 61 unique paths; found " +
+            "PLAN documented candidate surface must contain 62 unique paths; found " +
               documentedSurface.length,
           );
         }
@@ -3544,7 +3552,6 @@ describe("architecture fitness", () => {
           "ui/src/primitives/WorkbenchSection.tsx",
           "ui/src/primitives/WorkbenchSectionHeader.tsx",
           "ui/src/primitives/WorkbenchSelector.tsx",
-          "ui/src/primitives/WorkbenchSettingsLayout.tsx",
           "ui/src/primitives/WorkbenchState.tsx",
           "ui/src/primitives/WorkbenchStatus.tsx",
           "ui/src/primitives/WorkbenchSurface.tsx",
@@ -3605,6 +3612,7 @@ describe("architecture fitness", () => {
           "ui/src/workbench-presentation.ts",
           "ui/src/MarkdownEditor.tsx",
           "ui/src/primitives/WorkbenchToolbar.tsx",
+          "ui/src/primitives/WorkbenchSettingsLayout.tsx",
           "ui/src/styles.css",
           "ui/src/theme.css",
           "ui/src/ReadinessWorkspace.tsx",
