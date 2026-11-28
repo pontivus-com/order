@@ -3348,11 +3348,26 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     try {
       const viewport = { width: 1000, height: 800 };
       await page.setViewportSize(viewport);
+      const settingsCapture = entry.surface.startsWith("SURF-SET-") ||
+        entry.surface === "SURF-CONF-REPO-DISCONNECT-001" ||
+        entry.surface === "SURF-CONF-OC-REMOVE-001";
+      if (settingsCapture) {
+        await expect(page.getByTestId("workbench-settings-layout"))
+          .toHaveAttribute("data-responsive-class", "medium");
+        if (target !== undefined) await expect(target, entry.id + " medium selected Settings task").toBeVisible();
+      }
       entries.push(await captureRenderedAcceptance(page, {
         ...entry, id: mediumComparisonId(entry.id), viewport,
       }, target));
     } finally {
       await page.setViewportSize(entry.viewport);
+    }
+    if (entry.surface.startsWith("SURF-SET-") ||
+        entry.surface === "SURF-CONF-REPO-DISCONNECT-001" ||
+        entry.surface === "SURF-CONF-OC-REMOVE-001") {
+      await expect(page.getByTestId("workbench-settings-layout"))
+        .toHaveAttribute("data-responsive-class", referenceViewportClass(entry.viewport)!);
+      if (target !== undefined) await expect(target, entry.id + " restored Settings task").toBeVisible();
     }
   };
   const light = { width: 1440, height: 900 } as const;
@@ -3434,6 +3449,26 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   await repositories.getByRole("button", { name: "Add repository" }).click();
   const addRepository = repositories.getByTestId("add-repository-form");
   await expect(addRepository).toBeVisible();
+  if (!diagnosticCurrentState) {
+    // A responsive layout change must not reset an unsubmitted Settings
+    // task or its input. Do not reopen or reconstruct the form to pass.
+    const exactRoot = addRepository.getByLabel("Exact Git root");
+    await exactRoot.fill("/tmp/order-responsive-unsaved-repository");
+    const settingsLayout = page.getByTestId("workbench-settings-layout");
+    for (const viewport of [
+      { width: 1000, height: 800 },
+      { width: 700, height: 800 },
+      light,
+    ]) {
+      await page.setViewportSize(viewport);
+      await expect(settingsLayout).toHaveAttribute("data-responsive-class",
+        viewport.width >= 1280 ? "wide" : viewport.width >= 800 ? "medium" : "narrow");
+      await expect(addRepository, "responsive Settings task must remain mounted").toBeVisible();
+      await expect(exactRoot, "unsubmitted repository root must survive reflow")
+        .toHaveValue("/tmp/order-responsive-unsaved-repository");
+    }
+    await exactRoot.fill("");
+  }
   await capture({
     id: "ia26-settings-repository-add-wide-light",
     workItemKind: "QUEUE",
@@ -3446,6 +3481,8 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     route: routeValue(),
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }, addRepository);
+  await expect(addRepository.getByRole("button", { name: "Cancel add repository" }),
+    "repository task must survive the medium evidence capture").toBeVisible();
   await addRepository.getByRole("button", { name: "Cancel add repository" }).click();
 
   const repositoryTable = repositories.getByRole("table", { name: "Connected repositories" });
