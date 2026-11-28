@@ -54,6 +54,26 @@ export const readinessOutcomeLabel = (
   }
 };
 
+export const stageCompletionProductLabel = (
+  completion: StageCompletionEvent["completion"],
+): string => {
+  switch (completion.stage) {
+    case "R3": return readinessOutcomeLabel(completion.outcome);
+    case "R2": return "Requirements accepted";
+    case "DESIGN": return "Solution design accepted";
+    case "PLAN": return "Implementation plan accepted";
+    case "R1":
+      switch (completion.outcome) {
+        case "CONFIRMED": return "Research confirmed the work request";
+        case "DISPROVEN": return "Research disproved the work request";
+        case "DUPLICATE": return "Duplicate work identified";
+        case "ALREADY_SATISFIED": return "Work already satisfied";
+        case "INVESTIGATION_COMPLETE": return "Investigation complete";
+        case "AUDIT_COMPLETE": return "Audit complete";
+      }
+  }
+};
+
 export type SettingsDestination = "repositories" | "opencode" | "model";
 
 export const settingsDestinationForReadinessBlocker = (
@@ -733,7 +753,7 @@ export const runEventPresentation = (
     case "STAGE_COMPLETED":
       return {
         label: "Workflow step completed",
-        detail: `${workflowPresentation(payload.completion.stage).label}: ${payload.completion.outcome.replaceAll("_", " ").toLowerCase()}`,
+        detail: stageCompletionProductLabel(payload.completion),
         tone: "success",
       };
     case "STAGE_BLOCKED":

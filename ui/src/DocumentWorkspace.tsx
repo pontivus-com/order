@@ -9,6 +9,7 @@ import {
   type WorkItemDocumentGitPathStatus,
   type WorkItemSchemaCatalogEntry,
 } from "../../src/core/contracts.ts";
+import { admitSignedTaskBlockForSchema, parseSignedTaskBlockFromPlan } from "../../src/core/execution.ts";
 import { artifactDirectEditIsAllowed, artifactReturnOwner, type MaterialPresentationState } from "../../src/core/lifecycle.ts";
 import * as api from "./http.ts";
 import {
@@ -598,6 +599,14 @@ export const LifecycleDocumentMaterial = ({
   }
 
   const markdown = decodeCanonicalMarkdown(contentQuery.data);
+  const planTasks = selectedArtifact.role === "PLAN" ? (() => {
+    try {
+      return { block: admitSignedTaskBlockForSchema(workItem.schemaId,
+        parseSignedTaskBlockFromPlan(contentQuery.data)), error: null };
+    } catch (error) {
+      return { block: null, error: errorText(error) };
+    }
+  })() : null;
   const artifactReadOnly =
     readOnly ||
     historicalArtifact !== undefined ||
@@ -697,6 +706,7 @@ export const LifecycleDocumentMaterial = ({
         details={{
           label: "Document location",
           content: (
+            <>
             <WorkbenchFacts
               label="Document location"
               items={[
@@ -712,6 +722,26 @@ export const LifecycleDocumentMaterial = ({
               },
               ]}
             />
+            {planTasks === null ? null : planTasks.block === null ? (
+              <WorkbenchState kind="error" title="PLAN task inspection unavailable" description={planTasks.error ?? undefined}/>
+            ) : (
+              <div data-testid="plan-task-inspection">
+                {planTasks.block.tasks.map(task => (
+                  <WorkbenchFacts key={task.id} label={"Task " + task.id} items={[
+                    {id:"objective",label:"Objective",value:task.objective,emphasis:"strong"},
+                    {id:"dependencies",label:"Dependencies",value:task.dependsOn.join(", ")||"None"},
+                    {id:"scope",label:"Scope",value:task.scope.join(", ")||"None"},
+                    {id:"exclusions",label:"Exclusions",value:task.exclusions.join(", ")||"None"},
+                    {id:"forecast",label:"Expected change surface (forecast)",value:task.changeSurface.join(", ")||"None"},
+                    {id:"acceptance",label:"Acceptance",value:task.acceptanceRefs.join(", ")||"None"},
+                    {id:"gates",label:"Gates",value:task.gateIds.join(", ")||"None"},
+                    {id:"authority",label:"Authority",value:task.authorityRefs.join(", ")||"None"},
+                    {id:"concerns",label:"Concerns",value:task.concernIds.join(", ")||"None"},
+                  ]}/>
+                ))}
+              </div>
+            )}
+            </>
           ),
         }}
         content={documentContent}
