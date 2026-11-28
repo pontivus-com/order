@@ -114,7 +114,7 @@ export const WorkItemWorkspace = ({
     step: WorkItem["stage"],
     material: WorkflowMaterial,
   ) => void;
-  onContextDocumentChange: (path: string | null, sha256: Sha256 | null) => void;
+  onContextDocumentChange: (path: string | null, sha256: Sha256 | null, artifactId?: ArtifactRef["id"] | null) => void;
   onCreateRemediation: (workItem: WorkItem) => void;
   onDirtyChange: (dirty: boolean) => void;
 }>) => {

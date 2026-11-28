@@ -88,13 +88,12 @@ export const WorkbenchToolbar = ({
             <WorkbenchUtilityLink label="OpenCode"
               detail={
                 <span className="order-workbench-account-detail">
-                  <span aria-hidden="true">·</span>
-                  <span className="order-workbench-account-label" title={account.label}>{account.label}</span>
                   {account.readiness === undefined ? null : (
                     <span className="order-workbench-account-readiness" data-tone={account.readiness.tone}>
                       {account.readiness.label}
                     </span>
                   )}
+                  <span className="order-workbench-account-label" title={account.label}>{account.label}</span>
                 </span>
               }
               href={account.href} testId="opencode-account-trigger"

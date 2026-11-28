@@ -7,6 +7,7 @@ import { neutralTheme } from "@astryxdesign/theme-neutral/built";
 import {
   WorkItemIdSchema,
   type ProjectManifest,
+  type ArtifactRef,
   type Sha256,
   type WorkItem,
   type WorkItemId,
@@ -19,6 +20,7 @@ import {
   installationReadinessBlockerText,
   settingsDestinationForReadinessBlocker,
   type WorkflowMaterial,
+  type ContextDocumentIdentity,
 } from "./workbench-presentation.ts";
 import { workbenchQueryKeys } from "./query-keys.ts";
 
@@ -121,8 +123,7 @@ export const App = () => {
   const [contextStep, setContextStep] = useState<WorkItem["stage"] | null>(null);
   const [contextMaterial, setContextMaterial] =
     useState<WorkflowMaterial | null>(null);
-  const [contextDocumentPath, setContextDocumentPath] = useState<string | null>(null);
-  const [contextDocumentSha256, setContextDocumentSha256] = useState<Sha256 | null>(null);
+  const [contextDocument, setContextDocument] = useState<ContextDocumentIdentity | null>(null);
   const [projectId, setProjectId] = useState("");
   const [schemaId, setSchemaId] = useState<WorkItemSchemaId | "">("");
   const [title, setTitle] = useState("");
@@ -257,8 +258,7 @@ export const App = () => {
     setContextOpen(false);
     setContextStep(null);
     setContextMaterial(null);
-    setContextDocumentPath(null);
-    setContextDocumentSha256(null);
+    setContextDocument(null);
     updateDestinationUrl(destination);
     if (returningFrom !== null || (
       destination.workItemId === null && destination.settingsSection === null
@@ -336,9 +336,9 @@ export const App = () => {
   const updateContextDocument = useCallback((
     path: string | null,
     sha256: Sha256 | null,
+    artifactId: ArtifactRef["id"] | null = null,
   ): void => {
-    setContextDocumentPath(path);
-    setContextDocumentSha256(sha256);
+    setContextDocument(path === null ? null : { path, sha256, artifactId });
   }, []);
 
   const queueDataset =
@@ -483,8 +483,7 @@ export const App = () => {
               workItem={selectedWorkItem}
               selectedStep={contextStep}
               selectedMaterial={contextMaterial}
-              selectedDocumentPath={contextDocumentPath}
-              selectedDocumentSha256={contextDocumentSha256}
+              selectedDocument={contextDocument}
               onClose={() => setContextOpen(false)}
             />
           </Suspense>

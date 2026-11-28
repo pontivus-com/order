@@ -299,6 +299,7 @@ export const SourceDocumentMaterial = ({
   onContextDocumentChange: (
     path: string | null,
     sha256: Sha256 | null,
+    artifactId?: ArtifactRef["id"] | null,
   ) => void;
   onMutationError?: (error: unknown) => void;
 }>) => {
@@ -509,6 +510,7 @@ export const LifecycleDocumentMaterial = ({
   onContextDocumentChange: (
     path: string | null,
     sha256: Sha256 | null,
+    artifactId?: ArtifactRef["id"] | null,
   ) => void;
   onMutationError?: (error: unknown) => void;
 }>) => {
@@ -546,9 +548,11 @@ export const LifecycleDocumentMaterial = ({
     onContextDocumentChange(
       selectedArtifact?.repositoryPath ?? null,
       selectedArtifact?.sha256 ?? null,
+      selectedArtifact?.id ?? null,
     );
   }, [
     onContextDocumentChange,
+    selectedArtifact?.id,
     selectedArtifact?.repositoryPath,
     selectedArtifact?.sha256,
   ]);
@@ -724,6 +728,7 @@ export const ReadOnlyLifecycleDocumentMaterial = (
     onContextDocumentChange: (
       path: string | null,
       sha256: Sha256 | null,
+      artifactId?: ArtifactRef["id"] | null,
     ) => void;
     embeddedReadOnly?: boolean;
     historicalArtifact?: ArtifactRef;

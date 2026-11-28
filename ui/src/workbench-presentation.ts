@@ -144,6 +144,30 @@ export type WorkflowMaterial =
   | Readonly<{ kind: "STEP_STATE" }>
   | Readonly<{ kind: "UNREACHED" }>;
 
+// Exact identity, not a repository-path lookup. Document consumers report
+// the ArtifactRef they actually opened; source identity remains separate.
+export type ContextDocumentIdentity = Readonly<{
+  path: string;
+  sha256: ArtifactRef["sha256"] | null;
+  artifactId: ArtifactRef["id"] | null;
+}>;
+
+export const selectedContextArtifactId = (
+  material: WorkflowMaterial,
+  document: ContextDocumentIdentity | null,
+): ArtifactRef["id"] | null => {
+  if (material.kind === "STAGE_DOCUMENT" || material.kind === "SUPPORTING_DOCUMENT") return material.artifactId;
+  if (material.kind === "APPROVAL_PACKAGE") return document?.artifactId ?? null;
+  return null;
+};
+
+export const resolveContextArtifact = (
+  workItemId: WorkItem["id"],
+  artifactId: ArtifactRef["id"] | null,
+  artifacts: readonly ArtifactRef[],
+): ArtifactRef | null => artifactId === null ? null :
+  artifacts.find(artifact => artifact.id === artifactId && artifact.workItemId === workItemId) ?? null;
+
 export const materialPresentationStateLabel = (
   state: import("../../src/core/lifecycle.ts").MaterialPresentationState,
 ): string => {

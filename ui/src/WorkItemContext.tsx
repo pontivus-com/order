@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import type { Sha256, WorkItem } from "../../src/core/contracts.ts";
+import type { WorkItem } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
 import { workbenchQueryKeys } from "./query-keys.ts";
 import {
@@ -8,6 +8,9 @@ import {
   workflowMaterialLabel,
   workflowMaterialRunId,
   workflowPresentation,
+  selectedContextArtifactId,
+  resolveContextArtifact,
+  type ContextDocumentIdentity,
   type WorkflowMaterial,
 } from "./workbench-presentation.ts";
 import { WorkbenchContextPanel } from "./primitives/WorkbenchContextPanel.tsx";
@@ -16,19 +19,20 @@ import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
 import { WorkbenchSection } from "./primitives/WorkbenchSection.tsx";
 import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
 
-export const WorkItemContext=({workItem,selectedStep,selectedMaterial,selectedDocumentPath,selectedDocumentSha256,onClose}:Readonly<{
+export const WorkItemContext=({workItem,selectedStep,selectedMaterial,selectedDocument,onClose}:Readonly<{
   workItem:WorkItem;selectedStep:WorkItem["stage"]|null;selectedMaterial:WorkflowMaterial|null;
-  selectedDocumentPath:string|null;selectedDocumentSha256:Sha256|null;onClose:()=>void;
+  selectedDocument:ContextDocumentIdentity|null;onClose:()=>void;
 }>)=>{
   const step=selectedStep??workItem.stage;
   const material:WorkflowMaterial=selectedMaterial??{kind:"STEP_STATE"};
   const selectedRunId=workflowMaterialRunId(material);
+  const artifactId=selectedContextArtifactId(material,selectedDocument);
   const schemasQuery=useQuery({queryKey:workbenchQueryKeys.workItemSchemas,queryFn:api.listWorkItemSchemas});
   const runsQuery=useQuery({queryKey:workbenchQueryKeys.runs(workItem.id),queryFn:()=>api.listRuns(workItem.id),enabled:selectedRunId!==null});
   const artifactsQuery=useQuery({
     queryKey:workbenchQueryKeys.artifacts(workItem.id),
     queryFn:()=>api.listArtifacts(workItem.id),
-    enabled:selectedDocumentPath!==null,
+    enabled:artifactId!==null,
   });
   const proposalRunId=material.kind==="PROPOSAL"?material.runId:null;
   const proposalEventsQuery=useQuery({
@@ -50,10 +54,16 @@ export const WorkItemContext=({workItem,selectedStep,selectedMaterial,selectedDo
   const diagnosticsQuery=useQuery({queryKey:workbenchQueryKeys.workItemSourceDiagnostics,queryFn:api.listWorkItemSourceDiagnostics});
   const diagnostics=(diagnosticsQuery.data??[]).filter((item)=>item.workItemId===workItem.id||item.path===workItem.sourcePath);
   const kind=schemasQuery.data?.find((schema)=>schema.schemaId===workItem.schemaId)?.kind??workItem.schemaId;
-  const selectedRun=(runsQuery.data??[]).find((run)=>run.id===selectedRunId)??null;
-  const selectedDocumentArtifact=(artifactsQuery.data??[]).find(
-    (artifact)=>artifact.repositoryPath===selectedDocumentPath,
-  )??null;
+  const selectedRun=(runsQuery.data??[]).find((run)=>run.id===selectedRunId &&
+    run.workItemId===workItem.id &&
+    (material.kind!=="EXECUTION_TASK"||run.executionTaskId===material.taskId))??null;
+  const selectedDocumentArtifact=resolveContextArtifact(workItem.id,artifactId,artifactsQuery.data??[]);
+  const sourceSelected=material.kind==="SOURCE_DOCUMENT";
+  const selectedDocumentPath=sourceSelected?workItem.sourcePath:selectedDocumentArtifact?.repositoryPath??null;
+  const selectedDocumentSha256=sourceSelected
+    ?selectedDocument?.artifactId===null&&selectedDocument.path===workItem.sourcePath
+      ?selectedDocument.sha256:workItem.sourceSha256
+    :selectedDocumentArtifact?.sha256??null;
   const selectedProposalEvent=material.kind==="PROPOSAL"
     ?(proposalEventsQuery.data??[]).find((event)=>event.id===material.eventId)??null
     :null;
@@ -63,7 +73,22 @@ export const WorkItemContext=({workItem,selectedStep,selectedMaterial,selectedDo
   const selectedPackage=material.kind==="APPROVAL_PACKAGE"
     ?signoffPackageQuery.data??null
     :null;
-  const selectedDocumentIsRelevant=material.kind==="SOURCE_DOCUMENT"||material.kind==="STAGE_DOCUMENT"||material.kind==="SUPPORTING_DOCUMENT"||step==="AWAITING_SIGNOFF";
+  const approvalsQuery=useQuery({
+    queryKey:workbenchQueryKeys.approvals(workItem.id),
+    queryFn:()=>api.listApprovals(workItem.id),
+    enabled:selectedTask!==null,
+  });
+  const finalApprovalQuery=useQuery({
+    queryKey:workbenchQueryKeys.currentApproval(workItem.id),
+    queryFn:()=>api.getCurrentApproval(workItem.id),
+    enabled:material.kind==="APPROVAL_PACKAGE"&&(workItem.stage==="EXECUTION"||workItem.stage==="COMPLETE"),
+    retry:false,
+  });
+  const selectedApproval=selectedTask!==null
+    ?(approvalsQuery.data??[]).find(approval=>approval.id===selectedTask.approvalId&&approval.workItemId===workItem.id)??null
+    :material.kind==="APPROVAL_PACKAGE"&&
+      (workItem.stage==="EXECUTION"||workItem.stage==="COMPLETE")?finalApprovalQuery.data??null:null;
+  const selectedDocumentIsRelevant=sourceSelected||artifactId!==null;
 
   const sections = [
     <WorkbenchSection
@@ -72,6 +97,10 @@ export const WorkItemContext=({workItem,selectedStep,selectedMaterial,selectedDo
       content={
         <div data-testid="selected-view-context" className="order-workbench-context-selected">
           <WorkbenchStatus tone="info" label={workflowPresentation(step).label+" · "+workflowMaterialLabel(material)}/>
+          {artifactId!==null&&selectedDocumentArtifact===null?(
+            <WorkbenchNotice tone={artifactsQuery.isPending?"info":"warning"}
+              title={artifactsQuery.isPending?"Resolving selected document":"Selected document identity unavailable"}/>
+          ):null}
           {selectedDocumentIsRelevant&&selectedDocumentPath?(
             <WorkbenchFacts
               label="Selected document identity"
@@ -85,6 +114,10 @@ export const WorkItemContext=({workItem,selectedStep,selectedMaterial,selectedDo
                 ]),
               ]}
             />
+          ):null}
+          {selectedRunId!==null&&selectedRun===null?(
+            <WorkbenchNotice tone={runsQuery.isPending?"info":"warning"}
+              title={runsQuery.isPending?"Resolving selected Run":"Selected Run identity unavailable"}/>
           ):null}
           {selectedRun?(
             <WorkbenchFacts
@@ -102,6 +135,11 @@ export const WorkItemContext=({workItem,selectedStep,selectedMaterial,selectedDo
                 {id:"run-terminal",label:"Terminal classification",value:<code>{selectedRun.terminalClassification??"—"}</code>},
               ]}
             />
+          ):null}
+          {((selectedTask!==null&&selectedApproval===null)||
+            (material.kind==="APPROVAL_PACKAGE"&&workItem.stage==="AWAITING_SIGNOFF"&&selectedPackage===null)||
+            (material.kind==="APPROVAL_PACKAGE"&&finalApprovalQuery.isError))?(
+            <WorkbenchNotice tone="warning" title="Selected approval identity unavailable"/>
           ):null}
           {diagnostics.length>0?<WorkbenchNotice tone="warning" title="Source requires attention" description={diagnostics.length+" source issue"+(diagnostics.length===1?"":"s")+" require attention"}/>:null}
         </div>
@@ -146,7 +184,7 @@ export const WorkItemContext=({workItem,selectedStep,selectedMaterial,selectedDo
         }
       />
     ]:[]),
-    ...(material.kind==="APPROVAL_PACKAGE"&&selectedPackage!==null?[
+    ...((material.kind==="APPROVAL_PACKAGE"||selectedTask!==null)&&(selectedApproval!==null||selectedPackage!==null)?[
       <WorkbenchSection
         key="approval-package"
         title="Selected approval package identity"
@@ -154,9 +192,14 @@ export const WorkItemContext=({workItem,selectedStep,selectedMaterial,selectedDo
           <WorkbenchFacts
             label="Selected approval package identity"
             items={[
-              {id:"package-hash",label:"Package hash",value:<code data-testid="context-signoff-package-hash">{selectedPackage.packageHash}</code>,emphasis:"strong"},
-              {id:"package-source",label:"Source SHA",value:<code>{selectedPackage.sourceSha256}</code>},
-              {id:"package-baseline",label:"Baseline",value:<code>{selectedPackage.baselineCommit}</code>},
+              {id:"package-hash",label:"Package hash",value:<code data-testid="context-signoff-package-hash">{(selectedApproval??selectedPackage)?.packageHash}</code>,emphasis:"strong"},
+              {id:"package-source",label:"Source SHA",value:<code>{(selectedApproval??selectedPackage)?.sourceSha256}</code>},
+              {id:"package-baseline",label:"Baseline",value:<code>{(selectedApproval??selectedPackage)?.baselineCommit}</code>},
+              ...(selectedApproval===null?[]:[
+                {id:"signed-approval-id",label:"Approval id",value:<code>{selectedApproval.id}</code>},
+                {id:"signed-plan-id",label:"Signed PLAN ArtifactRef",value:<code>{selectedApproval.planArtifactRefId}</code>},
+                {id:"signed-r3-id",label:"Signed R3 ArtifactRef",value:<code>{selectedApproval.r3ArtifactRefId}</code>},
+              ]),
             ]}
           />
         }
