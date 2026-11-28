@@ -181,6 +181,17 @@ export const WorkItemWorkspace = ({
     enabled: currentApprovalRequired,
   });
   const currentApproval = currentApprovalRequired ? currentApprovalQuery.data : undefined;
+  const signedArtifactsQuery = useQuery({
+    queryKey: workbenchQueryKeys.approvalArtifacts(workItem.id, currentApproval?.id ?? null),
+    queryFn: () => {
+      if (currentApproval == null) throw new TypeError("current Approval identity required");
+      return api.listApprovalArtifacts(workItem.id, currentApproval.id);
+    },
+    enabled: currentApproval != null,
+  });
+  const approvalMembershipUnresolved = currentApprovalRequired &&
+    (currentApprovalQuery.isPending || currentApprovalQuery.isError ||
+      (currentApproval != null && (!signedArtifactsQuery.isSuccess || signedArtifactsQuery.isFetching)));
   const tasksRequired =
     selectedStep === "AWAITING_SIGNOFF" ||
     selectedStep === "EXECUTION" ||
@@ -293,11 +304,12 @@ export const WorkItemWorkspace = ({
   const artifacts = artifactsQuery.data ?? [];
   const allArtifacts = allArtifactsQuery.data ?? [];
   const currentArtifactIds = new Set(artifacts.map((artifact) => artifact.id));
+  const signedArtifacts = currentApproval != null && signedArtifactsQuery.isSuccess
+    ? signedArtifactsQuery.data : [];
+  const signedArtifactIds = new Set(signedArtifacts.map(artifact => artifact.id));
   const inspectionArtifacts = historicalArtifactsRequired
-    ? [
-        ...artifacts,
-        ...allArtifacts.filter((artifact) => !currentArtifactIds.has(artifact.id)),
-      ]
+    ? [...new Map([...signedArtifacts, ...artifacts, ...allArtifacts]
+        .map(artifact => [artifact.id, artifact] as const)).values()]
     : artifacts;
   const tasks = tasksQuery.data ?? [];
   const coherenceTasks = currentApproval == null
@@ -550,7 +562,7 @@ export const WorkItemWorkspace = ({
     mutationsDisabled || currentAttention === "MUTATION_CONFLICT";
   const activeRunOwnsAuthoring = runs.some(runIsActive);
   const documentMutationsDisabled =
-    interactionMutationsDisabled || activeRunOwnsAuthoring;
+    interactionMutationsDisabled || activeRunOwnsAuthoring || approvalMembershipUnresolved;
   const authoringBlockedReason = activeRunOwnsAuthoring
     ? "Finish or cancel the active workflow attempt before editing or saving this document."
     : documentMutationsDisabled
@@ -606,7 +618,7 @@ export const WorkItemWorkspace = ({
   const materialStateForArtifact = (artifact: ArtifactRef) => {
     const owner = artifact.role;
     if (owner !== "R1" && owner !== "R2" && owner !== "DESIGN" && owner !== "PLAN" && owner !== "R3") return null;
-    if (artifactsQuery.data === undefined || runsQuery.data === undefined ||
+    if (approvalMembershipUnresolved || artifactsQuery.data === undefined || runsQuery.data === undefined ||
       runs.some((run, index) => run.role === "STAGE" && run.stage === owner &&
         runEventQueries[index]?.data === undefined)) return null;
     const current = currentArtifactIds.has(artifact.id);
@@ -616,9 +628,7 @@ export const WorkItemWorkspace = ({
       reach,
       materialCurrentnessForStage(currentness, owner),
       artifactHasCurrentStageConformance(artifact, runs, allRunEvents),
-      current && reach !== "UNREACHED" &&
-        (workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE") &&
-        tasks.length > 0,
+      signedArtifactIds.has(artifact.id) && reach !== "UNREACHED",
     );
   };
   const selectedStageMaterialState = selectedStageArtifact === null
@@ -635,7 +645,7 @@ export const WorkItemWorkspace = ({
       : null;
   const explicitStageArtifactStillCurrent =
     explicitStageArtifactId !== null &&
-    artifacts.some((artifact) => artifact.id === explicitStageArtifactId);
+    inspectionArtifacts.some((artifact) => artifact.id === explicitStageArtifactId);
 
   useEffect(() => {
     if (
@@ -1157,7 +1167,7 @@ export const WorkItemWorkspace = ({
       <WorkbenchAction
         label={"Return to " + workflow.label}
         tone="primary"
-        onClick={() => inspectWorkflowStep(workItem.stage)}
+        onClick={() => requestSelection({ step: workItem.stage, material: canonicalCurrentMaterial })}
       />
     ) : currentOwnerAction ?? (
       workItem.stage === "COMPLETE" &&
@@ -1278,6 +1288,8 @@ export const WorkItemWorkspace = ({
             onBack={returnFromTransient}
           />
         </Suspense>
+      ) : material.kind === "UNREACHED" ? (
+        <WorkbenchSurface material={<WorkbenchState kind="empty" title={selectedWorkflow.label + " has not been reached"} />} />
       ) : sharedPreSignoffStage ? (
         <Suspense fallback={<WorkbenchState kind="loading" title="Loading workflow step…" />}>
           <PreSignoffStageWorkspace
@@ -1442,7 +1454,7 @@ export const WorkItemWorkspace = ({
                 workItem={workItem}
                 artifactId={material.artifactId}
                 materialState={selectedDocumentMaterialState}
-                historicalArtifact={selectedDocumentMaterialState?.tag === "HISTORICAL" ? selectedDocumentArtifact ?? undefined : undefined}
+                historicalArtifact={selectedDocumentMaterialState?.tag === "HISTORICAL" || selectedDocumentMaterialState?.tag === "SIGNED_LOCKED" ? selectedDocumentArtifact ?? undefined : undefined}
                 mutationsDisabled={documentMutationsDisabled}
                 authoringBlockedReason={authoringBlockedReason}
                 onDirtyChange={setDirtyState}

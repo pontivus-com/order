@@ -1,6 +1,7 @@
 import type { QueryClient } from "@tanstack/react-query";
 import type {
   ApprovalId,
+  Sha256,
   ArtifactRefId,
   EvidencePath,
   OpenCodeAccountLoginAttemptId,
@@ -40,13 +41,13 @@ export const workbenchQueryKeys = {
     ["lifecycleArtifacts", workItemId] as const,
   signoffPackage: (workItemId: WorkItemId) =>
     ["signoffPackage", workItemId] as const,
-  signoffPackageArtifacts: (workItemId: WorkItemId, packageHash: string | null) =>
+  signoffPackageArtifacts: (workItemId: WorkItemId, packageHash: Sha256 | null) =>
     ["signoffPackage", workItemId, packageHash, "artifacts"] as const,
   currentApproval: (workItemId: WorkItemId) =>
     ["currentApproval", workItemId] as const,
   approvals: (workItemId: WorkItemId) =>
     ["approvals", workItemId] as const,
-  approvalArtifacts: (workItemId: WorkItemId, approvalId: ApprovalId) =>
+  approvalArtifacts: (workItemId: WorkItemId, approvalId: ApprovalId | null) =>
     ["approvals", workItemId, approvalId, "artifacts"] as const,
   tasks: (workItemId: WorkItemId) =>
     ["tasks", workItemId] as const,

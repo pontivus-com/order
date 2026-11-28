@@ -600,6 +600,8 @@ export const LifecycleDocumentMaterial = ({
   const markdown = decodeCanonicalMarkdown(contentQuery.data);
   const artifactReadOnly =
     readOnly ||
+    historicalArtifact !== undefined ||
+    materialState === null ||
     mutationsDisabled ||
     materialState?.tag === "DRAFT" ||
     materialState?.tag === "HISTORICAL" ||
