@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Align Wave 3 certification with exact historical package inspection and pre-review document semantics; retain current-only authorization and explicit unavailable-membership checks.
+
 - Correct Wave 3 strict-typing defects, pin prospective Approval inspection to its selected package identity, and display Readiness package documents only from exact available canonical membership; do not substitute unrelated history.
 
 - Establish settled theme-control paint before browser contrast certification; preserve the 4.5 minimum and all appearance behavior checks.

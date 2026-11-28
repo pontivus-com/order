@@ -961,7 +961,11 @@ describe("Order cross-boundary certification", () => {
     expect(readiness).toContain("requiredInputOwnsAttention ||");
     expect(readiness).toContain('material.kind === "EVIDENCE"');
     expect(readiness).toContain('material.kind === "SUPPORTING_DOCUMENT"');
-    expect(readiness).toContain('title: "Package documents"');
+    expect(readiness).toContain('title: beforeReview ? "Package documents before review" : "Package documents"');
+    expect(readiness).toContain('const beforeReview = workItem.stage === "R3" && latestRun === null');
+    expect(readiness).toContain("exactReadinessPackageDocuments(readinessArtifact, prospectiveClosureQuery.data)");
+    expect(readiness).toContain("exactReadinessPackageDocuments(readinessArtifact, signedClosureQuery.data)");
+    expect(readiness).toContain('title="Exact reviewed package unavailable"');
     expect(readiness).toContain('title: "Readiness attempts"');
     expect(readiness).not.toContain("order-review-readiness-");
     expect(readiness).not.toContain("currentness={");
@@ -1450,7 +1454,11 @@ describe("Order cross-boundary certification", () => {
     expect(workspace).toContain("signoffPackageQuery.isFetching");
     expect(workspace).toContain("api.listExecutionTasks(workItem.id)");
     expect(workspace).toContain("api.listArtifacts(workItem.id)");
-    expect(workspace).toContain("packageValue={selectedApproval === null && workItem.stage === \"AWAITING_SIGNOFF\" ? signoffPackageQuery.data ?? null : null}");
+    expect(workspace).toContain("packageValue={supersededProspective ? supersededPackage : selectedApproval === null && workItem.stage === \"AWAITING_SIGNOFF\" ? signoffPackageQuery.data ?? null : null}");
+    expect(workspace).toContain("packageSuperseded={supersededProspective}");
+    expect(workspace).toContain("workbenchQueryKeys.observedSignoffPackage(workItem.id, supersededHash)");
+    expect(workspace).toContain("workbenchQueryKeys.signoffPackageArtifacts(workItem.id, supersededHash)");
+    expect(workspace).toContain("artifacts={supersededProspective ? supersededArtifacts : selectedApproval !== null ? selectedApprovalArtifactsQuery.data ?? [] : prospectiveArtifactsQuery.data ?? []}");
     expect(workspace).toContain("tasks={selectedApproval === null ? [] : tasks.filter(task => task.approvalId === selectedApproval.id)}");
     expect(workspace).toContain("runs={runs}");
     expect(workspace).toContain("artifacts={allArtifacts}");
@@ -2642,7 +2650,11 @@ describe("0.6.0 Wave 4 Workbench and product-language certification", () => {
     expect(approval).not.toContain('data-testid="approval-readiness-summary"');
     expect(approval).not.toContain("WorkbenchDisclosure");
     expect(approval).toContain('title: "Package documents"');
-    expect(approval).toContain('title: currentApproval ? "Signed tasks" : "Approved tasks"');
+    expect(approval).toContain('title: packageSuperseded ? "Historical proposed tasks" : currentApproval ? "Signed tasks" : "Approved tasks"');
+    expect(approval).toContain('const currentApproval = !packageSuperseded && workItem.stage === "AWAITING_SIGNOFF"');
+    expect(approval).toContain("if (packageSuperseded || packageValue === null || packageStale");
+    expect(approval).toContain("currentApproval &&");
+    expect(approval).toContain('label: "Inspected package is no longer current"');
     expect(approval).not.toContain('aria-label="Package material"');
     expect(readiness).not.toContain("embeddedReadOnly");
     expect(readiness).not.toContain("READY_FOR_SIGNOFF");
