@@ -3534,6 +3534,26 @@ describe("native Acceptance preparation", () => {
     expect(candidateMembershipCanonicalJson(approval.id,members)).toBe(JSON.stringify([approval.id,members]));
     expect(CandidateMembersSchema.safeParse([...members].reverse()).success).toBe(false);
   });
+  it("derives a fresh validation boundary for exact admitted QA replay only", () => {
+    const finding=report(2,0,prior.result.id);
+    const submission=reviewEvent(3,{tag:"SUBMIT",candidateHash:hashA,findingIds:[finding.id]});
+    const correction=RunSchema.parse({...run(4,tasks[0]!.id,"REVIEWER",3,prior.result.id,"CANDIDATE_DONE"),
+      status:"RUNNING",terminalClassification:null,endedAt:null});
+    const started=reviewEvent(4,{tag:"REVIEW_STARTED",submissionId:submission.id,runId:correction.id});
+    const activeTasks=[{...tasks[0]!,state:"RUNNING" as const},tasks[1]!];
+    const owner=deriveExecutionOwner(activeTasks,[...baseRuns,correction]);
+    const history=[opened,finding,submission,started];
+    const v0=event(40,correction,1,{tag:"VALIDATION_PASSED",stage:"V0",evidence:[]});
+    const args=[owner,activeTasks,[...baseRuns,correction],[...baseEvents,v0]] as const;
+    expect(deriveValidationBoundary(...args,approval,history)).toEqual({tag:"PASSED_THROUGH",stage:"V0"});
+    expect(()=>deriveValidationBoundary(...args,approval,history.slice(0,3))).toThrow(/REVIEW_STARTED/);
+    expect(()=>deriveValidationBoundary(...args,null,history)).toThrow(/exact signed candidate/);
+    const foreign=RunSchema.parse({...correction,baselineCommit:"b".repeat(40)});
+    expect(()=>deriveValidationBoundary(owner,activeTasks,[...baseRuns,foreign],[...baseEvents,v0],approval,history)).toThrow(/baseline/);
+    const failed=event(41,correction,2,{tag:"VALIDATION_FAILED",stage:"V1",classification:"TEST_FAILURE",summary:"failed retest validation",evidence:[]});
+    expect(deriveValidationBoundary(owner,activeTasks,[...baseRuns,correction],[...baseEvents,v0,failed],approval,history))
+      .toEqual({tag:"FAILED_AT",stage:"V1",classification:"TEST_FAILURE"});
+  });
   it("rejects contradictory V6 pass in original and replacement candidate proof", () => {
     const bloatReview = (entry: RunEvent): RunEvent => entry.event.tag === "REVIEW_PASSED"
       ? RunEventSchema.parse({ ...entry, event: { ...entry.event, minimumChange: "CHANGE_BLOAT", minimumChangeSummary: "Remove unnecessary change" } })

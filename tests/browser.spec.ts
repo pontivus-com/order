@@ -874,7 +874,8 @@ const authenticate = async (
 const rowFor = (page: Page, title: string) =>
   page
     .locator('[data-testid^="work-item-row-"]')
-    .filter({ has: page.getByText(title, { exact: true }) })
+    .filter({ has: page.locator(".order-queue-primary strong").filter({hasText:new RegExp("^"+title.replace(/[.*+?^$\x7b\x7d()|[\]\\]/g,"\\.filter({ has: page.getByText(title, { exact: true }) })
+    .first();")+"$")}) })
     .first();
 
 const recoveryFixtureEventIds = new Map([
@@ -5275,7 +5276,8 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
         await expect(move).toContainText("Document move failed");
         await captureDependent("SURF-SET-REPO-MOVE-001","acceptance-guard",null,"Signed Acceptance document-root guard");
         await move.getByRole("button",{name:"Cancel move",exact:true}).click();
-        await page.getByRole("link",{name:"Work items",exact:false}).click();
+        await page.goto("/");
+        await expect(page.getByTestId("work-item-queue")).toBeVisible();
       }
       for(const [fault,title,state,confirmation] of [
         ["SOURCE_AUTHORITY_STALE","Native Acceptance source drift","source-stale-authority","source-reconcile-confirmation"],
@@ -6334,8 +6336,11 @@ test("canonical Run feedback remains visible in the owning workflow context with
   await expect(page.getByText("Validation failed", { exact: true })).toBeVisible();
 
   await selectWorkflowMaterial(page, "Implementation agent · Attempt 1");
-  await expect(page.getByText("Verification passed", { exact: true })).toBeVisible();
-  await expect(page.getByText("Verification failed", { exact: true })).toBeVisible();
+  const chronology=page.getByTestId("run-event-timeline");
+  await expect(chronology.getByText("Verification passed",{exact:true})).toHaveCount(2);
+  await expect(chronology.getByText("Verification failed",{exact:true})).toHaveCount(1);
+  await expect(chronology.locator('[data-event-tag="GATE_PASSED"]')).toHaveText(["typecheck passed.","test passed."]);
+  await expect(chronology.locator('[data-event-tag="GATE_FAILED"]')).toHaveText("test failed.");
   await expect(page.getByRole("progressbar")).toHaveCount(0);
   await backToQueue(page);
 });
@@ -6443,7 +6448,7 @@ test("workflow mutations lock their owning controls while pending and keep failu
   await expect(implementationDetail.getByText("Task id", { exact: true })).toHaveCount(0);
   await expect(implementationDetail.getByText("Provider session", { exact: true })).toHaveCount(0);
   await expect(page.getByRole("navigation", { name: "Approved tasks" })).toBeVisible();
-  await expect(implementationDetail.getByLabel("Task overview")).toContainText("Validation boundary");
+  await expect(implementationDetail.getByLabel("Task overview").getByText("Task validation boundary",{exact:true})).toBeVisible();
   await expect(implementationDetail.getByLabel("Task overview")).toContainText("Not started");
   await expect(page.getByRole("navigation", { name: "Approved tasks" }).getByRole("button", { pressed: true })).toContainText("Current · Ready to start");
   await expect(page.getByRole("button", { name: "Technical details", exact: true })).toHaveCount(0);

@@ -6,6 +6,10 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Correct native QA reviewer validation-boundary admission: prove the exact prior candidate and persisted submission/start lineage, then derive only the new attempt's V0–V7 boundary. Prevent ambiguous Queue title selection in multi-candidate fixtures.
+
+- Certify the complete failed-then-recovered verification chronology and the canonical task-validation label in ordinary browser regression.
+
 - Exercise native Acceptance queued/correction/retest, mixed no-change challenge, historical return, real isolated-copy, loading and error interactions; require exact medium comparison evidence for every Acceptance and dependent state. Use signed-work terminology for root relocation guards.
 
 - Add signed deterministic correction, mixed-task, retest and isolated-copy fixture histories for native Acceptance coverage.
