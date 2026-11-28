@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Prepare exact QA-linked signed context hashing and provider input from immutable task fields, selected submission/report/retest events and trigger; enforce exact assessment admission before persistence (IA37).
+
 - Derive exact per-action Acceptance admission from canonical review history; select immutable SUBMIT/REPORT/preceding RETEST_FAILED inputs and verify nested assessment evidence through existing Run evidence owner (IA35/IA37 preparation).
 
 - Extend actual installer transaction proof to direct v3→v4 migration, preserved legacy completion, original DB/WAL/SHM custody, rollback and secondary compensation; retain separate unchanged-schema v4 proof (IA36).

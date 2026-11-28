@@ -25,6 +25,7 @@ import {
   decideOperationalRecovery,
   executionTaskIsEligible,
   isPostSignoffRole,
+  qaReviewAssessmentsAreAdmitted,
   semanticRepairIsAllowed,
 } from "../core/execution.ts";
 import {
@@ -96,6 +97,7 @@ import {
   currentMaterialFresh,
   currentApprovalForWorkItem,
   approvalContext,
+  approvalContextForRun,
   canonicalTasksForApproval,
   getApproval,
   getWorkItem,
@@ -127,11 +129,20 @@ export const executionPrompt = async (
       : role === "REVIEWER"
         ? "Independently review the replayed candidate against the signed task and resolved authority. Compare the exact actual changed paths with the signed changeSurface forecast. Any unforecast production path is acceptable only when it is the minimum same-layer physical decomposition needed to preserve an already-resolved responsibility/effect boundary with no semantic-owner, public-contract, state, dependency, validation-contract or behavior change; otherwise fail. Explicitly check module cohesion/decomposition and minimum change. File length alone is not the criterion. Do not edit. If V4 semantics fail, emit REVIEW_FAILED. If V4 semantics pass, emit REVIEW_PASSED with minimumChange=MINIMUM_SUFFICIENT and minimumChangeSummary=null when no removable surface exists, or minimumChange=CHANGE_BLOAT with a non-empty minimumChangeSummary identifying the removable surface when the candidate is semantically correct but unnecessarily large."
         : "Correct only the proven triggering failure in the replayed candidate. Preserve declared module responsibilities and do not broaden scope.";
+  const { state: _mutableState, ...immutableTask } = task;
   return [
     `Order execution role: ${role}`,
     roleInstruction,
     "Return only a JSON array of canonical provider-emittable RunEventPayload values for this role.",
-    `ExecutionTask: ${canonicalJson(task)}`,
+    `ExecutionTask: ${canonicalJson(context.qa === undefined ? task : immutableTask)}`,
+    context.qa === undefined ? "" : [
+      "Exact QA correction trigger: " + context.qa.triggerEventId,
+      "Immutable submitted QA events (original report and any preceding failed retest; historical observations are not automatically current evidence):",
+      canonicalJson(context.qa.events),
+      role === "REVIEWER"
+        ? "Independently assess every submitted finding exactly once in qaAssessments with verdict, rationale and verified evidence. PASS requires all findings SATISFIED or NOT_REPRODUCED and the ordinary V4 review to pass. Route UPSTREAM findings to BLOCKED_FOR_REANALYSIS, FAIL_REPAIRABLE to REVIEW_FAILURE unless upstream is required. Ordinary V4 may fail an independent obligation even if all findings pass. Do not edit or issue human disposition."
+        : "Correct only the proven triggering failure and retain exact submitted finding context; do not issue reviewer assessment or human disposition.",
+    ].join("\n"),
     failure === undefined ? "" : `Triggering failure: ${canonicalJson(failure)}`,
     reviewerInputs ?? "",
     "Resolved canonical sources:",
@@ -396,7 +407,7 @@ export const executeMutatingRun = async (
     throw new TypeError("mutating execution Run must be BUILDER or REMEDIATOR");
   }
   const workItem = getWorkItem(runtime, run.workItemId);
-  const context = await approvalContext(runtime, approval, task, run.role);
+  const context = await approvalContextForRun(runtime, approval, task, run);
   const workspace = workspaceForRun(runtime, run.id);
   const closure = approvalClosure(runtime, approval);
   const protectedPaths = [
@@ -830,7 +841,7 @@ export const executeReviewerRun = async (
     return;
   }
 
-  const context = await approvalContext(runtime, approval, task, run.role);
+  const context = await approvalContextForRun(runtime, approval, task, run);
   let reviewEvents: readonly RunEvent[];
   let diagnosticEvidence: readonly EvidenceRef[] = [];
   try {
@@ -867,6 +878,12 @@ export const executeReviewerRun = async (
       },
       createAgentActivityRecorder(runtime, run.id),
     );
+    const submission = context.qa?.events[0];
+    const submitted = submission?.event.tag === "SUBMIT" ? submission.event.findingIds : null;
+    const results = payloads.filter(value => value.tag === "REVIEW_PASSED" || value.tag === "REVIEW_FAILED");
+    if (results.length !== 1 || !qaReviewAssessmentsAreAdmitted(results[0]!, submitted)) {
+      throw new TypeError("REVIEWER result lacks exact admitted QA assessment set");
+    }
     const accepted = persistExecutionProviderEvents(runtime, run, payloads);
     if (accepted === null) return;
     reviewEvents = accepted;

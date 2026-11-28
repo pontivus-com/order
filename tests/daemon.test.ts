@@ -8774,13 +8774,12 @@ describe("native QA assessment evidence", () => {
     const state = tempDir("order-daemon-qa-evidence-");
     const output = bunEval(`
       ${seedSignoffScript(repository,state)}
-      const runStore = await import("./src/daemon/run.ts");
       const execution = await import("./src/daemon/execution.ts");
       const task = (await coord.listExecutionTasks(runtime,work))[0];
       const running = {...task,state:"RUNNING"};
       sql.setExecutionTaskState(database,task.id,"RUNNING");
-      const context = await authority.approvalContext(runtime,approval,running,"REVIEWER");
-      const run = execution.createExecutionRun(runtime,coord.getWorkItem(runtime,work),running,approval,"REVIEWER",null,context.contextHash);
+      const context = await authority.approvalContext(runtime,approval,running,"BUILDER");
+      const run = execution.createExecutionRun(runtime,coord.getWorkItem(runtime,work),running,approval,"BUILDER",null,context.contextHash);
       const findingId = "review_00000000-0000-4000-8000-000000000001";
       const bytes = new TextEncoder().encode("independent evidence");
       const evidence = runStore.writeRunEvidence(runtime,run.id,"qa/assessment.txt",bytes,"text/plain");
@@ -8800,5 +8799,59 @@ describe("native QA assessment evidence", () => {
     `) as {badRejected:boolean;missingRejected:boolean;unchanged:boolean;read:string;refs:unknown[];evidence:unknown};
     expect(output).toMatchObject({badRejected:true,missingRejected:true,unchanged:true,read:"independent evidence"});
     expect(output.refs).toEqual([output.evidence]);
+  },30_000);
+});
+
+describe("native QA immutable execution context", () => {
+  it("binds exact submitted events and trigger without mutable task state or future Run identity", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-qa-context-");
+    const output = bunEval(`
+      ${seedSignoffScript(repository,state)}
+      const execution = await import("./src/daemon/execution.ts");
+      const core = await import("./src/core/lifecycle.ts");
+      const task = (await coord.listExecutionTasks(runtime,work))[0];
+      sql.setExecutionTaskState(database,task.id,"RUNNING");
+      const running = {...task,state:"RUNNING"};
+      const workItem = coord.getWorkItem(runtime,work);
+      const ordinary = await authority.approvalContext(runtime,approval,running,"BUILDER");
+      const builder = execution.createExecutionRun(runtime,workItem,running,approval,"BUILDER",null,ordinary.contextHash);
+      const patch = runStore.writeRunEvidence(runtime,builder.id,"candidate/patch.diff",new TextEncoder().encode("patch"),"text/x-diff");
+      const candidateState = runStore.appendRunEvent(runtime,builder.id,{tag:"CANDIDATE_STATE_RECORDED",patch,changedPaths:["src/target.ts"]});
+      runStore.updateRun(runtime,builder.id,{status:"COMPLETED",endedAt:timestamp});
+      const ordinaryReview = await authority.approvalContext(runtime,approval,running,"REVIEWER");
+      const reviewer = execution.createExecutionRun(runtime,workItem,running,approval,"REVIEWER",candidateState.id,ordinaryReview.contextHash);
+      const validations = [];
+      for (const stage of ["V0","V1","V2","V3","V4","V5","V6","V7"]) {
+        if(stage==="V4") runStore.appendRunEvent(runtime,reviewer.id,{tag:"REVIEW_PASSED",minimumChange:"MINIMUM_SUFFICIENT",minimumChangeSummary:null,evidence:[]});
+        validations.push(runStore.appendRunEvent(runtime,reviewer.id,{tag:"VALIDATION_PASSED",stage,evidence:[]}));
+      }
+      const member = runStore.appendRunEvent(runtime,reviewer.id,{tag:"CANDIDATE_RECORDED",candidateStateEventId:candidateState.id,validationEventIds:validations.map(value=>value.id)});
+      runStore.updateRun(runtime,reviewer.id,{status:"COMPLETED",terminalClassification:"CANDIDATE_DONE",endedAt:timestamp});
+      sql.setExecutionTaskState(database,task.id,"CANDIDATE_DONE");
+      const hash=rt.sha256Text(core.candidateMembershipCanonicalJson(approval.id,[[task.id,member.id]]));
+      const append=(sequence,actor,event)=>{const value={id:rt.newCandidateReviewEventId(),approvalId:approval.id,sequence,occurredAt:timestamp,actor,event};sql.storeCandidateReviewEvent(database,value);return value;};
+      const opened=append(1,null,{tag:"OPENED",candidateHash:hash});
+      const report=append(2,"human",{tag:"REPORT",candidateHash:hash,taskId:task.id,candidateEventId:member.id,acceptanceRefs:[],expected:"expected",observed:"observed",reproduction:"steps",impact:"impact",evidence:[candidateState.id]});
+      const submit=append(3,"human",{tag:"SUBMIT",candidateHash:hash,findingIds:[report.id]});
+      const qa={submissionId:submit.id,triggerEventId:member.id};
+      const done=await authority.approvalContext(runtime,approval,{...task,state:"CANDIDATE_DONE"},"REVIEWER",qa);
+      const active=await authority.approvalContext(runtime,approval,running,"REVIEWER",qa);
+      const replay=execution.createExecutionRun(runtime,workItem,running,approval,"REVIEWER",member.id,active.contextHash);
+      append(4,null,{tag:"REVIEW_STARTED",submissionId:submit.id,runId:replay.id});
+      const reloaded=await authority.approvalContextForRun(runtime,approval,running,replay);
+      const prompt=await execution.executionPrompt(workItem,"REVIEWER",running,reloaded);
+      const rejects=async fn=>{try{await fn();return false;}catch{return true;}};
+      const wrongTrigger=await rejects(()=>authority.approvalContext(runtime,approval,running,"REVIEWER",{...qa,triggerEventId:candidateState.id}));
+      const wrongHash=await rejects(()=>authority.approvalContextForRun(runtime,approval,running,{...replay,contextHash:ordinaryReview.contextHash}));
+      console.log(JSON.stringify({stable:done.contextHash===active.contextHash&&active.contextHash===reloaded.contextHash,
+        ordinaryDifferent:ordinaryReview.contextHash!==active.contextHash,
+        events:reloaded.qa.events.map(value=>value.id),expected:[submit.id,report.id],
+        promptContains:prompt.includes(JSON.stringify(report.id))&&prompt.includes(member.id)&&!prompt.includes('"state":"RUNNING"'),
+        wrongTrigger,wrongHash}));
+      database.close();
+    `) as {stable:boolean;ordinaryDifferent:boolean;events:string[];expected:string[];promptContains:boolean;wrongTrigger:boolean;wrongHash:boolean};
+    expect(output).toMatchObject({stable:true,ordinaryDifferent:true,promptContains:true,wrongTrigger:true,wrongHash:true});
+    expect(output.events).toEqual(output.expected);
   },30_000);
 });

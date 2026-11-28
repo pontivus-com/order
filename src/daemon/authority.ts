@@ -1,5 +1,9 @@
 import {
   type Approval,
+  type CandidateReviewEvent,
+  type CandidateReviewEventId,
+  type Run,
+  type RunEventId,
   ApprovalSchema,
   type AuthorityRef,
   AuthorityRefSchema,
@@ -30,6 +34,10 @@ import {
 import {
   admittedStageCompletion,
   admittedTerminalR1Artifact,
+  candidateFindingDispositions,
+  candidateSubmissionEvents,
+  linkedSubmission,
+  reconstructCandidateRounds,
   artifactReturnOwner,
   routeApprovalStale,
   transitionWorkItem,
@@ -89,6 +97,7 @@ import {
   findArtifactSnapshot,
   loadApproval,
   loadApprovalsForWorkItem,
+  loadCandidateReviewEvents,
   loadArtifact,
   loadArtifactDependencyEdges,
   loadArtifactDependencyEdgesForOwners,
@@ -108,7 +117,7 @@ import {
   type CoordinatorRuntime,
   withWorkItemOperatorMutation,
 } from "./runtime.ts";
-import { getRun, listRunEvents, listRuns } from "./run.ts";
+import { getRun, getRunEvent, listRunEvents, listRuns, validatePayloadEvidence } from "./run.ts";
 import {
   currentWorkItemSource,
   isSourceBoundaryFailure,
@@ -339,6 +348,7 @@ export type ResolvedContext = Readonly<{
   artifacts: readonly ArtifactRef[];
   p1Paths: readonly RepositoryPath[];
   contextHash: Sha256;
+  qa?: Readonly<{ triggerEventId: RunEventId; events: readonly CandidateReviewEvent[] }>;
 }>;
 
 const resolvedContext = (
@@ -1134,6 +1144,7 @@ export const approvalContext = async (
   approval: Approval,
   task: ExecutionTask,
   role: Exclude<RunRole, "STAGE">,
+  qa?: Readonly<{ submissionId: CandidateReviewEventId; triggerEventId: RunEventId }>,
 ): Promise<ResolvedContext> => {
   const validated = await revalidateWorkItemSource(runtime, approval.workItemId);
   if (validated.workItem.sourceSha256 !== approval.sourceSha256) {
@@ -1153,13 +1164,49 @@ export const approvalContext = async (
       )
       .map((artifact) => artifact.repositoryPath),
   );
+  let qaContext: ResolvedContext["qa"];
+  if (qa !== undefined) {
+    if (role === "BUILDER" || task.approvalId !== approval.id) throw new TypeError("QA context requires exact signed reviewer or remediator");
+    const history = loadCandidateReviewEvents(runtime.database, approval.id);
+    const input = candidateSubmissionEvents(approval.id, history, qa.submissionId);
+    const trigger = getRunEvent(runtime, qa.triggerEventId);
+    const triggerRun = getRun(runtime, trigger.runId);
+    if (triggerRun.workItemId !== approval.workItemId || triggerRun.executionTaskId !== task.id ||
+        triggerRun.baselineCommit !== approval.baselineCommit ||
+        input.some(value => value.event.tag === "REPORT" && value.event.taskId !== task.id)) {
+      throw new TypeError("QA context must bind the exact submitted task and trigger");
+    }
+    const tasks = await canonicalTasksForApproval(runtime, approval);
+    const runs = listRuns(runtime, approval.workItemId);
+    const events = runs.flatMap(value => listRunEvents(runtime, value.id));
+    const rounds = reconstructCandidateRounds(approval, tasks, runs, events, history);
+    const submission = input[0]!;
+    candidateFindingDispositions(history.filter(value => value.sequence <= submission.sequence), rounds, tasks, runs, events);
+    const memberRound = history.findLast(value => value.sequence < submission.sequence &&
+      (value.event.tag === "OPENED" || value.event.tag === "REVIEW_COMPLETED"));
+    const member = memberRound === undefined ? undefined : rounds.get(memberRound.id)?.find(([id]) => id === task.id);
+    const direct = role === "REVIEWER" && trigger.event.tag === "CANDIDATE_RECORDED" && member?.[1] === trigger.id;
+    const successor = linkedSubmission(triggerRun, runs, events, history) === submission.id &&
+      (role === "REVIEWER" ? trigger.event.tag === "CANDIDATE_STATE_RECORDED" : trigger.event.tag === "VALIDATION_FAILED");
+    if (!direct && !successor) throw new TypeError("QA context trigger is outside the exact submission lineage");
+    for (const entry of input) {
+      if (entry.event.tag !== "REPORT" && entry.event.tag !== "RETEST_FAILED") continue;
+      for (const id of entry.event.evidence) {
+        const evidence = getRunEvent(runtime, id);
+        validatePayloadEvidence(runtime, evidence.runId, evidence.event);
+      }
+    }
+    qaContext = { triggerEventId: qa.triggerEventId, events: input };
+  }
+  const { state: _mutableState, ...immutableTask } = task;
   const contextHash = sha256Text(
     canonicalJson({
       stage: "EXECUTION",
       role,
       workItemId: approval.workItemId,
       sourceSha256: approval.sourceSha256,
-      task,
+      task: qaContext === undefined ? task : immutableTask,
+      ...(qaContext === undefined ? {} : { triggerEventId: qaContext.triggerEventId, qaEvents: qaContext.events }),
       resolvedAuthority: authority,
       materialArtifacts: sortedMaterialProjection(material),
     }),
@@ -1172,7 +1219,28 @@ export const approvalContext = async (
       .filter((artifact) => artifact.authorityLayer === "P1")
       .map((artifact) => artifact.repositoryPath),
     contextHash,
+    ...(qaContext === undefined ? {} : { qa: qaContext }),
   };
+};
+
+// Reconstruct the same immutable context after admission, without a second
+// context store or an input derived from mutable task state.
+export const approvalContextForRun = async (
+  runtime: CoordinatorRuntime, approval: Approval, task: ExecutionTask, run: Run,
+): Promise<ResolvedContext> => {
+  if (run.role === "STAGE" || run.workItemId !== approval.workItemId ||
+      run.executionTaskId !== task.id || task.approvalId !== approval.id ||
+      run.baselineCommit !== approval.baselineCommit) throw new TypeError("execution context Run identity conflict");
+  const history = loadCandidateReviewEvents(runtime.database, approval.id);
+  if (history.length === 0) return approvalContext(runtime, approval, task, run.role);
+  const runs = listRuns(runtime, approval.workItemId);
+  const events = runs.flatMap(value => listRunEvents(runtime, value.id));
+  const submissionId = linkedSubmission(run, runs, events, history);
+  if (submissionId === null) return approvalContext(runtime, approval, task, run.role);
+  if (run.triggerEventId === null) throw new TypeError("QA Run lacks exact trigger");
+  const context = await approvalContext(runtime, approval, task, run.role, { submissionId, triggerEventId: run.triggerEventId });
+  if (context.contextHash !== run.contextHash) throw new TypeError("QA Run context hash mismatch");
+  return context;
 };
 
 const currentApprovalMaterialSet = async (
