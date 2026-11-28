@@ -9,9 +9,11 @@ import type {
   ValidationStage,
   WorkItem,
 } from "../../src/core/contracts.ts";
-import type {
-  ExecutionOwner,
-  ValidationBoundary,
+import {
+  executionTaskRuns,
+  terminalExecutionFailureEvent,
+  type ExecutionOwner,
+  type ValidationBoundary,
 } from "../../src/core/lifecycle.ts";
 import * as api from "./http.ts";
 import { EvidenceViewer } from "./EvidenceViewer.tsx";
@@ -27,6 +29,7 @@ import {
   runIsActive,
   runRoleLabel,
   runStatusLabel,
+  runTerminalClassificationLabel,
   type EvidenceSelection,
   type WorkflowMaterial,
 } from "./workbench-presentation.ts";
@@ -270,14 +273,12 @@ export const ExecutionWorkspace = ({
     executionOwner.tag === "NONE"
       ? null
       : tasks.find((task) => task.id === executionOwner.taskId) ?? null;
-  const currentOwnerRun =
-    currentOwnerTask === null
-      ? null
-      : runs.find(
-          (run) =>
-            run.executionTaskId === currentOwnerTask.id &&
-            runIsActive(run),
-        ) ?? null;
+  const latestOwnerRun = currentOwnerTask === null
+    ? null
+    : executionTaskRuns(currentOwnerTask.id, runs).at(-1) ?? null;
+  const currentOwnerRun = latestOwnerRun !== null && runIsActive(latestOwnerRun)
+    ? latestOwnerRun
+    : null;
 
   const materialTask =
     material.kind === "EXECUTION_TASK"
@@ -287,23 +288,18 @@ export const ExecutionWorkspace = ({
   const taskRuns =
     selectedTask === null
       ? []
-      : [...runs]
-          .filter((run) => run.executionTaskId === selectedTask.id)
-          .sort(
-            (left, right) =>
-              left.attempt - right.attempt ||
-              left.startedAt.localeCompare(right.startedAt) ||
-              left.id.localeCompare(right.id),
-          );
-  const activeTaskRun = taskRuns.find(runIsActive) ?? null;
+      : executionTaskRuns(selectedTask.id, runs);
+  const latestSelectedTaskRun = taskRuns.at(-1) ?? null;
+  const activeTaskRun = latestSelectedTaskRun !== null && runIsActive(latestSelectedTaskRun)
+    ? latestSelectedTaskRun : null;
   const materialRun =
     material.kind === "EXECUTION_TASK"
       ? taskRuns.find((run) => run.id === material.runId) ?? null
       : null;
   const selectedRun =
     materialRun ??
-    taskRuns.find(runIsActive) ??
-    taskRuns.at(-1) ??
+    activeTaskRun ??
+    latestSelectedTaskRun ??
     null;
 
   useEffect(() => {
@@ -412,8 +408,17 @@ export const ExecutionWorkspace = ({
     ) : undefined;
 
   const mutationError = start.error ?? cancel.error ?? resume.error;
-  const ownerFailureRun = currentOwnerTask === null ? undefined : [...runs].filter((run) => run.executionTaskId === currentOwnerTask.id).sort((left, right) => left.attempt - right.attempt || left.startedAt.localeCompare(right.startedAt) || left.id.localeCompare(right.id)).at(-1);
-  const ownerFailure = ownerFailureRun === undefined ? undefined : runEvents.filter((event) => event.runId === ownerFailureRun.id).sort((left, right) => left.sequence - right.sequence).findLast((event) => event.event.tag === "VALIDATION_FAILED" || event.event.tag === "PRODUCTIVE_INVOCATION_FAILED" || event.event.tag === "PROVIDER_FAILED" || event.event.tag === "REVIEW_FAILED" || event.event.tag === "GATE_FAILED");
+  const ownerFailure = latestOwnerRun === null
+    ? null
+    : terminalExecutionFailureEvent(latestOwnerRun, runEvents);
+  const blockerReason = ownerFailure !== null
+    ? runEventPresentation(ownerFailure).detail
+    : latestOwnerRun === null
+      ? "The approved task is blocked."
+      : runTerminalClassificationLabel(latestOwnerRun.terminalClassification);
+  const otherTaskBoundary = currentOwnerTask !== null && selectedTask?.id !== currentOwnerTask.id
+    ? " " + validationBoundaryLabel(validationBoundary, "Current") + "."
+    : "";
   const attention =
     mutationError !== null ? (
       <WorkbenchAttention
@@ -432,7 +437,7 @@ export const ExecutionWorkspace = ({
             ? "Implementation is blocked"
             : currentOwnerTask.objective + " is blocked"
         }
-        description={ownerFailure === undefined ? "Resolve the recorded blocker before resuming the approved task." : runEventPresentation(ownerFailure).detail + " Resolve this blocker before resuming the approved task."}
+        description={blockerReason + " Resolve this blocker before resuming the approved task." + otherTaskBoundary}
         action={currentAction}
       />
     ) : currentAction === undefined ? undefined : (
@@ -442,7 +447,7 @@ export const ExecutionWorkspace = ({
           canStart
             ? currentOwnerTask.objective + " — the exact approved task is current and has no active Run."
             : currentOwnerTask.objective
-        )}
+        ) + otherTaskBoundary}
         action={currentAction}
       />
     );
@@ -461,13 +466,7 @@ export const ExecutionWorkspace = ({
         onSelect: () => onSelectMaterial({
           kind: "EXECUTION_TASK",
           taskId: task.id,
-          runId: [...runs]
-            .filter((run) => run.executionTaskId === task.id)
-            .sort((left, right) =>
-              left.attempt - right.attempt ||
-              left.startedAt.localeCompare(right.startedAt) ||
-              left.id.localeCompare(right.id))
-            .at(-1)?.id ?? null,
+          runId: executionTaskRuns(task.id, runs).at(-1)?.id ?? null,
         }),
       };
       return [
@@ -514,19 +513,14 @@ export const ExecutionWorkspace = ({
       <WorkbenchState kind="empty" title="No implementation tasks materialized" />
     ) : (
       <section className="order-implementation-detail" data-testid="execution-task-detail">
-        <header className="order-implementation-heading">
-          <div>
-            <h2>Implementation</h2>
-            <p>Approved implementation task</p>
-          </div>
-          <WorkbenchStatus tone={taskTone(selectedTask)} label={taskStateLabel(selectedTask)} />
-        </header>
+        <WorkbenchSectionHeader title="Implementation" description="Approved implementation task"
+          action={<WorkbenchStatus tone={taskTone(selectedTask)} label={taskStateLabel(selectedTask)} />} />
         <WorkbenchFacts label="Task overview" items={[
           { id: "objective", label: "Objective", value: selectedTask.objective, emphasis: "strong" },
           { id: "attempt", label: "Current attempt", value: activeTaskRun === null
             ? "No active Run"
             : runRoleLabel(activeTaskRun.role) + " · Attempt " + activeTaskRun.attempt + " · " + runStatusLabel(activeTaskRun.status) },
-          { id: "boundary", label: "Validation boundary", value: selectedRun === null && (selectedBoundary?.tag === "NONE" || (selectedBoundary === null && selectedTask.state === "TODO"))
+          { id: "boundary", label: "Task validation boundary", value: selectedRun === null && (selectedBoundary?.tag === "NONE" || (selectedBoundary === null && selectedTask.state === "TODO"))
             ? "Not started"
             : validationBoundaryLabel(selectedBoundary, currentOwnerTask?.id === selectedTask.id ? "Current" : "Recorded") },
         ]} />

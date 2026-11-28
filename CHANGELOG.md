@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Keep Implementation validation progress exact to the current reviewer Run, retain causal remediation failure, and display the current task's matching terminal reason independently of historical inspection (IA32).
+
 - Align Wave 3 certification with exact historical package inspection and pre-review document semantics; retain current-only authorization and explicit unavailable-membership checks.
 
 - Correct Wave 3 strict-typing defects, pin prospective Approval inspection to its selected package identity, and display Readiness package documents only from exact available canonical membership; do not substitute unrelated history.

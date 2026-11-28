@@ -1054,6 +1054,36 @@ export const deriveExecutionOwner = (
     : { tag: "CURRENT_TASK", taskId: eligible.id };
 };
 
+// Task ordinals span BUILDER, REVIEWER and REMEDIATOR roles. Selection does
+// not establish the execution owner or advance the validation boundary.
+export const executionTaskRuns = (
+  taskId: ExecutionTaskId,
+  runs: readonly Run[],
+): readonly Run[] => [...runs]
+  .filter((run) => run.executionTaskId === taskId && run.stage === "EXECUTION" && run.role !== "STAGE")
+  .sort((left, right) => left.attempt - right.attempt || left.id.localeCompare(right.id));
+
+export const terminalExecutionFailureEvent = (
+  run: Run,
+  events: readonly RunEvent[],
+): RunEvent | null => {
+  const classification = run.terminalClassification;
+  if ((run.status !== "BLOCKED" && run.status !== "FAILED") || classification === null ||
+      run.stage !== "EXECUTION" || run.role === "STAGE") return null;
+  return events.filter((event) => event.runId === run.id)
+    .sort((left, right) => left.sequence - right.sequence)
+    .findLast(({ event }) => {
+      switch (event.tag) {
+        case "VALIDATION_FAILED": return event.classification === classification;
+        case "STAGE_BLOCKED": return classification === "PRECONDITION_FAILED" &&
+          (run.role === "BUILDER" || run.role === "REMEDIATOR") && event.owningStage === "EXECUTION";
+        case "PRODUCTIVE_INVOCATION_FAILED": return event.classification === classification;
+        case "PROVIDER_FAILED": return classification === "PROVIDER_FAILURE";
+        default: return false;
+      }
+    }) ?? null;
+};
+
 const validationOrder: readonly ValidationStage[] = [
   "V0", "V1", "V2", "V3", "V4", "V5", "V6", "V7",
 ];
@@ -1098,84 +1128,63 @@ export const deriveValidationBoundary = (
     return { tag: "COMPLETE" };
   }
 
-  const taskRuns = [...runs]
-    .filter((candidate) => candidate.executionTaskId === task.id)
-    .sort(
-      (left, right) =>
-        left.attempt - right.attempt ||
-        left.startedAt.localeCompare(right.startedAt) ||
-        left.id.localeCompare(right.id),
-    );
+  const taskRuns = executionTaskRuns(task.id, runs);
+  if (new Set(taskRuns.map((candidate) => candidate.attempt)).size !== taskRuns.length) {
+    throw new TypeError("current ExecutionTask has ambiguous Run ordinals");
+  }
   const run = taskRuns.at(-1);
   if (run === undefined) return { tag: "NONE" };
   const runEvents = events
     .filter((event) => event.runId === run.id)
     .sort((left, right) => left.sequence - right.sequence);
 
+  const causalRun = (trigger: RunEvent): Run => {
+    const predecessor = taskRuns.find((candidate) => candidate.id === trigger.runId);
+    if (predecessor === undefined || predecessor.attempt >= run.attempt ||
+        predecessor.workItemId !== run.workItemId || predecessor.baselineCommit !== run.baselineCommit) {
+      throw new TypeError("trigger must belong to an earlier Run of the current ExecutionTask and baseline");
+    }
+    return predecessor;
+  };
+
+  if (run.role === "REVIEWER") {
+    const triggers = events.filter((event) => event.id === run.triggerEventId);
+    const candidateEvent = triggers[0];
+    if (triggers.length !== 1 || candidateEvent?.event.tag !== "CANDIDATE_STATE_RECORDED") {
+      throw new TypeError("REVIEWER trigger must identify CANDIDATE_STATE_RECORDED");
+    }
+    const predecessor = causalRun(candidateEvent);
+    if (predecessor.role !== "BUILDER" && predecessor.role !== "REMEDIATOR") {
+      throw new TypeError("REVIEWER candidate must belong to the current ExecutionTask builder or remediator");
+    }
+    // A retry with the same candidate trigger starts its own independent proof.
+    return validationBoundaryFromEvents(runEvents);
+  }
+
   const ownFailure = runEvents.findLast(
     (event) => event.event.tag === "VALIDATION_FAILED",
   );
   if (ownFailure?.event.tag === "VALIDATION_FAILED") {
-    return {
-      tag: "FAILED_AT",
-      stage: ownFailure.event.stage,
-      classification: ownFailure.event.classification,
-    };
+    return validationBoundaryFromEvents(runEvents);
   }
 
   const candidate = runEvents.findLast(
     (event) => event.event.tag === "CANDIDATE_STATE_RECORDED",
   );
-  if (candidate !== undefined) {
-    return { tag: "NONE" };
-  }
+  if (candidate !== undefined) return { tag: "NONE" };
 
   if (run.role === "REMEDIATOR") {
-    if (run.triggerEventId === null) {
-      throw new TypeError("REMEDIATOR validation boundary requires triggering failure");
-    }
-    const trigger = events.find((event) => event.id === run.triggerEventId);
-    if (trigger?.event.tag !== "VALIDATION_FAILED") {
+    const triggers = events.filter((event) => event.id === run.triggerEventId);
+    const trigger = triggers[0];
+    if (triggers.length !== 1 || trigger?.event.tag !== "VALIDATION_FAILED") {
       throw new TypeError("REMEDIATOR trigger must identify VALIDATION_FAILED");
     }
-    if (!taskRuns.some((taskRun) => taskRun.id === trigger.runId)) {
-      throw new TypeError("REMEDIATOR failure must belong to the current ExecutionTask");
-    }
+    causalRun(trigger);
     return {
       tag: "FAILED_AT",
       stage: trigger.event.stage,
       classification: trigger.event.classification,
     };
-  }
-
-  if (run.role === "REVIEWER") {
-    if (run.triggerEventId === null) {
-      throw new TypeError("REVIEWER validation boundary requires candidate trigger");
-    }
-    const candidateEvent = events.find((event) => event.id === run.triggerEventId);
-    if (candidateEvent?.event.tag !== "CANDIDATE_STATE_RECORDED") {
-      throw new TypeError("REVIEWER trigger must identify CANDIDATE_STATE_RECORDED");
-    }
-    const candidateRun = taskRuns.find(
-      (candidateRun) => candidateRun.id === candidateEvent.runId,
-    );
-    if (
-      candidateRun === undefined ||
-      (candidateRun.role !== "BUILDER" && candidateRun.role !== "REMEDIATOR")
-    ) {
-      throw new TypeError("REVIEWER candidate must belong to the current ExecutionTask");
-    }
-    const reviewerRuns = taskRuns.filter(
-      (candidateRun) =>
-        candidateRun.role === "REVIEWER" &&
-        candidateRun.triggerEventId === run.triggerEventId,
-    );
-    const candidateValidationEvents = reviewerRuns.flatMap((candidateRun) =>
-      events
-        .filter((event) => event.runId === candidateRun.id)
-        .sort((left, right) => left.sequence - right.sequence)
-    );
-    return validationBoundaryFromEvents(candidateValidationEvents);
   }
 
   return validationBoundaryFromEvents(runEvents);

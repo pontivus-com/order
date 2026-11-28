@@ -490,14 +490,15 @@ export const WorkItemWorkspace = ({
       currentApprovalQuery.data === undefined ||
       executionEventsPending
     );
-  const validationBoundary = executionObservationPending
-    ? null
-    : deriveValidationBoundary(
-        executionOwner,
-        currentExecutionTasks,
-        runs,
-        allRunEvents,
-      );
+  let validationBoundary: ReturnType<typeof deriveValidationBoundary> | null = null;
+  let validationObservationError: Error | null = null;
+  if (!executionObservationPending) {
+    try {
+      validationBoundary = deriveValidationBoundary(executionOwner, currentExecutionTasks, runs, allRunEvents);
+    } catch (error) {
+      validationObservationError = error instanceof Error ? error : new Error(String(error));
+    }
+  }
   const recovery = deriveRecoveryDisposition(workItem, runs, currentness);
   const semanticCoherence = deriveObservationCoherence(
     workItem,
@@ -563,6 +564,7 @@ export const WorkItemWorkspace = ({
     diagnosticsQuery.error ??
     currentStageEventsError ??
     currentExecutionEventsError ??
+    validationObservationError ??
     (
       workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE"
         ? tasksQuery.error ?? currentApprovalQuery.error ?? signedArtifactsQuery.error
@@ -610,7 +612,8 @@ export const WorkItemWorkspace = ({
       : undefined;
   const workflowMutationsDisabled =
     interactionMutationsDisabled ||
-    (currentness.tag === "STALE" && !activeRunOwnsAuthoring);
+    (currentness.tag === "STALE" && !activeRunOwnsAuthoring) ||
+    validationObservationError !== null;
 
   const resolvedMaterial = resolveWorkflowMaterial({
     workItem,
@@ -1501,7 +1504,9 @@ export const WorkItemWorkspace = ({
               runsQuery.error ??
               tasksQuery.error ??
               (currentApprovalRequired ? currentApprovalQuery.error : null) ??
-              allArtifactsQuery.error
+              allArtifactsQuery.error ??
+              currentExecutionEventsError ??
+              validationObservationError
             }
             executionOwner={executionOwner}
             validationBoundary={validationBoundary}

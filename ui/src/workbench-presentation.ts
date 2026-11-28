@@ -672,6 +672,28 @@ export const runStatusLabel = (status: Run["status"]): string => {
   return exhaustive;
 };
 
+export const runTerminalClassificationLabel = (
+  classification: Run["terminalClassification"],
+): string => {
+  switch (classification) {
+    case "TEST_FAILURE": return "Required tests failed.";
+    case "REVIEW_FAILURE": return "Independent review failed.";
+    case "SPEC_INVALID": return "The approved specification is invalid.";
+    case "APPROVAL_STALE": return "The approved authority is no longer current.";
+    case "SCOPE_BREACH": return "Changes exceeded the approved scope.";
+    case "GOVERNANCE_BREACH": return "A governing requirement was violated.";
+    case "CHANGE_BLOAT": return "Review identified unnecessary changes.";
+    case "ENVIRONMENT_BLOCKED": return "The execution environment is blocked.";
+    case "PROVIDER_FAILURE": return "The agent provider failed.";
+    case "PRECONDITION_FAILED": return "An execution prerequisite failed.";
+    case "BLOCKED_FOR_REANALYSIS": return "The work requires upstream reanalysis.";
+    case "COORDINATOR_INTERRUPTED": return "The implementation attempt was interrupted.";
+    case "CANDIDATE_DONE":
+    case "ALREADY_SATISFIED":
+    case null: return "The approved task is blocked; no matching terminal failure reason is available.";
+  }
+};
+
 export const runRoleLabel = (role: Run["role"]): string => {
   switch (role) {
     case "STAGE": return "Workflow agent";

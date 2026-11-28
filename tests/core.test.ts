@@ -57,6 +57,8 @@ import {
   artifactReturnOwner,
   deriveCurrentAttention,
   deriveExecutionOwner,
+  executionTaskRuns,
+  terminalExecutionFailureEvent,
   durableDecisionCompletionIsAdmitted,
   artifactHasCurrentStageConformance,
   deriveMaterialPresentationState,
@@ -2943,7 +2945,18 @@ describe("closed Workbench workflow-state kernel", () => {
         [run, reviewerOne, reviewerTwo],
         [candidateEvent, ...reviewerPasses],
       ),
-    ).toEqual({ tag: "PASSED_THROUGH", stage: "V3" });
+    ).toEqual({ tag: "PASSED_THROUGH", stage: "V0" });
+    const staleFailure = RunEventSchema.parse({
+      ...reviewerPasses[3],
+      id: "event_babababa-baba-4aba-8aba-babababababa",
+      sequence: 5,
+      event: { tag: "VALIDATION_FAILED", stage: "V4", classification: "REVIEW_FAILURE", summary: "older attempt failed", evidence: [] },
+    });
+    expect(deriveValidationBoundary(owner, [runningTask], [reviewerTwo, run, reviewerOne],
+      [candidateEvent, ...reviewerPasses, staleFailure])).toEqual({ tag: "PASSED_THROUGH", stage: "V0" });
+    const wrongBaseline = RunSchema.parse({ ...reviewerTwo, baselineCommit: "b".repeat(40) });
+    expect(() => deriveValidationBoundary(owner, [runningTask], [run, wrongBaseline],
+      [candidateEvent, ...reviewerPasses])).toThrow(/baseline/);
 
     const malformedReviewer = RunSchema.parse({
       ...reviewerTwo,
@@ -3076,6 +3089,27 @@ describe("closed Workbench workflow-state kernel", () => {
         [v0, v1],
       ),
     ).toEqual({ tag: "COMPLETE" });
+  });
+
+  it("selects only matching terminal execution failure evidence from the exact task attempt", () => {
+    const task = baseTask(`task_${uuidA}`, "BLOCKED");
+    const run = baseRun({ status: "BLOCKED", terminalClassification: "PRECONDITION_FAILED", endedAt: "2026-11-11T03:30:10.000Z" });
+    const other = baseRun({ id: `run_${uuidB}`, executionTaskId: baseTask(`task_${uuidB}`, "RUNNING").id, attempt: 9 });
+    const checkpoint = RunEventSchema.parse({ id: `event_${uuidA}`, runId: run.id, sequence: 1,
+      occurredAt: run.startedAt, event: { tag: "GATE_FAILED", gateId: "test", classification: "TEST_FAILURE", evidence: [] } });
+    const cause = RunEventSchema.parse({ ...checkpoint, id: `event_${uuidB}`, sequence: 2,
+      event: { tag: "STAGE_BLOCKED", owningStage: "EXECUTION", reason: "Required input is unavailable" } });
+    const mismatch = RunEventSchema.parse({ ...checkpoint, id: `event_${uuidC}`, sequence: 3,
+      event: { tag: "VALIDATION_FAILED", stage: "V3", classification: "TEST_FAILURE", summary: "unrelated classification", evidence: [] } });
+    const foreign = RunEventSchema.parse({ ...cause, id: `event_${uuidD}`, runId: other.id, sequence: 4 });
+    expect(executionTaskRuns(task.id, [other, run])).toEqual([run]);
+    expect(terminalExecutionFailureEvent(run, [foreign, mismatch, cause, checkpoint])).toEqual(cause);
+    expect(terminalExecutionFailureEvent(run, [foreign, mismatch, checkpoint])).toBeNull();
+    expect(terminalExecutionFailureEvent(baseRun(), [cause, checkpoint])).toBeNull();
+    const provider = RunSchema.parse({ ...run, status: "FAILED", terminalClassification: "PROVIDER_FAILURE" });
+    const providerFailure = RunEventSchema.parse({ ...cause, event: { tag: "PROVIDER_FAILED", detail: "Provider disconnected", evidence: [] } });
+    expect(terminalExecutionFailureEvent(provider, [checkpoint, providerFailure, mismatch])).toEqual(providerFailure);
+    expect(terminalExecutionFailureEvent(provider, [cause, mismatch])).toBeNull();
   });
 
   it("projects every current-attention and rail-marker variant", () => {

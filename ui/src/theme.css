@@ -1375,21 +1375,6 @@
   gap: var(--spacing-4);
   padding: var(--spacing-3) var(--spacing-4) var(--spacing-5);
 }
-.order-implementation-heading {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--spacing-4);
-}
-.order-implementation-heading h2 {
-  margin: 0;
-  font-size: var(--font-size-2xl);
-  font-weight: 700;
-}
-.order-implementation-heading p {
-  margin: var(--spacing-1) 0 0;
-  color: var(--color-text-secondary);
-}
  .order-section-heading {
   display: flex;
   align-items: flex-start;
