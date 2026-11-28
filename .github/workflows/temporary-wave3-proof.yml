@@ -1,0 +1,167 @@
+name: Temporary consolidated Wave 3 proof
+
+on:
+  push:
+    branches: [fix/0.6.0-wave3-implementation-batch]
+    paths: [.github/workflows/temporary-wave3-proof.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  wave3:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      CI: "1"
+      PONTIVUS_ORDER_TEST_STATE_ROOT: /tmp/pontivus-order-browser-state
+      PONTIVUS_ORDER_OPENCODE_BIN: /tmp/pontivus-order-opencode/bin/opencode
+      PONTIVUS_ORDER_OPENCODE_DRIVE_ROOT: /tmp/pontivus-order-opencode-drive
+      PONTIVUS_ORDER_REQUIRE_OPENCODE_DRIVE: "1"
+      PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA: "36cdc5c39432bd71b3e568c2966774b3e1399377"
+      PONTIVUS_ORDER_RENDERED_EVIDENCE_KIND: ia26_acceptance
+      PONTIVUS_ORDER_RENDERED_ACCEPTANCE_LABEL: "Wave 3 consolidated corrective proof (holding candidate)"
+    steps:
+      - name: Checkout exact holding candidate without temporary workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          git fetch --no-tags origin "${GITHUB_SHA}"
+          git checkout --detach "${PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA}"
+          test "$(git rev-parse HEAD)" = "${PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA}"
+      - name: Install exact Node and Bun
+        shell: bash
+        run: |
+          set -euo pipefail
+          node_root="${RUNNER_TEMP}/node"
+          mkdir -p "${node_root}"
+          curl -fsSLo "${RUNNER_TEMP}/node.tar.xz" \
+            "https://nodejs.org/dist/v26.13.0/node-v26.13.0-linux-x64.tar.xz"
+          tar -xJf "${RUNNER_TEMP}/node.tar.xz" -C "${node_root}" --strip-components=1
+          echo "${node_root}/bin" >> "${GITHUB_PATH}"
+
+          curl -fsSLo "${RUNNER_TEMP}/bun.zip" \
+            "https://github.com/oven-sh/bun/releases/download/bun-v1.4.4/bun-linux-x64.zip"
+          unzip -q "${RUNNER_TEMP}/bun.zip" -d "${RUNNER_TEMP}/bun-unpack"
+          mkdir -p "${RUNNER_TEMP}/bun-bin"
+          cp "${RUNNER_TEMP}/bun-unpack/bun-linux-x64/bun" "${RUNNER_TEMP}/bun-bin/bun"
+          chmod +x "${RUNNER_TEMP}/bun-bin/bun"
+          echo "${RUNNER_TEMP}/bun-bin" >> "${GITHUB_PATH}"
+
+      - name: Verify toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(node --version)" = "v26.13.0"
+          test "$(bun --version)" = "1.4.4"
+
+      - name: Install exact OpenCode
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/pontivus-order-opencode
+          BUN_INSTALL=/tmp/pontivus-order-opencode bun install -g --trust @opencode/cli@2.2.6
+          test "$(/tmp/pontivus-order-opencode/bin/opencode --version)" = "opencode v2.2.6"
+
+      - name: Install exact OpenCode Drive verification tooling
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf "${PONTIVUS_ORDER_OPENCODE_DRIVE_ROOT}"
+          mkdir -p "${PONTIVUS_ORDER_OPENCODE_DRIVE_ROOT}"
+          cd "${PONTIVUS_ORDER_OPENCODE_DRIVE_ROOT}"
+          printf '{"private":true,"type":"module"}\n' > package.json
+          bun add --exact opencode-drive@2.4.1 effect@4.0.1
+          test "$(node -p "require('${PONTIVUS_ORDER_OPENCODE_DRIVE_ROOT}/node_modules/opencode-drive/package.json').version")" = "2.4.1"
+          test "$(node -p "require('${PONTIVUS_ORDER_OPENCODE_DRIVE_ROOT}/node_modules/effect/package.json').version")" = "4.0.1"
+
+      - name: dependency-lock
+        run: bun ci
+
+      - name: Typecheck
+        run: bun run tsc --noEmit
+
+      - name: Affected core, daemon, presentation and certification tests
+        run: node node_modules/vitest/vitest.mjs run tests/core.test.ts tests/daemon.test.ts tests/workbench-presentation.test.ts tests/certification.test.ts tests/architecture.test.ts
+
+      - name: build
+        run: node node_modules/vite/bin/vite.js build
+
+      - name: Install Playwright Chromium
+        run: node node_modules/@playwright/test/cli.js install --with-deps chromium
+
+      - name: signed rendered IA29
+        env:
+          PONTIVUS_ORDER_SIGNED_RENDERED_PHASE: IA29
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR: ${{ runner.temp }}/order-rendered-signed-ia29
+        shell: bash
+        run: |
+          set +e
+          mkdir -p "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR"
+          node node_modules/@playwright/test/cli.js test --grep "rendered acceptance IA26 captures downstream Workbench"
+          status=$?
+          printf '{"candidateSha":"%s","signedPhase":"%s","exitStatus":%s}\n' "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA" "$PONTIVUS_ORDER_SIGNED_RENDERED_PHASE" "$status" > "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR/exit-status.json"
+          if [[ "$status" == 0 && ! -s "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR/manifest.json" ]]; then exit 1; fi
+          exit "$status"
+
+      - name: Upload IA29 exact evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: rendered-wave3-ia29-36cdc5c39432bd71b3e568c2966774b3e1399377
+          path: ${{ runner.temp }}/order-rendered-signed-ia29
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: signed rendered IA31
+        env:
+          PONTIVUS_ORDER_SIGNED_RENDERED_PHASE: IA31
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR: ${{ runner.temp }}/order-rendered-signed-ia31
+        shell: bash
+        run: |
+          set +e
+          mkdir -p "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR"
+          node node_modules/@playwright/test/cli.js test --grep "rendered acceptance IA26 captures downstream Workbench"
+          status=$?
+          printf '{"candidateSha":"%s","signedPhase":"%s","exitStatus":%s}\n' "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA" "$PONTIVUS_ORDER_SIGNED_RENDERED_PHASE" "$status" > "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR/exit-status.json"
+          if [[ "$status" == 0 && ! -s "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR/manifest.json" ]]; then exit 1; fi
+          exit "$status"
+
+      - name: Upload IA31 exact evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: rendered-wave3-ia31-36cdc5c39432bd71b3e568c2966774b3e1399377
+          path: ${{ runner.temp }}/order-rendered-signed-ia31
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: signed rendered IA30
+        env:
+          PONTIVUS_ORDER_SIGNED_RENDERED_PHASE: IA30
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR: ${{ runner.temp }}/order-rendered-signed-ia30
+        shell: bash
+        run: |
+          set +e
+          mkdir -p "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR"
+          node node_modules/@playwright/test/cli.js test --grep "rendered acceptance IA26 captures downstream Workbench"
+          status=$?
+          printf '{"candidateSha":"%s","signedPhase":"%s","exitStatus":%s}\n' "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA" "$PONTIVUS_ORDER_SIGNED_RENDERED_PHASE" "$status" > "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR/exit-status.json"
+          if [[ "$status" == 0 && ! -s "$PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR/manifest.json" ]]; then exit 1; fi
+          exit "$status"
+
+      - name: Upload IA30 exact evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: rendered-wave3-ia30-36cdc5c39432bd71b3e568c2966774b3e1399377
+          path: ${{ runner.temp }}/order-rendered-signed-ia30
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Ordinary Workbench browser regression
+        env:
+          PONTIVUS_ORDER_RENDERED_EVIDENCE_KIND: ""
+        run: node node_modules/@playwright/test/cli.js test --grep-invert "rendered acceptance"
