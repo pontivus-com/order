@@ -1,0 +1,67 @@
+name: Temporary Acceptance actual installer migration proof
+
+on:
+  push:
+    branches: [feat/0.6.0-native-acceptance-cutover]
+    paths: [.github/workflows/temporary-acceptance-migration-proof.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  wave3:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      CI: "1"
+      PONTIVUS_ORDER_TEST_STATE_ROOT: /tmp/pontivus-order-browser-state
+      PONTIVUS_ORDER_OPENCODE_BIN: /tmp/pontivus-order-opencode/bin/opencode
+      PONTIVUS_ORDER_OPENCODE_DRIVE_ROOT: /tmp/pontivus-order-opencode-drive
+      PONTIVUS_ORDER_REQUIRE_OPENCODE_DRIVE: "1"
+      PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA: "7a0c28e99f1c3f1d99a44f85e2dfeed7504ed21e"
+      PONTIVUS_ORDER_RENDERED_EVIDENCE_KIND: ia26_acceptance
+      PONTIVUS_ORDER_RENDERED_ACCEPTANCE_LABEL: "Exact IA36 installer migration proof"
+    steps:
+      - name: Checkout exact holding candidate without temporary workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          git fetch --no-tags origin "${GITHUB_SHA}"
+          git checkout --detach "${PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA}"
+          test "$(git rev-parse HEAD)" = "${PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA}"
+      - name: Install exact Node and Bun
+        shell: bash
+        run: |
+          set -euo pipefail
+          node_root="${RUNNER_TEMP}/node"
+          mkdir -p "${node_root}"
+          curl -fsSLo "${RUNNER_TEMP}/node.tar.xz" \
+            "https://nodejs.org/dist/v26.13.0/node-v26.13.0-linux-x64.tar.xz"
+          tar -xJf "${RUNNER_TEMP}/node.tar.xz" -C "${node_root}" --strip-components=1
+          echo "${node_root}/bin" >> "${GITHUB_PATH}"
+
+          curl -fsSLo "${RUNNER_TEMP}/bun.zip" \
+            "https://github.com/oven-sh/bun/releases/download/bun-v1.4.4/bun-linux-x64.zip"
+          unzip -q "${RUNNER_TEMP}/bun.zip" -d "${RUNNER_TEMP}/bun-unpack"
+          mkdir -p "${RUNNER_TEMP}/bun-bin"
+          cp "${RUNNER_TEMP}/bun-unpack/bun-linux-x64/bun" "${RUNNER_TEMP}/bun-bin/bun"
+          chmod +x "${RUNNER_TEMP}/bun-bin/bun"
+          echo "${RUNNER_TEMP}/bun-bin" >> "${GITHUB_PATH}"
+
+      - name: Verify toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(node --version)" = "v26.13.0"
+          test "$(bun --version)" = "1.4.4"
+
+      - name: dependency-lock
+        run: bun ci
+      - name: Staged kernel TypeScript
+        run: bun run tsc --noEmit
+      - name: Actual installer schema-changing and unchanged-schema custody
+        run: >-
+          node node_modules/vitest/vitest.mjs run tests/installer.test.ts
+          -t 'migrates direct v3 through the actual installer|restores direct v3 namespace|retains direct v3 original archive|actual v2 repository-native migration|unarchived v4 sidecars|blocks v4 prior restart|current v4 database'
