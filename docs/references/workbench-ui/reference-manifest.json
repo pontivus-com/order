@@ -45,7 +45,10 @@
       "captureScope": "full-workbench",
       "states": [
         "default",
-        "readiness-blocked"
+        "readiness-blocked",
+        "toolbar-queue",
+        "toolbar-workitem",
+        "toolbar-settings"
       ],
       "viewports": [
         "wide",
@@ -62,7 +65,12 @@
         "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
         "GW-DOC-WORKBENCH-THEME-V1",
         "current DESIGN"
-      ]
+      ],
+      "stateCaptureScopes": {
+        "toolbar-queue": "component-reference",
+        "toolbar-workitem": "component-reference",
+        "toolbar-settings": "component-reference"
+      }
     },
     {
       "id": "SURF-QUEUE-001",

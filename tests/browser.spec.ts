@@ -270,6 +270,7 @@ type ReferenceManifestSurface = Readonly<{
   source: string;
   selector: string;
   captureScope: "full-workbench" | "component-reference";
+  stateCaptureScopes?: Readonly<Record<string, "full-workbench" | "component-reference">>;
   states: readonly string[];
   viewports: readonly ReferenceViewportClass[];
   themes: readonly ReferenceTheme[];
@@ -349,11 +350,17 @@ const canonicalReferenceState = (
 ): string | null => {
   const declared = referenceSurfaceById.get(surface);
   if (declared?.states.includes(runtimeState)) return runtimeState;
-  if (surface === "SURF-APP-001") return /readiness|missing-account/.test(runtimeState) ? "readiness-blocked" : "default";
+  if (surface === "SURF-APP-001") {
+    if (runtimeState.startsWith("selected-workitem-destination")) return "toolbar-workitem";
+    if (runtimeState.startsWith("settings-destination")) return "toolbar-settings";
+    if (runtimeState.includes("browser-session")) return null;
+    return /readiness|missing-account/.test(runtimeState) ? "readiness-blocked" : "default";
+  }
   if (surface === "SURF-QUEUE-001") {
     if (runtimeState.includes("source-diagnostic")) return "source-diagnostic";
     if (runtimeState.includes("no-search")) return "no-match";
-    if (/true-empty|loading/.test(runtimeState)) return "empty";
+    if (/loading|archived/.test(runtimeState)) return null;
+    if (runtimeState.includes("true-empty")) return "empty";
     return "populated";
   }
   if (surface === "SURF-CREATE-001") return runtimeState.includes("linked") ? "linked-remediation" : "ordinary";
@@ -523,12 +530,13 @@ const resolveRenderedReference = (
   }
   const viewportClass = referenceViewportClass(entry.viewport);
   const theme = referenceTheme(entry.theme);
+  const declaredScope = (state === null ? undefined : declared.stateCaptureScopes?.[state]) ?? declared.captureScope;
   const comparisonEligible =
     state !== null &&
     viewportClass !== null &&
     declared.viewports.includes(viewportClass) &&
     declared.themes.includes(theme) &&
-    captureScope === declared.captureScope;
+    captureScope === declaredScope;
   const lifecycleFixture = referenceLifecycleFixture(entry);
   const query = state === null ? null :
     "?surf=" + encodeURIComponent(entry.surface) +
@@ -546,7 +554,7 @@ const resolveRenderedReference = (
     surface: declared.id,
     state,
     selector: declared.selector,
-    captureScope: declared.captureScope,
+    captureScope: declaredScope,
     viewportClass,
     theme,
     authority: declared.authority,
@@ -721,13 +729,17 @@ const captureRenderedAcceptance = async (
     !entry.state.includes("attention");
   const shellAttentionCapture = entry.surface === "SURF-WI-001" &&
     entry.state.includes("attention");
+  const referenceState = canonicalReferenceState(entry.surface, entry.state);
+  const declaredScope = (referenceState === null ? undefined : declaredReference.stateCaptureScopes?.[referenceState]) ?? declaredReference.captureScope;
+  const toolbarCapture = entry.surface === "SURF-APP-001" && declaredScope === "component-reference";
   const acceptanceTarget = shellChromeCapture
       ? page.locator(".order-workbench-chrome")
       : diagnosticCurrentState || shellAttentionCapture
         ? target
-        : declaredReference.captureScope === "full-workbench" ? undefined : target;
+        : toolbarCapture ? page.getByTestId("workbench-toolbar")
+          : declaredScope === "full-workbench" ? undefined : target;
   if (!diagnosticCurrentState &&
-      declaredReference.captureScope === "component-reference" &&
+      declaredScope === "component-reference" &&
       acceptanceTarget === undefined) {
     throw new TypeError("component-reference acceptance requires an explicit governed locator: " + entry.surface);
   }
@@ -748,7 +760,7 @@ const captureRenderedAcceptance = async (
   const captureScope = diagnosticCurrentState
       ? entry.captureScope ?? (acceptanceTarget === undefined ? "full application viewport" : "explicit locator crop")
       : shellAttentionCapture ? "production current-attention region only"
-      : declaredReference.captureScope;
+      : declaredScope;
   const reference = resolveRenderedReference(entry, captureScope);
   let referenceScreenshot: string | undefined;
   if (reference.comparisonEligible && reference.query !== null) {
@@ -757,6 +769,7 @@ const captureRenderedAcceptance = async (
     const referencePage = await page.context().newPage();
     try {
       await referencePage.setViewportSize(entry.viewport);
+      expect(referencePage.viewportSize()).toEqual(entry.viewport);
       await referencePage.emulateMedia({
         colorScheme: entry.theme === "Dark" || entry.theme === "System/dark" ? "dark" : "light",
       });
@@ -794,7 +807,8 @@ const captureRenderedAcceptance = async (
         scale: "css" as const,
       };
       if (reference.captureScope === "component-reference") {
-        const component = entry.surface === "SURF-WI-001" ? ".workitem-chrome"
+        const component = entry.surface === "SURF-APP-001" ? ".toolbar"
+          : entry.surface === "SURF-WI-001" ? ".workitem-chrome"
           : entry.surface === "SURF-MAT-APPROVAL-TASK-001" ? ".review" : ".dialog";
         await referenceSurface.locator(component).screenshot(options);
       } else {
@@ -2094,7 +2108,7 @@ test("queue opens a primary workspace, keeps context compact, preserves URL hist
 // Re-render each at the actual medium viewport, not a fallback atlas width.
 // The pre-cutover runtime has 37 owned surfaces; IA38/39 add Acceptance.
 const mediumComparisonSources = {
-  "SURF-APP-001": "application-wide-light-active-account",
+  "SURF-APP-001": "hux-app-queue-wide-light",
   "SURF-QUEUE-001": "queue-wide-light-populated",
   "SURF-CREATE-001": "create-work-item-wide-light-change",
   "SURF-WI-001": "workitem-shell-wide-light-chrome",
@@ -2699,7 +2713,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   await page.setViewportSize({ width: 700, height: 800 });
   await capturePhaseOne({
     id: "hux-app-queue-narrow-dark", workItemKind: "QUEUE", workflowStep: null,
-    surface: "SURF-APP-001", state: "default", fixture: "populated Queue shared toolbar",
+    surface: "SURF-APP-001", state: "toolbar-queue", fixture: "populated Queue shared toolbar",
     viewport: { width: 700, height: 800 }, theme: "Dark", route: "/",
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
   });
@@ -2707,7 +2721,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   await page.getByRole("radio", { name: "Light" }).click();
   await capturePhaseOne({
     id: "hux-app-queue-wide-light", workItemKind: "QUEUE", workflowStep: null,
-    surface: "SURF-APP-001", state: "default", fixture: "populated Queue shared toolbar",
+    surface: "SURF-APP-001", state: "toolbar-queue", fixture: "populated Queue shared toolbar",
     viewport: { width: 1440, height: 900 }, theme: "Light", route: "/",
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORKBENCH-THEME-V1"],
   });
@@ -2863,15 +2877,17 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     const title = primary.querySelector("h1")!;
     const utilities = node.querySelector(".order-workbench-identity-utilities")!;
     return {
-      navBottom: nav.getBoundingClientRect().bottom,
-      primaryTop: primary.getBoundingClientRect().top,
+      navCenter: (nav.getBoundingClientRect().top + nav.getBoundingClientRect().bottom) / 2,
+      primaryCenter: (primary.getBoundingClientRect().top + primary.getBoundingClientRect().bottom) / 2,
+      utilityCenter: (utilities.getBoundingClientRect().top + utilities.getBoundingClientRect().bottom) / 2,
       primaryRight: primary.getBoundingClientRect().right,
       utilityLeft: utilities.getBoundingClientRect().left,
       titleSize: Number.parseFloat(getComputedStyle(title).fontSize),
       navSize: Number.parseFloat(getComputedStyle(nav.querySelector("a")!).fontSize),
     };
   });
-  expect(identityHierarchy.primaryTop).toBeGreaterThanOrEqual(identityHierarchy.navBottom);
+  expect(Math.abs(identityHierarchy.primaryCenter - identityHierarchy.navCenter)).toBeLessThanOrEqual(4);
+  expect(Math.abs(identityHierarchy.primaryCenter - identityHierarchy.utilityCenter)).toBeLessThanOrEqual(4);
   expect(identityHierarchy.primaryRight).toBeLessThanOrEqual(identityHierarchy.utilityLeft);
   expect(identityHierarchy.titleSize).toBeGreaterThan(identityHierarchy.navSize);
   const processRail = page.getByTestId("workflow-rail");

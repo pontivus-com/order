@@ -121,11 +121,13 @@
   justify-content: safe end;
   min-width: 0;
   gap: var(--spacing-2);
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
   padding-block: var(--spacing-1);
 }
 .order-workbench-toolbar-utilities > * { flex: 0 0 auto; }
-.order-workbench-toolbar-account { min-width: 0; flex: 0 1 auto; }
+.order-workbench-toolbar-account { min-width: 0; flex: 0 0 auto; }
 .order-workbench-toolbar-utilities a {
   display: inline-flex;
   align-items: center;
@@ -270,13 +272,12 @@
 }
 .order-workbench-identity {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-areas: "navigation utilities" "identity utilities";
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: "navigation identity utilities";
   align-items: center;
   min-height: var(--order-identity-height);
-  padding: var(--spacing-2) var(--spacing-5);
+  padding: var(--spacing-1) var(--spacing-5);
   column-gap: var(--spacing-4);
-  row-gap: var(--spacing-1);
   background: var(--color-background-surface);
 }
 .order-workbench-identity-navigation,
@@ -1631,13 +1632,11 @@
     max-width: 100%;
   }
   .order-workbench-toolbar {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: var(--spacing-1);
-    padding: var(--spacing-2) var(--spacing-3);
+    gap: var(--spacing-2);
+    padding-inline: var(--spacing-3);
   }
-  .order-workbench-toolbar-main { gap: var(--spacing-3); flex-wrap: wrap; }
-  .order-application-orientation { gap: var(--spacing-1); min-width: 0; flex: 0 1 auto; }
+  .order-workbench-toolbar-main { gap: var(--spacing-2); flex-wrap: nowrap; }
+  .order-application-orientation { gap: var(--spacing-1); min-width: 0; flex: 0 0 auto; }
   .order-workbench-destination-label { overflow: hidden; text-overflow: ellipsis; }
   .order-workbench-toolbar-utilities a { padding: var(--spacing-1) var(--spacing-2); }
   .order-application-orientation strong { font-size: var(--font-size-lg); }
@@ -1648,7 +1647,7 @@
     min-width: 0;
     gap: var(--spacing-1);
     justify-content: flex-start;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
   }
   .order-workbench-account-label { max-width: 12ch; }
   .order-workbench-account-readiness { font-size: var(--font-size-xs); }

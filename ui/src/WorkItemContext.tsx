@@ -65,12 +65,12 @@ export const WorkItemContext=({workItem,selectedStep,selectedMaterial,selectedDo
       ?selectedDocument.sha256:workItem.sourceSha256
     :selectedDocumentArtifact?.sha256??null;
   const selectedProposalEvent=material.kind==="PROPOSAL"
-    ?(proposalEventsQuery.data??[]).find((event)=>event.id===material.eventId)??null
+    ?(proposalEventsQuery.data??[]).find((event)=>event.id===material.eventId&&event.runId===material.runId&&event.event.tag==="ARTIFACT_PROPOSAL_CREATED")??null
     :null;
   const selectedTask=material.kind==="EXECUTION_TASK"
     ?(tasksQuery.data??[]).find((task)=>task.id===material.taskId)??null
     :null;
-  const selectedPackage=material.kind==="APPROVAL_PACKAGE"
+  const selectedPackage=material.kind==="APPROVAL_PACKAGE"&&workItem.stage==="AWAITING_SIGNOFF"
     ?signoffPackageQuery.data??null
     :null;
   const approvalsQuery=useQuery({
