@@ -119,7 +119,7 @@ SD20 exact-pin OpenCode proof is a mandatory IA23 precondition to IA26 and IA24:
 
 ### Pre-Approval structural-sensor correction
 
-The permanent package sensor is protected pre-signoff material. Its prior 48-path/67-exclusion/37-SURF/46-scenario checks are historical and must be updated to the exact revised 61-path scope/forecast, 59 exclusions, 38 SURF, 47 scenarios, new renderer registration, unchanged closed API/required absence, authority/Approval integration, single catalog and compiled blob identity. REV-F10 requires the two IA25 fixture owners; REV-F11 adds only the existing project-manifest effect owner, removes its exact exclusion, and binds the sole-writer maintenance boundary. No directory-wide scope and no production mutation until renewed exact-package authorization. The old signed candidate, scope proof and implementation evidence remain historical; a fresh reviewed input snapshot may be established only in this upstream revalidation, never during authorized mutation.
+The permanent package sensor is protected pre-signoff material. Its prior 48-path/67-exclusion/37-SURF/46-scenario checks are historical and must be updated to the exact revised 62-path scope/forecast, 58 exclusions, 38 SURF, 47 scenarios, new renderer registration, unchanged closed API/required absence, authority/Approval integration, single catalog and compiled blob identity. REV-F10 requires the two IA25 fixture owners; REV-F11 adds only the existing project-manifest effect owner, removes its exact exclusion, and binds the sole-writer maintenance boundary. No directory-wide scope and no production mutation until renewed exact-package authorization. The old signed candidate, scope proof and implementation evidence remain historical; a fresh reviewed input snapshot may be established only in this upstream revalidation, never during authorized mutation.
 
 This sensor correction is campaign/package fitness only: `tests/architecture.test.ts` remains outside signed implementation tasks. Re-run architecture and root/modular compilation checks on the corrected package before G5 may return to PASS.
 
@@ -236,7 +236,7 @@ V4/V5/V6 explicitly verify:
 - all 112 stable rows retain their exact current R1 evidence and DESIGN disposition;
 - all 27 package-local atoms, including `PL-C12-02`, are satisfied by the single T1 owner and the exact catalog-defined mutation/proof responsibilities, without duplicate semantic implementations;
 - every `POSITIVE_NO_CHANGE` and DESIGN-positive-reuse obligation remains true;
-- T1 uses revised exact 61-path candidate forecast and protected exclusions; no obsolete component recreation;
+- T1 uses revised exact 62-path candidate forecast and protected exclusions; no obsolete component recreation;
 - every actual changed path is inside signed `scope`, outside exclusions/protected material, and either forecast or positively proven as minimum same-layer responsibility-preserving variance;
 - forecast variance changes no semantic owner, public contract, state meaning, effect boundary, dependency direction/external dependency, validation contract or authorized behavior;
 - current-v2 task non-vacuity is enforced without changing published v1 task semantics or creating a second task schema/parser/review owner;
