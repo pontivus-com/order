@@ -71,15 +71,13 @@ const createProject = (): string => {
   return root;
 };
 
-const fakeOpenCodeSource = `#!/usr/bin/env bun
-import { appendFileSync, existsSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+// Embed fixture configuration in the executable: the actual installer
+// materializes only the binary, not adjacent test fixture files.
+const fakeOpenCodeSource = (config: Readonly<Record<string, unknown>>): string => `#!/usr/bin/env bun
+import { appendFileSync, writeFileSync } from "node:fs";
 
 const args = process.argv.slice(2);
-const configPath = join(dirname(process.argv[1]), ".fake-installer-opencode.json");
-const config = existsSync(configPath)
-  ? JSON.parse(readFileSync(configPath, "utf8"))
-  : {};
+const config = ${JSON.stringify(config)};
 const record = (value) => {
   if (config.recordPath) appendFileSync(config.recordPath, JSON.stringify(value) + "\\n");
 };
@@ -148,12 +146,8 @@ const createFakeOpenCode = (
   config: Readonly<Record<string, unknown>>,
 ): string => {
   const binary = join(root, "fake-installer-opencode.ts");
-  writeFileSync(binary, fakeOpenCodeSource, { mode: 0o755 });
+  writeFileSync(binary, fakeOpenCodeSource(config), { mode: 0o755 });
   chmodSync(binary, 0o755);
-  writeFileSync(
-    join(root, ".fake-installer-opencode.json"),
-    JSON.stringify(config),
-  );
   return binary;
 };
 
@@ -487,6 +481,7 @@ type InstallerTransactionFixture = Readonly<{
   setupAnswers?: Readonly<Record<string, string>>;
   providerRecordPath?: string;
   driftBeforeProvider?: string;
+  driftAtModelSelection?: string;
   failMarker?: boolean;
   failRename?: "app-backup" | "launcher-backup" | "app-activation" | "launcher-activation" | "unit-publication" | "unit-restoration" | "marker-publication" | "predecessor-app" | "predecessor-state" | "predecessor-db" | "predecessor-wal" | "predecessor-shm";
   interruptAtReadiness?: boolean;
@@ -838,13 +833,18 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
         const installed = path.join(options.env.BUN_INSTALL_BIN, "opencode");
         fs.copyFileSync(fixture.binary, installed);
         fs.chmodSync(installed, 0o755);
-        if (fixture.providerRecordPath) {
-          fs.copyFileSync(path.join(path.dirname(fixture.binary), ".fake-installer-opencode.json"),
-            path.join(path.dirname(installed), ".fake-installer-opencode.json"));
-        }
         return result();
       }
-      if (argv[0].endsWith("/runtime/opencode/opencode") && argv[1] === "--version") return result("opencode v2.2.6\\n");
+      if (argv[0].endsWith("/runtime/opencode/opencode") && argv[1] === "--version") {
+        // Prove that the binary used by installed setup retains recording
+        // instrumentation even in negative cases with no provider calls.
+        if (fixture.providerRecordPath &&
+            (!fs.readFileSync(argv[0]).equals(fs.readFileSync(fixture.binary)) ||
+             !fs.readFileSync(argv[0], "utf8").includes(JSON.stringify(fixture.providerRecordPath)))) {
+          throw new Error("installed provider fixture lost invocation recording");
+        }
+        return result("opencode v2.2.6\\n");
+      }
       if (argv[0].endsWith("/runtime/bun/bin/bun") && argv[1] === "ci") {
         fs.symlinkSync(path.join(sourceRoot, "node_modules"), path.join(options.cwd, "node_modules"), "dir");
         return result();
@@ -906,10 +906,13 @@ const runInstallerTransaction = (fixture: InstallerTransactionFixture) => {
           fs.existsSync(fixture.providerRecordPath)) {
         throw new Error("provider invoked before root correction");
       }
-      if (fixture.driftBeforeProvider && prompt === "STAGE reference root (blank for none): ") {
-        const moved = path.join(fixture.home, "retained-project-before-provider");
-        fs.renameSync(fixture.driftBeforeProvider, moved);
-        fs.symlinkSync(moved, fixture.driftBeforeProvider);
+      const driftRoot = prompt === "STAGE reference root (blank for none): "
+        ? fixture.driftBeforeProvider
+        : prompt.startsWith("Select model") ? fixture.driftAtModelSelection : undefined;
+      if (driftRoot) {
+        const moved = path.join(fixture.home, "retained-project-root-drift");
+        fs.renameSync(driftRoot, moved);
+        fs.symlinkSync(moved, driftRoot);
       }
       if (Object.hasOwn(fixture.setupAnswers ?? {}, prompt)) return fixture.setupAnswers[prompt];
       if (prompt === "Retain saved OpenCode credentials or login again? [retain/login]: ") return "retain";
@@ -1400,6 +1403,32 @@ describe("actual IA25 installer transaction", () => {
     expect(calls.every(call => call.cwd === replacement)).toBe(true);
     expect(outcome.marker).toBe(outcome.sourceCommit + "\n");
   }, 120_000);
+
+  it.each(["target", "reference"] as const)(
+    "rejects %s root drift at final model selection without publishing substituted configuration", kind => {
+      const fixture = transactionFixture();
+      const reference = tempDir("order-transaction-model-selection-reference-");
+      const recordRoot = tempDir("order-transaction-model-selection-provider-");
+      const providerRecordPath = join(recordRoot, "calls.jsonl");
+      const binary = createFakeOpenCode(recordRoot, { recordPath: providerRecordPath });
+      const model = { providerID: "opencode", id: "glm-5.3-flash-free" };
+      const original = JSON.stringify({
+        version: 4, model, repositoryRoots: [fixture.project], referenceRoots: [reference],
+      }) + "\n";
+      const configPath = join(fixture.stateRoot, "config.json");
+      writeFileSync(configPath, original, { mode: 0o600 });
+      const outcome = runInstallerTransaction({ ...fixture, binary, providerRecordPath,
+        driftAtModelSelection: kind === "target" ? fixture.project : reference,
+        readiness: { ready: true, blockers: [] },
+      });
+      expect(outcome.failure).toContain("configured root identity changed after model selection");
+      const calls = readFileSync(providerRecordPath, "utf8").trim().split("\n").map(line => JSON.parse(line));
+      expect(calls.some(call => call.kind === "serve")).toBe(true);
+      expect(calls.every(call => call.cwd === fixture.project)).toBe(true);
+      expect(readFileSync(configPath, "utf8")).toBe(original);
+      expect(outcome.marker).toBeNull();
+      expect(outcome.stdout).not.toContain("Order installed successfully.");
+    }, 120_000);
 
   it("rejects cancellation of required root repair before provider use or config publication", () => {
     const fixture = transactionFixture();

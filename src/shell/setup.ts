@@ -504,7 +504,13 @@ const runGuidedSetupInternal = async (
       const first = (await question("STAGE reference root (blank for none): ")).trim();
       if (first !== "") referenceRoots = await repairRoots(await collectAdditionalRoots(first, "reference", question), false);
     }
-    return buildOrderConfig(null, repositoryRoots, referenceRoots);
+    // Keep the exact paths admitted by repairRoots. Another prompt or
+    // filesystem observation can invalidate an earlier choice; a live
+    // builder here would silently adopt its new realpath before reproof.
+    return {
+      repositoryRoots: [...repositoryRoots].sort(),
+      referenceRoots: [...referenceRoots].sort(),
+    };
   };
 
   if (publication !== undefined) {
@@ -514,11 +520,14 @@ const runGuidedSetupInternal = async (
     if (installerRoots === null) return true;
     try {
       const roots = installerRoots;
-      const exact = buildOrderConfig(null, roots.repositoryRoots, roots.referenceRoots);
-      if (JSON.stringify(exact.repositoryRoots) !== JSON.stringify(roots.repositoryRoots) ||
-          JSON.stringify(exact.referenceRoots) !== JSON.stringify(roots.referenceRoots)) return false;
+      const pathsStillExact = (): boolean => {
+        const exact = buildOrderConfig(null, roots.repositoryRoots, roots.referenceRoots);
+        return JSON.stringify(exact.repositoryRoots) === JSON.stringify(roots.repositoryRoots) &&
+          JSON.stringify(exact.referenceRoots) === JSON.stringify(roots.referenceRoots);
+      };
+      if (!pathsStillExact()) return false;
       await loadConfiguredProjects(roots.repositoryRoots);
-      return true;
+      return pathsStillExact();
     } catch { return false; }
   };
   const repairStartupDrift = async (): Promise<boolean> => {
@@ -532,7 +541,9 @@ const runGuidedSetupInternal = async (
     onProviderFailure?: () => T,
   ): Promise<T> => {
     for (;;) {
-      await repairStartupDrift();
+      // A correction can itself be invalidated while answering another
+      // root question. Re-prove the complete repaired set before using it.
+      while (await repairStartupDrift()) { /* repeat guided correction */ }
       const workspace = installerRoots?.repositoryRoots[0] ?? existing?.repositoryRoots[0] ?? home;
       try {
         return await operation(workspace);
@@ -650,12 +661,15 @@ const runGuidedSetupInternal = async (
       : await collectAdditionalRoots(reference, "STAGE reference", question);
   }
 
-  await loadConfiguredProjects(repositoryRoots);
-  const config = buildOrderConfig(
-    selectedModel,
-    repositoryRoots,
-    referenceRoots,
-  );
+  // Installer roots were just re-proven after model selection. Persist
+  // those exact admitted paths through the existing stored-config writer;
+  // do not run a second canonicalizing builder that could substitute them.
+  if (installerRoots === null) await loadConfiguredProjects(repositoryRoots);
+  const config = installerRoots === null
+    ? buildOrderConfig(selectedModel, repositoryRoots, referenceRoots)
+    : OrderConfigSchema.parse({
+        version: 4, model: selectedModel, repositoryRoots, referenceRoots,
+      });
   writeOrderConfig(stateRoot, config, publication);
   writeStdout(
     upgrading
