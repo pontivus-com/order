@@ -12,6 +12,7 @@ import {
 } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
 import { workbenchQueryKeys } from "./query-keys.ts";
+import { admittedStageCompletion } from "../../src/core/lifecycle.ts";
 import type {
   CurrentAttentionTag,
   MaterialPresentationState,
@@ -91,7 +92,6 @@ export const ReadinessWorkspace = ({
   runEvents,
   artifacts,
   material,
-  materialState,
   materialStateForArtifact,
   reviewNotice,
   reviewAction,
@@ -132,8 +132,23 @@ export const ReadinessWorkspace = ({
   onMutationRefresh: (acceptedEvent?: RunEvent) => Promise<void>;
   onMutationError?: (error: unknown) => void;
 }>) => {
-  const readinessArtifact =
-    artifacts.find((artifact) => artifact.role === "R3") ?? null;
+  const stageRuns = [...runs]
+    .filter((run) => run.role === "STAGE" && run.stage === "R3")
+    .sort(
+      (left, right) =>
+        right.attempt - left.attempt ||
+        right.startedAt.localeCompare(left.startedAt) ||
+        right.id.localeCompare(left.id),
+    );
+  const latestRun = stageRuns[0] ?? null;
+  const selectedRun = material.kind === "STAGE_RUN"
+    ? stageRuns.find(run => run.id === material.runId) ?? null : latestRun;
+  const completion = selectedRun === null ? null :
+    admittedStageCompletion(workItem.id, selectedRun, runEvents);
+  const matchingArtifacts = completion === null ? [] :
+    artifacts.filter(artifact => artifact.id === completion.artifactRefIds[0] &&
+      artifact.workItemId === workItem.id && artifact.role === "R3");
+  const readinessArtifact = matchingArtifacts.length === 1 ? matchingArtifacts[0]! : null;
   const readinessContentQuery = useQuery({
     queryKey: workbenchQueryKeys.artifactContent(readinessArtifact?.id ?? null),
     queryFn: () => {
@@ -153,31 +168,9 @@ export const ReadinessWorkspace = ({
       ? null
       : readinessFindingsMarkdown(readinessMarkdown);
 
-  const stageRuns = [...runs]
-    .filter((run) => run.role === "STAGE" && run.stage === "R3")
-    .sort(
-      (left, right) =>
-        right.attempt - left.attempt ||
-        right.startedAt.localeCompare(left.startedAt) ||
-        right.id.localeCompare(left.id),
-    );
-  const latestRun = stageRuns[0] ?? null;
-  const completion =
-    latestRun === null
-      ? null
-      : [...runEvents]
-        .filter(
-          (event) =>
-            event.runId === latestRun.id &&
-            event.event.tag === "STAGE_COMPLETED" &&
-            event.event.completion.stage === "R3",
-        )
-        .sort((left, right) => right.sequence - left.sequence)[0] ?? null;
-  const outcome =
-    completion?.event.tag === "STAGE_COMPLETED" &&
-      completion.event.completion.stage === "R3"
-      ? completion.event.completion.outcome
-      : null;
+  const outcome = completion?.completion.stage === "R3" &&
+    readinessArtifact !== null && readinessContentQuery.isSuccess &&
+    readinessMarkdown !== null ? completion.completion.outcome : null;
 
   const verdict =
     outcome !== null
@@ -314,7 +307,7 @@ export const ReadinessWorkspace = ({
               workItem={workItem}
               artifactId={selectedSupportingArtifact.id}
               materialState={selectedSupportingMaterialState}
-              historicalArtifact={selectedSupportingMaterialState?.tag === "HISTORICAL" ? selectedSupportingArtifact : undefined}
+              historicalArtifact={selectedSupportingMaterialState?.tag === "HISTORICAL" || selectedSupportingMaterialState?.tag === "SIGNED_LOCKED" ? selectedSupportingArtifact : undefined}
               onOpenArtifactEvidence={onOpenArtifactEvidence}
               onContextDocumentChange={onContextDocumentChange}
             />
@@ -336,11 +329,14 @@ export const ReadinessWorkspace = ({
   const historicalRunSelected =
     material.kind === "STAGE_RUN" &&
     material.runId !== currentRunId;
+  const activeDialogueSelected = material.kind === "STAGE_RUN" &&
+    currentInteraction !== null && currentInteraction.tag !== "CLOSED";
 
   if (
     selectedSecondary !== null &&
     (
       requiredInputOwnsAttention ||
+      activeDialogueSelected ||
       historicalRunSelected ||
       material.kind === "SUPPORTING_DOCUMENT"
     )
@@ -365,10 +361,11 @@ export const ReadinessWorkspace = ({
     return <div data-testid="review-workspace">{selectedSecondary}</div>;
   }
 
+  const exactMaterialState = readinessArtifact === null ? null : materialStateForArtifact(readinessArtifact);
   const materialCurrentness =
-    materialState === null
+    exactMaterialState === null
       ? undefined
-      : materialPresentationStateLabel(materialState);
+      : materialPresentationStateLabel(exactMaterialState);
   const currentness =
     materialCurrentness === verdict ? undefined : materialCurrentness;
 

@@ -1,4 +1,6 @@
 import type {
+  Approval,
+  Sha256,
   ArtifactRef,
   EvidencePath,
   ExecutionTask,
@@ -133,7 +135,7 @@ export type WorkflowMaterial =
   | Readonly<{ kind: "SUPPORTING_DOCUMENT"; artifactId: ArtifactRef["id"] }>
   | Readonly<{ kind: "PROPOSAL"; runId: Run["id"]; eventId: RunEventId }>
   | Readonly<{ kind: "READINESS_REVIEW" }>
-  | Readonly<{ kind: "APPROVAL_PACKAGE" }>
+  | Readonly<{ kind: "APPROVAL_PACKAGE"; approvalId?: Approval["id"]; packageHash?: Sha256; artifactId?: ArtifactRef["id"]; taskId?: string }>
   | Readonly<{
       kind: "EXECUTION_TASK";
       taskId: ExecutionTask["id"];
@@ -157,7 +159,7 @@ export const selectedContextArtifactId = (
   document: ContextDocumentIdentity | null,
 ): ArtifactRef["id"] | null => {
   if (material.kind === "STAGE_DOCUMENT" || material.kind === "SUPPORTING_DOCUMENT") return material.artifactId;
-  if (material.kind === "APPROVAL_PACKAGE") return document?.artifactId ?? null;
+  if (material.kind === "APPROVAL_PACKAGE") return material.artifactId ?? document?.artifactId ?? null;
   return null;
 };
 
@@ -224,11 +226,12 @@ export const workflowMaterialIdentity = (
   switch (material.kind) {
     case "SOURCE_DOCUMENT":
     case "READINESS_REVIEW":
-    case "APPROVAL_PACKAGE":
     case "TERMINAL_RESULT":
     case "STEP_STATE":
     case "UNREACHED":
       return material.kind;
+    case "APPROVAL_PACKAGE":
+      return [material.kind,material.approvalId??material.packageHash??"unresolved",material.artifactId??"",material.taskId??""].join(":");
     case "STAGE_RUN":
       return material.kind + ":" + material.runId;
     case "STAGE_DOCUMENT":
@@ -354,8 +357,7 @@ const selectedMaterialIsAvailable = (
     case "READINESS_REVIEW":
       return input.selectedStep === "R3";
     case "APPROVAL_PACKAGE":
-      return input.selectedStep === "AWAITING_SIGNOFF" &&
-        input.approvalPackageAvailable === true;
+      return input.selectedStep === "AWAITING_SIGNOFF";
     case "EXECUTION_TASK":
       return input.selectedStep === "EXECUTION" &&
         (input.tasks ?? []).some((task) => task.id === selection.taskId) &&
@@ -566,9 +568,8 @@ export const resolveWorkflowMaterial = (
   if (stepState === "UNREACHED") return { kind: "UNREACHED" };
 
   if (input.selectedStep === "AWAITING_SIGNOFF") {
-    return input.approvalPackageAvailable === true
-      ? { kind: "APPROVAL_PACKAGE" }
-      : { kind: "STEP_STATE" };
+    if (explicitIsAvailable && explicit?.kind === "APPROVAL_PACKAGE") return explicit;
+    return { kind: "APPROVAL_PACKAGE" };
   }
 
   if (input.selectedStep === "EXECUTION") {
