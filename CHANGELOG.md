@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Consolidate G-F41/G-F42 definition revalidation into one impact review; retain unaffected evidence and verify the actual scope, dependencies and downstream proof without repeating unchanged audits.
+
 - Clarify minimum-change verification: test the actual change, material producer/carrier/consumer dependencies and side effects; retain unaffected evidence, and do not turn non-blocking findings or identity-only changes into repeated semantic review. Preserve mandatory signed admission and final certification.
 
 - Amend the existing signed Approval artifact observation for exact task/criterion document selection, and reconcile the one excluded SettingsLayout continuity path through the upstream 62-path/58-exclusion forecast, compiled PLAN and protected scope sensor before renewed sign-off.
