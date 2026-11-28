@@ -3504,6 +3504,8 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     route: routeValue(),
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM"],
   }, moveDocuments);
+  await expect(moveDocuments.getByTestId("move-workitem-documents")).toBeVisible();
+  await expect(moveDocuments.getByRole("button", { name: "Cancel move" })).toBeVisible();
   await moveDocuments.getByRole("button", { name: "Cancel move" }).click();
 
   await repositoryRow.getByRole("button", { name: /^Disconnect / }).click();
@@ -3541,6 +3543,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
 
   await openCode.getByRole("button", { name: "Rename beta@example.com" }).click();
   const renameAccount = page.getByTestId("rename-opencode-account");
+  await expect(renameAccount).toBeVisible();
   await capture({
     id: "ia26-settings-opencode-rename-wide-light",
     workItemKind: "QUEUE",
@@ -3603,6 +3606,8 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     route: routeValue(),
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-OPENCODE-INTEGRATION-V1"],
   }, loginAttempt);
+  await expect(loginAttempt).toContainText("Waiting for sign-in");
+  await expect(loginAttempt.getByRole("button", { name: "Cancel OpenCode sign-in" })).toBeVisible();
   await loginAttempt.getByRole("button", { name: "Cancel OpenCode sign-in" }).click();
   await expect(openCode.getByRole("button", { name: "Add account" })).toBeVisible();
 
