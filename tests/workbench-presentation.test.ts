@@ -27,6 +27,9 @@ import {
   runEventPresentation,
   stageCompletionProductLabel,
   workflowMaterialIdentity,
+  bindProspectiveApprovalSelection,
+  prospectiveApprovalIsSuperseded,
+  exactReadinessPackageDocuments,
   workflowRunEvents,
   readinessOutcomeLabel,
   runStatusLabel,
@@ -280,6 +283,31 @@ describe("workflow presentation policy", () => {
       .not.toBe(workflowMaterialIdentity(first));
     expect(workflowMaterialIdentity({kind:"APPROVAL_PACKAGE",packageHash:hash}))
       .not.toBe(workflowMaterialIdentity(first));
+  });
+
+  it("preserves prospective package and child identity on a superseding observation", () => {
+    const first = bindProspectiveApprovalSelection({ kind: "APPROVAL_PACKAGE" }, hash);
+    const detail = { ...first, taskId: "T1" };
+    const replacementHash = `sha256:${"b".repeat(64)}`;
+    expect(bindProspectiveApprovalSelection(detail, replacementHash)).toEqual(detail);
+    expect(prospectiveApprovalIsSuperseded(detail, replacementHash)).toBe(true);
+    expect(prospectiveApprovalIsSuperseded(detail, hash)).toBe(false);
+    expect(bindProspectiveApprovalSelection(detail, null)).toEqual(detail);
+    const replacement = bindProspectiveApprovalSelection({ kind: "APPROVAL_PACKAGE" }, replacementHash);
+    expect(replacement).toEqual({ kind: "APPROVAL_PACKAGE", packageHash: replacementHash });
+    expect(prospectiveApprovalIsSuperseded(replacement, replacementHash)).toBe(false);
+  });
+
+  it("admits reviewed documents only from a closure containing the exact R3 root", () => {
+    const root = artifact("R3", uuidB);
+    const plan = artifact("PLAN", uuidC);
+    const competing = ArtifactRefSchema.parse({ ...root, id: "artifact_" + uuidD });
+    const foreign = ArtifactRefSchema.parse({ ...plan, workItemId: "work_" + uuidE });
+    expect(exactReadinessPackageDocuments(root, [root, plan])).toEqual([plan]);
+    expect(exactReadinessPackageDocuments(root, [competing, plan])).toBeNull();
+    expect(exactReadinessPackageDocuments(root, [root, foreign])).toBeNull();
+    expect(exactReadinessPackageDocuments(root, [root, root, plan])).toBeNull();
+    expect(exactReadinessPackageDocuments(root, [plan])).toBeNull();
   });
 
   it("uses explicit canonical product labels and typed Readiness outcomes", () => {

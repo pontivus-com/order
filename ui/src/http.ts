@@ -68,6 +68,7 @@ import {
   type RunEvent,
   type RunEventId,
   type RunId,
+  type Sha256,
   type SignoffPackage,
   type SetWorkItemArchived,
   type UpdateConfiguredModel,

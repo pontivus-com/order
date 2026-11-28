@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Correct Wave 3 strict-typing defects, pin prospective Approval inspection to its selected package identity, and display Readiness package documents only from exact available canonical membership; do not substitute unrelated history.
+
 - Establish settled theme-control paint before browser contrast certification; preserve the 4.5 minimum and all appearance behavior checks.
 
 - Reconcile residual campaign-control HUX progression language with autonomous signed execution and independent phase-local QA; retain final explicit operator acceptance and unchanged T1.

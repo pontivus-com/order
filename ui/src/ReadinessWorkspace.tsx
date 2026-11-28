@@ -23,6 +23,7 @@ import { ReadOnlyLifecycleDocumentMaterial } from "./DocumentWorkspace.tsx";
 import { EvidenceViewer } from "./EvidenceViewer.tsx";
 import {
   eventEvidence,
+  exactReadinessPackageDocuments,
   lifecycleArtifactLabel,
   materialPresentationStateLabel,
   readinessOutcomeLabel,
@@ -36,13 +37,6 @@ import { WorkbenchResourceList } from "./primitives/WorkbenchResourceList.tsx";
 import { WorkbenchReview } from "./primitives/WorkbenchReview.tsx";
 import { WorkbenchState } from "./primitives/WorkbenchState.tsx";
 import { WorkbenchIcon } from "./primitives/WorkbenchIcon.tsx";
-
-const packageRoles = new Set<ArtifactRef["role"]>([
-  "R1",
-  "R2",
-  "DESIGN",
-  "PLAN",
-]);
 
 const decodeCanonicalMarkdown = (bytes: Uint8Array): string | null => {
   try {
@@ -209,10 +203,48 @@ export const ReadinessWorkspace = ({
           ? "Readiness returned ownership to the upstream stage named in the findings."
           : "The review did not establish readiness for sign-off.";
 
-  const packageArtifacts = artifacts
-    .filter((artifact) => packageRoles.has(artifact.role))
-    .sort((left, right) =>
-      left.repositoryPath.localeCompare(right.repositoryPath));
+  const prospectivePackageQuery = useQuery({
+    queryKey: workbenchQueryKeys.signoffPackage(workItem.id),
+    queryFn: () => api.getSignoffPackage(workItem.id),
+    enabled: readinessArtifact !== null && workItem.stage === "AWAITING_SIGNOFF",
+  });
+  const prospectiveHash = workItem.stage === "AWAITING_SIGNOFF" &&
+    prospectivePackageQuery.isSuccess ? prospectivePackageQuery.data.packageHash : null;
+  const prospectiveClosureQuery = useQuery({
+    queryKey: workbenchQueryKeys.signoffPackageArtifacts(workItem.id, prospectiveHash),
+    queryFn: () => {
+      if (prospectiveHash === null) throw new TypeError("prospective package hash required");
+      return api.listSignoffPackageArtifacts(workItem.id, prospectiveHash);
+    },
+    enabled: readinessArtifact !== null && prospectiveHash !== null,
+    retry: false,
+  });
+  const approvalHistoryQuery = useQuery({
+    queryKey: workbenchQueryKeys.approvals(workItem.id),
+    queryFn: () => api.listApprovals(workItem.id),
+    enabled: readinessArtifact !== null,
+  });
+  const matchingApproval = readinessArtifact === null ? null :
+    approvalHistoryQuery.data?.find(approval => approval.workItemId === workItem.id &&
+      approval.r3ArtifactRefId === readinessArtifact.id) ?? null;
+  const signedClosureQuery = useQuery({
+    queryKey: workbenchQueryKeys.approvalArtifacts(workItem.id, matchingApproval?.id ?? null),
+    queryFn: () => {
+      if (matchingApproval === null) throw new TypeError("exact Approval identity required");
+      return api.listApprovalArtifacts(workItem.id, matchingApproval.id);
+    },
+    enabled: matchingApproval !== null,
+    retry: false,
+  });
+  const packageArtifacts = readinessArtifact === null ? null :
+    (prospectiveHash !== null && prospectiveClosureQuery.isSuccess && !prospectiveClosureQuery.isFetching
+      ? exactReadinessPackageDocuments(readinessArtifact, prospectiveClosureQuery.data) : null) ??
+    (matchingApproval !== null && signedClosureQuery.isSuccess && !signedClosureQuery.isFetching
+      ? exactReadinessPackageDocuments(readinessArtifact, signedClosureQuery.data) : null);
+  const packagePending = readinessArtifact !== null && (approvalHistoryQuery.isFetching ||
+    (workItem.stage === "AWAITING_SIGNOFF" && prospectivePackageQuery.isFetching) ||
+    (prospectiveHash !== null && prospectiveClosureQuery.isFetching) ||
+    (matchingApproval !== null && signedClosureQuery.isFetching));
 
   const selectedSupportingArtifact =
     material.kind === "SUPPORTING_DOCUMENT"
@@ -367,7 +399,9 @@ export const ReadinessWorkspace = ({
   const currentness =
     materialCurrentness === verdict ? undefined : materialCurrentness;
 
-  const packageItems = packageArtifacts.map((artifact) => ({
+  const packageItems = [...(packageArtifacts ?? [])]
+    .sort((left, right) => left.repositoryPath.localeCompare(right.repositoryPath))
+    .map((artifact) => ({
       id: "package-" + artifact.id,
       label: lifecycleArtifactLabel(artifact.role),
       action: (
@@ -477,9 +511,14 @@ export const ReadinessWorkspace = ({
           {
             id: "package",
             title: "Package documents",
-            content: packageItems.length === 0
-              ? <WorkbenchState kind="empty" title="No package documents" />
-              : <WorkbenchResourceList items={packageItems} />,
+            content: packageArtifacts === null
+              ? packagePending
+                ? <WorkbenchState kind="loading" title="Resolving exact reviewed package…" />
+                : <WorkbenchState kind="empty" title="Exact reviewed package unavailable"
+                    description="Package membership cannot be established for this Readiness result." />
+              : packageItems.length === 0
+                ? <WorkbenchState kind="empty" title="No package documents" />
+                : <WorkbenchResourceList items={packageItems} />,
           },
           {
             id: "evidence",

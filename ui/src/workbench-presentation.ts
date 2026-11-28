@@ -166,6 +166,40 @@ export type WorkflowMaterial =
   | Readonly<{ kind: "STEP_STATE" }>
   | Readonly<{ kind: "UNREACHED" }>;
 
+// Keep an explicitly inspected prospective package pinned until the operator
+// deliberately selects another package. An unbound overview may bind once.
+export const bindProspectiveApprovalSelection = (
+  selection: Extract<WorkflowMaterial, { kind: "APPROVAL_PACKAGE" }>,
+  currentPackageHash: Sha256 | null,
+): Extract<WorkflowMaterial, { kind: "APPROVAL_PACKAGE" }> =>
+  selection.approvalId !== undefined || selection.packageHash !== undefined || currentPackageHash === null
+    ? selection
+    : { kind: "APPROVAL_PACKAGE", packageHash: currentPackageHash };
+
+export const prospectiveApprovalIsSuperseded = (
+  selection: Extract<WorkflowMaterial, { kind: "APPROVAL_PACKAGE" }>,
+  currentPackageHash: Sha256 | null,
+): boolean =>
+  selection.approvalId === undefined && selection.packageHash !== undefined &&
+  currentPackageHash !== null && selection.packageHash !== currentPackageHash;
+
+// Only the server's exact root-plus-dependency closure can establish package
+// membership. The general artifact inventory cannot establish this relation.
+export const exactReadinessPackageDocuments = (
+  root: ArtifactRef,
+  closure: readonly ArtifactRef[],
+): readonly ArtifactRef[] | null => {
+  if (root.role !== "R3" ||
+      closure.some(artifact => artifact.workItemId !== root.workItemId) ||
+      new Set(closure.map(artifact => artifact.id)).size !== closure.length ||
+      !closure.some(artifact => artifact.id === root.id && artifact.role === "R3" &&
+        artifact.repositoryPath === root.repositoryPath && artifact.sha256 === root.sha256 &&
+        artifact.authorityLayer === root.authorityLayer && artifact.gitCommit === root.gitCommit)) return null;
+  return closure.filter(artifact =>
+    artifact.role === "R1" || artifact.role === "R2" ||
+    artifact.role === "DESIGN" || artifact.role === "PLAN");
+};
+
 // Exact identity, not a repository-path lookup. Document consumers report
 // the ArtifactRef they actually opened; source identity remains separate.
 export type ContextDocumentIdentity = Readonly<{

@@ -92,7 +92,7 @@ export const WorkItemContext=({workItem,selectedStep,selectedMaterial,selectedDo
     ?(approvalsQuery.data??[]).find(approval=>approval.id===selectedTask.approvalId&&approval.workItemId===workItem.id)??null
     :material.kind==="APPROVAL_PACKAGE"&&material.approvalId!==undefined
       ?(approvalsQuery.data??[]).find(approval=>approval.id===material.approvalId&&approval.workItemId===workItem.id)??null
-      :material.kind==="APPROVAL_PACKAGE"&&
+      :material.kind==="APPROVAL_PACKAGE"&&material.packageHash===undefined&&
       (workItem.stage==="EXECUTION"||workItem.stage==="COMPLETE")?finalApprovalQuery.data??null:null;
   const selectedDocumentIsRelevant=sourceSelected||artifactId!==null;
 
@@ -106,6 +106,12 @@ export const WorkItemContext=({workItem,selectedStep,selectedMaterial,selectedDo
           {artifactId!==null&&selectedDocumentArtifact===null?(
             <WorkbenchNotice tone={artifactsQuery.isPending?"info":"warning"}
               title={artifactsQuery.isPending?"Resolving selected document":"Selected document identity unavailable"}/>
+          ):null}
+          {material.kind==="APPROVAL_PACKAGE"&&material.approvalId===undefined&&
+            material.packageHash!==undefined&&selectedPackage===null?(
+            <WorkbenchFacts label="Inspected package identity" items={[
+              {id:"inspected-package-hash",label:"Inspected package hash",value:<code data-testid="context-signoff-package-hash">{material.packageHash}</code>},
+            ]}/>
           ):null}
           {selectedDocumentIsRelevant&&selectedDocumentPath?(
             <WorkbenchFacts

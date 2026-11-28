@@ -120,6 +120,7 @@ export const SignoffReview = ({
   packageFetching,
   packageError,
   packageStale = false,
+  packageSuperseded = false,
   selectedApproval,
   approvals,
   selection,
@@ -143,6 +144,7 @@ export const SignoffReview = ({
   packageFetching: boolean;
   packageError: unknown;
   packageStale?: boolean;
+  packageSuperseded?: boolean;
   selectedApproval: Approval | null;
   approvals: readonly Approval[];
   selection: ApprovalSelection;
@@ -197,7 +199,7 @@ export const SignoffReview = ({
 
   const signoff = useMutation({
     mutationFn: () => {
-      if (packageValue === null || packageStale || artifactsPending || artifactsError !== null ||
+      if (packageSuperseded || packageValue === null || packageStale || artifactsPending || artifactsError !== null ||
           artifacts.length === 0 || selection.packageHash !== packageValue.packageHash) {
         throw new TypeError("current sign-off package is unavailable");
       }
@@ -216,6 +218,19 @@ export const SignoffReview = ({
       if (currentApproval) await invalidate();
     },
   });
+
+  if (packageSuperseded) {
+    return (
+      <div data-testid="review-workspace">
+        <WorkbenchState
+          kind="error"
+          title="Inspected package is no longer current"
+          description="The selected package has been superseded. Review the current work before authorizing another package."
+          action={reviewAction}
+        />
+      </div>
+    );
+  }
 
   if (
     artifactsPending ||

@@ -23,6 +23,8 @@ import {
 import * as api from "./http.ts";
 import { invalidateWorkbenchMutation, workbenchQueryKeys } from "./query-keys.ts";
 import {
+  bindProspectiveApprovalSelection,
+  prospectiveApprovalIsSuperseded,
   resolveWorkflowMaterial,
   runIsActive,
   workflowStepState,
@@ -233,7 +235,7 @@ export const WorkItemWorkspace = ({
   });
   const explicitApproval = explicitMaterial?.kind === "APPROVAL_PACKAGE" ? explicitMaterial : null;
   const selectedApproval = explicitApproval?.approvalId === undefined
-    ? workItem.stage === "AWAITING_SIGNOFF" ? null : currentApproval ??
+    ? workItem.stage === "AWAITING_SIGNOFF" || explicitApproval?.packageHash !== undefined ? null : currentApproval ??
       (currentApprovalRequired ? null : approvalsQuery.data?.at(-1) ?? null)
     : approvalsQuery.data?.find(approval => approval.id === explicitApproval.approvalId) ?? null;
   const selectedApprovalUnresolved = explicitApproval?.approvalId !== undefined && selectedApproval === null;
@@ -629,12 +631,19 @@ export const WorkItemWorkspace = ({
       ...(resolvedMaterial.approvalId === selectedApproval.id ? {
         artifactId: resolvedMaterial.artifactId, taskId: resolvedMaterial.taskId,
       } : {}),
-    } : packageHash !== null ? {
-      kind: "APPROVAL_PACKAGE", packageHash,
-      ...(resolvedMaterial.packageHash === packageHash ? {
-        artifactId: resolvedMaterial.artifactId, taskId: resolvedMaterial.taskId,
-      } : {}),
-    } : { kind: "APPROVAL_PACKAGE" };
+    } : bindProspectiveApprovalSelection(resolvedMaterial, packageHash);
+  const supersededProspective = material.kind === "APPROVAL_PACKAGE" &&
+    (prospectiveApprovalIsSuperseded(material, packageHash) ||
+      (material.approvalId === undefined && material.packageHash !== undefined &&
+        workItem.stage !== "AWAITING_SIGNOFF"));
+  useEffect(() => {
+    if (selectedStep !== "AWAITING_SIGNOFF" || workItem.stage !== "AWAITING_SIGNOFF" ||
+        material.kind !== "APPROVAL_PACKAGE" || material.approvalId !== undefined ||
+        material.packageHash === undefined) return;
+    setExplicitMaterial(previous => previous === null ||
+      (previous.kind === "APPROVAL_PACKAGE" && previous.approvalId === undefined &&
+        previous.packageHash === undefined) ? material : previous);
+  }, [selectedStep, workItem.stage, material.kind, packageHash]);
   const resolvedCurrentMaterial = resolveWorkflowMaterial({
     workItem,
     selectedStep: workItem.stage,
@@ -1428,10 +1437,12 @@ export const WorkItemWorkspace = ({
       ) : selectedStep === "AWAITING_SIGNOFF" ? (
         <Suspense fallback={<WorkbenchState kind="loading" title="Loading approval package…" />}>
           <SignoffReview
+            key={material.kind === "APPROVAL_PACKAGE" ? material.approvalId ?? material.packageHash ?? "unresolved" : "unresolved"}
             workItem={workItem}
+            packageSuperseded={supersededProspective}
             reviewNotice={currentReviewNotice}
             reviewAction={historicalReturn ?? currentMaterialAction}
-            packageValue={selectedApproval === null && workItem.stage === "AWAITING_SIGNOFF" ? signoffPackageQuery.data ?? null : null}
+            packageValue={!supersededProspective && selectedApproval === null && workItem.stage === "AWAITING_SIGNOFF" ? signoffPackageQuery.data ?? null : null}
             packageFetching={selectedApproval === null && signoffPackageQuery.isFetching}
             packageError={selectedApproval === null ? signoffPackageQuery.error : null}
             packageStale={selectedApproval === null && packageStaleOwner !== null}
@@ -1441,7 +1452,7 @@ export const WorkItemWorkspace = ({
             onSelectionChange={(next) => requestSelection({step:"AWAITING_SIGNOFF",material:next})}
             materialStateForArtifact={(artifact) => selectedApproval !== null && selectedApproval.id !== currentApproval?.id
               ? { tag: "HISTORICAL" } : materialStateForArtifact(artifact)}
-            artifacts={selectedApproval !== null ? selectedApprovalArtifactsQuery.data ?? [] : prospectiveArtifactsQuery.data ?? []}
+            artifacts={supersededProspective ? [] : selectedApproval !== null ? selectedApprovalArtifactsQuery.data ?? [] : prospectiveArtifactsQuery.data ?? []}
             artifactsPending={approvalsQuery.isPending || (currentApprovalRequired && currentApprovalQuery.isPending) || (selectedApproval !== null
               ? selectedApprovalArtifactsQuery.isPending || selectedApprovalArtifactsQuery.isFetching
               : packageHash !== null && (prospectiveArtifactsQuery.isPending || prospectiveArtifactsQuery.isFetching))}
@@ -1553,13 +1564,6 @@ export const WorkItemWorkspace = ({
                       ? "Use the current workflow action to begin this step."
                       : "This reached workflow step has no current canonical material to inspect."
                   }
-                />
-              ) : null}
-              {material.kind === "UNREACHED" ? (
-                <WorkbenchEmptyState
-                  compact
-                  title={selectedWorkflow.label + " has not been reached"}
-                  description="Workflow inspection does not create or promote lifecycle state."
                 />
               ) : null}
               </Suspense>
