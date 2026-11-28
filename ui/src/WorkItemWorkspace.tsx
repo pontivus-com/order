@@ -3,7 +3,7 @@ import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/rea
 import { Link } from "@astryxdesign/core/Link";
 import { TextInput } from "@astryxdesign/core/TextInput";
 
-import type { ArtifactRef, Run, RunEvent, Sha256, WorkItem, WorkItemSchemaCatalogEntry } from "../../src/core/contracts.ts";
+import type { ArtifactRef, Run, RunEvent, Sha256, SignoffPackage, WorkItem, WorkItemSchemaCatalogEntry } from "../../src/core/contracts.ts";
 import {
   artifactHasCurrentStageConformance,
   deriveCurrentAttention,
@@ -219,6 +219,13 @@ export const WorkItemWorkspace = ({
     enabled: workItem.stage === "AWAITING_SIGNOFF",
   });
   const packageHash = workItem.stage === "AWAITING_SIGNOFF" ? signoffPackageQuery.data?.packageHash ?? null : null;
+  useEffect(() => {
+    if (!signoffPackageQuery.isSuccess || signoffPackageQuery.data === undefined) return;
+    const observed = signoffPackageQuery.data;
+    // Retain the canonical response by exact identity for read-only inspection
+    // after the current package changes. This cache never authorizes sign-off.
+    queryClient.setQueryData(workbenchQueryKeys.observedSignoffPackage(workItem.id, observed.packageHash), observed);
+  }, [queryClient, workItem.id, signoffPackageQuery.data, signoffPackageQuery.isSuccess]);
   const prospectiveArtifactsQuery = useQuery({
     queryKey: workbenchQueryKeys.signoffPackageArtifacts(workItem.id, packageHash),
     queryFn: () => {
@@ -643,7 +650,13 @@ export const WorkItemWorkspace = ({
     setExplicitMaterial(previous => previous === null ||
       (previous.kind === "APPROVAL_PACKAGE" && previous.approvalId === undefined &&
         previous.packageHash === undefined) ? material : previous);
-  }, [selectedStep, workItem.stage, material.kind, packageHash]);
+  }, [selectedStep, workItem.stage, material.kind, packageHash, explicitMaterial]);
+  const supersededHash = supersededProspective && material.kind === "APPROVAL_PACKAGE"
+    ? material.packageHash : undefined;
+  const supersededPackage = supersededHash === undefined ? null :
+    queryClient.getQueryData<SignoffPackage>(workbenchQueryKeys.observedSignoffPackage(workItem.id, supersededHash)) ?? null;
+  const supersededArtifacts = supersededHash === undefined ? [] :
+    queryClient.getQueryData<readonly ArtifactRef[]>(workbenchQueryKeys.signoffPackageArtifacts(workItem.id, supersededHash)) ?? [];
   const resolvedCurrentMaterial = resolveWorkflowMaterial({
     workItem,
     selectedStep: workItem.stage,
@@ -1410,6 +1423,7 @@ export const WorkItemWorkspace = ({
             runs={runs}
             runEvents={allRunEvents}
             artifacts={inspectionArtifacts}
+            currentLifecycleArtifacts={artifacts}
             material={material}
             materialState={selectedStageMaterialState}
             materialStateForArtifact={materialStateForArtifact}
@@ -1442,7 +1456,7 @@ export const WorkItemWorkspace = ({
             packageSuperseded={supersededProspective}
             reviewNotice={currentReviewNotice}
             reviewAction={historicalReturn ?? currentMaterialAction}
-            packageValue={!supersededProspective && selectedApproval === null && workItem.stage === "AWAITING_SIGNOFF" ? signoffPackageQuery.data ?? null : null}
+            packageValue={supersededProspective ? supersededPackage : selectedApproval === null && workItem.stage === "AWAITING_SIGNOFF" ? signoffPackageQuery.data ?? null : null}
             packageFetching={selectedApproval === null && signoffPackageQuery.isFetching}
             packageError={selectedApproval === null ? signoffPackageQuery.error : null}
             packageStale={selectedApproval === null && packageStaleOwner !== null}
@@ -1450,9 +1464,9 @@ export const WorkItemWorkspace = ({
             approvals={approvalsQuery.data ?? []}
             selection={material.kind === "APPROVAL_PACKAGE" ? material : {kind:"APPROVAL_PACKAGE"}}
             onSelectionChange={(next) => requestSelection({step:"AWAITING_SIGNOFF",material:next})}
-            materialStateForArtifact={(artifact) => selectedApproval !== null && selectedApproval.id !== currentApproval?.id
+            materialStateForArtifact={(artifact) => supersededProspective || (selectedApproval !== null && selectedApproval.id !== currentApproval?.id)
               ? { tag: "HISTORICAL" } : materialStateForArtifact(artifact)}
-            artifacts={supersededProspective ? [] : selectedApproval !== null ? selectedApprovalArtifactsQuery.data ?? [] : prospectiveArtifactsQuery.data ?? []}
+            artifacts={supersededProspective ? supersededArtifacts : selectedApproval !== null ? selectedApprovalArtifactsQuery.data ?? [] : prospectiveArtifactsQuery.data ?? []}
             artifactsPending={approvalsQuery.isPending || (currentApprovalRequired && currentApprovalQuery.isPending) || (selectedApproval !== null
               ? selectedApprovalArtifactsQuery.isPending || selectedApprovalArtifactsQuery.isFetching
               : packageHash !== null && (prospectiveArtifactsQuery.isPending || prospectiveArtifactsQuery.isFetching))}

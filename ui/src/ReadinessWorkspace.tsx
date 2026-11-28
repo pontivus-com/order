@@ -82,6 +82,7 @@ export const ReadinessWorkspace = ({
   runs,
   runEvents,
   artifacts,
+  currentLifecycleArtifacts,
   material,
   materialStateForArtifact,
   reviewNotice,
@@ -104,6 +105,7 @@ export const ReadinessWorkspace = ({
   runs: readonly Run[];
   runEvents: readonly RunEvent[];
   artifacts: readonly ArtifactRef[];
+  currentLifecycleArtifacts: readonly ArtifactRef[];
   material: WorkflowMaterial;
   materialState: MaterialPresentationState | null;
   materialStateForArtifact: (artifact: ArtifactRef) => MaterialPresentationState | null;
@@ -236,7 +238,13 @@ export const ReadinessWorkspace = ({
     enabled: matchingApproval !== null,
     retry: false,
   });
-  const packageArtifacts = readinessArtifact === null ? null :
+  // Before any review has established a verdict, current upstream documents
+  // are inspection inputs, not a claim about a reviewed dependency closure.
+  const beforeReview = workItem.stage === "R3" && latestRun === null;
+  const packageArtifacts = beforeReview
+    ? currentLifecycleArtifacts.filter(artifact => artifact.workItemId === workItem.id &&
+      (artifact.role === "R1" || artifact.role === "R2" || artifact.role === "DESIGN" || artifact.role === "PLAN"))
+    : readinessArtifact === null ? null :
     (prospectiveHash !== null && prospectiveClosureQuery.isSuccess && !prospectiveClosureQuery.isFetching
       ? exactReadinessPackageDocuments(readinessArtifact, prospectiveClosureQuery.data) : null) ??
     (matchingApproval !== null && signedClosureQuery.isSuccess && !signedClosureQuery.isFetching
@@ -510,7 +518,7 @@ export const ReadinessWorkspace = ({
           },
           {
             id: "package",
-            title: "Package documents",
+            title: beforeReview ? "Package documents before review" : "Package documents",
             content: packageArtifacts === null
               ? packagePending
                 ? <WorkbenchState kind="loading" title="Resolving exact reviewed package…" />

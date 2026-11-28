@@ -41,6 +41,8 @@ export const workbenchQueryKeys = {
     ["lifecycleArtifacts", workItemId] as const,
   signoffPackage: (workItemId: WorkItemId) =>
     ["signoffPackage", workItemId] as const,
+  observedSignoffPackage: (workItemId: WorkItemId, packageHash: Sha256) =>
+    ["observedSignoffPackage", workItemId, packageHash] as const,
   signoffPackageArtifacts: (workItemId: WorkItemId, packageHash: Sha256 | null) =>
     ["signoffPackage", workItemId, packageHash, "artifacts"] as const,
   currentApproval: (workItemId: WorkItemId) =>

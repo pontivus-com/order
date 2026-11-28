@@ -169,7 +169,8 @@ export const SignoffReview = ({
       packageHash:selection.packageHash,...detail});
   const [approvedBy, setApprovedBy] = useState("");
 
-  const currentApproval = workItem.stage === "AWAITING_SIGNOFF" && selectedApproval === null && selection.approvalId === undefined;
+  const prospectiveSelection = selectedApproval === null && selection.approvalId === undefined && packageValue !== null;
+  const currentApproval = !packageSuperseded && workItem.stage === "AWAITING_SIGNOFF" && selectedApproval === null && selection.approvalId === undefined;
   const currentTasks = packageValue?.taskBlock.tasks ?? [];
   const approvalCompleted = selectedApproval !== null;
   const packageArtifacts = artifacts
@@ -184,7 +185,7 @@ export const SignoffReview = ({
       : null;
   const selectedTask =
     selection.taskId !== undefined
-      ? currentApproval
+      ? prospectiveSelection
         ? currentTasks.find((task) => task.id === selection.taskId) ?? null
         : tasks.find((task) => task.id === selection.taskId) ?? null
       : null;
@@ -219,7 +220,7 @@ export const SignoffReview = ({
     },
   });
 
-  if (packageSuperseded) {
+  if (packageSuperseded && packageValue === null) {
     return (
       <div data-testid="review-workspace">
         <WorkbenchState
@@ -233,8 +234,8 @@ export const SignoffReview = ({
   }
 
   if (
-    artifactsPending ||
-    (currentApproval ? packageFetching : tasksPending)
+    !packageSuperseded && (artifactsPending ||
+    (currentApproval ? packageFetching : tasksPending))
   ) {
     return (
       <div data-testid="review-workspace">
@@ -247,8 +248,8 @@ export const SignoffReview = ({
   }
 
   if (
-    artifactsError !== null ||
-    (currentApproval ? packageError !== null && !packageStale : tasksError !== null)
+    !packageSuperseded && (artifactsError !== null ||
+    (currentApproval ? packageError !== null && !packageStale : tasksError !== null))
   ) {
     const error =
       artifactsError ??
@@ -275,6 +276,7 @@ export const SignoffReview = ({
           />
           {reviewAction}
         </div>
+        {packageSuperseded ? <WorkbenchState kind="empty" title="Inspected package is no longer current" description="This document belongs to the superseded package." /> : null}
         {selectedArtifact === null ? (
           <WorkbenchState kind="empty" title="Governed document is no longer available" />
         ) : (
@@ -283,7 +285,7 @@ export const SignoffReview = ({
             artifactId={selectedArtifact.id}
             materialState={materialStateForArtifact(selectedArtifact)}
             historicalArtifact={selectedArtifact}
-            embeddedReadOnly={packageStale}
+            embeddedReadOnly={packageStale || packageSuperseded}
             onOpenArtifactEvidence={onOpenArtifactEvidence}
             onContextDocumentChange={onContextDocumentChange}
           />
@@ -296,12 +298,12 @@ export const SignoffReview = ({
     return (
       <div data-testid="review-workspace">
         <WorkbenchState kind="empty" title="Signed task is no longer available"
-          action={<WorkbenchAction label="Back to Approval" onClick={() => selectDetail()} />} />
+          action={<><WorkbenchAction label="Back to Approval" onClick={() => selectDetail()} />{reviewAction}</>} />
       </div>
     );
   }
 
-  const taskItems = (currentApproval ? currentTasks : tasks).map((task, index) => ({
+  const taskItems = (prospectiveSelection ? currentTasks : tasks).map((task, index) => ({
     id: "task:" + task.id,
     label: task.objective,
     detail:
@@ -335,7 +337,14 @@ export const SignoffReview = ({
     ),
   }));
 
-  const verdict = packageStale
+  const verdict = packageSuperseded
+    ? {
+      label: "Inspected package is no longer current",
+      description: "This historical package is read-only. Return to the current work to review a replacement.",
+      tone: "warning" as const,
+      currentness: "Historical package",
+    }
+    : packageStale
     ? {
       label: "Package stale",
       description: "Sign-off is unavailable while ownership returns upstream.",
@@ -406,7 +415,7 @@ export const SignoffReview = ({
       ? [
         {
           id: "tasks",
-          title: currentApproval ? "Signed tasks" : "Approved tasks",
+          title: packageSuperseded ? "Historical proposed tasks" : currentApproval ? "Signed tasks" : "Approved tasks",
           content: taskItems.length === 1 ? (
             <>
               <WorkbenchFacts label="Signed task" items={[
@@ -428,7 +437,7 @@ export const SignoffReview = ({
           content: (
             <WorkbenchResourceList
               items={documentItems}
-              empty={<WorkbenchState kind="empty" title="No package documents" />}
+              empty={<WorkbenchState kind="empty" title={packageSuperseded ? "Exact historical package documents unavailable" : "No package documents"} />}
             />
           ),
         },

@@ -6715,6 +6715,48 @@ test("Readiness keeps verdict and findings primary while subordinate material ch
   await expect(page.getByRole("button", { name: "Sign off exact package" })).toHaveCount(0);
 });
 
+test("Approval retains the inspected package when a different prospective hash is observed", async ({ page, request }) => {
+  await authenticate(page, request);
+  await openWorkItem(page, "Awaiting sign-off");
+  const review = page.getByTestId("review-workspace");
+  await expect(review.getByTestId("review-verdict")).toContainText("Ready for sign-off");
+  await review.getByRole("button", { name: "View task 1", exact: true }).click();
+  await page.getByLabel("Approved by").fill("old-package-operator");
+  await page.getByRole("button", { name: "Context", exact: true }).click();
+  const hash = page.getByTestId("context-signoff-package-hash");
+  await expect(hash).toHaveText(/^sha256:[0-9a-f]{64}$/);
+  const originalHash = (await hash.textContent())!;
+  await page.getByRole("button", { name: "Close context", exact: true }).click();
+  const item = await workItemForTitle(page, "Awaiting sign-off");
+  const packagePath = "/api/work-items/" + item.id + "/signoff-package";
+  const replacementHash = "sha256:" + (originalHash === "sha256:" + "b".repeat(64) ? "c" : "b").repeat(64);
+  const originalClosure = await page.context().request.get(packagePath + "/artifacts?expectedPackageHash=" + encodeURIComponent(originalHash));
+  expect(originalClosure.ok()).toBe(true);
+  const members = await originalClosure.json();
+  await page.route("**" + packagePath, async route => {
+    const response = await route.fetch();
+    const body = await response.json();
+    await route.fulfill({ response, json: { ...body, packageHash: replacementHash } });
+  });
+  await page.route("**" + packagePath + "/artifacts?**", async route => {
+    if (new URL(route.request().url()).searchParams.get("expectedPackageHash") === replacementHash) {
+      await route.fulfill({ json: members });
+    } else {
+      await route.continue();
+    }
+  });
+  // Opening Context mounts another observer of the current package query.
+  await page.getByRole("button", { name: "Context", exact: true }).click();
+  await expect(review.getByTestId("review-verdict")).toContainText("Inspected package is no longer current");
+  await expect(review).toContainText("Prove the browser candidate surface");
+  await expect(hash).toHaveText(originalHash);
+  await expect(review.getByRole("button", { name: "Sign off exact package" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Close context", exact: true }).click();
+  await review.getByRole("button", { name: "Return to Approval", exact: true }).click();
+  await expect(review.getByTestId("review-verdict")).toContainText("Ready for sign-off");
+  await expect(page.getByLabel("Approved by")).toHaveValue("");
+});
+
 test("proposal decisions are primary, mutation-safe, and Approval keeps sign-off attached to selected material", async ({
   page,
   request,
