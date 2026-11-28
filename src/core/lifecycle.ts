@@ -356,7 +356,7 @@ export const transitionWorkItem = (
       if (workItem.stage !== "EXECUTION") {
         throw new TypeError("EXECUTION_COMPLETED requires EXECUTION owner");
       }
-      return lifecycleTuple("COMPLETE", "COMPLETE", cause.outcome);
+      return cause.outcome === "CANDIDATE_DONE" ? lifecycleTuple("AWAITING_ACCEPTANCE", "ACTIVE", null) : lifecycleTuple("COMPLETE", "COMPLETE", cause.outcome);
     case "QA_REVIEW_STARTED":
       if (workItem.stage !== "AWAITING_ACCEPTANCE" || workItem.status !== "ACTIVE") throw new TypeError("QA_REVIEW_STARTED requires active Acceptance");
       return lifecycleTuple("EXECUTION", "ACTIVE", null);
@@ -1532,6 +1532,26 @@ export const linkedSubmission = (
   }
 };
 
+export const initialCandidateMembers = (
+  approval: Approval, signedTasks: readonly ExecutionTask[], runs: readonly Run[], events: readonly RunEvent[],
+  history: readonly CandidateReviewEvent[],
+): CandidateMembers => {
+  if(signedTasks.length===0||signedTasks.some(task=>task.approvalId!==approval.id)||new Set(signedTasks.map(task=>task.id)).size!==signedTasks.length) throw new TypeError("exact signed candidate tasks required");
+  const originals = signedTasks.map(task => {
+    const taskRuns = executionTaskRuns(task.id, runs);
+    const original = requireUnique(events.filter(event => {
+      if (event.event.tag !== "TASK_ALREADY_SATISFIED" && event.event.tag !== "CANDIDATE_RECORDED") return false;
+      const run = taskRuns.find(value => value.id === event.runId);
+      return run !== undefined && run.status === "COMPLETED" && linkedSubmission(run, runs, events, history) === null;
+    }), "original signed candidate member missing or ambiguous");
+    return admittedCandidateMember(approval, signedTasks, runs, events, original.id);
+  });
+  if (originals.every(([, eventId]) => events.find(event => event.id === eventId)?.event.tag === "TASK_ALREADY_SATISFIED")) {
+    throw new TypeError("all-no-op execution cannot open Acceptance");
+  }
+  return orderedCandidateMembers(originals);
+};
+
 // The caller hashes the canonical JSON with the existing shell adapter,
 // then supplies those exact round hashes to the separate pure comparison.
 export const reconstructCandidateRounds = (
@@ -1547,19 +1567,7 @@ export const reconstructCandidateRounds = (
   if (opened?.event.tag !== "OPENED" || ordered.filter(value => value.event.tag === "OPENED").length !== 1) {
     throw new TypeError("candidate review requires exactly one initial OPENED event");
   }
-  const originals = signedTasks.map(task => {
-    const taskRuns = executionTaskRuns(task.id, runs);
-    const original = requireUnique(events.filter(event => {
-      if (event.event.tag !== "TASK_ALREADY_SATISFIED" && event.event.tag !== "CANDIDATE_RECORDED") return false;
-      const run = taskRuns.find(value => value.id === event.runId);
-      return run !== undefined && run.status === "COMPLETED" && linkedSubmission(run, runs, events, ordered) === null;
-    }), "original signed candidate member missing or ambiguous");
-    return admittedCandidateMember(approval, signedTasks, runs, events, original.id);
-  });
-  if (originals.every(([, eventId]) => events.find(event => event.id === eventId)?.event.tag === "TASK_ALREADY_SATISFIED")) {
-    throw new TypeError("all-no-op execution cannot open Acceptance");
-  }
-  let members = orderedCandidateMembers(originals);
+  let members = initialCandidateMembers(approval, signedTasks, runs, events, ordered);
   const rounds = new Map<CandidateReviewEventId, CandidateMembers>([[opened.id, members]]);
   for (const entry of ordered) {
     if (entry.event.tag !== "REVIEW_COMPLETED") continue;

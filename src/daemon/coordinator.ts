@@ -29,6 +29,7 @@ import {
   candidateFindingActionIsAdmitted,
   candidateSubmitIsAdmitted,
   deriveAcceptanceDecision,
+  linkedSubmission,
   artifactReturnOwner,
   stageRunCancellationIsAdmitted,
   transitionWorkItem,
@@ -54,6 +55,7 @@ import {
 } from "../shell/runtime.ts";
 import {
   loadRunningRuns,
+  loadCandidateReviewEvents,
   blockExecutionTasksForApproval,
   storeCandidateReviewEvent,
   loadWorkItems,
@@ -545,7 +547,11 @@ const resumeWorkItemUnlocked = async (
     const transition = transitionWorkItem(current, {
       tag: "RESUME_CURRENT_OWNER",
     });
-    markTaskState(runtime, task.id, "TODO");
+    const history=loadCandidateReviewEvents(runtime.database,approval.id);
+    const runs=listRuns(runtime,current.id);
+    const last=runs.filter(run=>run.executionTaskId===task.id).sort((left,right)=>right.attempt-left.attempt)[0];
+    const qa=last!==undefined&&history.length>0&&linkedSubmission(last,runs,runs.flatMap(run=>listRunEvents(runtime,run.id)),history)!==null;
+    markTaskState(runtime, task.id, qa?"RUNNING":"TODO");
     updateWorkItemLifecycle(runtime.database, current.id, transition);
     return getWorkItem(runtime, current.id);
   });

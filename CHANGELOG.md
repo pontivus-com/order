@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Activate the canonical candidate/no-op aggregate, atomic review opening/return and exact queued correction admission on the isolated cutover branch.
+
 - Stage native QA human commands and isolated manual-test-copy admission using exact current proof and existing transaction/lifecycle owners.
 
 - Add the canonical Acceptance stage and exact historical/current review-event observation, with non-mutating evidence reads and typed source/proof diagnostics (IA35/IA37 staging).
