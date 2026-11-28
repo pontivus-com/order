@@ -163,7 +163,7 @@ export type WorkflowMaterial =
       runId: Run["id"] | null;
     }>
   | Readonly<{ kind: "EVIDENCE"; selection: EvidenceSelection }>
-  | Readonly<{ kind: "ACCEPTANCE_REVIEW"; approvalId?: Approval["id"]; roundId?: string }>
+  | Readonly<{ kind: "ACCEPTANCE_REVIEW"; approvalId?: Approval["id"]; roundId?: string; findingId?: string }>
   | Readonly<{ kind: "TERMINAL_RESULT" }>
   | Readonly<{ kind: "STEP_STATE" }>
   | Readonly<{ kind: "UNREACHED" }>;
@@ -288,7 +288,7 @@ export const workflowMaterialIdentity = (
     case "UNREACHED":
       return material.kind;
     case "ACCEPTANCE_REVIEW":
-      return [material.kind, material.approvalId ?? "current", material.roundId ?? "latest"].join(":");
+      return [material.kind, material.approvalId ?? "current", material.roundId ?? "latest", material.findingId ?? ""].join(":");
     case "APPROVAL_PACKAGE":
       return [material.kind,material.approvalId??material.packageHash??"unresolved",material.artifactId??"",material.taskId??""].join(":");
     case "STAGE_RUN":

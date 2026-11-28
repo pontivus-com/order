@@ -5,7 +5,7 @@ import { Selector } from "@astryxdesign/core/Selector";
 import { MultiSelector } from "@astryxdesign/core/MultiSelector";
 import { RadioList, RadioListItem } from "@astryxdesign/core/RadioList";
 import type { Approval, ArtifactRef, CandidateReviewEvent, RunEvent, WorkItem } from "../../src/core/contracts.ts";
-import { candidateFindingActionIsAdmitted, candidateFindingDispositions, candidateMemberActionIsAdmitted,
+import { candidateFindingActionIsAdmitted, candidateFindingDispositions, candidateMemberActionIsAdmitted, candidateEvidenceLineage,
   candidateSubmitIsAdmitted, deriveAcceptanceDecision, reconstructCandidateRounds } from "../../src/core/lifecycle.ts";
 import * as api from "./http.ts";
 import { invalidateWorkbenchMutation, workbenchQueryKeys } from "./query-keys.ts";
@@ -46,13 +46,17 @@ export const AcceptanceWorkspace = ({workItem,material,approvals,histories,histo
   const roundHistory=roundEntries(history);
   const latest=roundHistory.at(-1);
   const round=material.roundId===undefined?latest:roundHistory.find(entry=>entry.id===material.roundId);
-  const current=input.current && approval!==null && approval.id===input.approval?.id && round!==undefined && round.id===latest?.id;
-  const visibleHistory=round===undefined?[]:round.id===latest?.id?history:history.filter(entry=>entry.sequence<=round.sequence);
-  const [selectedFinding,setSelectedFinding]=useState<string|null>(null);
+  const current=input.current && approval!==null && approval.id===input.approval?.id && round!==undefined && round.id===latest?.id && material.roundId===undefined;
+  const nextRound=round===undefined?undefined:roundHistory.find(entry=>entry.sequence>round.sequence);
+  const visibleHistory=round===undefined?[]:nextRound===undefined?history:history.filter(entry=>entry.sequence<nextRound.sequence);
+  const selectedFinding=material.findingId??null;
+  const setSelectedFinding=(id:string|null)=>onSelectMaterial({...material,findingId:id??undefined});
   const [form,setForm]=useState<Readonly<{action:FormAction;approvalId:string;roundId:string;sequence:number;hash:string;decision:typeof decision}>|null>(null);
   const [taskId,setTaskId]=useState("");
   const [findingIds,setFindingIds]=useState<string[]>([]);
   const [criteria,setCriteria]=useState<string[]>([]);
+  const [evidenceIds,setEvidenceIds]=useState<string[]>([]);
+  const [followup,setFollowup]=useState("");
   const [actor,setActor]=useState("");
   const [expected,setExpected]=useState("");
   const [observed,setObserved]=useState("");
@@ -71,6 +75,7 @@ export const AcceptanceWorkspace = ({workItem,material,approvals,histories,histo
     enabled:approval!==null,retry:false,
   });
   const artifacts=approval?.id===input.approval?.id?signedArtifacts:artifactsQuery.data??[];
+  const followupsQuery=useQuery({queryKey:workbenchQueryKeys.workItems,queryFn:api.listWorkItems,enabled:form?.action==="WITHDRAW"});
   const tasks=input.tasks.filter(task=>task.approvalId===approval?.id);
   let members:readonly (readonly [string,string])[]=[];
   let dispositions:ReturnType<typeof candidateFindingDispositions>=new Map();
@@ -94,11 +99,20 @@ export const AcceptanceWorkspace = ({workItem,material,approvals,histories,histo
   const report=reports.find(entry=>entry.id===selectedFinding);
   const chosenTask=tasks.find(task=>task.id===taskId);
   const chosenReport=reports.find(entry=>entry.id===findingIds[0]);
+  const evidenceOptions=(id:string)=>{
+    const member=memberFor(id);
+    if(member===undefined)return [];
+    try {
+      const lineage=candidateEvidenceLineage(member,input.runs,input.runEvents);
+      return input.runEvents.filter(event=>lineage.has(event.runId)&&eventEvidence(event).length>0)
+        .map(event=>({value:event.id,label:eventEvidence(event).map(ref=>ref.relativePath).join(", ")}));
+    } catch {return [];}
+  };
   const sequence=history.at(-1)?.sequence??0;
   const open=(action:FormAction,memberTask="",finding="")=>{
     if(!current||approval===null||round===undefined)return;
     setForm({action,approvalId:approval.id,roundId:round.id,sequence,hash:round.event.candidateHash,decision});
-    setTaskId(memberTask);setFindingIds(finding?[finding]:[]);setCriteria([]);setActor("");setExpected("");setObserved("");
+    setTaskId(memberTask);setFindingIds(finding?[finding]:[]);setCriteria([]);setEvidenceIds([]);setFollowup("");setActor("");setExpected("");setObserved("");
     setReproduction("");setImpact("");setRationale("");setOutcome("");setConfirmed("");setFeedback(null);setCopyPath(null);
   };
   const stable=form!==null&&current&&form.approvalId===approval?.id&&form.roundId===round?.id&&form.sequence===sequence&&form.decision.tag===decision.tag&&input.coherent&&!pending;
@@ -120,11 +134,11 @@ export const AcceptanceWorkspace = ({workItem,material,approvals,histories,histo
     const human={...base,actor};
     try {
       switch(form.action){
-        case "REPORT": await api.reportCandidateFinding(workItem.id,approval.id,{...human,taskId,candidateEventId:memberFor(taskId)!.id,acceptanceRefs:criteria,expected,observed,reproduction,impact,evidence:[]});break;
+        case "REPORT": await api.reportCandidateFinding(workItem.id,approval.id,{...human,taskId,candidateEventId:memberFor(taskId)!.id,acceptanceRefs:criteria,expected,observed,reproduction,impact,evidence:evidenceIds});break;
         case "SUBMIT": await api.submitCandidateFindings(workItem.id,approval.id,{...human,findingIds});break;
         case "RETEST": if(outcome==="RESOLVED")await api.recordCandidateDisposition(workItem.id,approval.id,{...human,findingId:findingIds[0]!,outcome:"RESOLVED",rationale,followupWorkItemId:null,withdrawalAttestation:null});
-          else await api.recordCandidateRetestFailure(workItem.id,approval.id,{...human,findingId:findingIds[0]!,observed,rationale,evidence:[]});break;
-        case "WITHDRAW": await api.recordCandidateDisposition(workItem.id,approval.id,{...human,findingId:findingIds[0]!,outcome:"WITHDRAWN",rationale,followupWorkItemId:null,withdrawalAttestation:"NOT_A_KNOWN_UNMET_OBLIGATION"});break;
+          else await api.recordCandidateRetestFailure(workItem.id,approval.id,{...human,findingId:findingIds[0]!,observed,rationale,evidence:evidenceIds});break;
+        case "WITHDRAW": await api.recordCandidateDisposition(workItem.id,approval.id,{...human,findingId:findingIds[0]!,outcome:"WITHDRAWN",rationale,followupWorkItemId:followup||null,withdrawalAttestation:"NOT_A_KNOWN_UNMET_OBLIGATION"});break;
         case "RETURN": if(form.decision.tag==="REANALYSE_NO_OP")await api.requestCandidateReanalysis(workItem.id,approval.id,{...human,reason:"NO_OP_CHALLENGE",owner:"PLAN",findingIds:form.decision.findingIds,rationale});
           else await api.requestCandidateReanalysis(workItem.id,approval.id,{...human,expectedCandidateHash:null,reason:"CANDIDATE_PROOF_UNAVAILABLE",owner:"PLAN",findingIds:[],rationale});break;
         case "ACCEPT": await api.acceptCandidate(workItem.id,approval.id,human);break;
@@ -149,6 +163,34 @@ export const AcceptanceWorkspace = ({workItem,material,approvals,histories,histo
     id:event.id+":"+ref.relativePath,label:ref.relativePath,detail:ref.mediaType,
     action:<WorkbenchAction label="View evidence" onClick={()=>onOpenEvidence({kind:"EVIDENCE",runId:event.runId,relativePath:ref.relativePath})}/>
   })));
+  const findingDetails=(entry:ReturnType<typeof reportEntries>[number],inspect=true)=>{
+    const retest=visibleHistory.findLast(value=>value.event.tag==="RETEST_FAILED"&&value.event.findingId===entry.id);
+    const disposition=visibleHistory.findLast(value=>value.event.tag==="DISPOSITION"&&value.event.findingId===entry.id);
+    const completed=visibleHistory.findLast(value=>{
+      const event=value.event;
+      return event.tag==="REVIEW_COMPLETED"&&visibleHistory.some(sub=>sub.id===event.submissionId&&sub.event.tag==="SUBMIT"&&sub.event.findingIds.includes(entry.id));
+    });
+    const completedId=completed?.event.tag==="REVIEW_COMPLETED"?completed.event.candidateEventId:null;
+    const completedMember=input.runEvents.find(value=>value.id===completedId);
+    const review=completedMember===undefined?undefined:input.runEvents.find(value=>value.runId===completedMember.runId&&value.event.tag==="REVIEW_PASSED");
+    const assessment=review?.event.tag==="REVIEW_PASSED"?review.event.qaAssessments?.find(value=>value.findingId===entry.id):undefined;
+    return <>
+      <WorkbenchFacts items={[
+        {id:"expected",label:"Expected behavior",value:entry.event.expected},
+        {id:"observed",label:"Observed behavior",value:entry.event.observed},
+        {id:"reproduction",label:"Reproduction",value:entry.event.reproduction},
+        {id:"impact",label:"Impact",value:entry.event.impact},
+        {id:"criteria",label:"Linked criteria",value:entry.event.acceptanceRefs.join(", ")||"Not classified"},
+        {id:"assessment",label:completedMember!==undefined&&completedMember.id===memberFor(entry.event.taskId)?.id?"Independent assessment":"Historical assessment",
+          value:assessment===undefined?"No finding-specific assessment recorded.":assessment.verdict==="SATISFIED"?"Satisfied":assessment.verdict==="NOT_REPRODUCED"?"Not reproduced":assessment.verdict==="UPSTREAM"?"Upstream authority":"Repair required"},
+        ...(assessment===undefined?[]:[{id:"assessment-rationale",label:"Assessment rationale",value:assessment.rationale}]),
+        ...(retest?.event.tag==="RETEST_FAILED"?[{id:"retest-observed",label:"Retest observation",value:retest.event.observed},{id:"retest-rationale",label:"Retest rationale",value:retest.event.rationale}]:[]),
+        ...(disposition?.event.tag==="DISPOSITION"?[{id:"disposition",label:dispositions.get(entry.id)==="DISPOSED"?"Human disposition":"Prior human disposition",value:(disposition.event.outcome==="RESOLVED"?"Resolved":"Withdrawn")+" · "+disposition.actor+" · "+new Date(disposition.occurredAt).toLocaleString()},{id:"disposition-rationale",label:"Disposition rationale",value:disposition.event.rationale}]:[]),
+      ]}/>
+      {inspect?<WorkbenchResourceList items={evidenceActions(input.runEvents.filter(event=>entry.event.evidence.includes(event.id)||(retest?.event.tag==="RETEST_FAILED"&&retest.event.evidence.includes(event.id))))}/>:null}
+      {inspect&&assessment!==undefined&&review!==undefined?<WorkbenchResourceList items={assessment.evidence.map(ref=>({id:review.id+":"+ref.relativePath,label:"Independent assessment evidence",action:<WorkbenchAction label="View evidence" onClick={()=>onOpenEvidence({kind:"EVIDENCE",runId:review.runId,relativePath:ref.relativePath})}/> }))}/>:null}
+    </>;
+  };
   const verdict:WorkbenchReviewProps["verdict"]=(()=>{
     if(historyPending)return {label:"Loading current review",tone:"info",description:"Please wait."};
     if(historyError!=null||feedback!==null&&form===null)return {label:"Review could not be updated",tone:"danger",description:"Reinspect current evidence."};
@@ -180,23 +222,26 @@ export const AcceptanceWorkspace = ({workItem,material,approvals,histories,histo
   const affirmation=(label:string)=><RadioList label={label} value={confirmed} onChange={setConfirmed} isRequired><RadioListItem value="yes" label="I confirm"/></RadioList>;
   const taskOptions=tasks.filter(task=>form?.action==="REPORT"?actionAllowed("REPORT",task.id):eligibleReports.some(entry=>entry.event.taskId===task.id)).map(task=>({value:task.id,label:task.objective}));
   const formBody=form===null?null:copyPath!==null?<WorkbenchFacts items={[{id:"copy",label:"Local checkout path",value:copyPath}]}/>:<>
-    {form.action==="REPORT"||form.action==="SUBMIT"?choice("Task",taskId,value=>{setTaskId(value);setFindingIds([]);setCriteria([]);},taskOptions):null}
+    {form.action==="REPORT"||form.action==="SUBMIT"?choice("Task",taskId,value=>{setTaskId(value);setFindingIds([]);setCriteria([]);setEvidenceIds([]);},taskOptions):null}
     {form.action==="REPORT"?<>
       <MultiSelector label="Acceptance criteria" options={[...(chosenTask?.acceptanceRefs??[])]} value={criteria} onChange={setCriteria} width="100%"/>
       {field("Expected behavior",expected,setExpected)}{field("Observed behavior",observed,setObserved)}
       {field("Reproduction",reproduction,setReproduction)}{field("Impact",impact,setImpact)}
+      <MultiSelector label="Supporting evidence" options={evidenceOptions(taskId)} value={evidenceIds} onChange={setEvidenceIds} width="100%"/>
     </>:null}
     {form.action==="SUBMIT"?<MultiSelector label="Findings" options={eligibleReports.filter(entry=>entry.event.taskId===taskId).map(entry=>({value:entry.id,label:entry.event.observed}))} value={findingIds} onChange={setFindingIds} width="100%"/>:null}
     {form.action==="RETEST"?<>
-      {choice("Finding",findingIds[0]??"",id=>setFindingIds([id]),reports.filter(entry=>findingAllowed("RETEST",entry.id)).map(entry=>({value:entry.id,label:entry.event.observed})))}
-      {chosenReport?<p>{chosenReport.event.expected}</p>:null}
-      <RadioList label="Retest outcome" value={outcome} onChange={setOutcome} isRequired><RadioListItem value="RESOLVED" label="Confirmed"/><RadioListItem value="FAILED" label="Defect still present"/></RadioList>
+      {choice("Finding",findingIds[0]??"",id=>{setFindingIds([id]);setEvidenceIds([]);},reports.filter(entry=>findingAllowed("RETEST",entry.id)).map(entry=>({value:entry.id,label:entry.event.observed})))}
+      {chosenReport?findingDetails(chosenReport,false):null}
+      <RadioList label="Retest outcome" value={outcome} onChange={setOutcome} isRequired><RadioListItem value="RESOLVED" label="Correction confirmed"/><RadioListItem value="FAILED" label="Defect still present"/></RadioList>
       {outcome==="FAILED"?field("Observed behavior",observed,setObserved):null}
     </>:null}
     {form.action==="RETEST"||form.action==="WITHDRAW"||form.action==="RETURN"?field("Rationale",rationale,setRationale):null}
-    {form.action==="WITHDRAW"?affirmation("Not a known unmet obligation"):null}
-    {form.action==="ACCEPT"?<><WorkbenchResourceList items={tasks.map(task=>({id:task.id,label:task.objective}))}/>{affirmation("Accept the exact verified candidate set")}</>:null}
-    {form.action==="COPY"?<p>Prepare an isolated local copy of the selected candidate. No delivery or overwrite is performed.</p>:field("Actor",actor,setActor)}
+    {form.action==="RETEST"&&outcome==="FAILED"?<MultiSelector label="Supporting evidence" options={evidenceOptions(chosenReport?.event.taskId??"")} value={evidenceIds} onChange={setEvidenceIds} width="100%"/>:null}
+    {form.action==="WITHDRAW"&&chosenReport?findingDetails(chosenReport,false):null}
+    {form.action==="WITHDRAW"?<>{affirmation("This is not a known unmet signed obligation")}<Selector label="Follow-up WorkItem" value={followup} onChange={setFollowup} options={[{value:"",label:"None"},...(followupsQuery.data??[]).filter(item=>item.projectId===workItem.projectId&&item.id!==workItem.id).map(item=>({value:item.id,label:item.title}))]} width="100%"/></>:null}
+    {form.action==="ACCEPT"?<><WorkbenchResourceList items={tasks.map(task=>({id:task.id,label:task.objective}))}/>{affirmation("No known unmet signed obligations")}</>:null}
+    {form.action==="COPY"?<p>Prepare an isolated local copy of the selected candidate. No delivery or overwrite is performed.</p>:field("Your name",actor,setActor)}
   </>;
   return <>
     <WorkbenchReview title="Acceptance" description="Review the exact verified candidate before human acceptance." verdict={verdict} sections={[
@@ -219,13 +264,12 @@ export const AcceptanceWorkspace = ({workItem,material,approvals,histories,histo
         meta:<WorkbenchStatus tone="neutral" label={dispositions.get(entry.id)==="DISPOSED"?"Disposed":dispositions.get(entry.id)==="RETEST_REQUIRED"?"Retest required":dispositions.get(entry.id)==="RETEST_FAILED"?"Retest failed":"Open"}/>,
         action:<WorkbenchAction label="Inspect finding" onClick={()=>setSelectedFinding(entry.id)}/> }))} empty={<p>No findings reported.</p>}/>:<>
         <WorkbenchAction label="Back to findings" onClick={()=>setSelectedFinding(null)}/>
-        <WorkbenchFacts items={[{id:"expected",label:"Expected behavior",value:report.event.expected},{id:"observed",label:"Observed behavior",value:report.event.observed},{id:"reproduction",label:"Reproduction",value:report.event.reproduction},{id:"impact",label:"Impact",value:report.event.impact},{id:"criteria",label:"Linked criteria",value:report.event.acceptanceRefs.join(", ")||"Not classified"}]}/>
-        <WorkbenchResourceList items={evidenceActions(input.runEvents.filter(event=>report.event.evidence.includes(event.id)))}/>
+        {findingDetails(report)}
         {findingAllowed("RETEST",report.id)?<WorkbenchAction label="Record retest" onClick={()=>open("RETEST","",report.id)}/>:null}
         {findingAllowed("WITHDRAW",report.id)?<WorkbenchAction label="Withdraw finding" onClick={()=>open("WITHDRAW","",report.id)}/>:null}
       </>}
       {tasks.some(task=>actionAllowed("REPORT",task.id))?<WorkbenchAction label="Report finding" onClick={()=>open("REPORT")}/>:null}</>},
-      {id:"history",title:"Review history",content:<WorkbenchResourceList items={approvals.flatMap(value=>roundEntries(histories.filter(entry=>entry.approvalId===value.id)).map((entry,index)=>({id:entry.id,label:"Review round "+(index+1),detail:new Date(entry.occurredAt).toLocaleString(),action:<WorkbenchAction label="Inspect round" onClick={()=>{setSelectedFinding(null);onSelectMaterial({kind:"ACCEPTANCE_REVIEW",approvalId:value.id,roundId:entry.id});}}/>})))} empty={<p>No correction rounds yet.</p>}/>}
+      {id:"history",title:"Review history",content:<WorkbenchResourceList items={approvals.flatMap(value=>roundEntries(histories.filter(entry=>entry.approvalId===value.id)).map((entry,index)=>({id:entry.id,label:"Review round "+(index+1),detail:new Date(entry.occurredAt).toLocaleString(),action:<WorkbenchAction label="Inspect round" onClick={()=>{onSelectMaterial({kind:"ACCEPTANCE_REVIEW",approvalId:value.id,roundId:entry.id});}}/>})))} empty={<p>No correction rounds yet.</p>}/>}
     ]} decisions={primaryAction()}/>
     <WorkbenchTaskPanel open={form!==null} title={form===null?"Acceptance":formTitles[form.action]} onOpenChange={next=>{if(!next&&!pending)setForm(null);}}
       body={formBody} feedback={feedback!==null?<WorkbenchNotice tone="danger" title={feedback}/>:form!==null&&!stable&&copyPath===null?<WorkbenchNotice tone="warning" title="Review identity must remain current."/>:undefined}

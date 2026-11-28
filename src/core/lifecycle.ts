@@ -1626,6 +1626,26 @@ export type AcceptanceDecision =
 
 type FindingDisposition = "OPEN" | "RETEST_REQUIRED" | "RETEST_FAILED" | "DISPOSED";
 
+export const candidateEvidenceLineage = (
+  member: RunEvent, runs: readonly Run[], runEvents: readonly RunEvent[],
+): ReadonlySet<Run["id"]> => {
+    const seen = new Set<Run["id"]>();
+    let cursor = requireUnique(runs.filter(run => run.id === member.runId), "member Run missing");
+    const taskId = cursor.executionTaskId;
+    const workItemId = cursor.workItemId;
+    for (;;) {
+      if (seen.has(cursor.id)) throw new TypeError("cyclic candidate evidence lineage");
+      seen.add(cursor.id);
+      if (cursor.triggerEventId === null) return seen;
+      const triggerId = cursor.triggerEventId;
+      const trigger = requireUnique(runEvents.filter(event => event.id === triggerId), "candidate lineage trigger missing");
+      const prior = requireUnique(runs.filter(run => run.id === trigger.runId), "candidate lineage Run missing");
+      if (prior.executionTaskId !== taskId || prior.workItemId !== workItemId || prior.baselineCommit !== cursor.baselineCommit ||
+          prior.attempt >= cursor.attempt) throw new TypeError("foreign candidate evidence lineage");
+      cursor = prior;
+    }
+};
+
 const foldCandidateReview = (
   history: readonly CandidateReviewEvent[], rounds: ReadonlyMap<CandidateReviewEventId, CandidateMembers>,
   tasks: readonly ExecutionTask[], runs: readonly Run[], runEvents: readonly RunEvent[],
@@ -1649,25 +1669,8 @@ const foldCandidateReview = (
     if (member === undefined) throw new TypeError("exact current member missing");
     return requireUnique(runEvents.filter(event => event.id === member[1]), "current member proof missing");
   };
-  const lineage = (member: RunEvent): ReadonlySet<Run["id"]> => {
-    const seen = new Set<Run["id"]>();
-    let cursor = requireUnique(runs.filter(run => run.id === member.runId), "member Run missing");
-    const taskId = cursor.executionTaskId;
-    const workItemId = cursor.workItemId;
-    for (;;) {
-      if (seen.has(cursor.id)) throw new TypeError("cyclic candidate evidence lineage");
-      seen.add(cursor.id);
-      if (cursor.triggerEventId === null) return seen;
-      const triggerId = cursor.triggerEventId;
-      const trigger = requireUnique(runEvents.filter(event => event.id === triggerId), "candidate lineage trigger missing");
-      const prior = requireUnique(runs.filter(run => run.id === trigger.runId), "candidate lineage Run missing");
-      if (prior.executionTaskId !== taskId || prior.workItemId !== workItemId || prior.baselineCommit !== cursor.baselineCommit ||
-          prior.attempt >= cursor.attempt) throw new TypeError("foreign candidate evidence lineage");
-      cursor = prior;
-    }
-  };
   const requireEvidence = (taskId: ExecutionTaskId, ids: readonly RunEventId[]): void => {
-    const allowed = lineage(currentMember(taskId));
+    const allowed = candidateEvidenceLineage(currentMember(taskId), runs, runEvents);
     for (const id of ids) {
       const evidence = requireUnique(runEvents.filter(event => event.id === id), "reported evidence event missing");
       if (!allowed.has(evidence.runId)) throw new TypeError("reported evidence outside exact candidate lineage");

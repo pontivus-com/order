@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+- Preserve exact selected Acceptance finding and historical round, expose original/independent/retest/disposition facts and admit optional evidence and same-project follow-up selection through canonical lineage.
+
 - Connect the browser to canonical Acceptance history, current proof and QA commands; retain signed-stage authoring locks and render exact final human acceptance provenance.
 
 - Stage exact Acceptance source/material recovery, bulk/startup reconciliation exclusion and signed source/title/archive/repository guards.
