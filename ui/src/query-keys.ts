@@ -49,7 +49,9 @@ export const workbenchQueryKeys = {
   observedSignoffPackage: (workItemId: WorkItemId, packageHash: Sha256) =>
     ["observedSignoffPackage", workItemId, packageHash] as const,
   signoffPackageArtifacts: (workItemId: WorkItemId, packageHash: Sha256 | null) =>
-    ["signoffPackage", workItemId, packageHash, "artifacts"] as const,
+    // Exact observed closure is independently keyed: invalidating the current
+    // package must not refetch a previously observed hash before its replacement.
+    ["signoffPackageArtifacts", workItemId, packageHash] as const,
   currentApproval: (workItemId: WorkItemId) =>
     ["currentApproval", workItemId] as const,
   approvals: (workItemId: WorkItemId) =>

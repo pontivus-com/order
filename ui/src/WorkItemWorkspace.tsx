@@ -222,14 +222,17 @@ export const WorkItemWorkspace = ({
     queryFn: () => api.getSignoffPackage(workItem.id),
     enabled: workItem.stage === "AWAITING_SIGNOFF",
   });
-  const packageHash = workItem.stage === "AWAITING_SIGNOFF" ? signoffPackageQuery.data?.packageHash ?? null : null;
+  // A cached package is inspection evidence, not a fresh current-package observation.
+  // Wait for the current identity before binding an unselected package or requesting its closure.
+  const packageHash = workItem.stage === "AWAITING_SIGNOFF" && signoffPackageQuery.isSuccess && !signoffPackageQuery.isFetching
+    ? signoffPackageQuery.data.packageHash : null;
   useEffect(() => {
-    if (!signoffPackageQuery.isSuccess || signoffPackageQuery.data === undefined) return;
+    if (!signoffPackageQuery.isSuccess || signoffPackageQuery.isFetching || signoffPackageQuery.data === undefined) return;
     const observed = signoffPackageQuery.data;
     // Retain the canonical response by exact identity for read-only inspection
     // after the current package changes. This cache never authorizes sign-off.
     queryClient.setQueryData(workbenchQueryKeys.observedSignoffPackage(workItem.id, observed.packageHash), observed);
-  }, [queryClient, workItem.id, signoffPackageQuery.data, signoffPackageQuery.isSuccess]);
+  }, [queryClient, workItem.id, signoffPackageQuery.data, signoffPackageQuery.isSuccess, signoffPackageQuery.isFetching]);
   const prospectiveArtifactsQuery = useQuery({
     queryKey: workbenchQueryKeys.signoffPackageArtifacts(workItem.id, packageHash),
     queryFn: () => {
