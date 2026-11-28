@@ -4914,7 +4914,7 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     await expect(report.getByLabel("Expected behavior")).toHaveValue("draft retained");
     await expect(report.getByRole("button",{name:"Open criterion",exact:true})).toBeFocused();
     await report.getByRole("button",{name:"Cancel",exact:true}).click();
-    await page.getByRole("dialog",{name:"Discard unsaved review form?"}).getByRole("button",{name:"Discard unsaved changes"}).click();
+    await page.getByRole("alertdialog",{name:"Discard unsaved review form?"}).getByRole("button",{name:"Discard unsaved changes"}).click();
     await expect(report).toHaveCount(0);
     await review.getByRole("button",{name:"Prepare test copy",exact:true}).click();
     const copy=page.getByRole("dialog",{name:"Prepare test copy",exact:true});
@@ -7638,7 +7638,14 @@ test("native Acceptance uses one exact current decision and historical round sta
   await expect(reportDialog.getByLabel("Expected behavior")).toHaveValue("draft retained");
   await expect(reportDialog.getByRole("button",{name:"Open criterion",exact:true})).toBeFocused();
   await reportDialog.getByRole("button",{name:"Cancel",exact:true}).click();
-  await page.getByRole("dialog",{name:"Discard unsaved review form?"}).getByRole("button",{name:"Discard unsaved changes"}).click();
+  const discard=page.getByRole("alertdialog",{name:"Discard unsaved review form?"});
+  await expect(discard).toBeVisible();
+  await expect(reportDialog).not.toBeVisible();
+  await discard.getByRole("button",{name:"Cancel",exact:true}).click();
+  await expect(reportDialog).toBeVisible();
+  await expect(reportDialog.getByLabel("Expected behavior")).toHaveValue("draft retained");
+  await reportDialog.getByRole("button",{name:"Cancel",exact:true}).click();
+  await discard.getByRole("button",{name:"Discard unsaved changes"}).click();
   await expect(reportDialog).toHaveCount(0);
   await workspace.getByRole("button",{name:"Inspect round",exact:true}).click();
   await expect(workspace.getByTestId("review-verdict")).toContainText("Historical review");
